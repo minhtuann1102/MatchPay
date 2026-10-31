@@ -52,8 +52,8 @@ US_REMOVED = [u for u in US_ALL if u not in US]
 N_ACTIVE = len(US)
 N_MUST, N_SHOULD = 20, 6
 W_MAX = 21
-D_MAX = 46  # D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46
-DF_MAX = 52  # DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults
+D_MAX = 66  # D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66
+DF_MAX = 60  # DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
 BR = ['BR-%02d' % n for n in range(1, 38)]
@@ -1006,8 +1006,188 @@ print('  data-show or data-hide names not in the wf-bar: %s; wf-bar states with 
 if unknown_state: fail('state name used in the page but not in the wf-bar')
 if dead_state: fail('wf-bar state with no effect')
 
+print('\n== CHECK 8: Step 5 database (DBML, ER diagrams, traceability) ==')
+DB = 'docs/05-database/'
+DB_FILES = ['README.md', '00-decisions.md', '01-data-model.md', '02-er-diagram.md']
+DBML_PATH = ROOT + '/' + DB + 'matchpay.dbml'
+GROUP_LEVEL = {'corporate_groups', 'group_sectors', 'entities'}  # no entity_id: the group and its entities (see 01-data-model.md, Entity isolation)
+missing_db = [f_ for f_ in DB_FILES if DB + f_ not in text] + ([] if os.path.exists(DBML_PATH) else ['matchpay.dbml'])
+print('  Step 5 files present (4 markdown files and matchpay.dbml): %s' % ('yes' if not missing_db else 'MISSING ' + str(missing_db)))
+if missing_db: fail('Step 5 files missing')
+else:
+    dbml = open(DBML_PATH, encoding='utf-8').read()
+    pg_ = bool(re.search(r"database_type:\s*'PostgreSQL'", dbml))
+    print('  database_type PostgreSQL declared:', 'yes' if pg_ else 'NO')
+    if not pg_: fail('DBML database_type')
+    # (a) parse tables, columns, notes, enums, groups, refs
+    db_tables = {}
+    for m_ in re.finditer(r'^Table (\w+) \{\n(.*?)^\}', dbml, re.S | re.M):
+        name_, body_ = m_.groups()
+        cols_ = {}
+        for l_ in body_.split('\n'):
+            mm_ = re.match(r'^  (\w+) ([\w()]+)(?: \[(.*)\])?$', l_)
+            if mm_ and mm_.group(1) not in ('indexes', 'checks', 'Note'):
+                cols_[mm_.group(1)] = {'type': mm_.group(2), 'settings': mm_.group(3) or ''}
+        db_tables[name_] = {'cols': cols_, 'note': bool(re.search(r"^  Note: '", body_, re.M)), 'body': body_}
+    db_enums = {}
+    for m_ in re.finditer(r'^Enum (\w+) \{\n(.*?)^\}', dbml, re.S | re.M):
+        db_enums[m_.group(1)] = [re.match(r'^\s+(\w+)', l_).group(1) for l_ in m_.group(2).split('\n') if re.match(r'^\s+\w+', l_)]
+    db_refs = []  # (table, column, op, table, column)
+    for m_ in re.finditer(r'^Ref: (\w+)\.(\w+) ([<>\-]) (\w+)\.(\w+)\s*$', dbml, re.M):
+        db_refs.append(m_.groups())
+    for tb_, d_ in db_tables.items():  # inline refs in column settings
+        for c_, cd_ in d_['cols'].items():
+            for m_ in re.finditer(r'ref:\s*([<>\-])\s*(\w+)\.(\w+)', cd_['settings']):
+                db_refs.append((tb_, c_, m_.group(1), m_.group(2), m_.group(3)))
+    db_groups = {}
+    for m_ in re.finditer(r'^TableGroup (\w+) \{\n(.*?)^\}', dbml, re.S | re.M):
+        db_groups[m_.group(1)] = [x_.strip() for x_ in m_.group(2).split('\n') if x_.strip()]
+    print('  DBML: %d tables, %d enums, %d refs, %d table groups' % (len(db_tables), len(db_enums), len(db_refs), len(db_groups)))
+    # (b) refs point to existing tables and columns
+    bad_ref = [r_ for r_ in db_refs if r_[0] not in db_tables or r_[3] not in db_tables or r_[1] not in db_tables[r_[0]]['cols'] or r_[4] not in db_tables[r_[3]]['cols']]
+    print('  refs that point to a missing table or column: %s' % (bad_ref or 'none'))
+    if bad_ref: fail('DBML ref target missing')
+    dup_ref = sorted({(r_[0], r_[1]) for r_ in db_refs if sum(1 for q_ in db_refs if q_[:2] == r_[:2]) > 1})
+    print('  columns with two refs: %s' % (dup_ref or 'none'))
+    if dup_ref: fail('column with two refs')
+    # (c) every table has a Note and belongs to exactly one table group
+    no_note = [n_ for n_, d_ in db_tables.items() if not d_['note']]
+    print('  tables without a Note: %s' % (no_note or 'none'))
+    if no_note: fail('table without Note')
+    in_groups = [x_ for g_ in db_groups.values() for x_ in g_]
+    ng_ = sorted(set(db_tables) - set(in_groups)); mg_ = sorted(set(in_groups) - set(db_tables)); dg_ = sorted({x_ for x_ in in_groups if in_groups.count(x_) > 1})
+    print('  tables in no group: %s; group members that are not tables: %s; tables in two groups: %s' % (ng_ or 'none', mg_ or 'none', dg_ or 'none'))
+    if ng_ or mg_ or dg_: fail('table groups')
+    # (d) names: no removed concept in a table or column name
+    forb = [(n_, c_) for n_, d_ in db_tables.items() for c_ in [n_] + list(d_['cols']) if re.search(r'foreign|pdf|cash|payment_method', c_)]
+    print('  table or column names that contain foreign, pdf, cash, or payment_method (D-33): %s' % (forb or 'none'))
+    if forb: fail('removed concept in a table or column name')
+    # (e) entity isolation: every business table has entity_id that refers to entities.id; group-level tables are listed
+    no_ent = [n_ for n_, d_ in db_tables.items() if n_ not in GROUP_LEVEL and 'entity_id' not in d_['cols']]
+    bad_grp = [n_ for n_ in GROUP_LEVEL if n_ not in db_tables or 'entity_id' in db_tables[n_]['cols']]
+    ent_refs_ = {(r_[0], r_[1]) for r_ in db_refs if r_[3] == 'entities' and r_[4] == 'id'}
+    ent_ref = [n_ for n_, d_ in db_tables.items() if 'entity_id' in d_['cols'] and (n_, 'entity_id') not in ent_refs_]
+    print('  business tables without entity_id (group-level tables %s are listed): %s; group-level tables that have one: %s; entity_id without a ref to entities.id: %s' % (sorted(GROUP_LEVEL), no_ent or 'none', bad_grp or 'none', ent_ref or 'none'))
+    if no_ent or bad_grp or ent_ref: fail('entity_id coverage')
+    # (f) every identifier column and every who-column has a ref
+    ref_cols = {(r_[0], r_[1]) for r_ in db_refs}
+    SOFT = {('audit_log', 'subject_id'), ('request_signatures', 'signing_action_id'), ('audit_log', 'correlation_id')}
+    no_fk = [(n_, c_) for n_, d_ in db_tables.items() for c_ in d_['cols'] if c_ != 'id' and (c_.endswith('_id') or c_.endswith('_by')) and (n_, c_) not in ref_cols and (n_, c_) not in SOFT]
+    print('  columns that end in _id or _by without a ref (allowed: %s): %s' % (sorted(SOFT), no_fk or 'none'))
+    if no_fk: fail('identifier column without ref')
+    # (g) enum values of the lifecycle states equal the state names of BR-33, BR-34, BR-35
+    brt = text['docs/requirements/business-rules.md']
+    def states_of(sec_):
+        return [re.sub(r'[^A-Z]+', '_', m_.group(1).upper()).strip('_') for m_ in re.finditer(r'^\s*state "([^"]+)" as \w+', sec_, re.M)]
+    s33 = brt[brt.index('## BR-33'):brt.index('## BR-34')]
+    s34 = brt[brt.index('## BR-34'):brt.index('## BR-35')]
+    s35 = brt[brt.index('## BR-35'):brt.index('## BR-36')]
+    diag35 = re.findall(r'```mermaid\n(.*?)```', s35, re.S)
+    lifecycle = {'invoice_state': states_of(s33), 'exception_state': states_of(s34), 'batch_state': states_of(diag35[0]), 'request_state': states_of(diag35[1])}
+    for en_, st_ in lifecycle.items():
+        ok_ = sorted(db_enums.get(en_, [])) == sorted(st_) and len(st_) > 0
+        print('  enum %s equals the states of the rule (%d): %s' % (en_, len(st_), 'yes' if ok_ else 'NO: dbml %s, rule %s' % (db_enums.get(en_), st_)))
+        if not ok_: fail('lifecycle enum ' + en_)
+    removed_state = [(e_, v_) for e_, vs_ in db_enums.items() for v_ in vs_ if 'FIELD_CONFIRMATION' in v_]
+    print('  removed state Awaiting Field Confirmation present in an enum: %s' % (removed_state or 'none'))
+    if removed_state: fail('removed state in an enum')
+    unused_enum = [e_ for e_ in db_enums if not any(c_['type'] == e_ for d_ in db_tables.values() for c_ in d_['cols'].values())]
+    print('  enums used by no column: %s' % (unused_enum or 'none'))
+    if unused_enum: fail('unused enum')
+    sql_types_ = {'bigint', 'integer', 'smallint', 'varchar', 'char', 'text', 'numeric', 'boolean', 'date', 'timestamptz', 'bytea', 'uuid', 'jsonb'}
+    bad_type = sorted({c_['type'] for d_ in db_tables.values() for c_ in d_['cols'].values() if re.sub(r'\(.*\)', '', c_['type']) not in db_enums and re.sub(r'\(.*\)', '', c_['type']) not in sql_types_})
+    print('  column types that are neither an enum nor a known SQL type: %s' % (bad_type or 'none'))
+    if bad_type: fail('unknown column type')
+    # (h) ER diagrams: entities, relationships, coverage
+    er = text[DB + '02-er-diagram.md']
+    er_blocks = [b_ for b_ in re.findall(r'```mermaid\n(.*?)```', er, re.S) if b_.lstrip().startswith('erDiagram')]
+    er_ents, er_rels = set(), []
+    for b_ in er_blocks:
+        for l_ in b_.split('\n'):
+            m_ = re.match(r'^\s*(\w+)\s*\{\s*$', l_)
+            if m_: er_ents.add(m_.group(1))
+            m_ = re.match(r'^\s*(\w+)\s+[|o}{]{2}--[|o}{]{2}\s+(\w+)\s*:', l_)
+            if m_: er_rels.append((m_.group(1), m_.group(2))); er_ents.update([m_.group(1), m_.group(2)])
+    print('  ER blocks: %d; entities: %d; relationships: %d' % (len(er_blocks), len(er_ents), len(er_rels)))
+    ghost = sorted(er_ents - set(db_tables))
+    undrawn = sorted(set(db_tables) - er_ents)
+    print('  ER entities that are not DBML tables: %s; DBML tables in no ER block: %s' % (ghost or 'none', undrawn or 'none'))
+    if ghost: fail('ER entity not in DBML')
+    if undrawn: fail('DBML table in no ER block')
+    pairs_db = {frozenset((r_[0], r_[3])) for r_ in db_refs}
+    bad_rel = sorted({tuple(sorted(r_)) for r_ in er_rels if frozenset(r_) not in pairs_db})
+    print('  ER relationships whose pair of tables has no DBML ref: %s' % (bad_rel or 'none'))
+    if bad_rel: fail('ER relationship without DBML ref')
+    pairs_er = {frozenset(r_) for r_ in er_rels}
+    undrawn_ref = sorted({tuple(sorted((r_[0], r_[3]))) for r_ in db_refs if r_[3] not in ('entities', 'users') and frozenset((r_[0], r_[3])) not in pairs_er})
+    print('  DBML refs (other than to entities and users) whose pair is in no ER block: %s' % (undrawn_ref or 'none'))
+    if undrawn_ref: fail('DBML ref not drawn')
+    # (i) the enum table in the ER file lists every enum with the same values
+    er_enum_rows = {m_.group(1): [v_.strip() for v_ in m_.group(2).split(',')] for m_ in re.finditer(r'^\| `(\w+)` \| ([A-Z_, ]+) \|', er, re.M)}
+    bad_enum_row = [e_ for e_ in db_enums if er_enum_rows.get(e_) != db_enums[e_]]
+    print('  enums missing from the enum table of 02-er-diagram.md or with other values: %s' % (bad_enum_row or 'none'))
+    if bad_enum_row: fail('enum table differs from DBML')
+    # (j) traceability: Database column
+    mt = text['docs/traceability/master-traceability.md']
+    tr_bad, tr_cnt, tr_rows = [], 0, {}
+    for l_ in mt.split('\n'):
+        m_ = re.match(r'^\| (US-\d\d) \|(.*)\|\s*$', l_)
+        if not m_: continue
+        cells_ = [c_.strip() for c_ in ('| ' + m_.group(1) + ' |' + m_.group(2)).strip().strip('|').split('|')]
+        if len(cells_) != 9: tr_bad.append((m_.group(1), 'cells')); continue
+        dbc_ = cells_[6]
+        if m_.group(1) in US_REMOVED:
+            if dbc_ != '—': tr_bad.append((m_.group(1), 'removed row must keep a dash'))
+            continue
+        tr_cnt += 1
+        names_ = [x_.strip() for x_ in dbc_.split(',')]
+        tr_rows[m_.group(1)] = names_
+        if 'TBD' in dbc_ or not names_ or names_ == ['']: tr_bad.append((m_.group(1), 'TBD or empty'))
+        unk_ = [x_ for x_ in names_ if x_ not in db_tables]
+        if unk_: tr_bad.append((m_.group(1), 'unknown table ' + str(unk_)))
+    print('  active stories with a Database cell of existing tables (%d expected): %d; problems: %s' % (N_ACTIVE, tr_cnt, tr_bad or 'none'))
+    if tr_cnt != N_ACTIVE or tr_bad: fail('traceability Database column')
+    dm_ = text[DB + '01-data-model.md']
+    dm_sec = dm_[dm_.index('## Stories and their tables'):dm_.index('## Not modelled')]
+    dm_rows = {m_.group(1): re.findall(r'`(\w+)`', m_.group(2)) for m_ in re.finditer(r'^\| (US-\d\d) \| (.*) \|$', dm_sec, re.M)}
+    diff_ = [u_ for u_ in tr_rows if dm_rows.get(u_) != tr_rows[u_]] + [u_ for u_ in dm_rows if u_ not in tr_rows]
+    print('  stories whose tables differ between the traceability matrix and the data model: %s' % (diff_ or 'none'))
+    if diff_: fail('traceability and data model disagree')
+    unused_t = sorted(set(db_tables) - {x_ for v_ in tr_rows.values() for x_ in v_})
+    print('  tables that no active story names: %s' % (unused_t or 'none'))
+    if unused_t: fail('table that no story uses')
+    # (k) headers and Related lines
+    h8 = []
+    for f_ in DB_FILES:
+        t_ = text.get(DB + f_, '')
+        if '> Design status: MVP — Step 5 of 9, draft for review\n>\n> Implementation status: NOT STARTED' not in t_: h8.append((f_, 'header'))
+        if not re.search(r'^\*\*Related:\*\*', t_, re.M): h8.append((f_, 'Related line'))
+    print('  Step 5 files with the "draft for review" header and a Related line: %s' % ('all 4' if not h8 else h8))
+    if h8: fail('Step 5 headers')
+    # (l) decisions D-47..D-66 and DF-53..DF-60 exist and await review
+    dec5 = text[DB + '00-decisions.md']
+    st8 = []
+    for i_ in ['D-%d' % n_ for n_ in range(47, 67)] + ['DF-%d' % n_ for n_ in range(53, 61)]:
+        r_ = row(dec5, i_)
+        if not r_: st8.append((i_, 'missing')); continue
+        if r_.strip().strip('|').split('|')[-1].strip() != 'Awaiting user review': st8.append((i_, 'status'))
+    print('  Step 5 decisions D-47..D-66 and defaults DF-53..DF-60 present and awaiting user review: %s' % ('yes' if not st8 else st8))
+    if st8: fail('Step 5 decision rows')
+    approved_claim = [f_ for f_ in DB_FILES if re.search(r'Approved with Step 5|Step 5 of 9, approved', text.get(DB + f_, ''))]
+    print('  Step 5 text that calls itself approved: %s' % (approved_claim or 'none'))
+    if approved_claim: fail('Step 5 labelled approved')
+    # (m) counts stated in the prose equal the DBML
+    cnt_bad = []
+    for f_, t_ in text.items():
+        if f_.startswith('docs/05-database/') or f_ in ('docs/handoff/session-handoff.md', 'README.md'):
+            for pat_, n_ in ((r'\b(\d+) tables\b', len(db_tables)), (r'\b(\d+) enums\b', len(db_enums)), (r'\b(\d+) foreign keys\b', len(db_refs))):
+                for m_ in re.finditer(pat_, t_):
+                    if int(m_.group(1)) != n_: cnt_bad.append((f_, m_.group(0)))
+    print('  counts of tables, enums, and foreign keys in the prose that differ from the DBML: %s' % (cnt_bad or 'none'))
+    if cnt_bad: fail('table count in prose')
+
 print('\n== CHECK: README Mermaid blocks match their source documents ==')
-_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None}
+_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None, 'docs/05-database/02-er-diagram.md': None}
 _pool = []
 for _p in _src:
     _pool += re.findall(r'```mermaid\n(.*?)```', open(_p, encoding='utf-8').read(), re.S)

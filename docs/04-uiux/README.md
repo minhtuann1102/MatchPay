@@ -14,4 +14,4 @@ Step 4 turns the [information architecture](../03-information-architecture/READM
 | [wireframes/index.html](wireframes/index.html) | Gallery: open every page and switch states and roles. Open it in a browser from a local clone; GitHub shows `.html` files as source code. |
 | [`../images/`](../images/) | PNG exports by role: `common/`, `ap-accountant/`, `chief-accountant/`, `payment-approver/`, `entity-admin/`, `group-admin/`, `demo-operator/` |
 
-**Related:** [README](../../README.md) · [Previous: Information architecture](../03-information-architecture/README.md) · [Master traceability](../traceability/master-traceability.md)
+**Related:** [README](../../README.md) · [Previous: Information architecture](../03-information-architecture/README.md) · [Next: Database](../05-database/README.md) · [Master traceability](../traceability/master-traceability.md)

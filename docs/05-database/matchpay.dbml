@@ -1,0 +1,2331 @@
+Project matchpay {
+  database_type: 'PostgreSQL'
+  Note: '''
+    MatchPay: a shared platform for a group of legal entities. The AI reads and matches incoming
+    XML e-invoices, the Rule Engine admits clean ones to a payment batch, and authorised people
+    sign consolidated payment requests. Step 5 of 9, logical schema, draft for review.
+    PostgreSQL is assumed here and confirmed in Step 7 (D-47).
+
+    Every business table carries entity_id (BR-09, G-06). Group-level tables (corporate_groups,
+    group_sectors, entities) and the audit log (entity_id is NULL for group events) are the only
+    exceptions, listed in the data model. The server derives the entity from the session and never
+    from a request. SQL adds what DBML cannot express: partial unique indexes (shown as indexes
+    with a note), composite foreign keys (entity_id, parent_id) so a child can never point to a
+    parent of another entity (D-48), and the append-only rules of audit_log (D-55).
+
+    Nothing is deleted: users are deactivated, tiers and profiles made inactive, invoices end in a
+    final state. Derived values (dashboard rates, badges, accuracy, due soon) are computed when
+    read and not stored, except the columns listed in the data model under "Stored although derivable".
+
+    Not modelled here: login sessions and tokens, file storage beyond the XML original, the master
+    data of the ERP simulator (seed files), server configuration (sync interval, retry counts,
+    thresholds such as 0.90 and 98%), foreign invoices, PDF intake, foreign tax duties, payment
+    method, and the cash flag (all removed by D-33, Advanced W-19..W-21), and SQL migrations (Step 9).
+  '''
+}
+
+// ───────── Enums ─────────
+
+Enum user_role {
+  AP_ACCOUNTANT
+  CHIEF_ACCOUNTANT
+  PAYMENT_APPROVER
+  ENTITY_ADMIN
+  GROUP_ADMIN [note: 'Belongs to the group, not to one entity (DF-14)']
+  DEMO_OPERATOR [note: 'Demo only (D-12); belongs to the group and picks the entity in SCR-80']
+}
+
+Enum user_status {
+  ACTIVE
+  DEACTIVATED [note: 'No login; earlier decisions and signatures stay (AC-02.5)']
+}
+
+Enum grouping_mode {
+  BY_SUPPLIER [note: 'One payment request per supplier (default)']
+  PER_INVOICE [note: 'One payment request per invoice (AC-04.4)']
+}
+
+Enum gate_state {
+  CLOSED [note: 'A new pair starts closed (D-29)']
+  OPEN
+}
+
+Enum sync_status {
+  RUNNING
+  SUCCESS
+  FAILED [note: 'ERP unavailable; earlier data stays (AC-07.7)']
+}
+
+Enum sync_record_type {
+  PURCHASE_ORDER
+  RECEIPT
+  ACCEPTANCE
+  SUPPLIER
+  ITEM
+  UNIT_CONVERSION
+  ERP_USER
+  TAX_RISK_ENTRY
+}
+
+Enum order_kind {
+  GOODS
+  SERVICE
+}
+
+Enum receipt_kind {
+  GOODS_RECEIPT
+  SERVICE_ACCEPTANCE
+}
+
+Enum persona_kind {
+  BUYER
+  WAREHOUSE_KEEPER
+  ACCEPTOR
+}
+
+Enum invoice_state {
+  RECEIVED
+  IN_CHECK
+  WAITING_FOR_GOODS
+  SEPARATED [note: 'Final (BR-33)']
+  REJECTED [note: 'Final (BR-33)']
+  EXCEPTION
+  IN_BATCH
+  SIGNED
+  SENT
+  PAID [note: 'Final (BR-33)']
+  SUPERSEDED [note: 'Final (BR-33)']
+}
+
+Enum invoice_flow {
+  GOODS_WITH_ORDER
+  SERVICES_WITH_ORDER
+  RECURRING
+  SUBSCRIPTION [note: 'Advanced flow (W-04): always an exception, no automatic handling (AC-12.7)']
+  UNSUPPORTED_FOREIGN [note: 'Unsupported: foreign invoice (D-33); only Reject resolves it (AC-12.9)']
+  EMPLOYEE_EXPENSE
+  OTHER
+}
+
+Enum invoice_kind {
+  ORIGINAL
+  ADJUSTMENT
+  REPLACEMENT
+}
+
+Enum trust_level {
+  HIGH [note: 'Seller signature and tax-authority code']
+  SIGNED_NON_CODED [note: 'Seller signature, no tax-authority code, sector in the configured list (D-24)']
+}
+
+Enum signature_status {
+  NOT_CHECKED
+  VALID
+  INVALID
+}
+
+Enum rejection_reason {
+  SIGNATURE_FAILED
+  XML_NOT_SUPPORTED [note: 'Malformed XML or a schema version not in the supported list (AC-10.3)']
+  BUYER_TAX_CODE_MISMATCH
+  EXACT_DUPLICATE
+  REJECTED_BY_PERSON [note: 'Rejected with a reason from an exception (AC-18.6, AC-21.4)']
+}
+
+Enum run_trigger {
+  UPLOAD
+  RE_RUN [note: 'AP Accountant re-runs after an AI failure (DF-08)']
+  RESOLUTION [note: 'A person resolved a reason (AC-18.3)']
+  ERP_SYNC [note: 'A receipt or corrected data arrived (BR-14)']
+  FOLLOW_UP [note: 'A follow-up invoice is checked (UC-20)']
+  RISK_LIST_CHANGE [note: 'BR-08']
+}
+
+Enum run_outcome {
+  RUNNING
+  COMPLETED
+  AI_FAILED [note: 'Unavailable, timeout, or wrong schema; the invoice becomes an exception (DF-08)']
+}
+
+Enum match_method {
+  MAPPING_TABLE
+  EMBEDDING_FUSION [note: 'Embedding with the signal-fusion model, no LLM call']
+  LLM [note: 'Called once for the line, then fusion is recomputed (DF-15)']
+  PERSON [note: 'A person confirmed or chose the item (AC-18.2)']
+}
+
+Enum identification_method {
+  DETERMINISTIC [note: 'Tax code and order number on the invoice, no LLM (AC-13.8)']
+  LLM
+}
+
+Enum anomaly_kind {
+  UNUSUAL_PRICE
+  EXACT_DUPLICATE
+  POSSIBLE_DUPLICATE
+  SPLIT_ORDERS
+  RECURRING_JUMP
+  PERIOD_ALREADY_INVOICED
+  NEW_SUPPLIER
+  BANK_ACCOUNT_CHANGED
+}
+
+Enum anomaly_result {
+  FLAGGED
+  NOT_FLAGGED [note: 'The numbers are kept, for example +18.3% against a 20% limit (AC-15.1)']
+  SKIPPED [note: 'Too little history; the skip is recorded (DF-20)']
+  UNAVAILABLE [note: 'The check could not run; the invoice becomes an exception (AC-15.11)']
+}
+
+Enum condition_result {
+  PASS
+  FAIL
+  NOT_EVALUATED [note: 'An AI step failed and its evidence is missing (AC-16.11)']
+}
+
+Enum rule_decision {
+  ADMITTED [note: 'V11, V12: In Batch']
+  EXCEPTION [note: 'V10']
+  WAITING_FOR_GOODS [note: 'V8']
+  SEPARATED [note: 'V7']
+  REJECTED [note: 'V6']
+}
+
+Enum exception_state {
+  OPEN
+  IN_REVIEW
+  WAITING_FOR_SUPPLIER
+  WAITING_FOR_DATA_FIX
+  WAITING_FOR_DECISION
+  CLOSED [note: 'Final; carries an outcome (BR-34)']
+}
+
+Enum exception_outcome {
+  ADMITTED
+  APPROVED_INDIVIDUALLY
+  REJECTED
+  SUPERSEDED
+  AUTO_CLOSED
+}
+
+Enum decision_role {
+  CHIEF_ACCOUNTANT [note: 'Tax-risk hold']
+  PAYMENT_APPROVER [note: 'Individual approval']
+}
+
+Enum reason_code {
+  GATE_CLOSED
+  TAX_RISK_HOLD
+  AI_UNAVAILABLE
+  FLOW_UNCLEAR
+  ENTITY_UNCONFIRMED
+  NO_MATCHING_PROFILE
+  LINE_NOT_MATCHED
+  PRICE_OUT_OF_TOLERANCE
+  QUANTITY_ABOVE_RECEIVED
+  TOTAL_ABOVE_THRESHOLD
+  NO_INDEPENDENT_SOURCE
+  NO_TAX_AUTHORITY_CODE
+  UNUSUAL_PRICE
+  POSSIBLE_DUPLICATE
+  SPLIT_ORDERS
+  RECURRING_OUT_OF_THRESHOLD
+  PERIOD_ALREADY_INVOICED
+  NEW_SUPPLIER
+  BANK_ACCOUNT_CHANGED
+  ANOMALY_CHECK_UNAVAILABLE
+  UNSUPPORTED_FOREIGN_INVOICE
+  ADVANCED_FLOW
+  ADJUSTMENT_OR_REPLACEMENT [note: 'Always a person (BR-31)']
+  WITHDRAWN_FROM_BATCH
+  APPROVAL_DECLINED
+  PAYMENT_FAILED
+}
+
+Enum followup_kind {
+  FRESH_STANDARD [note: 'Closes the exception by itself when it passes (BR-26)']
+  ADJUSTMENT
+  REPLACEMENT
+}
+
+Enum followup_status {
+  LINKED
+  CONFIRMED [note: 'The AP Accountant confirmed an adjustment or replacement (BR-31)']
+  CLOSED_AUTOMATICALLY
+}
+
+Enum message_kind {
+  CORRECTION_REQUEST
+  DATA_FIX_NOTICE
+  REISSUE_REQUEST
+}
+
+Enum recipient_type {
+  SUPPLIER
+  INTERNAL_TEAM
+}
+
+Enum send_status {
+  DRAFT
+  SENT
+  NOT_SENT [note: 'Email Service failed; retry allowed (AC-19.6)']
+}
+
+Enum hold_decision {
+  RELEASE
+  REJECT
+}
+
+Enum approval_decision {
+  APPROVED
+  DECLINED
+}
+
+Enum batch_state {
+  OPEN
+  IN_REVIEW
+  IN_SIGNING
+  SIGNED
+  SENT
+  COMPLETED [note: 'Final (BR-35)']
+}
+
+Enum request_state {
+  AWAITING_CHIEF_ACCOUNTANT
+  AWAITING_PAYMENT_APPROVER
+  SIGNED
+  SENT
+  PAID [note: 'Final (BR-35)']
+  CANCELLED [note: 'Final (BR-35)']
+}
+
+Enum admitted_via {
+  RULE_ENGINE
+  INDIVIDUAL_APPROVAL
+}
+
+Enum withdraw_reason {
+  SAMPLE_ERROR
+  WITHDRAWN_BY_AP
+  REMOVED_BY_SIGNER
+  REQUEST_DECLINED
+  RISK_LIST_CHANGE
+}
+
+Enum sample_method {
+  AI
+  WITHOUT_AI [note: 'Highest-value invoices first (DF-29)']
+}
+
+Enum sample_reason {
+  HIGH_VALUE
+  GATE_RECENTLY_OPENED
+  OFTEN_MATCHED_WRONG
+  HIGHEST_VALUE_FALLBACK
+}
+
+Enum sample_mark {
+  PENDING
+  OK
+  ERROR
+}
+
+Enum signer_role {
+  CHIEF_ACCOUNTANT
+  PAYMENT_APPROVER
+}
+
+Enum signature_state {
+  VALID
+  VOIDED [note: 'A line was removed or the content changed after the signature (BR-37, R5)']
+}
+
+Enum cancel_kind {
+  DECLINED
+  ALL_LINES_REMOVED
+}
+
+Enum send_outcome {
+  PENDING
+  DELIVERED
+  UNAVAILABLE
+  REJECTED_BY_ERP
+  HASH_MISMATCH [note: 'Content differs from the signed hash; not sent (AC-26.7)']
+}
+
+Enum erp_reply {
+  NONE
+  PAID
+  FAILED
+}
+
+Enum period_unit {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+Enum price_type {
+  FIXED
+  USAGE_BASED
+}
+
+Enum period_origin {
+  INVOICE
+  SEED [note: 'Earlier periods seeded for the demo (DF-42)']
+}
+
+Enum price_source {
+  INVOICE
+  SEED
+}
+
+Enum ai_task {
+  CLASSIFY_FLOW
+  IDENTIFY
+  MATCH_LINES
+  DETECT_ANOMALIES
+  DRAFT_REQUEST
+  SELECT_SAMPLE
+  SUMMARIZE_BATCH
+}
+
+Enum ai_call_kind {
+  EMBEDDING
+  LLM
+}
+
+Enum ai_outcome {
+  SUCCESS
+  INVALID_OUTPUT
+  TIMEOUT
+  ERROR
+}
+
+Enum audit_actor {
+  USER
+  AI
+  RULE_ENGINE
+  SYSTEM
+  ERP
+}
+
+Enum audit_event {
+  AI_DECISION
+  RULE_DECISION
+  PERSON_DECISION
+  SIGNATURE
+  CONFIG_CHANGE
+  GATE_CHANGE
+  INTAKE
+  SYNC
+  MESSAGE_SENT
+  ERP_SEND
+  ERP_PAID
+  LOGIN_FAILED
+  ACCESS_DENIED
+}
+
+// ───────── Groups ─────────
+
+TableGroup group_and_access {
+  corporate_groups
+  group_sectors
+  entities
+  users
+  entity_policies
+  approval_tiers
+  approval_tier_approvers
+}
+
+TableGroup automation_gates {
+  supplier_gates
+  gate_comparisons
+  gate_alerts
+}
+
+TableGroup erp_sync {
+  erp_sync_runs
+  erp_sync_rejections
+  erp_users
+  erp_suppliers
+  erp_supplier_bank_accounts
+  erp_items
+  erp_unit_conversions
+  erp_purchase_orders
+  erp_po_lines
+  erp_receipts
+  erp_receipt_lines
+  tax_risk_entries
+}
+
+TableGroup erp_simulator {
+  sim_personas
+  sim_purchase_orders
+  sim_po_lines
+  sim_receipts
+  sim_receipt_lines
+}
+
+TableGroup accumulated_data {
+  item_mappings
+  recurring_profiles
+  recurring_profile_periods
+  price_history
+  supplier_entity_stats
+}
+
+TableGroup invoices_group {
+  invoices
+  invoice_documents
+  invoice_lines
+  invoice_corrections
+  invoice_receipts
+}
+
+TableGroup ai_and_rules {
+  invoice_check_runs
+  ai_flow_classifications
+  ai_identifications
+  invoice_line_matches
+  anomaly_findings
+  anomaly_finding_invoices
+  rule_evaluations
+  rule_condition_results
+  ai_requests
+}
+
+TableGroup exceptions_group {
+  exceptions
+  exception_reasons
+  exception_follow_up_links
+  message_templates
+  correction_requests
+  tax_risk_decisions
+  individual_approvals
+}
+
+TableGroup batch_and_signing {
+  payment_batches
+  batch_items
+  batch_sample_items
+  payment_requests
+  payment_request_lines
+  request_signatures
+  ai_payment_summaries
+  erp_send_attempts
+}
+
+TableGroup audit {
+  audit_log
+}
+
+// ───────── Group and access ─────────
+
+Table corporate_groups {
+  id bigint [pk, increment]
+  name varchar(200) [not null, note: 'Calderwood Group in the demo (DF-12)']
+  max_price_tolerance_pct numeric(5,2) [not null, default: 5.00, note: 'Group maximum an Entity Admin cannot exceed (BR-16, DF-13)']
+  max_batch_threshold_vnd numeric(18,2) [not null, default: 300000000, note: 'Group maximum for the batch threshold (BR-16, DF-13)']
+  version integer [not null, default: 1, note: 'Conflict state of SCR-76 (D-30)']
+  updated_by bigint
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  checks {
+    `max_price_tolerance_pct > 0 AND max_price_tolerance_pct <= 100` [name: 'ck_groups_tolerance']
+    `max_batch_threshold_vnd > 0` [name: 'ck_groups_threshold']
+    `version >= 1` [name: 'ck_groups_version']
+  }
+
+  Note: 'The group and its limits (US-03, BR-16, DF-13). Group-level table: no entity_id. Lowering a maximum below an entity value lowers that value in the same transaction (AC-03.4).'
+}
+
+Table group_sectors {
+  id bigint [pk, increment]
+  group_id bigint [not null]
+  sector_name varchar(100) [not null, note: 'Matched with erp_suppliers.sector; the default list holds electricity (DF-25)']
+  added_by bigint [not null]
+  added_at timestamptz [not null, default: `now()`]
+  removed_by bigint
+  removed_at timestamptz [note: 'NULL while the sector is allowed; a removed sector keeps its row for audit']
+
+  indexes {
+    (group_id, `lower(sector_name)`) [unique, name: 'ux_group_sectors_name', note: 'partial: WHERE removed_at IS NULL']
+  }
+
+  checks {
+    `(removed_at IS NULL) = (removed_by IS NULL)` [name: 'ck_group_sectors_removed']
+  }
+
+  Note: 'Sectors allowed to issue non-coded invoices (US-03, D-24, DF-25, BR-17). Group-level table: no entity_id.'
+}
+
+Table entities {
+  id bigint [pk, increment]
+  group_id bigint [not null]
+  name varchar(200) [not null]
+  tax_code char(10) [not null, note: 'Unique 10-digit tax code that identifies the entity (BR-01, AC-03.2)']
+  is_active boolean [not null, default: true]
+  matrix_version integer [not null, default: 1, note: 'Bumped by every change of the approval tiers and approvers; the conflict check of SCR-74 (D-30)']
+  version integer [not null, default: 1]
+  created_by bigint [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    tax_code [unique, name: 'ux_entities_tax_code']
+    group_id [name: 'ix_entities_group']
+  }
+
+  checks {
+    `tax_code ~ '^[0-9]{10}$'` [name: 'ck_entities_tax_code']
+    `version >= 1 AND matrix_version >= 1` [name: 'ck_entities_version']
+  }
+
+  Note: 'The legal entities of the group (US-03, BR-01). Group-level table: the row is the entity, so it has no entity_id; every other business table points here.'
+}
+
+Table users {
+  id bigint [pk, increment]
+  group_id bigint [not null]
+  entity_id bigint [note: 'NULL only for GROUP_ADMIN and DEMO_OPERATOR, who belong to the group (DF-14)']
+  email varchar(255) [not null, note: 'Login name, unique ignoring case (AC-02.7)']
+  password_hash text [not null, note: 'At least 8 characters before hashing (DF-32); never returned or logged']
+  full_name varchar(150) [not null]
+  role user_role [not null, note: 'One role in one entity (D-13, AC-02.3)']
+  status user_status [not null, default: 'ACTIVE']
+  erp_user_id bigint [note: 'Link to the ERP user, for separation of duties (BR-02, BR-36, AC-02.4); only for entity roles']
+  deactivated_by bigint
+  deactivated_at timestamptz
+  created_by bigint
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  version integer [not null, default: 1, note: 'Conflict state of SCR-70 (D-30)']
+
+  indexes {
+    `lower(email)` [unique, name: 'ux_users_email']
+    erp_user_id [unique, name: 'ux_users_erp_user', note: 'partial: WHERE erp_user_id IS NOT NULL; one platform user per ERP user']
+    (entity_id, role, status) [name: 'ix_users_entity_role']
+  }
+
+  checks {
+    `(role IN ('GROUP_ADMIN','DEMO_OPERATOR')) = (entity_id IS NULL)` [name: 'ck_users_scope']
+    `erp_user_id IS NULL OR entity_id IS NOT NULL` [name: 'ck_users_erp_link']
+    `(status = 'DEACTIVATED') = (deactivated_at IS NOT NULL)` [name: 'ck_users_deactivated']
+    `version >= 1` [name: 'ck_users_version']
+  }
+
+  Note: 'Every account, one table for all six roles (US-01, US-02, BR-02, BR-09, D-13, DF-14, DF-32). Never deleted; deactivated instead (AC-02.5). Entity Admin cannot create administrator roles (AC-02.2): checked by the API.'
+}
+
+Table entity_policies {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  price_tolerance_pct numeric(5,2) [not null, default: 2.00, note: 'Inside the group maximum (BR-04, BR-16); 2.0% passes, above fails']
+  batch_threshold_vnd numeric(18,2) [not null, default: 200000000, note: 'An invoice joins a batch only when its total is below this (condition 4, DF-13)']
+  sample_rate_pct numeric(5,2) [not null, default: 10.00, note: 'Between 1 and 100 (AC-04.3, DF-06)']
+  grouping_mode grouping_mode [not null, default: 'BY_SUPPLIER']
+  version integer [not null, default: 1, note: 'Conflict state of SCR-73 (D-30)']
+  updated_by bigint
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    entity_id [unique, name: 'ux_entity_policies_entity']
+  }
+
+  checks {
+    `price_tolerance_pct > 0` [name: 'ck_policies_tolerance']
+    `batch_threshold_vnd > 0` [name: 'ck_policies_threshold']
+    `sample_rate_pct BETWEEN 1 AND 100` [name: 'ck_policies_sample_rate']
+    `version >= 1` [name: 'ck_policies_version']
+  }
+
+  Note: 'One policy row per entity (US-04, BR-04, BR-07, BR-16, BR-20). New values apply to invoices checked afterwards (AC-04.5). The upper limits are read from corporate_groups; the API checks them.'
+}
+
+Table approval_tiers {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  level_name varchar(60) [not null, note: 'For example Department Head or CFO (AC-05.1)']
+  min_amount numeric(18,2) [not null, note: 'Inclusive']
+  max_amount numeric(18,2) [note: 'Exclusive; NULL = no upper limit (the top tier)']
+  is_active boolean [not null, default: true, note: 'A removed tier is made inactive, because requests refer to it']
+  created_by bigint [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (entity_id, level_name) [unique, name: 'ux_approval_tiers_level', note: 'partial: WHERE is_active']
+    (entity_id, min_amount) [name: 'ix_approval_tiers_range']
+  }
+
+  checks {
+    `min_amount >= 0` [name: 'ck_tiers_min']
+    `max_amount IS NULL OR max_amount > min_amount` [name: 'ck_tiers_max']
+  }
+
+  Note: 'The approval matrix of an entity (US-05, BR-03). No gaps and no overlaps: the API rejects them with the uncovered amounts (AC-05.2), and SQL adds an exclusion constraint on numrange(min_amount, max_amount) per entity for active tiers.'
+}
+
+Table approval_tier_approvers {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  tier_id bigint [not null]
+  user_id bigint [not null, note: 'A PAYMENT_APPROVER of the same entity; checked by the API']
+  assigned_by bigint [not null]
+  assigned_at timestamptz [not null, default: `now()`]
+  ended_at timestamptz [note: 'NULL while assigned']
+
+  indexes {
+    (tier_id, user_id) [unique, name: 'ux_tier_approvers', note: 'partial: WHERE ended_at IS NULL']
+  }
+
+  Note: 'Payment Approvers assigned to each level (US-05, BR-03). The top tier needs at least one active approver (AC-05.3): checked by the API in the save transaction.'
+}
+
+// ───────── Automation gates ─────────
+
+Table supplier_gates {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  supplier_id bigint [not null]
+  state gate_state [not null, default: 'CLOSED']
+  opened_at timestamptz [note: 'Last time the gate was opened; sample selection prefers recently opened gates (BR-07)']
+  opened_by bigint
+  closed_at timestamptz
+  closed_by bigint
+  version integer [not null, default: 1, note: 'Conflict state of SCR-78 (D-30)']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (entity_id, supplier_id) [unique, name: 'ux_supplier_gates_pair']
+  }
+
+  checks {
+    `version >= 1` [name: 'ck_gates_version']
+  }
+
+  Note: 'One gate per supplier and entity pair, created closed when the pair first appears (US-06, BR-06, D-06, D-29). Switched by hand only (AC-06.8). Opening and closing, the accuracy shown, and the written reason go to audit_log (AC-06.5).'
+}
+
+Table gate_comparisons {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  gate_id bigint [not null]
+  invoice_id bigint [note: 'NULL for simulated history, which has no invoice']
+  exception_id bigint [note: 'The exception where the person confirmed or changed the AI result']
+  all_unchanged boolean [not null, note: 'The person confirmed every AI result unchanged: entity, order, line matches, amounts (DF-17)']
+  changed_items varchar(200) [note: 'What the person changed, for example line matches; NULL when all_unchanged']
+  is_simulated boolean [not null, default: false, note: 'Labelled "Simulated history", left out of G-01 and G-02 and the dashboard (DF-33)']
+  compared_by bigint
+  compared_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (gate_id, invoice_id) [unique, name: 'ux_gate_comparisons_invoice', note: 'partial: WHERE invoice_id IS NOT NULL; an invoice is compared once']
+    (gate_id, is_simulated) [name: 'ix_gate_comparisons_gate']
+  }
+
+  checks {
+    `is_simulated = (invoice_id IS NULL)` [name: 'ck_gate_comparisons_simulated']
+    `all_unchanged = (changed_items IS NULL)` [name: 'ck_gate_comparisons_changed']
+  }
+
+  Note: 'Shadow-mode comparison of the AI proposal with the person (US-06, US-18, BR-06, DF-16, DF-17, DF-33). Accuracy = all_unchanged rows divided by rows; computed when read. Needs at least 50 rows before a gate can open.'
+}
+
+Table gate_alerts {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  gate_id bigint [not null]
+  batch_id bigint [note: 'The batch whose sample check raised the alert']
+  sampled_count integer [not null, note: 'Sampled invoices of the open pair in the window; at least 20 (DF-16)']
+  error_count integer [not null]
+  error_rate_pct numeric(5,2) [not null, note: 'For example 7.7 for 2 of 26']
+  limit_pct numeric(5,2) [not null, default: 2.00, note: '100% minus the 98% threshold']
+  window_days integer [not null, default: 30]
+  raised_at timestamptz [not null, default: `now()`]
+  cleared_by bigint [note: 'Group Admin who acted on the alert']
+  cleared_at timestamptz [note: 'The alert does not change the gate (AC-06.7); it is cleared when the Group Admin acts']
+
+  indexes {
+    (gate_id, raised_at) [name: 'ix_gate_alerts_gate']
+  }
+
+  checks {
+    `error_count <= sampled_count` [name: 'ck_gate_alerts_counts']
+  }
+
+  Note: 'Alert that recommends closing a gate after sample errors (US-06, BR-06, BR-07, DF-16, AC-06.7). Shown on SCR-75 and SCR-78.'
+}
+
+// ───────── ERP sync and synced source data ─────────
+
+Table erp_sync_runs {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  started_at timestamptz [not null, default: `now()`]
+  finished_at timestamptz
+  status sync_status [not null, default: 'RUNNING']
+  records_read integer [not null, default: 0]
+  records_stored integer [not null, default: 0]
+  records_rejected integer [not null, default: 0]
+  error_message text [note: 'Technical cause of a failed run; shown to users only as "ERP sync failed" (AC-07.7)']
+
+  indexes {
+    (entity_id, started_at) [name: 'ix_erp_sync_runs_entity']
+  }
+
+  Note: 'One row per sync of one entity (US-07, BR-25, DF-31). "Last ERP sync" is the finished_at of the last SUCCESS run; the stale warning is a later FAILED run. Both are computed when read.'
+}
+
+Table erp_sync_rejections {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  sync_run_id bigint [not null]
+  record_type sync_record_type [not null]
+  erp_ref varchar(100) [note: 'Reference of the rejected record in the ERP']
+  reason varchar(300) [not null, note: 'For example a receipt with no purchase order, or marked as created from an invoice (BR-13), or a risk-list entry without a source or date (D-21)']
+  rejected_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    sync_run_id [name: 'ix_erp_sync_rejections_run']
+  }
+
+  Note: 'Records the sync refused and logged (US-07, BR-13, BR-19, D-21, D-28; AC-07.4, AC-07.5, AC-07.9).'
+}
+
+Table erp_users {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  erp_ref varchar(50) [not null, note: 'User code in the ERP']
+  display_name varchar(150) [not null]
+  sync_run_id bigint [not null]
+  synced_at timestamptz [not null]
+
+  indexes {
+    (entity_id, erp_ref) [unique, name: 'ux_erp_users_ref']
+  }
+
+  Note: 'ERP users who create orders and confirm receipts, read-only copy (US-07, BR-02, BR-25). A platform user is linked to one through users.erp_user_id.'
+}
+
+Table erp_suppliers {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  erp_ref varchar(50) [not null]
+  name varchar(200) [not null]
+  tax_code varchar(14) [not null, note: 'Seller tax code; matched with the tax code on the invoice']
+  sector varchar(100) [note: 'Compared with group_sectors for non-coded invoices (D-24)']
+  contact_email varchar(255) [note: 'Recipient of correction requests (US-19)']
+  is_active boolean [not null, default: true]
+  sync_run_id bigint [not null]
+  synced_at timestamptz [not null]
+
+  indexes {
+    (entity_id, erp_ref) [unique, name: 'ux_erp_suppliers_ref']
+    (entity_id, tax_code) [name: 'ix_erp_suppliers_tax_code']
+  }
+
+  Note: 'Suppliers of one entity, read-only copy (US-07, BR-25). The same real supplier has one row in each entity that buys from it, so an entity never reads another entity\'s supplier data (BR-09).'
+}
+
+Table erp_supplier_bank_accounts {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  supplier_id bigint [not null]
+  bank_name varchar(100) [not null]
+  account_number varchar(40) [not null]
+  account_holder varchar(200)
+  valid_from timestamptz [not null, note: 'The sync that first saw this account']
+  valid_to timestamptz [note: 'NULL while this is the current account']
+  sync_run_id bigint [not null]
+
+  indexes {
+    supplier_id [unique, name: 'ux_supplier_bank_current', note: 'partial: WHERE valid_to IS NULL; one current account']
+    (entity_id, supplier_id, valid_from) [name: 'ix_supplier_bank_history']
+  }
+
+  Note: 'Bank account history of a supplier (BR-30, DF-05). A current account that replaced an earlier one in the period is the flag "Bank account changed". The history is kept because an old row is needed to prove the change.'
+}
+
+Table erp_items {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  erp_ref varchar(50) [not null]
+  name varchar(200) [not null, note: 'For example A4 copy paper, grade 1']
+  base_unit varchar(30) [not null, note: 'For example ream']
+  is_active boolean [not null, default: true]
+  sync_run_id bigint [not null]
+  synced_at timestamptz [not null]
+
+  indexes {
+    (entity_id, erp_ref) [unique, name: 'ux_erp_items_ref']
+  }
+
+  Note: 'Goods and services of one entity (master data, US-07, BR-25). Invoice lines are matched to these items (BR-28).'
+}
+
+Table erp_unit_conversions {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  item_id bigint [not null]
+  from_unit varchar(30) [not null, note: 'The supplier unit, for example carton']
+  factor numeric(18,6) [not null, note: 'How many base units: 1 carton = 5 reams gives 5']
+  sync_run_id bigint [not null]
+  synced_at timestamptz [not null]
+
+  indexes {
+    (entity_id, item_id, from_unit) [unique, name: 'ux_unit_conversions']
+  }
+
+  checks {
+    `factor > 0` [name: 'ck_unit_conversions_factor']
+  }
+
+  Note: 'Unit conversions per item (US-07, US-14, BR-04). A unit that is not here makes the line doubtful (AC-14.9).'
+}
+
+Table erp_purchase_orders {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  erp_ref varchar(50) [not null, note: 'For example PO-CF-1007']
+  supplier_id bigint [not null]
+  kind order_kind [not null]
+  order_date date [not null, note: 'The split-order window is measured on this date (BR-10)']
+  created_by_erp_user_id bigint [not null, note: 'ERP user who created the order (BR-02)']
+  erp_status varchar(20) [not null, default: 'OPEN', note: 'Status in the ERP; a short delivery keeps the order open (BR-15)']
+  sync_run_id bigint [not null]
+  synced_at timestamptz [not null]
+
+  indexes {
+    (entity_id, erp_ref) [unique, name: 'ux_erp_po_ref']
+    (entity_id, supplier_id, order_date) [name: 'ix_erp_po_supplier_date']
+  }
+
+  Note: 'Purchase orders, read-only copy; MatchPay never writes to them (US-07, US-08, BR-02, BR-10, BR-25). A second sync updates the row and creates no duplicate (AC-07.2).'
+}
+
+Table erp_po_lines {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  po_id bigint [not null]
+  line_no smallint [not null]
+  item_id bigint [not null]
+  quantity numeric(18,3) [not null]
+  unit varchar(30) [not null]
+  unit_price numeric(18,2) [not null, note: 'Price per order unit']
+  synced_at timestamptz [not null]
+
+  indexes {
+    (po_id, line_no) [unique, name: 'ux_erp_po_lines_no']
+    (entity_id, item_id) [name: 'ix_erp_po_lines_item']
+  }
+
+  checks {
+    `quantity > 0 AND unit_price >= 0` [name: 'ck_erp_po_lines_values']
+  }
+
+  Note: 'Lines of a purchase order (US-07, BR-04, BR-15).'
+}
+
+Table erp_receipts {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  erp_ref varchar(50) [not null, note: 'For example GRN-CF-2031']
+  po_id bigint [not null, note: 'A receipt always refers to a purchase order (BR-13)']
+  kind receipt_kind [not null]
+  received_at timestamptz [not null]
+  confirmed_by_erp_user_id bigint [not null, note: 'The warehouse keeper or acceptor who confirmed (BR-02, BR-19)']
+  created_from_invoice boolean [not null, default: false, note: 'Always false: a record marked true is rejected by the sync (BR-13)']
+  sync_run_id bigint [not null]
+  synced_at timestamptz [not null]
+
+  indexes {
+    (entity_id, erp_ref) [unique, name: 'ux_erp_receipts_ref']
+    (entity_id, po_id) [name: 'ix_erp_receipts_po']
+  }
+
+  checks {
+    `created_from_invoice = false` [name: 'ck_erp_receipts_not_from_invoice']
+  }
+
+  Note: 'Goods receipts and service acceptances confirmed in the ERP, read-only copy (US-07, BR-13, BR-14, BR-19, BR-25). A scan with a handwritten signature is not an acceptance and is not stored here (AC-07.5).'
+}
+
+Table erp_receipt_lines {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  receipt_id bigint [not null]
+  po_line_id bigint [not null]
+  quantity_received numeric(18,3) [not null]
+  synced_at timestamptz [not null]
+
+  indexes {
+    (receipt_id, po_line_id) [unique, name: 'ux_erp_receipt_lines']
+  }
+
+  checks {
+    `quantity_received > 0` [name: 'ck_erp_receipt_lines_qty']
+  }
+
+  Note: 'Quantities received per order line (US-07, BR-15, BR-19). The quantity paid cannot exceed the sum of these rows (condition 3).'
+}
+
+Table tax_risk_entries {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  supplier_tax_code varchar(14) [not null]
+  supplier_name varchar(200)
+  source varchar(200) [not null, note: 'Where the entry comes from; an entry without one is rejected (D-21, D-28)']
+  listed_on date [not null, note: 'The date of the entry; an entry without one is rejected']
+  loaded_at timestamptz [not null, default: `now()`]
+  sync_run_id bigint [not null]
+  removed_at timestamptz [note: 'Set when a later load no longer lists the supplier']
+
+  indexes {
+    (entity_id, supplier_tax_code) [unique, name: 'ux_tax_risk_active', note: 'partial: WHERE removed_at IS NULL']
+  }
+
+  checks {
+    `length(trim(source)) > 0` [name: 'ck_tax_risk_source']
+  }
+
+  Note: 'Simulated tax-risk list, loaded through UC-07 for each entity (US-07, US-21, BR-08, D-21, D-28, D-50). A newly listed supplier whose invoice is in an unsigned batch triggers a re-check (AC-07.10).'
+}
+
+// ───────── ERP simulator (demo only) ─────────
+
+Table sim_personas {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  kind persona_kind [not null]
+  erp_ref varchar(50) [not null, note: 'The ERP user this persona acts as']
+  display_name varchar(150) [not null]
+
+  indexes {
+    (entity_id, kind) [unique, name: 'ux_sim_personas_kind']
+    (entity_id, erp_ref) [unique, name: 'ux_sim_personas_ref']
+  }
+
+  Note: 'Personas the Demo Operator switches between, so that separation of duties can be shown (US-08, D-12, BR-02). Demo only. The simulator holds the ERP side of the demo; MatchPay reads it through the sync (D-49).'
+}
+
+Table sim_purchase_orders {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  po_number varchar(50) [not null, note: 'For example PO-CF-1001']
+  supplier_erp_ref varchar(50) [not null, note: 'Supplier from the seed files of the simulator (D-49)']
+  kind order_kind [not null]
+  order_date date [not null]
+  created_by_persona_id bigint [not null, note: 'The buyer persona (AC-08.1)']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (entity_id, po_number) [unique, name: 'ux_sim_po_number']
+  }
+
+  Note: 'Orders created in the simulated ERP (US-08, BR-02). Demo only. Outstanding quantity is computed from the lines and the receipts (AC-08.5).'
+}
+
+Table sim_po_lines {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  po_id bigint [not null]
+  line_no smallint [not null]
+  item_erp_ref varchar(50) [not null]
+  quantity numeric(18,3) [not null]
+  unit varchar(30) [not null]
+  unit_price numeric(18,2) [not null]
+
+  indexes {
+    (po_id, line_no) [unique, name: 'ux_sim_po_lines_no']
+  }
+
+  checks {
+    `quantity > 0 AND unit_price >= 0` [name: 'ck_sim_po_lines_values']
+  }
+
+  Note: 'Lines of a simulated order (US-08, SCR-81). Demo only.'
+}
+
+Table sim_receipts {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  receipt_number varchar(50) [not null, note: 'For example GRN-CF-2001']
+  po_id bigint [not null, note: 'A receipt without an order is refused (BR-13, AC-08.4)']
+  kind receipt_kind [not null]
+  delivery_note varchar(300) [note: 'For example "60 of 100 received, 40 outstanding"']
+  confirmed_by_persona_id bigint [not null, note: 'Must differ from the order creator: checked by the simulator, because a check constraint cannot read another row (AC-08.3)']
+  confirmed_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (entity_id, receipt_number) [unique, name: 'ux_sim_receipts_number']
+  }
+
+  Note: 'Receipts and acceptances confirmed in the simulated ERP (US-08, BR-02, BR-13, BR-19). No column takes data from an invoice. Demo only.'
+}
+
+Table sim_receipt_lines {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  receipt_id bigint [not null]
+  po_line_id bigint [not null]
+  quantity_received numeric(18,3) [not null]
+
+  indexes {
+    (receipt_id, po_line_id) [unique, name: 'ux_sim_receipt_lines']
+  }
+
+  checks {
+    `quantity_received > 0` [name: 'ck_sim_receipt_lines_qty']
+  }
+
+  Note: 'Quantities of a simulated receipt (US-08, BR-15). Demo only.'
+}
+
+// ───────── Accumulated data ─────────
+
+Table item_mappings {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  supplier_id bigint [not null]
+  supplier_item_text varchar(300) [not null, note: 'The text as the supplier wrote it; data, never an instruction (BR-27)']
+  normalized_text varchar(300) [not null, note: 'Lower case, trimmed, spaces collapsed; the lookup key']
+  item_id bigint [not null]
+  confirmed_by bigint [not null]
+  confirmed_at timestamptz [not null, default: `now()`]
+  source_line_id bigint [note: 'The invoice line that was confirmed; NULL for seeded pairs']
+  is_active boolean [not null, default: true]
+
+  indexes {
+    (entity_id, supplier_id, normalized_text) [unique, name: 'ux_item_mappings_key', note: 'partial: WHERE is_active']
+    (entity_id, item_id) [name: 'ix_item_mappings_item']
+  }
+
+  Note: 'Mapping table of one entity: a pair a person has confirmed, so later lines with the same text match without an LLM call (US-14, US-18, BR-28, G-07, D-52). Never shared between entities (BR-09, AC-14.10, AC-18.8).'
+}
+
+Table recurring_profiles {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  supplier_id bigint [not null]
+  location varchar(150) [not null, note: 'For example Foods Plant 1']
+  contract_ref varchar(100)
+  period_unit period_unit [not null, default: 'MONTHLY']
+  price_type price_type [not null]
+  contract_price numeric(18,2) [note: 'Required for FIXED (AC-09.2)']
+  deviation_threshold_pct numeric(5,2) [note: 'Required for USAGE_BASED; example 30 (BR-24, DF-11)']
+  is_active boolean [not null, default: true]
+  version integer [not null, default: 1]
+  created_by bigint [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  deactivated_by bigint
+  deactivated_at timestamptz
+
+  indexes {
+    (entity_id, supplier_id, location, period_unit) [unique, name: 'ux_recurring_profiles_active', note: 'partial: WHERE is_active (AC-09.3)']
+  }
+
+  checks {
+    `price_type <> 'FIXED' OR (contract_price IS NOT NULL AND contract_price > 0)` [name: 'ck_profiles_fixed_price']
+    `price_type <> 'USAGE_BASED' OR deviation_threshold_pct IS NOT NULL` [name: 'ck_profiles_usage_threshold']
+    `(is_active) = (deactivated_at IS NULL)` [name: 'ck_profiles_deactivated']
+    `version >= 1` [name: 'ck_profiles_version']
+  }
+
+  Note: 'Recurring profiles for electricity, water, rent, and fixed-price subscriptions (US-09, BR-17, BR-24, D-24). A matching profile is the independent source of a recurring invoice. Never deleted; deactivated (AC-09.5).'
+}
+
+Table recurring_profile_periods {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  profile_id bigint [not null]
+  period_start date [not null, note: 'First day of the period']
+  amount numeric(18,2) [not null, note: 'Total of the invoice of that period, or the seeded amount']
+  invoice_id bigint [note: 'The one invoice of the period; NULL for seeded earlier periods (DF-42)']
+  origin period_origin [not null, default: 'INVOICE']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (profile_id, period_start) [unique, name: 'ux_profile_periods', note: 'each period can have only one invoice (BR-24, AC-15.6)']
+  }
+
+  checks {
+    `origin <> 'INVOICE' OR invoice_id IS NOT NULL` [name: 'ck_profile_periods_invoice']
+  }
+
+  Note: 'Periods of a recurring profile with their amounts (US-09, US-15, BR-24, DF-42). The average of earlier periods and the number of periods are computed when read; fewer than 3 earlier periods means the usage check cannot run.'
+}
+
+Table price_history {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  item_id bigint [not null]
+  supplier_id bigint [not null]
+  purchased_on date [not null]
+  unit_price_base numeric(18,4) [not null, note: 'Price per base unit after unit conversion']
+  quantity_base numeric(18,3) [not null]
+  source price_source [not null]
+  source_line_id bigint [note: 'The paid invoice line; NULL for seeded rows']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (entity_id, item_id, purchased_on) [name: 'ix_price_history_item']
+  }
+
+  checks {
+    `source <> 'INVOICE' OR source_line_id IS NOT NULL` [name: 'ck_price_history_source']
+  }
+
+  Note: 'The entity\'s own purchase history for the unusual-price check: median of the last 6 months from at least 3 purchases (US-15, BR-29, DF-20, DF-42). One row is added when an invoice is Paid. Never compared across entities (BR-09, AC-15.12).'
+}
+
+Table supplier_entity_stats {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  supplier_id bigint [not null]
+  paid_invoice_count integer [not null, default: 0, note: 'Includes seeded history so the demo has suppliers that are not new']
+  first_paid_at timestamptz
+  last_paid_at timestamptz
+
+  indexes {
+    (entity_id, supplier_id) [unique, name: 'ux_supplier_stats_pair']
+  }
+
+  checks {
+    `paid_invoice_count >= 0` [name: 'ck_supplier_stats_count']
+  }
+
+  Note: 'Supplier reliability of one supplier and entity pair (US-15, BR-30, DF-05, DF-42). A pair with a count of 0 is a new supplier. Updated in the transaction that makes an invoice Paid.'
+}
+
+// ───────── Invoices ─────────
+
+Table invoices {
+  id bigint [pk, increment]
+  entity_id bigint [not null, note: 'The entity the invoice was uploaded for (BR-01)']
+  supplier_id bigint [note: 'Supplier row of this entity found by seller_tax_code; NULL when the seller is unknown or the XML was not readable']
+  seller_tax_code varchar(14) [note: 'Part of the group-wide exact-duplicate key (BR-11, D-09)']
+  seller_name varchar(200)
+  buyer_tax_code varchar(14) [note: 'Must equal entities.tax_code, or the invoice is rejected (BR-01, D-26); NULL = missing, entity unconfirmed']
+  buyer_name varchar(200) [note: 'A name that differs while the tax code matches is only a warning (D-26)']
+  series varchar(20) [note: 'For example C26TAA']
+  number varchar(20) [note: 'For example 0000123']
+  invoice_date date
+  due_date date [note: '"Due soon" within 7 days is computed (DF-18)']
+  invoice_kind invoice_kind [not null, default: 'ORIGINAL']
+  subtotal_amount numeric(18,2)
+  vat_amount numeric(18,2)
+  total_amount numeric(18,2) [note: 'VND, no decimals shown (DF-37)']
+  currency char(3) [not null, default: 'VND', note: 'Always VND in the MVP; no exchange rate (D-33)']
+  tax_authority_code varchar(64) [note: 'NULL for a non-coded invoice']
+  signature_status signature_status [not null, default: 'NOT_CHECKED']
+  signature_checked_at timestamptz
+  trust_level trust_level [note: 'NULL until the signature check passes and for rejected invoices (BR-17)']
+  flow invoice_flow [note: 'Current flow: the AI classification, or the person\'s correction (flow_set_by)']
+  flow_set_by bigint [note: 'NULL = the AI\'s flow stands; set when a person chose the flow (AC-12.4)']
+  flow_set_at timestamptz
+  entity_confirmed_by bigint [note: 'Set when a person confirmed an entity the AI proposed (AC-13.2); NULL when the buyer tax code identified it']
+  entity_confirmed_at timestamptz
+  order_id bigint [note: 'Identified purchase order of the same entity']
+  recurring_profile_id bigint [note: 'Identified recurring profile of the same entity']
+  state invoice_state [not null, default: 'RECEIVED', note: 'BR-33; transitions are checked by the application in one transaction']
+  state_changed_at timestamptz [not null, default: `now()`]
+  holds_key boolean [not null, default: false, note: 'true from In Check on; false for invoices rejected before In Check and for rejected duplicates (D-51)']
+  rejection_reason rejection_reason
+  rejection_note text [note: 'Reason typed by a person (required for REJECTED_BY_PERSON)']
+  rejected_by bigint
+  rejected_at timestamptz
+  uploaded_by bigint [not null]
+  received_at timestamptz [not null, default: `now()`]
+  version integer [not null, default: 1, note: 'Concurrent-change detection (BR-37, DF-27)']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (seller_tax_code, series, number) [unique, name: 'ux_invoices_group_key', note: 'partial: WHERE holds_key. Group-wide on purpose (BR-11, D-09, D-51); the application reads it only through the insert, never to list other entities']
+    (entity_id, state) [name: 'ix_invoices_entity_state']
+    (entity_id, supplier_id, invoice_date) [name: 'ix_invoices_supplier_date']
+    (entity_id, supplier_id, total_amount) [name: 'ix_invoices_near_duplicate', note: 'near-duplicate lookup (DF-19)']
+    (entity_id, due_date) [name: 'ix_invoices_due']
+    (entity_id, order_id) [name: 'ix_invoices_order']
+  }
+
+  checks {
+    `state = 'REJECTED' OR (seller_tax_code IS NOT NULL AND series IS NOT NULL AND number IS NOT NULL AND invoice_date IS NOT NULL AND total_amount IS NOT NULL)` [name: 'ck_invoices_readable']
+    `(state = 'REJECTED') = (rejection_reason IS NOT NULL)` [name: 'ck_invoices_rejection']
+    `rejection_reason <> 'REJECTED_BY_PERSON' OR rejection_note IS NOT NULL` [name: 'ck_invoices_rejection_note']
+    `currency = 'VND'` [name: 'ck_invoices_currency']
+    `total_amount IS NULL OR total_amount >= 0` [name: 'ck_invoices_total']
+    `(flow_set_by IS NULL) = (flow_set_at IS NULL)` [name: 'ck_invoices_flow_set']
+    `version >= 1` [name: 'ck_invoices_version']
+  }
+
+  Note: 'An XML e-invoice and its state (US-10, US-12, US-13, US-16, US-17; BR-01, BR-11, BR-17, BR-31, BR-33, BR-37, DF-27). Fields are read from the stored XML. Only XML is accepted (D-33). Evidence of AI and Rule Engine decisions is in the tables that refer to it, not here.'
+}
+
+Table invoice_documents {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null]
+  xml_content bytea [not null, note: 'The uploaded file, unchanged']
+  sha256 char(64) [not null, note: 'Hash of xml_content, shown on SCR-12 (AC-10.1)']
+  byte_size integer [not null]
+  schema_version varchar(20) [note: 'XML schema version; NULL when it could not be read (AC-10.3)']
+  stored_by bigint [not null]
+  stored_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    invoice_id [unique, name: 'ux_invoice_documents_invoice']
+  }
+
+  checks {
+    `byte_size > 0` [name: 'ck_invoice_documents_size']
+  }
+
+  Note: 'The original XML stored unchanged with its hash, also for rejected invoices (US-10, BR-17, BR-33, AC-10.1, AC-10.2). Never updated or deleted. Text inside it is data and never an instruction (BR-27).'
+}
+
+Table invoice_lines {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null]
+  line_no smallint [not null]
+  description varchar(500) [not null, note: 'Item text as the supplier wrote it; data (BR-27)']
+  quantity numeric(18,3) [not null]
+  unit varchar(30) [not null, note: 'Supplier unit, for example carton']
+  unit_price numeric(18,2) [not null]
+  line_amount numeric(18,2) [not null]
+  vat_rate_pct numeric(5,2)
+  vat_amount numeric(18,2)
+
+  indexes {
+    (invoice_id, line_no) [unique, name: 'ux_invoice_lines_no']
+  }
+
+  checks {
+    `quantity > 0 AND unit_price >= 0` [name: 'ck_invoice_lines_values']
+  }
+
+  Note: 'Lines read from the XML (US-10, US-14, BR-04, BR-15, BR-28). The matched item of a line is the latest row in invoice_line_matches.'
+}
+
+Table invoice_corrections {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  correcting_invoice_id bigint [not null, note: 'The adjustment or replacement invoice']
+  original_invoice_id bigint [note: 'The invoice it corrects, when it is in the system']
+  referenced_series varchar(20) [not null]
+  referenced_number varchar(20) [not null]
+  referenced_date date
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (correcting_invoice_id, referenced_series, referenced_number) [unique, name: 'ux_invoice_corrections_ref', note: 'one adjustment invoice can correct several invoices (AC-20.4)']
+    original_invoice_id [name: 'ix_invoice_corrections_original']
+  }
+
+  Note: 'Reference from an adjustment or replacement invoice to the invoices it corrects (US-10, US-20, BR-31, AC-10.9, AC-20.4). It is a fact read from the XML; the workflow link to an exception is exception_follow_up_links.'
+}
+
+Table invoice_receipts {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null]
+  receipt_id bigint [not null]
+  check_run_id bigint [not null, note: 'The run whose identification matched this receipt']
+
+  indexes {
+    (invoice_id, receipt_id) [unique, name: 'ux_invoice_receipts_pair']
+  }
+
+  Note: 'Receipts or acceptances matched to an invoice (US-13, BR-14, BR-19). An order can have several receipts after short deliveries. No row means Waiting for Goods.'
+}
+
+// ───────── AI outputs and Rule Engine ─────────
+
+Table invoice_check_runs {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null]
+  trigger run_trigger [not null]
+  started_at timestamptz [not null, default: `now()`]
+  finished_at timestamptz [note: 'Received to decision within 60 seconds is measured here (G-05, AC-16.12)']
+  outcome run_outcome [not null, default: 'RUNNING']
+  started_by bigint [note: 'The person who re-ran or resolved; NULL for the system']
+
+  indexes {
+    (invoice_id, started_at) [name: 'ix_check_runs_invoice']
+  }
+
+  Note: 'One run of the checks on an invoice: the AI steps, then the Rule Engine (US-12..US-16, BR-12, BR-27, DF-08, D-58). A re-check adds a new run and keeps the earlier ones (AC-16.13).'
+}
+
+Table ai_flow_classifications {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null]
+  check_run_id bigint [not null]
+  flow invoice_flow [not null]
+  confidence numeric(4,3) [not null]
+  reason text [not null, note: 'Labelled AI-generated when shown (AC-17.3)']
+  model_version varchar(50) [not null]
+  prompt_version varchar(50) [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (invoice_id, created_at) [name: 'ix_ai_flow_invoice']
+  }
+
+  checks {
+    `confidence BETWEEN 0 AND 1` [name: 'ck_ai_flow_confidence']
+  }
+
+  Note: 'AI task 1, classify the flow (US-12, BR-12, BR-17, BR-23, BR-27, AC-12.1). A run that failed has no row here; its outcome is AI_FAILED in invoice_check_runs.'
+}
+
+Table ai_identifications {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null]
+  check_run_id bigint [not null]
+  method identification_method [not null]
+  proposed_entity_id bigint [note: 'The entity the AI proposes; equals the invoice entity when the buyer tax code matched']
+  order_id bigint
+  recurring_profile_id bigint
+  confidence numeric(4,3)
+  reason text [not null, note: 'Evidence such as the tax code comparison and the order number (AC-13.1)']
+  model_version varchar(50) [note: 'NULL when the method is DETERMINISTIC']
+  prompt_version varchar(50)
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (invoice_id, created_at) [name: 'ix_ai_ident_invoice']
+  }
+
+  checks {
+    `method = 'DETERMINISTIC' OR (model_version IS NOT NULL AND prompt_version IS NOT NULL)` [name: 'ck_ai_ident_versions']
+  }
+
+  Note: 'AI task 3, identify the entity, order or recurring profile, and receipt (US-13, BR-01, BR-09, BR-12, BR-24, AC-13.1..AC-13.8). The receipts matched are in invoice_receipts.'
+}
+
+Table invoice_line_matches {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_line_id bigint [not null]
+  check_run_id bigint [note: 'NULL when a person chose the item outside a run']
+  item_id bigint [note: 'The proposed or chosen item; NULL when no candidate was found']
+  method match_method [not null]
+  embedding_similarity numeric(4,3)
+  price_match numeric(4,3)
+  quantity_match numeric(4,3)
+  history_score numeric(4,3)
+  fusion_probability numeric(4,3) [note: 'Signal-fusion probability; at least 0.90 matches the line (BR-28, DF-15)']
+  llm_confidence numeric(4,3) [note: 'What the LLM reported about itself; never the only basis (AC-14.6)']
+  unit_factor numeric(18,6) [note: 'Unit conversion used, for example 5 for 1 carton = 5 reams (AC-14.3)']
+  converted_quantity numeric(18,3)
+  converted_unit_price numeric(18,2)
+  is_doubtful boolean [not null, default: false]
+  doubtful_reason varchar(300) [note: 'For example the unit that is not in the conversions (AC-14.9)']
+  reason text
+  model_version varchar(50) [note: 'NULL for MAPPING_TABLE and PERSON']
+  prompt_version varchar(50) [note: 'Set when method is LLM']
+  fusion_model_version varchar(50) [note: 'Set when fusion ran']
+  decided_by bigint [note: 'Set when method is PERSON']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (invoice_line_id, created_at) [name: 'ix_line_matches_line']
+    (entity_id, item_id) [name: 'ix_line_matches_item']
+  }
+
+  checks {
+    `(method = 'PERSON') = (decided_by IS NOT NULL)` [name: 'ck_line_matches_person']
+    `method <> 'LLM' OR (model_version IS NOT NULL AND prompt_version IS NOT NULL)` [name: 'ck_line_matches_llm_versions']
+    `is_doubtful = (doubtful_reason IS NOT NULL)` [name: 'ck_line_matches_doubtful']
+    `fusion_probability IS NULL OR fusion_probability BETWEEN 0 AND 1` [name: 'ck_line_matches_probability']
+  }
+
+  Note: 'AI task 4, match a line to an internal item (US-14, US-18; BR-12, BR-27, BR-28, DF-15, G-07). The latest row of a line is its current match. A person\'s confirmation adds a PERSON row, and the pair enters item_mappings.'
+}
+
+Table anomaly_findings {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null, note: 'The invoice that was checked']
+  check_run_id bigint [not null]
+  invoice_line_id bigint [note: 'For a price finding']
+  kind anomaly_kind [not null]
+  result anomaly_result [not null]
+  observed_value numeric(18,4) [note: 'For example the invoice price or total']
+  reference_value numeric(18,4) [note: 'For example the 6-month median or the average of earlier periods']
+  deviation_pct numeric(7,2)
+  limit_pct numeric(7,2) [note: 'The flag limit used, for example 20 or 30']
+  sample_count integer [note: 'Purchases or periods the reference rests on (DF-20, BR-24)']
+  window_days integer [note: 'For example 180 days, or 7 days for split orders']
+  combined_amount numeric(18,2) [note: 'SPLIT_ORDERS: the combined amount that decides the level (BR-10)']
+  related_invoice_id bigint [note: 'POSSIBLE_DUPLICATE: the earlier invoice of the same entity (DF-19)']
+  detail text [note: 'The numbers in words, as shown on SCR-12 (AC-15.9)']
+  detector_version varchar(50) [not null, note: 'Statistics are not an LLM; the detector version stands in for the model version (BR-12)']
+  model_version varchar(50)
+  prompt_version varchar(50)
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (invoice_id, kind) [name: 'ix_anomaly_invoice']
+    (entity_id, kind, created_at) [name: 'ix_anomaly_entity_kind']
+  }
+
+  Note: 'AI task 5, detect anomalies, with the numbers behind each finding, also when nothing is flagged or the check is skipped (US-15; BR-10, BR-11, BR-24, BR-29, BR-30, BR-12; AC-15.1..AC-15.12). The duplicate check across the group is the unique index on invoices, not a finding.'
+}
+
+Table anomaly_finding_invoices {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  finding_id bigint [not null]
+  invoice_id bigint [not null]
+
+  indexes {
+    (finding_id, invoice_id) [unique, name: 'ux_finding_invoices']
+  }
+
+  Note: 'Invoices that belong to one finding: the three invoices of a split-order set, or a duplicate pair (US-15, BR-10, BR-11, AC-15.4).'
+}
+
+Table rule_evaluations {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null]
+  check_run_id bigint [not null]
+  decision rule_decision [not null]
+  decided_at timestamptz [not null, default: `now()`]
+  tolerance_pct numeric(5,2) [note: 'Entity values in force at the decision, so the decision can be explained later (BR-04, BR-16)']
+  batch_threshold_vnd numeric(18,2)
+  engine_version varchar(50) [not null, note: 'Version of the Rule Engine code; it uses no LLM (D-08)']
+
+  indexes {
+    (invoice_id, decided_at) [name: 'ix_rule_evaluations_invoice']
+  }
+
+  Note: 'One Rule Engine decision on an invoice (US-16, BR-05, BR-12, D-08). A re-check adds a new row and keeps the earlier ones (AC-16.13).'
+}
+
+Table rule_condition_results {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  evaluation_id bigint [not null]
+  condition_no smallint [not null, note: '1 to 6, the conditions of BR-05']
+  result condition_result [not null]
+  measured_value numeric(18,4) [note: 'For example 2.5 for +2.5%']
+  limit_value numeric(18,4) [note: 'For example 2.0 for the tolerance']
+  value_text varchar(500) [not null, note: 'The value as shown, for example "Price +2.5%, tolerance 2%" (AC-16.2)']
+  note varchar(200) [note: 'For example "plausibility only" for a usage-based non-coded invoice (AC-16.3)']
+
+  indexes {
+    (evaluation_id, condition_no) [unique, name: 'ux_rule_conditions_no']
+  }
+
+  checks {
+    `condition_no BETWEEN 1 AND 6` [name: 'ck_rule_conditions_no']
+  }
+
+  Note: 'Each of the six conditions with its value (US-16, BR-05, BR-12; AC-16.1, AC-16.2). Condition 6 is "no anomaly" and has no tax-obligation part (D-33).'
+}
+
+Table ai_requests {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint
+  batch_id bigint
+  request_id bigint [note: 'Payment request, for the summary']
+  check_run_id bigint
+  task ai_task [not null]
+  call_kind ai_call_kind [not null]
+  model_version varchar(50) [not null]
+  prompt_version varchar(50)
+  outcome ai_outcome [not null]
+  latency_ms integer [not null]
+  input_tokens integer
+  output_tokens integer
+  requested_by bigint [note: 'NULL when the system made the call']
+  requested_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (entity_id, task, requested_at) [name: 'ix_ai_requests_task']
+  }
+
+  Note: 'One row per embedding or LLM call, for time and cost (G-05, R-10, BR-27, DF-08, D-59). No document text and no prompt or answer is stored here; results live in the tables of each task.'
+}
+
+// ───────── Exceptions and decisions ─────────
+
+Table exceptions {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null, note: 'One exception belongs to one invoice (D-53)']
+  state exception_state [not null, default: 'OPEN', note: 'BR-34']
+  outcome exception_outcome [note: 'Set only when CLOSED']
+  opened_by_evaluation_id bigint [note: 'The Rule Engine decision that created it (E1)']
+  opened_at timestamptz [not null, default: `now()`, note: 'Age of the backlog is computed from this (AC-27.3)']
+  taken_by bigint [note: 'AP Accountant who started work (E2)']
+  taken_at timestamptz
+  waiting_role decision_role [note: 'Set in WAITING_FOR_DECISION: who decides (E5)']
+  awaiting_ap_confirmation boolean [not null, default: false, note: 'The tag "Waiting for AP confirmation" on IN_REVIEW (DF-39, AC-20.3)']
+  approval_amount numeric(18,2) [note: 'Amount that decides the approval level: the invoice total, or the combined amount of split orders (BR-03, BR-10)']
+  split_finding_id bigint [note: 'The SPLIT_ORDERS finding shared by the exceptions of one combined set (D-53)']
+  closed_by bigint [note: 'NULL when the system closed it (E9, E13)']
+  closed_at timestamptz
+  version integer [not null, default: 1, note: 'BR-37, DF-27']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    invoice_id [unique, name: 'ux_exceptions_open_invoice', note: 'partial: WHERE state <> \'CLOSED\'; a new problem opens a new exception only after the old one closed']
+    (entity_id, state, opened_at) [name: 'ix_exceptions_entity_state']
+    (entity_id, waiting_role) [name: 'ix_exceptions_waiting_role', note: 'decision queue SCR-40']
+  }
+
+  checks {
+    `(state = 'CLOSED') = (outcome IS NOT NULL)` [name: 'ck_exceptions_outcome']
+    `(state = 'CLOSED') = (closed_at IS NOT NULL)` [name: 'ck_exceptions_closed_at']
+    `(state = 'WAITING_FOR_DECISION') = (waiting_role IS NOT NULL)` [name: 'ck_exceptions_waiting_role']
+    `NOT awaiting_ap_confirmation OR state = 'IN_REVIEW'` [name: 'ck_exceptions_ap_tag']
+    `version >= 1` [name: 'ck_exceptions_version']
+  }
+
+  Note: 'An exception on one invoice with one or more reasons (US-16, US-18, US-20, US-21, US-23; BR-34, BR-37, DF-39). Closed is final and carries an outcome. Who or what made each change is in audit_log.'
+}
+
+Table exception_reasons {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  exception_id bigint [not null]
+  reason_code reason_code [not null]
+  condition_no smallint [note: 'The BR-05 condition that failed, when there is one']
+  detail varchar(500) [not null, note: 'The reason with its numbers, for example "Price +2.5%, tolerance 2%" (AC-16.2)']
+  condition_result_id bigint
+  anomaly_finding_id bigint
+  withdraw_reason withdraw_reason [note: 'For WITHDRAWN_FROM_BATCH: why and by whom it left the batch (AC-18.9)']
+  recorded_by bigint [note: 'The person behind a withdrawal or a decline; NULL for the Rule Engine']
+  created_at timestamptz [not null, default: `now()`]
+  resolved_by bigint
+  resolved_at timestamptz [note: 'A resolved reason stays; the rest remain (AC-18.3)']
+
+  indexes {
+    exception_id [name: 'ix_exception_reasons_exception']
+  }
+
+  checks {
+    `condition_no IS NULL OR condition_no BETWEEN 1 AND 6` [name: 'ck_exception_reasons_condition']
+    `resolved_by IS NULL OR resolved_at IS NOT NULL` [name: 'ck_exception_reasons_resolved']
+  }
+
+  Note: 'The reasons of an exception (US-16, US-18, BR-05, BR-34; AC-16.2, AC-18.1, AC-18.9). Reasons are the plain text names shown on SCR-10 and SCR-12.'
+}
+
+Table exception_follow_up_links {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  exception_id bigint [not null]
+  follow_up_invoice_id bigint [not null]
+  kind followup_kind [not null]
+  status followup_status [not null, default: 'LINKED']
+  linked_by bigint [note: 'NULL when the system linked it by reference or order (AC-20.1)']
+  linked_at timestamptz [not null, default: `now()`]
+  confirmed_by bigint
+  confirmed_at timestamptz
+
+  indexes {
+    (exception_id, follow_up_invoice_id) [unique, name: 'ux_follow_up_pair']
+    follow_up_invoice_id [name: 'ix_follow_up_invoice', note: 'one adjustment invoice links to several exceptions (AC-20.4)']
+  }
+
+  checks {
+    `(status = 'CONFIRMED') = (confirmed_by IS NOT NULL)` [name: 'ck_follow_up_confirmed']
+  }
+
+  Note: 'Link from an exception to the follow-up invoice that answers it, one to many (US-20, BR-26, BR-31, D-07; AC-20.1..AC-20.4). Confirming an adjustment or replacement supersedes the original invoices (V14, E12).'
+}
+
+Table message_templates {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  kind message_kind [not null]
+  version_no integer [not null, default: 1]
+  body text [not null, note: 'Approved text with placeholders for order, invoice, and quantities']
+  approved_by bigint [not null, note: 'The Chief Accountant who approved it (DF-21)']
+  approved_at timestamptz [not null]
+  is_active boolean [not null, default: true]
+
+  indexes {
+    (entity_id, kind, version_no) [unique, name: 'ux_message_templates_version']
+  }
+
+  Note: 'Approved request templates, kept in configuration and seeded (US-19, BR-26, DF-21). No screen edits them in the MVP. The version used is stored on each correction request.'
+}
+
+Table correction_requests {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  exception_id bigint [not null]
+  kind message_kind [not null]
+  template_id bigint [not null]
+  recipient_type recipient_type [not null]
+  recipient_name varchar(200) [not null]
+  recipient_address varchar(255) [not null, note: 'Supplier contact or internal team address']
+  subject varchar(300) [not null]
+  ai_draft text [note: 'The AI draft as generated, kept to show what the person changed']
+  body text [not null, note: 'The text sent: the draft after editing, or the blank template when the AI was unavailable (AC-19.7)']
+  is_blank_template boolean [not null, default: false]
+  draft_model_version varchar(50)
+  draft_prompt_version varchar(50)
+  send_status send_status [not null, default: 'DRAFT']
+  attempt_count smallint [not null, default: 0]
+  last_error varchar(300)
+  sent_by bigint [note: 'Only the AP Accountant who pressed Send (BR-26, AC-19.2)']
+  sent_at timestamptz
+  reply_due_at timestamptz [note: '5 working days after sending (DF-21); the "Reminder due" filter reads it']
+  reply_recorded_by bigint
+  reply_recorded_at timestamptz
+  created_by bigint [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (exception_id, created_at) [name: 'ix_correction_requests_exception']
+    (entity_id, reply_due_at) [name: 'ix_correction_requests_due', note: 'partial: WHERE reply_recorded_at IS NULL']
+  }
+
+  checks {
+    `(send_status = 'SENT') = (sent_at IS NOT NULL)` [name: 'ck_correction_requests_sent']
+    `send_status <> 'SENT' OR sent_by IS NOT NULL` [name: 'ck_correction_requests_sender']
+    `NOT is_blank_template OR ai_draft IS NULL` [name: 'ck_correction_requests_blank']
+  }
+
+  Note: 'Correction requests, data-fix notices, and reissue requests drafted by the AI and sent by the AP Accountant (US-19, BR-25, BR-26, BR-27, DF-21; AC-19.1..AC-19.10). Nothing leaves the system until Send. A failed send leaves the exception unchanged (AC-19.6). The reminder is computed from reply_due_at.'
+}
+
+Table tax_risk_decisions {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  exception_id bigint [not null]
+  invoice_id bigint [not null]
+  risk_entry_id bigint [not null]
+  decision hold_decision [not null]
+  reason text [not null, note: 'Required (AC-21.5)']
+  decided_by bigint [not null, note: 'Chief Accountant']
+  decided_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (exception_id, decided_at) [name: 'ix_tax_risk_decisions_exception']
+    (invoice_id) [name: 'ix_tax_risk_decisions_invoice', note: 'condition 5 reads a RELEASE for this invoice']
+  }
+
+  checks {
+    `length(trim(reason)) > 0` [name: 'ck_tax_risk_decisions_reason']
+  }
+
+  Note: 'Decision of the Chief Accountant on a tax-risk hold, per invoice (US-21, BR-08, BR-12, BR-37; AC-21.1..AC-21.9). The system never rejects such an invoice by itself.'
+}
+
+Table individual_approvals {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  exception_id bigint [not null]
+  invoice_id bigint [not null]
+  approver_id bigint [not null, note: 'Payment Approver; not linked to the order creator or receipt confirmer (BR-02, BR-36)']
+  decision approval_decision [not null]
+  reason text [note: 'Required for DECLINED (AC-23.5)']
+  approval_amount numeric(18,2) [not null, note: 'Amount judged: invoice total or combined split-order amount']
+  required_tier_id bigint [not null]
+  required_level_name varchar(60) [not null, note: 'Copied so the level stays after the matrix changes']
+  split_finding_id bigint
+  decided_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    exception_id [unique, name: 'ux_individual_approvals_approved', note: 'partial: WHERE decision = \'APPROVED\'']
+    invoice_id [name: 'ix_individual_approvals_invoice']
+  }
+
+  checks {
+    `decision <> 'DECLINED' OR (reason IS NOT NULL AND length(trim(reason)) > 0)` [name: 'ck_individual_approvals_reason']
+  }
+
+  Note: 'Individual approval or decline of an exception at the approver level (US-23, BR-02, BR-03, BR-10, BR-36, BR-37, D-31, DF-03, D-54). An approval keeps the invoice In Batch as an individually approved item; the Chief Accountant co-signs its request later.'
+}
+
+// ───────── Batch, signing, and ERP send ─────────
+
+Table payment_batches {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  period_start date [not null, note: 'First day of the calendar month (DF-18)']
+  state batch_state [not null, default: 'OPEN']
+  sample_rate_pct numeric(5,2) [note: 'Entity rate at the time of closing (DF-06)']
+  sample_size integer [note: 'Rate times invoices, rounded up, minimum 1 (DF-06)']
+  sample_method sample_method
+  sample_model_version varchar(50) [note: 'NULL when the sample was selected without AI']
+  sample_prompt_version varchar(50)
+  closed_by bigint [note: 'AP Accountant who closed it for review (B2)']
+  closed_at timestamptz
+  released_by bigint [note: 'The user who prepared the batch; cannot sign it (BR-36)']
+  released_at timestamptz
+  version integer [not null, default: 1, note: 'BR-37, DF-27']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (entity_id, period_start) [unique, name: 'ux_batches_period', note: 'one batch per entity per period, so never two open batches (D-10, AC-16.14)']
+    (entity_id, state) [name: 'ix_batches_entity_state']
+  }
+
+  checks {
+    `extract(day from period_start) = 1` [name: 'ck_batches_period']
+    `(state = 'OPEN') = (closed_at IS NULL)` [name: 'ck_batches_closed']
+    `state NOT IN ('IN_SIGNING','SIGNED','SENT','COMPLETED') OR released_at IS NOT NULL` [name: 'ck_batches_released']
+    `version >= 1` [name: 'ck_batches_version']
+  }
+
+  Note: 'A payment batch of one entity for one calendar month (US-24, BR-05, BR-07, BR-35, BR-37, D-10, DF-06, DF-18, DF-29). Totals and counts are computed from batch_items.'
+}
+
+Table batch_items {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  batch_id bigint [not null]
+  invoice_id bigint [not null]
+  admitted_via admitted_via [not null]
+  rule_evaluation_id bigint [note: 'The decision that admitted it; NULL for an individual approval']
+  individual_approval_id bigint [note: 'Set when admitted_via is INDIVIDUAL_APPROVAL']
+  admitted_at timestamptz [not null, default: `now()`]
+  withdrawn_by bigint [note: 'NULL when the system withdrew it (risk-list change)']
+  withdrawn_at timestamptz
+  withdraw_reason withdraw_reason
+  withdraw_note text [note: 'Reason typed by the person']
+
+  indexes {
+    invoice_id [unique, name: 'ux_batch_items_active', note: 'partial: WHERE withdrawn_at IS NULL; an invoice is in one batch at a time']
+    (batch_id, admitted_at) [name: 'ix_batch_items_batch']
+  }
+
+  checks {
+    `(admitted_via = 'INDIVIDUAL_APPROVAL') = (individual_approval_id IS NOT NULL)` [name: 'ck_batch_items_via']
+    `(withdrawn_at IS NULL) = (withdraw_reason IS NULL)` [name: 'ck_batch_items_withdrawn']
+  }
+
+  Note: 'An invoice admitted to a batch (US-16, US-23, US-24; BR-05, BR-35, DF-03, DF-07). A withdrawn item keeps its row; withdrawal is allowed until its request is Signed. An item admitted by the Rule Engine with no exception behind it counts as touchless (G-01), computed when read.'
+}
+
+Table batch_sample_items {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  batch_id bigint [not null]
+  batch_item_id bigint [not null]
+  invoice_id bigint [not null]
+  rank smallint [not null, note: 'Order of selection']
+  reason sample_reason [not null]
+  reason_text varchar(300) [not null, note: 'Why it was selected, shown next to the invoice (BR-07)']
+  mark sample_mark [not null, default: 'PENDING']
+  mark_reason text [note: 'Required for ERROR (AC-24.4)']
+  marked_by bigint
+  marked_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (batch_id, batch_item_id) [unique, name: 'ux_sample_items_item']
+    (entity_id, mark, marked_at) [name: 'ix_sample_items_mark', note: 'misplacement rate and gate alert']
+  }
+
+  checks {
+    `mark <> 'ERROR' OR (mark_reason IS NOT NULL AND length(trim(mark_reason)) > 0)` [name: 'ck_sample_items_error_reason']
+    `(mark = 'PENDING') = (marked_at IS NULL)` [name: 'ck_sample_items_marked']
+  }
+
+  Note: 'The sample check of a batch (US-24, BR-06, BR-07, DF-06, DF-29; AC-24.2..AC-24.8). The batch cannot be released until no row is PENDING. ERROR marks feed the misplacement rate (G-02) and the gate alert.'
+}
+
+Table payment_requests {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  batch_id bigint [not null]
+  request_no varchar(20) [not null, note: 'For example PR-0042; also the idempotency key of the ERP send (DF-24)']
+  supplier_id bigint [not null, note: 'The supplier of every line; also in the PER_INVOICE mode']
+  state request_state [not null, default: 'AWAITING_CHIEF_ACCOUNTANT']
+  total_amount numeric(18,2) [not null, note: 'Sum of the active lines; kept in step with the lines in one transaction (DF-02)']
+  required_tier_id bigint [not null]
+  required_level_name varchar(60) [not null, note: 'Level decided by the total (BR-03); recomputed while unsigned, frozen once Signed']
+  individual_approval_id bigint [note: 'Set when the request holds one individually approved exception (DF-03)']
+  content_hash char(64) [not null, note: 'SHA-256 of the canonical content: request number, supplier, and each active line with its invoice hash and amount (BR-37)']
+  prepared_by bigint [not null, note: 'The user who released the batch (BR-36)']
+  cancel_kind cancel_kind
+  cancel_reason text
+  cancelled_by bigint
+  cancelled_at timestamptz
+  sent_at timestamptz
+  paid_at timestamptz
+  payment_reference varchar(50) [note: 'Reference of the payment document returned by the ERP, for example PAY-CF-2026-0042 (AC-26.2)']
+  erp_failed_at timestamptz [note: 'The ERP returned a failure after the send (V19, AC-26.6); BR-35 has no request state for it (D-60)']
+  erp_failure_reason varchar(300)
+  version integer [not null, default: 1, note: 'Bumped by every change; a signature is bound to it (BR-37)']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (entity_id, request_no) [unique, name: 'ux_requests_no']
+    (entity_id, payment_reference) [unique, name: 'ux_requests_payment_reference', note: 'partial: WHERE payment_reference IS NOT NULL']
+    (batch_id, supplier_id) [name: 'ix_requests_batch_supplier']
+    (entity_id, state) [name: 'ix_requests_entity_state']
+  }
+
+  checks {
+    `(state = 'CANCELLED') = (cancel_kind IS NOT NULL)` [name: 'ck_requests_cancel']
+    `cancel_kind IS NULL OR (cancel_reason IS NOT NULL AND cancelled_by IS NOT NULL AND cancelled_at IS NOT NULL)` [name: 'ck_requests_cancel_fields']
+    `(state = 'PAID') = (payment_reference IS NOT NULL)` [name: 'ck_requests_paid']
+    `total_amount >= 0` [name: 'ck_requests_total']
+    `version >= 1` [name: 'ck_requests_version']
+  }
+
+  Note: 'A consolidated payment request: this platform\'s own document, not the paper form 05-TT (US-24, US-25, US-26; BR-02, BR-03, BR-20, BR-35, BR-36, BR-37; D-19, DF-01, DF-02, DF-10). Created when the batch is released.'
+}
+
+Table payment_request_lines {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  request_id bigint [not null]
+  invoice_id bigint [not null]
+  line_no smallint [not null]
+  amount numeric(18,2) [not null, note: 'Invoice total at the time of release']
+  ended_at timestamptz [note: 'NULL while the line is part of the request']
+  end_reason withdraw_reason [note: 'REMOVED_BY_SIGNER, WITHDRAWN_BY_AP, REQUEST_DECLINED, or RISK_LIST_CHANGE']
+  ended_by bigint
+  end_note text [note: 'Reason typed when a signer removes a line (AC-25.6)']
+
+  indexes {
+    invoice_id [unique, name: 'ux_request_lines_active', note: 'partial: WHERE ended_at IS NULL; an invoice is in one open request line']
+    (request_id, line_no) [unique, name: 'ux_request_lines_no']
+  }
+
+  checks {
+    `(ended_at IS NULL) = (end_reason IS NULL)` [name: 'ck_request_lines_end']
+    `end_reason IS DISTINCT FROM 'REMOVED_BY_SIGNER' OR (end_note IS NOT NULL AND length(trim(end_note)) > 0)` [name: 'ck_request_lines_note']
+    `amount >= 0` [name: 'ck_request_lines_amount']
+  }
+
+  Note: 'Lines of a payment request, with removed lines kept (US-25, BR-20, BR-35, DF-07; AC-25.6). Every invoice traces to the signatures of its request through this table (AC-25.15).'
+}
+
+Table request_signatures {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  request_id bigint [not null]
+  signer_id bigint [not null]
+  signer_role signer_role [not null]
+  signed_at timestamptz [not null, default: `now()`]
+  request_version integer [not null, note: 'The version of the request that was signed (BR-37)']
+  content_hash char(64) [not null, note: 'The content hash that was signed (BR-20, O-15)']
+  certificate_ref varchar(100) [not null, note: 'Simulated certificate used by the platform e-signature (DF-10)']
+  reauthenticated_at timestamptz [not null, note: 'Password entered again (AC-25.3)']
+  signing_action_id uuid [not null, note: 'Shared by the signatures of one multi-sign action (AC-25.4)']
+  state signature_state [not null, default: 'VALID']
+  voided_at timestamptz
+  void_reason varchar(200)
+
+  indexes {
+    (request_id, signer_id) [unique, name: 'ux_signatures_signer', note: 'partial: WHERE state = \'VALID\'; one record per request per signer (O-15)']
+    (request_id, signer_role) [unique, name: 'ux_signatures_role', note: 'partial: WHERE state = \'VALID\'; one valid record per role']
+    signing_action_id [name: 'ix_signatures_action']
+  }
+
+  checks {
+    `(state = 'VOIDED') = (voided_at IS NOT NULL)` [name: 'ck_signatures_voided']
+    `request_version >= 1` [name: 'ck_signatures_version']
+  }
+
+  Note: 'Signature records, one per request and signer (US-25, BR-02, BR-12, BR-20, BR-36, BR-37, DF-01, DF-10, O-15). The AI never signs. A signature is voided, not deleted, when a line is removed (R5).'
+}
+
+Table ai_payment_summaries {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  request_id bigint [not null]
+  request_version integer [not null, note: 'The version of the request the summary describes']
+  summary_text text [note: 'Labelled as AI; never a signature (AC-25.9). NULL when generation failed']
+  outcome ai_outcome [not null]
+  model_version varchar(50) [not null]
+  prompt_version varchar(50) [not null]
+  generated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (request_id, request_version) [unique, name: 'ux_summaries_version']
+  }
+
+  checks {
+    `(outcome = 'SUCCESS') = (summary_text IS NOT NULL)` [name: 'ck_summaries_text']
+  }
+
+  Note: 'AI task 8, the summary for the signer (US-25, BR-12, AC-25.1, AC-25.13). The totals, flags, and sample result next to it are computed by the Rule Engine from the tables, not written by the AI.'
+}
+
+Table erp_send_attempts {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  request_id bigint [not null]
+  attempt_no smallint [not null, note: '1 to 3, 5 minutes apart (DF-24)']
+  idempotency_key varchar(20) [not null, note: 'The request number; a second send never creates a second payment (DF-24)']
+  content_hash_sent char(64) [not null]
+  requested_at timestamptz [not null, default: `now()`]
+  completed_at timestamptz
+  outcome send_outcome [not null, default: 'PENDING']
+  error_message varchar(300)
+  next_attempt_at timestamptz [note: 'Shown as "Retry 2 of 3, next attempt in 5 minutes"']
+  reply erp_reply [not null, default: 'NONE']
+  replied_at timestamptz
+  payment_reference varchar(50)
+  failure_reason varchar(300)
+
+  indexes {
+    (request_id, attempt_no) [unique, name: 'ux_send_attempts_no']
+    (outcome, next_attempt_at) [name: 'ix_send_attempts_due', note: 'worker picks pending attempts']
+  }
+
+  checks {
+    `attempt_no BETWEEN 1 AND 3` [name: 'ck_send_attempts_no']
+    `(reply = 'PAID') = (payment_reference IS NOT NULL)` [name: 'ck_send_attempts_paid']
+  }
+
+  Note: 'Outbox of sends to the Entity ERP (US-26, BR-20, BR-25, BR-37; DF-24, DF-40; AC-26.1..AC-26.9, D-60). Written in the transaction that makes the request Signed; a worker sends after commit. Retry counts and the failed alert are computed from these rows. There is no payment method and no cash flag (D-33).'
+}
+
+// ───────── Audit ─────────
+
+Table audit_log {
+  id bigint [pk, increment]
+  entity_id bigint [note: 'NULL for events outside any entity, such as a failed login with an unknown email']
+  occurred_at timestamptz [not null, default: `now()`]
+  actor_type audit_actor [not null]
+  actor_user_id bigint [note: 'Set when a person acted']
+  event_type audit_event [not null]
+  is_group_event boolean [not null, default: false, note: 'Entities, limits, gates, and user events: the only entries the Group Admin sees (AC-28.5)']
+  subject_type varchar(40) [not null, note: 'For example INVOICE, EXCEPTION, BATCH, PAYMENT_REQUEST, GATE, POLICY, USER']
+  subject_id bigint
+  invoice_id bigint [note: 'For the Document filter and the decision history on SCR-12']
+  task ai_task [note: 'For AI decisions']
+  method varchar(40) [note: 'Mapping table, embedding with signal fusion, LLM, statistics, rules (AC-28.1)']
+  result varchar(300)
+  reason text
+  confidence numeric(4,3)
+  model_version varchar(50)
+  prompt_version varchar(50)
+  summary varchar(500) [not null, note: 'One line as shown in the list']
+  details jsonb [note: 'Old and new values of a change, the six conditions with values, the accuracy and reason of a gate change']
+  correlation_id uuid [note: 'Ties the entries of one user action']
+
+  indexes {
+    (entity_id, occurred_at) [name: 'ix_audit_entity_time']
+    (entity_id, invoice_id, occurred_at) [name: 'ix_audit_invoice']
+    (event_type, occurred_at) [name: 'ix_audit_event']
+    (actor_user_id, occurred_at) [name: 'ix_audit_actor']
+  }
+
+  checks {
+    `confidence IS NULL OR confidence BETWEEN 0 AND 1` [name: 'ck_audit_confidence']
+    `event_type <> 'AI_DECISION' OR (model_version IS NOT NULL AND task IS NOT NULL)` [name: 'ck_audit_ai_fields']
+  }
+
+  Note: '''
+    Audit log of every AI decision, Rule Engine decision, person decision, signature, configuration change, and gate change
+    (US-28; BR-06, BR-12; DF-30; AC-28.1..AC-28.7, D-55). Append-only: the application role has INSERT and SELECT only,
+    and a trigger refuses UPDATE and DELETE. The entry is written in the same transaction as the action; if the insert fails,
+    the action does not complete.
+  '''
+}
+
+// ───────── References ─────────
+// Every entity_id refers to entities.id. SQL turns each parent reference into a composite foreign key
+// (entity_id, parent_id) so that a child cannot point to a parent of another entity (D-48).
+
+Ref: corporate_groups.updated_by > users.id
+
+Ref: group_sectors.group_id > corporate_groups.id
+Ref: group_sectors.added_by > users.id
+Ref: group_sectors.removed_by > users.id
+
+Ref: entities.group_id > corporate_groups.id
+Ref: entities.created_by > users.id
+
+Ref: users.group_id > corporate_groups.id
+Ref: users.entity_id > entities.id
+Ref: users.erp_user_id > erp_users.id
+Ref: users.deactivated_by > users.id
+Ref: users.created_by > users.id
+
+Ref: entity_policies.entity_id - entities.id
+Ref: entity_policies.updated_by > users.id
+
+Ref: approval_tiers.entity_id > entities.id
+Ref: approval_tiers.created_by > users.id
+
+Ref: approval_tier_approvers.entity_id > entities.id
+Ref: approval_tier_approvers.tier_id > approval_tiers.id
+Ref: approval_tier_approvers.user_id > users.id
+Ref: approval_tier_approvers.assigned_by > users.id
+
+Ref: supplier_gates.entity_id > entities.id
+Ref: supplier_gates.supplier_id > erp_suppliers.id
+Ref: supplier_gates.opened_by > users.id
+Ref: supplier_gates.closed_by > users.id
+
+Ref: gate_comparisons.entity_id > entities.id
+Ref: gate_comparisons.gate_id > supplier_gates.id
+Ref: gate_comparisons.invoice_id > invoices.id
+Ref: gate_comparisons.exception_id > exceptions.id
+Ref: gate_comparisons.compared_by > users.id
+
+Ref: gate_alerts.entity_id > entities.id
+Ref: gate_alerts.gate_id > supplier_gates.id
+Ref: gate_alerts.batch_id > payment_batches.id
+Ref: gate_alerts.cleared_by > users.id
+
+Ref: erp_sync_runs.entity_id > entities.id
+
+Ref: erp_sync_rejections.entity_id > entities.id
+Ref: erp_sync_rejections.sync_run_id > erp_sync_runs.id
+
+Ref: erp_users.entity_id > entities.id
+Ref: erp_users.sync_run_id > erp_sync_runs.id
+
+Ref: erp_suppliers.entity_id > entities.id
+Ref: erp_suppliers.sync_run_id > erp_sync_runs.id
+
+Ref: erp_supplier_bank_accounts.entity_id > entities.id
+Ref: erp_supplier_bank_accounts.supplier_id > erp_suppliers.id
+Ref: erp_supplier_bank_accounts.sync_run_id > erp_sync_runs.id
+
+Ref: erp_items.entity_id > entities.id
+Ref: erp_items.sync_run_id > erp_sync_runs.id
+
+Ref: erp_unit_conversions.entity_id > entities.id
+Ref: erp_unit_conversions.item_id > erp_items.id
+Ref: erp_unit_conversions.sync_run_id > erp_sync_runs.id
+
+Ref: erp_purchase_orders.entity_id > entities.id
+Ref: erp_purchase_orders.supplier_id > erp_suppliers.id
+Ref: erp_purchase_orders.created_by_erp_user_id > erp_users.id
+Ref: erp_purchase_orders.sync_run_id > erp_sync_runs.id
+
+Ref: erp_po_lines.entity_id > entities.id
+Ref: erp_po_lines.po_id > erp_purchase_orders.id
+Ref: erp_po_lines.item_id > erp_items.id
+
+Ref: erp_receipts.entity_id > entities.id
+Ref: erp_receipts.po_id > erp_purchase_orders.id
+Ref: erp_receipts.confirmed_by_erp_user_id > erp_users.id
+Ref: erp_receipts.sync_run_id > erp_sync_runs.id
+
+Ref: erp_receipt_lines.entity_id > entities.id
+Ref: erp_receipt_lines.receipt_id > erp_receipts.id
+Ref: erp_receipt_lines.po_line_id > erp_po_lines.id
+
+Ref: tax_risk_entries.entity_id > entities.id
+Ref: tax_risk_entries.sync_run_id > erp_sync_runs.id
+
+Ref: sim_personas.entity_id > entities.id
+
+Ref: sim_purchase_orders.entity_id > entities.id
+Ref: sim_purchase_orders.created_by_persona_id > sim_personas.id
+
+Ref: sim_po_lines.entity_id > entities.id
+Ref: sim_po_lines.po_id > sim_purchase_orders.id
+
+Ref: sim_receipts.entity_id > entities.id
+Ref: sim_receipts.po_id > sim_purchase_orders.id
+Ref: sim_receipts.confirmed_by_persona_id > sim_personas.id
+
+Ref: sim_receipt_lines.entity_id > entities.id
+Ref: sim_receipt_lines.receipt_id > sim_receipts.id
+Ref: sim_receipt_lines.po_line_id > sim_po_lines.id
+
+Ref: item_mappings.entity_id > entities.id
+Ref: item_mappings.supplier_id > erp_suppliers.id
+Ref: item_mappings.item_id > erp_items.id
+Ref: item_mappings.confirmed_by > users.id
+Ref: item_mappings.source_line_id > invoice_lines.id
+
+Ref: recurring_profiles.entity_id > entities.id
+Ref: recurring_profiles.supplier_id > erp_suppliers.id
+Ref: recurring_profiles.created_by > users.id
+Ref: recurring_profiles.deactivated_by > users.id
+
+Ref: recurring_profile_periods.entity_id > entities.id
+Ref: recurring_profile_periods.profile_id > recurring_profiles.id
+Ref: recurring_profile_periods.invoice_id > invoices.id
+
+Ref: price_history.entity_id > entities.id
+Ref: price_history.item_id > erp_items.id
+Ref: price_history.supplier_id > erp_suppliers.id
+Ref: price_history.source_line_id > invoice_lines.id
+
+Ref: supplier_entity_stats.entity_id > entities.id
+Ref: supplier_entity_stats.supplier_id > erp_suppliers.id
+
+Ref: invoices.entity_id > entities.id
+Ref: invoices.supplier_id > erp_suppliers.id
+Ref: invoices.flow_set_by > users.id
+Ref: invoices.entity_confirmed_by > users.id
+Ref: invoices.order_id > erp_purchase_orders.id
+Ref: invoices.recurring_profile_id > recurring_profiles.id
+Ref: invoices.rejected_by > users.id
+Ref: invoices.uploaded_by > users.id
+
+Ref: invoice_documents.entity_id > entities.id
+Ref: invoice_documents.invoice_id - invoices.id
+Ref: invoice_documents.stored_by > users.id
+
+Ref: invoice_lines.entity_id > entities.id
+Ref: invoice_lines.invoice_id > invoices.id
+
+Ref: invoice_corrections.entity_id > entities.id
+Ref: invoice_corrections.correcting_invoice_id > invoices.id
+Ref: invoice_corrections.original_invoice_id > invoices.id
+
+Ref: invoice_receipts.entity_id > entities.id
+Ref: invoice_receipts.invoice_id > invoices.id
+Ref: invoice_receipts.receipt_id > erp_receipts.id
+Ref: invoice_receipts.check_run_id > invoice_check_runs.id
+
+Ref: invoice_check_runs.entity_id > entities.id
+Ref: invoice_check_runs.invoice_id > invoices.id
+Ref: invoice_check_runs.started_by > users.id
+
+Ref: ai_flow_classifications.entity_id > entities.id
+Ref: ai_flow_classifications.invoice_id > invoices.id
+Ref: ai_flow_classifications.check_run_id > invoice_check_runs.id
+
+Ref: ai_identifications.entity_id > entities.id
+Ref: ai_identifications.invoice_id > invoices.id
+Ref: ai_identifications.check_run_id > invoice_check_runs.id
+Ref: ai_identifications.proposed_entity_id > entities.id
+Ref: ai_identifications.order_id > erp_purchase_orders.id
+Ref: ai_identifications.recurring_profile_id > recurring_profiles.id
+
+Ref: invoice_line_matches.entity_id > entities.id
+Ref: invoice_line_matches.invoice_line_id > invoice_lines.id
+Ref: invoice_line_matches.check_run_id > invoice_check_runs.id
+Ref: invoice_line_matches.item_id > erp_items.id
+Ref: invoice_line_matches.decided_by > users.id
+
+Ref: anomaly_findings.entity_id > entities.id
+Ref: anomaly_findings.invoice_id > invoices.id
+Ref: anomaly_findings.check_run_id > invoice_check_runs.id
+Ref: anomaly_findings.invoice_line_id > invoice_lines.id
+Ref: anomaly_findings.related_invoice_id > invoices.id
+
+Ref: anomaly_finding_invoices.entity_id > entities.id
+Ref: anomaly_finding_invoices.finding_id > anomaly_findings.id
+Ref: anomaly_finding_invoices.invoice_id > invoices.id
+
+Ref: rule_evaluations.entity_id > entities.id
+Ref: rule_evaluations.invoice_id > invoices.id
+Ref: rule_evaluations.check_run_id > invoice_check_runs.id
+
+Ref: rule_condition_results.entity_id > entities.id
+Ref: rule_condition_results.evaluation_id > rule_evaluations.id
+
+Ref: ai_requests.entity_id > entities.id
+Ref: ai_requests.invoice_id > invoices.id
+Ref: ai_requests.batch_id > payment_batches.id
+Ref: ai_requests.request_id > payment_requests.id
+Ref: ai_requests.check_run_id > invoice_check_runs.id
+Ref: ai_requests.requested_by > users.id
+
+Ref: exceptions.entity_id > entities.id
+Ref: exceptions.invoice_id > invoices.id
+Ref: exceptions.opened_by_evaluation_id > rule_evaluations.id
+Ref: exceptions.taken_by > users.id
+Ref: exceptions.split_finding_id > anomaly_findings.id
+Ref: exceptions.closed_by > users.id
+
+Ref: exception_reasons.entity_id > entities.id
+Ref: exception_reasons.exception_id > exceptions.id
+Ref: exception_reasons.condition_result_id > rule_condition_results.id
+Ref: exception_reasons.anomaly_finding_id > anomaly_findings.id
+Ref: exception_reasons.recorded_by > users.id
+Ref: exception_reasons.resolved_by > users.id
+
+Ref: exception_follow_up_links.entity_id > entities.id
+Ref: exception_follow_up_links.exception_id > exceptions.id
+Ref: exception_follow_up_links.follow_up_invoice_id > invoices.id
+Ref: exception_follow_up_links.linked_by > users.id
+Ref: exception_follow_up_links.confirmed_by > users.id
+
+Ref: message_templates.entity_id > entities.id
+Ref: message_templates.approved_by > users.id
+
+Ref: correction_requests.entity_id > entities.id
+Ref: correction_requests.exception_id > exceptions.id
+Ref: correction_requests.template_id > message_templates.id
+Ref: correction_requests.sent_by > users.id
+Ref: correction_requests.reply_recorded_by > users.id
+Ref: correction_requests.created_by > users.id
+
+Ref: tax_risk_decisions.entity_id > entities.id
+Ref: tax_risk_decisions.exception_id > exceptions.id
+Ref: tax_risk_decisions.invoice_id > invoices.id
+Ref: tax_risk_decisions.risk_entry_id > tax_risk_entries.id
+Ref: tax_risk_decisions.decided_by > users.id
+
+Ref: individual_approvals.entity_id > entities.id
+Ref: individual_approvals.exception_id > exceptions.id
+Ref: individual_approvals.invoice_id > invoices.id
+Ref: individual_approvals.approver_id > users.id
+Ref: individual_approvals.required_tier_id > approval_tiers.id
+Ref: individual_approvals.split_finding_id > anomaly_findings.id
+
+Ref: payment_batches.entity_id > entities.id
+Ref: payment_batches.closed_by > users.id
+Ref: payment_batches.released_by > users.id
+
+Ref: batch_items.entity_id > entities.id
+Ref: batch_items.batch_id > payment_batches.id
+Ref: batch_items.invoice_id > invoices.id
+Ref: batch_items.rule_evaluation_id > rule_evaluations.id
+Ref: batch_items.individual_approval_id > individual_approvals.id
+Ref: batch_items.withdrawn_by > users.id
+
+Ref: batch_sample_items.entity_id > entities.id
+Ref: batch_sample_items.batch_id > payment_batches.id
+Ref: batch_sample_items.batch_item_id > batch_items.id
+Ref: batch_sample_items.invoice_id > invoices.id
+Ref: batch_sample_items.marked_by > users.id
+
+Ref: payment_requests.entity_id > entities.id
+Ref: payment_requests.batch_id > payment_batches.id
+Ref: payment_requests.supplier_id > erp_suppliers.id
+Ref: payment_requests.required_tier_id > approval_tiers.id
+Ref: payment_requests.individual_approval_id > individual_approvals.id
+Ref: payment_requests.prepared_by > users.id
+Ref: payment_requests.cancelled_by > users.id
+
+Ref: payment_request_lines.entity_id > entities.id
+Ref: payment_request_lines.request_id > payment_requests.id
+Ref: payment_request_lines.invoice_id > invoices.id
+Ref: payment_request_lines.ended_by > users.id
+
+Ref: request_signatures.entity_id > entities.id
+Ref: request_signatures.request_id > payment_requests.id
+Ref: request_signatures.signer_id > users.id
+
+Ref: ai_payment_summaries.entity_id > entities.id
+Ref: ai_payment_summaries.request_id > payment_requests.id
+
+Ref: erp_send_attempts.entity_id > entities.id
+Ref: erp_send_attempts.request_id > payment_requests.id
+
+Ref: audit_log.entity_id > entities.id
+Ref: audit_log.actor_user_id > users.id
+Ref: audit_log.invoice_id > invoices.id
