@@ -92,12 +92,13 @@ Purpose: the core screen. The evidence of one invoice, with the three hands visi
 | 6 | Anomaly numbers: price against the 6-month median, near-duplicate, supplier history, period (AC-15.1, AC-15.3, AC-15.7). |
 | 7 | The six conditions of BR-05, each with its value and Pass or Fail, set by the Rule Engine without an LLM (AC-16.2, AC-16.3). |
 | 8 | Decision history: who or what decided, with the three tags (AC-17.3). |
-| 9 | Action panel for the AP Accountant: confirm a line match, correct the entity or flow, request a correction, send for a decision, reject (US-18). Chief Accountant and Payment Approver see a notice that nothing waits for them. |
+| 9 | Action panel for the AP Accountant: confirm a line match, correct the flow, report a wrong entity, request a correction, send for a decision, reject (US-18). Chief Accountant and Payment Approver see a notice that nothing waits for them. |
 | 10 | In the default invoice: **Request correction** opens SCR-14. In other cases: the hold decision (SCR-16), the individual approval (SCR-18), the only action for a foreign invoice, or **Withdraw from batch** (AC-24.7). |
 | 11 | **Reject invoice** opens SCR-15. |
 | 12 | **Send for a decision** (state Waiting for Decision) for a reason another role decides. |
 | 13 | Conflict: "This item was changed by someone else. Reload to see the change." (BR-37). |
 | 14 | Audit write failure: the action is not completed (DF-30). |
+| 15 | **Report wrong entity** (D-68): the invoice is never moved to another entity. The page shows the traced mismatch (buyer tax code, buyer name, order reference, ERP supplier, each on the invoice against this entity), a required note, and the reason that will be added: "Wrong buyer tax code" or "Wrong entity reported". Afterwards the exception is resolved by a reissue request (SCR-14) or Reject (SCR-15); no individual approval. |
 
 | State | Source | Behavior |
 |---|---|---|
@@ -106,7 +107,8 @@ Purpose: the core screen. The evidence of one invoice, with the three hands visi
 | [`server-error`](wireframes/12-invoice-detail.html?state=server-error) | Server error | Message with **Retry**. |
 | [`checking`](wireframes/12-invoice-detail.html?state=checking) | Classification, reading, matching in progress | Invoice C26TAA-0000165 In Check; AI panels say "Checking…", the page stays usable. |
 | [`confirm-line`](wireframes/12-invoice-detail.html?state=confirm-line) | Line match with method (DF-41) | Inline confirmation that saves the pair to the mapping table with name and time (AC-18.2). |
-| [`correct`](wireframes/12-invoice-detail.html?state=correct) | Flow unclear (DF-41) | Inline choice of flow and entity. |
+| [`correct`](wireframes/12-invoice-detail.html?state=correct) | Flow unclear (DF-41) | Inline choice of the flow. Entity is no longer offered (D-68). |
+| [`wrong-entity`](wireframes/12-invoice-detail.html?state=wrong-entity&role=ap) | Wrong entity reported (D-68) | C26TAA-0000123: the traced mismatch table (the tax code is the same, the buyer name on the XML names another company, the order and the supplier are found), the reason that will be added, a required note, and **Report wrong entity** ([PNG](../images/ap-accountant/12i-invoice-detail-wrong-entity.png)). |
 | [`ai-failure`](wireframes/12-invoice-detail.html?state=ai-failure) | AI failure at intake | C26TAA-0000140: reason "AI unavailable"; the Rule Engine conditions read "Not evaluated"; re-run from the worklist; no automatic retry (AC-12.5, DF-08) ([PNG](../images/ap-accountant/12d-invoice-detail-ai-failure.png)). |
 | [`foreign`](wireframes/12-invoice-detail.html?state=foreign) | Unsupported: foreign invoice | TM-2026-0415 from Tempest Marketing GmbH: the only action is Reject; individual approval and sending for a decision are not offered (AC-12.9, D-31) ([PNG](../images/ap-accountant/12e-invoice-detail-foreign.png)). |
 | [`in-batch`](wireframes/12-invoice-detail.html?state=in-batch) | BR-33 `In Batch` | C26TAA-0000098: all six conditions pass; withdraw with a required reason until the request is fully signed (DF-07) ([PNG](../images/ap-accountant/12f-invoice-detail-in-batch.png)). |

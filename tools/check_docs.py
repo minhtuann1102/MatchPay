@@ -52,7 +52,7 @@ US_REMOVED = [u for u in US_ALL if u not in US]
 N_ACTIVE = len(US)
 N_MUST, N_SHOULD = 20, 6
 W_MAX = 21
-D_MAX = 66  # D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66
+D_MAX = 68  # D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67 and D-68 are user decisions on Step 5 gaps
 DF_MAX = 60  # DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
@@ -1170,9 +1170,17 @@ else:
     for i_ in ['D-%d' % n_ for n_ in range(47, 67)] + ['DF-%d' % n_ for n_ in range(53, 61)]:
         r_ = row(dec5, i_)
         if not r_: st8.append((i_, 'missing')); continue
-        if r_.strip().strip('|').split('|')[-1].strip() != 'Awaiting user review': st8.append((i_, 'status'))
-    print('  Step 5 decisions D-47..D-66 and defaults DF-53..DF-60 present and awaiting user review: %s' % ('yes' if not st8 else st8))
-    if st8: fail('Step 5 decision rows')
+        want_ = 'Approved by the user, 2026-10-31' if i_ == 'DF-60' else 'Awaiting user review'
+        if r_.strip().strip('|').split('|')[-1].strip() != want_: st8.append((i_, 'status'))
+    for i_ in ('D-67', 'D-68'):
+        r_ = row(dec5, i_)
+        if not r_ or r_.strip().strip('|').split('|')[-1].strip() != 'User decision, 2026-10-31': st8.append((i_, 'user decision source'))
+        elif 'Call, awaiting user review' not in r_: st8.append((i_, 'call not separated'))
+    # D-68: no text may offer moving an invoice to another entity
+    for f_, t_ in text.items():
+        if f_.startswith('docs/') and re.search(r'correct(s|ing)? the entity|Correct entity|change the entity|correct entity or flow', t_, re.I) and not f_.endswith('00-decisions.md') and 'handoff' not in f_:
+            st8.append((f_, 'offers to correct or change the entity'))
+    if st8: print('   ', st8); fail('Step 5 decision rows')
     approved_claim = [f_ for f_ in DB_FILES if re.search(r'Approved with Step 5|Step 5 of 9, approved', text.get(DB + f_, ''))]
     print('  Step 5 text that calls itself approved: %s' % (approved_claim or 'none'))
     if approved_claim: fail('Step 5 labelled approved')

@@ -170,7 +170,7 @@ UC-12 · BR-12, BR-17, BR-23, BR-27, BR-33
 UC-13 · BR-01, BR-09, BR-12, BR-14, BR-24, BR-27, BR-33
 
 - **AC-13.1** *Given* an invoice with buyer tax code 0100000011 and a reference to PO-CF-1001, *when* it is identified, *then* the entity is Calderwood Foods Co., the order is PO-CF-1001, and the evidence (tax code comparison, order number, reason) is stored.
-- **AC-13.2** *Given* an invoice with no buyer tax code, *when* it is identified, *then* the AI proposes the entity from the buyer name, the delivery address, and the order reference, and the invoice becomes an exception "Entity unconfirmed" until the AP Accountant confirms.
+- **AC-13.2** *Given* an invoice with no buyer tax code, *when* it is identified, *then* the AI proposes the entity from the buyer name, the delivery address, and the order reference, and the invoice becomes an exception "Entity unconfirmed" until the AP Accountant confirms the entity or reports it as wrong (AC-18.11).
 - **AC-13.3** *Given* a recurring invoice, *when* it is identified, *then* it is matched to a profile by supplier, entity, location, and period, or the invoice becomes an exception "No matching profile" (BR-24).
 - **AC-13.4** *Given* order PO-CF-1001 has no receipt, *when* the invoice is identified, *then* it becomes `Waiting for Goods` and not an exception (BR-14).
 - **AC-13.5** *Given* the buyer tax code on the invoice is 0100000022, *when* the invoice was uploaded for Calderwood Foods Co., *then* it is `Rejected` and the message states the mismatch; a name difference alone gives only a warning (BR-01, D-26).
@@ -243,7 +243,7 @@ UC-17 · BR-09, BR-12
 ## US-18 — Resolve an exception
 UC-18 · BR-05, BR-06, BR-09, BR-12, BR-25, BR-26, BR-31, BR-33, BR-34, BR-37
 
-- **AC-18.1** *Given* an open exception, *when* I open it, *then* I see every reason with its explanation and can choose: confirm a line match, correct the entity or flow, request a correction, request a data fix, reject the invoice with a reason, or send it for a decision (BR-34).
+- **AC-18.1** *Given* an open exception, *when* I open it, *then* I see every reason with its explanation and can choose: confirm a line match, correct the flow, report a wrong entity, request a correction, request a data fix, reject the invoice with a reason, or send it for a decision (BR-34).
 - **AC-18.2** *Given* I confirm that "Brand-X 70gsm copy paper, carton of 5 reams" is "A4 copy paper, grade 1", *when* I save, *then* the pair is stored in the mapping table of my entity with my name and the time, and the next invoice with that text matches without an LLM call (G-07).
 - **AC-18.3** *Given* I resolved a reason, *when* I save, *then* UC-16 runs again; if all six conditions hold the invoice is `In Batch`, otherwise the remaining reasons stay (BR-05).
 - **AC-18.4** *Given* an exception with the reason "Gate closed", *when* I confirm every AI result unchanged, *then* the AI proposal counts as correct for the accuracy of the pair; *when* I change a result, *then* it counts as incorrect (BR-06, DF-17).
@@ -253,6 +253,8 @@ UC-18 · BR-05, BR-06, BR-09, BR-12, BR-25, BR-26, BR-31, BR-33, BR-34, BR-37
 - **AC-18.8** *Given* a pair is confirmed in Calderwood Foods Co., *when* Calderwood Retail Co. matches the same text, *then* the pair is not used there (BR-09).
 - **AC-18.9** *Given* an invoice withdrawn from a batch, *when* its exception is shown, *then* the withdrawal reason and who withdrew it are visible.
 - **AC-18.10** *Given* I am a Chief Accountant, a Payment Approver, or an AP Accountant of another entity, *when* I try to resolve this exception, *then* I get "Access denied".
+- **AC-18.11** *Given* invoice C26TAA-0000123 in Calderwood Foods Co. that I think belongs to another entity, *when* I choose "Report wrong entity" and write a note, *then* the invoice stays in Calderwood Foods Co. and is never moved to another entity; the system shows where the mismatch comes from (the buyer tax code on the XML against the tax code of the entity, the buyer name, the order reference, the ERP data), and the report is saved with my name, the time, my note, and the traced source (BR-09, D-68).
+- **AC-18.12** *Given* a wrong entity report, *when* it is saved, *then* the invoice is an exception with the reason "Wrong buyer tax code" if the buyer tax code on the XML is missing or differs from the tax code of the entity, and "Wrong entity reported" otherwise; I can then ask the supplier for a correction or reissue (UC-19) or reject the invoice with a reason, and I cannot send it for an individual approval (D-31, D-68).
 
 ## US-19 — Send a correction request or a data-fix notice
 UC-19 · BR-01, BR-09, BR-25, BR-26, BR-27, BR-31
@@ -313,7 +315,7 @@ UC-23 · BR-02, BR-03, BR-09, BR-10, BR-30, BR-34, BR-35, BR-36, BR-37
 - **AC-23.1** *Given* I am Department Head Dan, *when* I open the approval queue, *then* I see only exceptions of Calderwood Foods Co. whose amount is under VND 50,000,000; the CFO sees those from VND 50,000,000 (BR-03).
 - **AC-23.2** *Given* an exception "Gate closed" of VND 6,600,000, *when* I approve it, *then* it becomes a single-invoice payment request in the open batch with my approval recorded, the invoice is `In Batch`, and the exception closes with the outcome Approved individually (DF-03).
 - **AC-23.3** *Given* the three split-order invoices of VND 20,000,000, 18,000,000, and 15,000,000 (combined VND 53,000,000), *when* Department Head Dan opens them, *then* Dan cannot approve any of the three, and CFO Fiona can (BR-10).
-- **AC-23.4** *Given* an exception of the kind "Tax-risk hold", "Exact duplicate", "XML signature failed", "Wrong buyer tax code", or "Unsupported: foreign invoice", *when* it is shown, *then* no individual approval is offered, because each has its own decision path (D-31).
+- **AC-23.4** *Given* an exception of the kind "Tax-risk hold", "Exact duplicate", "XML signature failed", "Wrong buyer tax code", "Wrong entity reported", or "Unsupported: foreign invoice", *when* it is shown, *then* no individual approval is offered, because each has its own decision path (D-31).
 - **AC-23.5** *Given* I decline an exception, *when* I save without a reason, *then* it is refused; with a reason it returns to the AP Accountant.
 - **AC-23.6** *Given* I am linked to the ERP user who created the order of the invoice, *when* I open its exception, *then* approving is blocked with "You created the order for this invoice" (BR-02, BR-36).
 - **AC-23.7** *Given* an invoice from a new supplier or with a changed bank account, *when* I approve it, *then* the signing screen later flags the change on its request (BR-30).

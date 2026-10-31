@@ -219,6 +219,8 @@ Enum reason_code {
   AI_UNAVAILABLE
   FLOW_UNCLEAR
   ENTITY_UNCONFIRMED
+  WRONG_BUYER_TAX_CODE [note: 'Added by a Wrong entity report when the XML buyer tax code is missing or differs from the entity (D-68); intake rejection BR-01 is unchanged']
+  WRONG_ENTITY_REPORTED [note: 'Added by a Wrong entity report when the XML is not at fault (D-68)']
   NO_MATCHING_PROFILE
   LINE_NOT_MATCHED
   PRICE_OUT_OF_TOLERANCE
@@ -240,6 +242,14 @@ Enum reason_code {
   WITHDRAWN_FROM_BATCH
   APPROVAL_DECLINED
   PAYMENT_FAILED
+}
+
+Enum wrong_entity_source {
+  BUYER_TAX_CODE [note: 'The buyer tax code on the XML is missing or differs from the tax code of the entity']
+  BUYER_NAME [note: 'The tax code matches but the buyer name on the XML names another company (a warning only, D-26)']
+  ORDER_REFERENCE [note: 'The order reference is not found in this entity (AC-13.6)']
+  ERP_DATA [note: 'The ERP data of this entity (order, receipt, supplier) does not fit the invoice']
+  NOT_TRACED [note: 'No source was found; the person\'s note is the only evidence']
 }
 
 Enum followup_kind {
@@ -498,6 +508,7 @@ TableGroup ai_and_rules {
 TableGroup exceptions_group {
   exceptions
   exception_reasons
+  wrong_entity_reports
   exception_follow_up_links
   message_templates
   correction_requests
@@ -1229,7 +1240,7 @@ Table invoices {
   flow invoice_flow [note: 'Current flow: the AI classification, or the person\'s correction (flow_set_by)']
   flow_set_by bigint [note: 'NULL = the AI\'s flow stands; set when a person chose the flow (AC-12.4)']
   flow_set_at timestamptz
-  entity_confirmed_by bigint [note: 'Set when a person confirmed an entity the AI proposed (AC-13.2); NULL when the buyer tax code identified it']
+  entity_confirmed_by bigint [note: 'Set when a person confirmed that the entity the invoice was uploaded for is right (AC-13.2); NULL when the buyer tax code identified it. An invoice never changes entity (D-68); a wrong entity is a row of wrong_entity_reports']
   entity_confirmed_at timestamptz
   order_id bigint [note: 'Identified purchase order of the same entity']
   recurring_profile_id bigint [note: 'Identified recurring profile of the same entity']
@@ -1626,6 +1637,27 @@ Table exception_reasons {
   }
 
   Note: 'The reasons of an exception (US-16, US-18, BR-05, BR-34; AC-16.2, AC-18.1, AC-18.9). Reasons are the plain text names shown on SCR-10 and SCR-12.'
+}
+
+Table wrong_entity_reports {
+  id bigint [pk, increment]
+  entity_id bigint [not null, note: 'The entity the invoice stays in (D-68)']
+  invoice_id bigint [not null]
+  exception_id bigint [not null]
+  exception_reason_id bigint [not null, note: 'The reason this report added: WRONG_BUYER_TAX_CODE when traced_source is BUYER_TAX_CODE, otherwise WRONG_ENTITY_REPORTED']
+  reported_by bigint [not null]
+  reported_at timestamptz [not null, default: `now()`]
+  note text [not null, note: 'What the AP Accountant saw; required']
+  traced_source wrong_entity_source [not null, note: 'Where the mismatch comes from, as found by the system at report time']
+  trace_detail varchar(500) [not null, note: 'The traced values as shown on SCR-12, for example the XML buyer tax code against the entity tax code. Only data of this entity and of the invoice itself (BR-09)']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    exception_reason_id [unique, name: 'ux_wrong_entity_reports_reason', note: 'one report per reason it added']
+    (entity_id, invoice_id) [name: 'ix_wrong_entity_reports_invoice']
+  }
+
+  Note: 'A report that an invoice is addressed to or expected in the wrong entity (US-18, UC-18; D-68). The invoice is never moved to another entity: the report adds an exception reason, which follows the wrong-invoice path (correction or reissue request, or Reject). Written once and never changed (D-65).'
 }
 
 Table exception_follow_up_links {
@@ -2256,6 +2288,11 @@ Ref: exception_reasons.condition_result_id > rule_condition_results.id
 Ref: exception_reasons.anomaly_finding_id > anomaly_findings.id
 Ref: exception_reasons.recorded_by > users.id
 Ref: exception_reasons.resolved_by > users.id
+Ref: wrong_entity_reports.entity_id > entities.id
+Ref: wrong_entity_reports.invoice_id > invoices.id
+Ref: wrong_entity_reports.exception_id > exceptions.id
+Ref: wrong_entity_reports.exception_reason_id > exception_reasons.id
+Ref: wrong_entity_reports.reported_by > users.id
 
 Ref: exception_follow_up_links.entity_id > entities.id
 Ref: exception_follow_up_links.exception_id > exceptions.id

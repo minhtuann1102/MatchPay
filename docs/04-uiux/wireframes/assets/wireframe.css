@@ -72,6 +72,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .nowrap { white-space: nowrap; }
 .t-err { color: var(--err); } .t-ok { color: var(--ok); } .t-warn { color: var(--warn); } .t-ai { color: var(--ai); }
 .stack { display: grid; gap: var(--s3); }
+.stack > * { min-width: 0; }
 .stack-lg { display: grid; gap: var(--s5); }
 .row { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
 .spread { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }

@@ -4,7 +4,7 @@
 >
 > Implementation status: NOT STARTED
 
-The PostgreSQL schema of **MatchPay** (D-47), drawn from [matchpay.dbml](matchpay.dbml): 62 tables, 55 enums, and 219 foreign keys. Table purposes, derived values, and transaction boundaries are in the [data model](01-data-model.md). Every table name below is the table name in the DBML file, and every foreign key drawn here is a `Ref` in the DBML.
+The PostgreSQL schema of **MatchPay** (D-47), drawn from [matchpay.dbml](matchpay.dbml): 63 tables, 56 enums, and 224 foreign keys. Table purposes, derived values, and transaction boundaries are in the [data model](01-data-model.md). Every table name below is the table name in the DBML file, and every foreign key drawn here is a `Ref` in the DBML.
 
 ## Relationships (overview)
 
@@ -96,7 +96,7 @@ erDiagram
 | Invoices | `invoices`, `invoice_documents`, `invoice_lines`, `invoice_corrections`, `invoice_receipts` | The invoice, its stored original, lines, corrections, and matched receipts (US-10, US-12, US-13). |
 | Check runs and Rule Engine | `invoice_check_runs`, `rule_evaluations`, `rule_condition_results`, `ai_requests` | One run of the checks per invoice and trigger, the Rule Engine decision with its six conditions, and the AI request log (US-16, G-05). |
 | AI outputs | `ai_flow_classifications`, `ai_identifications`, `invoice_line_matches`, `anomaly_findings`, `anomaly_finding_invoices` | What the AI proposed per task, each with its model and prompt version (US-12..US-15). |
-| Exceptions and decisions | `exceptions`, `exception_reasons`, `exception_follow_up_links`, `message_templates`, `correction_requests`, `tax_risk_decisions`, `individual_approvals` | Exceptions, their reasons, follow-up invoices, requests to suppliers, and the decisions of the Chief Accountant and the Payment Approver (US-18..US-21, US-23). |
+| Exceptions and decisions | `exceptions`, `exception_reasons`, `wrong_entity_reports`, `exception_follow_up_links`, `message_templates`, `correction_requests`, `tax_risk_decisions`, `individual_approvals` | Exceptions, their reasons, follow-up invoices, requests to suppliers, and the decisions of the Chief Accountant and the Payment Approver (US-18..US-21, US-23). |
 | Batch, signing, and ERP send | `payment_batches`, `batch_items`, `batch_sample_items`, `payment_requests`, `payment_request_lines`, `request_signatures`, `ai_payment_summaries`, `erp_send_attempts` | Batches, sample check, payment requests, signatures, and the send to the Entity ERP (US-24..US-26). |
 | Audit log | `audit_log` | The append-only log (US-28, D-55). Its subject columns are not foreign keys because the subject can be any table. |
 
@@ -132,7 +132,8 @@ Values are stored in capitals with underscores. The **UI** column gives the text
 | `exception_state` | OPEN, IN_REVIEW, WAITING_FOR_SUPPLIER, WAITING_FOR_DATA_FIX, WAITING_FOR_DECISION, CLOSED | Open, In Review, Waiting for Supplier, Waiting for Data Fix, Waiting for Decision, Closed (BR-34 chips) |
 | `exception_outcome` | ADMITTED, APPROVED_INDIVIDUALLY, REJECTED, SUPERSEDED, AUTO_CLOSED | Admitted, Approved individually, Rejected, Superseded, Auto-closed (on the Closed chip) |
 | `decision_role` | CHIEF_ACCOUNTANT, PAYMENT_APPROVER | Chief Accountant, Payment Approver (named on "Waiting for Decision") |
-| `reason_code` | GATE_CLOSED, TAX_RISK_HOLD, AI_UNAVAILABLE, FLOW_UNCLEAR, ENTITY_UNCONFIRMED, NO_MATCHING_PROFILE, LINE_NOT_MATCHED, PRICE_OUT_OF_TOLERANCE, QUANTITY_ABOVE_RECEIVED, TOTAL_ABOVE_THRESHOLD, NO_INDEPENDENT_SOURCE, NO_TAX_AUTHORITY_CODE, UNUSUAL_PRICE, POSSIBLE_DUPLICATE, SPLIT_ORDERS, RECURRING_OUT_OF_THRESHOLD, PERIOD_ALREADY_INVOICED, NEW_SUPPLIER, BANK_ACCOUNT_CHANGED, ANOMALY_CHECK_UNAVAILABLE, UNSUPPORTED_FOREIGN_INVOICE, ADVANCED_FLOW, ADJUSTMENT_OR_REPLACEMENT, WITHDRAWN_FROM_BATCH, APPROVAL_DECLINED, PAYMENT_FAILED | Gate closed, Tax-risk hold, AI unavailable, Flow unclear, Entity unconfirmed, No matching profile, Line not matched, "Price +2.5%, tolerance 2%", Quantity above received, Unusual price, Possible duplicate, Period already invoiced, New supplier, Bank account changed, Anomaly check unavailable, No tax-authority code, Unsupported: foreign invoice, Advanced flow, Payment failed. Labels proposed for TOTAL_ABOVE_THRESHOLD, NO_INDEPENDENT_SOURCE, SPLIT_ORDERS, RECURRING_OUT_OF_THRESHOLD, ADJUSTMENT_OR_REPLACEMENT, WITHDRAWN_FROM_BATCH, APPROVAL_DECLINED |
+| `reason_code` | GATE_CLOSED, TAX_RISK_HOLD, AI_UNAVAILABLE, FLOW_UNCLEAR, ENTITY_UNCONFIRMED, WRONG_BUYER_TAX_CODE, WRONG_ENTITY_REPORTED, NO_MATCHING_PROFILE, LINE_NOT_MATCHED, PRICE_OUT_OF_TOLERANCE, QUANTITY_ABOVE_RECEIVED, TOTAL_ABOVE_THRESHOLD, NO_INDEPENDENT_SOURCE, NO_TAX_AUTHORITY_CODE, UNUSUAL_PRICE, POSSIBLE_DUPLICATE, SPLIT_ORDERS, RECURRING_OUT_OF_THRESHOLD, PERIOD_ALREADY_INVOICED, NEW_SUPPLIER, BANK_ACCOUNT_CHANGED, ANOMALY_CHECK_UNAVAILABLE, UNSUPPORTED_FOREIGN_INVOICE, ADVANCED_FLOW, ADJUSTMENT_OR_REPLACEMENT, WITHDRAWN_FROM_BATCH, APPROVAL_DECLINED, PAYMENT_FAILED | Gate closed, Tax-risk hold, AI unavailable, Flow unclear, Entity unconfirmed, Wrong buyer tax code, Wrong entity reported, No matching profile, Line not matched, "Price +2.5%, tolerance 2%", Quantity above received, Unusual price, Possible duplicate, Period already invoiced, New supplier, Bank account changed, Anomaly check unavailable, No tax-authority code, Unsupported: foreign invoice, Advanced flow, Payment failed. Labels proposed for TOTAL_ABOVE_THRESHOLD, NO_INDEPENDENT_SOURCE, SPLIT_ORDERS, RECURRING_OUT_OF_THRESHOLD, ADJUSTMENT_OR_REPLACEMENT, WITHDRAWN_FROM_BATCH, APPROVAL_DECLINED |
+| `wrong_entity_source` | BUYER_TAX_CODE, BUYER_NAME, ORDER_REFERENCE, ERP_DATA, NOT_TRACED | Not shown as a word; the "Traced mismatch" table on SCR-12 (buyer tax code, buyer name, order reference, ERP supplier) |
 | `followup_kind` | FRESH_STANDARD, ADJUSTMENT, REPLACEMENT | Not shown as a word; "follow-up marker" on SCR-10 and the link in the history of SCR-12 |
 | `followup_status` | LINKED, CONFIRMED, CLOSED_AUTOMATICALLY | Not shown as a word; the tag "Waiting for AP confirmation" while LINKED (DF-39) |
 | `message_kind` | CORRECTION_REQUEST, DATA_FIX_NOTICE, REISSUE_REQUEST | Correction request, Data-fix notice, Reissue request (SCR-14) |
@@ -827,6 +828,15 @@ erDiagram
     withdraw_reason withdraw_reason
   }
 
+  wrong_entity_reports {
+    bigint id PK
+    bigint entity_id FK
+    bigint invoice_id FK
+    bigint exception_id FK
+    bigint exception_reason_id FK
+    wrong_entity_source traced_source
+  }
+
   exception_follow_up_links {
     bigint id PK
     bigint entity_id FK
@@ -902,6 +912,9 @@ erDiagram
   exceptions ||--o{ exception_reasons : exception_id
   rule_condition_results |o--o{ exception_reasons : condition_result_id
   anomaly_findings |o--o{ exception_reasons : anomaly_finding_id
+  invoices ||--o{ wrong_entity_reports : invoice_id
+  exceptions ||--o{ wrong_entity_reports : exception_id
+  exception_reasons ||--o{ wrong_entity_reports : exception_reason_id
   exceptions ||--o{ exception_follow_up_links : exception_id
   invoices ||--o{ exception_follow_up_links : follow_up_invoice_id
   exceptions ||--o{ correction_requests : exception_id
