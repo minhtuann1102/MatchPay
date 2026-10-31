@@ -1,6 +1,6 @@
 # 04 — UI/UX Wireframes
 
-> Design status: MVP — Step 4 of 9, draft for review
+> Design status: MVP — Step 4 of 9, approved
 >
 > Implementation status: NOT STARTED
 

@@ -15,7 +15,7 @@ The work is done in nine steps. A step is only approved when the user approves i
 | 1 | Research and problem analysis | Draft for review |
 | 2 | Use cases and user stories (INVEST, acceptance criteria, business rules, MoSCoW) | Draft for review |
 | 3 | Information architecture (sitemap, routes and permissions, navigation, screen inventory, user flows, UI states) | Approved |
-| 4 | UI/UX and wireframes (design system, screen notes, HTML wireframes with PNG exports) | Draft for review |
+| 4 | UI/UX and wireframes (design system, screen notes, HTML wireframes with PNG exports) | Approved |
 | 5 | Database | Not started |
 | 6 | API contract | Not started |
 | 7 | C4 architecture, tech stack, and LLM provider | Not started |
@@ -478,7 +478,7 @@ Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with t
 
 ### 2.3 UI wireframes
 
-Step 4 (draft for review) draws the 35 active screens as 18 high-fidelity page files; modals are states of their parent page. The design concept is "three hands": what the **AI proposed** (dotted rail, round dashed tag), what the **Rule Engine decided** (double rail, square tag, six conditions with their values), and what a **person decided or signed** (solid rail, filled tag, signature record) are always distinguishable, in text and in shape. Only four core screens are shown here. Every screen and state, in every role, is in the wireframe gallery: open `docs/04-uiux/wireframes/index.html` in a browser from a local clone (GitHub shows `.html` files as source code).
+Step 4 (approved by the user) draws the 35 active screens as 18 high-fidelity page files; modals are states of their parent page. The design concept is "three hands": what the **AI proposed** (dotted rail, round dashed tag), what the **Rule Engine decided** (double rail, square tag, six conditions with their values), and what a **person decided or signed** (solid rail, filled tag, signature record) are always distinguishable, in text and in shape. Only four core screens are shown here. Every screen and state, in every role, is in the wireframe gallery: open `docs/04-uiux/wireframes/index.html` in a browser from a local clone (GitHub shows `.html` files as source code).
 
 **Invoice worklist (AP Accountant, SCR-10):** every state chip, reasons with numbers, "Due soon", and the sync time.
 
@@ -517,7 +517,7 @@ Sources: [Design system](docs/04-uiux/01-design-system.md), [Screen notes and st
 - [x] Write acceptance criteria (Given/When/Then) and business rules (draft for review)
 - [x] Prioritize the backlog with MoSCoW (draft for review)
 - [x] Design the information architecture, sitemap per role, and user flows (approved)
-- [x] Design the UI/UX wireframes, including AI states and a design system (draft for review)
+- [x] Design the UI/UX wireframes, including AI states and a design system (approved)
 - [ ] Design the database
 - [ ] Write the API documentation in OpenAPI 3.0
 - [ ] Design the C4 model and choose the tech stack and LLM provider
