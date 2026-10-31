@@ -22,6 +22,7 @@
     <li><a href="12-invoice-detail.html?state=checking">checking</a></li>
     <li><a href="12-invoice-detail.html?state=confirm-line&amp;role=ap">confirm-line</a></li>
     <li><a href="12-invoice-detail.html?state=correct&amp;role=ap">correct</a></li>
+    <li><a href="12-invoice-detail.html?state=wrong-entity&amp;role=ap">wrong-entity</a></li>
     <li><a href="12-invoice-detail.html?state=draft&amp;role=ap">SCR-14 draft</a></li>
     <li><a href="12-invoice-detail.html?state=draft-loading&amp;role=ap">draft-loading</a></li>
     <li><a href="12-invoice-detail.html?state=draft-ai-error&amp;role=ap">draft-ai-error</a></li>
@@ -76,7 +77,7 @@
       <div class="card" data-show="loading"><div class="card-b stack"><span class="sk" style="width:40%;height:22px"></span><span class="sk" style="width:70%"></span><span class="sk" style="width:100%"></span><span class="sk" style="width:90%"></span><span class="sk" style="width:95%"></span></div><p class="xs muted card-b">Loading the invoice and its evidence…</p></div>
 
       <!-- ============ CASE A: exception In Review (AP Accountant works on it) ============ -->
-      <div class="detail-grid" data-show="default confirm-line correct draft draft-loading draft-ai-error draft-not-sent reject reject-error conflict audit-error">
+      <div class="detail-grid" data-show="default confirm-line correct wrong-entity draft draft-loading draft-ai-error draft-not-sent reject reject-error conflict audit-error">
         <section class="card d-head">
           <div class="card-b stack">
             <div class="spread">
@@ -108,6 +109,7 @@
                 <dt>Seller</dt><dd>Brightfield Paper Ltd, tax code 0301122334</dd>
                 <dt>Series and number</dt><dd class="mono">C26TAA / 0000123</dd>
                 <dt>Buyer tax code</dt><dd class="mono">0100000011 (matches Calderwood Foods Co.)</dd>
+                <dt>Buyer name</dt><dd><span data-hide="wrong-entity">Calderwood Foods Co.</span><span data-show="wrong-entity">Calderwood Retail Co.</span></dd>
                 <dt>Order reference</dt><dd class="mono">PO-CF-1007</dd>
                 <dt>Signature check</dt><dd><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span> Seller signature valid, checked 31/10/2026 08:52</dd>
                 <dt>Stored hash</dt><dd class="mono">9f2c4a71…e41a</dd>
@@ -188,12 +190,27 @@
                 <div class="notice n-info" data-show="confirm-line" style="margin-top:6px"><svg class="i"><use href="#i-check"></use></svg><div class="grow"><b>Confirm "Folder file blue 5cm" as "Folder A4 blue, 5 cm"?</b><span>Saved with your name and the time. The Rule Engine then checks the invoice again.</span><div class="actions" style="margin-top:6px"><button class="btn btn-sm btn-primary" type="button">Save confirmation</button><button class="btn btn-sm btn-quiet" type="button">Cancel</button></div></div></div>
               </div>
               <div class="act-sec">
-                <h3>Entity or flow is wrong</h3>
-                <div class="actions"><button class="btn btn-sm" type="button">Correct entity or flow</button></div>
+                <h3>Flow or entity is wrong</h3>
+                <p>An invoice is never moved to another entity. If it does not belong to Calderwood Foods Co., report it: the system traces where the mismatch comes from, and the exception is handled like a wrong invoice.</p>
+                <div class="actions"><button class="btn btn-sm" type="button">Correct flow</button><button class="btn btn-sm" type="button">Report wrong entity<span class="callout" aria-hidden="true">15</span></button></div>
                 <div class="stack" data-show="correct" style="margin-top:6px">
                   <div class="field"><label for="c-flow">Flow</label><select class="select" id="c-flow"><option>Goods with order</option><option>Services with order</option><option>Recurring</option><option>Employee expense</option><option>Other</option></select></div>
-                  <div class="field"><label for="c-ent">Entity</label><select class="select" id="c-ent"><option>Calderwood Foods Co.</option><option>Calderwood Packaging Co.</option><option>Calderwood Retail Co.</option></select></div>
                   <div class="actions"><button class="btn btn-sm btn-primary" type="button">Save correction</button><button class="btn btn-sm btn-quiet" type="button">Cancel</button></div>
+                </div>
+                <div class="stack" data-show="wrong-entity" style="margin-top:6px">
+                  <div class="lbl">Traced mismatch<span class="callout" aria-hidden="true">15</span></div>
+                  <div class="blk blk-rule" style="padding:0"><div class="tbl-wrap"><table class="tbl">
+                    <thead><tr><th>Checked</th><th>Invoice against this entity</th><th>Result</th></tr></thead>
+                    <tbody>
+                      <tr><td>Buyer tax code</td><td><span class="mono">0100000011</span> against <span class="mono">0100000011</span></td><td><span class="bandtxt t-ok">Same</span></td></tr>
+                      <tr class="attn"><td>Buyer name</td><td>Calderwood Retail Co. against Calderwood Foods Co.</td><td><span class="bandtxt t-warn">Differs</span></td></tr>
+                      <tr><td>Order reference</td><td><span class="mono">PO-CF-1007</span>, found in this entity</td><td><span class="bandtxt t-ok">Same</span></td></tr>
+                      <tr><td>ERP supplier</td><td>Brightfield Paper Ltd, found in this entity</td><td><span class="bandtxt t-ok">Same</span></td></tr>
+                    </tbody></table></div></div>
+                  <div class="notice n-info"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b>Traced to the buyer name on the XML.</b><span>The buyer tax code matches, so the reason added is "Wrong entity reported". If the tax code were missing or different, it would be "Wrong buyer tax code". Only data of this entity and of this invoice is shown.</span></div></div>
+                  <div class="field"><label for="we-note">Note (required)</label><textarea class="textarea" id="we-note">The delivery address and the buyer name point to Calderwood Retail Co.</textarea></div>
+                  <p class="small">The invoice stays in Calderwood Foods Co. Then ask Brightfield Paper Ltd for a reissue, or reject the invoice. It cannot be approved individually.</p>
+                  <div class="actions"><button class="btn btn-sm btn-primary" type="button">Report wrong entity</button><button class="btn btn-sm btn-quiet" type="button">Cancel</button></div>
                 </div>
               </div>
               <div class="act-sec">

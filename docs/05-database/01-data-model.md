@@ -4,7 +4,7 @@
 >
 > Implementation status: NOT STARTED
 
-The schema for **MatchPay** on PostgreSQL (D-47): 62 tables in ten groups. It stores what the [business rules](../requirements/business-rules.md) and the [screens](../04-uiux/02-screen-notes.md) need, plus who created each record and when, and nothing that can be computed (D-63). Everything that comes from the Entity ERP is a read-only copy, and everything that a person decided is a row with its author.
+The schema for **MatchPay** on PostgreSQL (D-47): 63 tables in ten groups. It stores what the [business rules](../requirements/business-rules.md) and the [screens](../04-uiux/02-screen-notes.md) need, plus who created each record and when, and nothing that can be computed (D-63). Everything that comes from the Entity ERP is a read-only copy, and everything that a person decided is a row with its author.
 
 Related sources of truth: [matchpay.dbml](matchpay.dbml), [ER diagram](02-er-diagram.md), [decisions](00-decisions.md).
 
@@ -95,6 +95,7 @@ Related sources of truth: [matchpay.dbml](matchpay.dbml), [ER diagram](02-er-dia
 |---|---|
 | `exceptions` | One exception on one invoice with `state` (BR-34), `outcome` when closed, who takes it, who decides, `version`. At most one open exception per invoice. |
 | `exception_reasons` | The reasons with their numbers, the failed condition, and for a withdrawal who and why. |
+| `wrong_entity_reports` | A report that an invoice seems to belong to another entity: who, when, the note, the traced source, and the reason it added. The invoice never moves (US-18, D-68). |
 | `exception_follow_up_links` | A follow-up invoice linked to an exception, one to many (BR-26, BR-31). |
 | `message_templates` | The three approved request templates, seeded (DF-21). |
 | `correction_requests` | Correction requests, data-fix notices, and reissue requests: the AI draft, the sent text, send status, reply deadline (US-19). |
@@ -174,7 +175,7 @@ The application changes a state only along the transitions of BR-33, BR-34, and 
 | V16 | `In Batch` to `Signed` | In the transaction of the second signature (R3, R4) |
 | V17 | `Signed` to `Sent` | After the first successful `erp_send_attempts` row |
 | V18 | `Sent` to `Paid` | The ERP reply on the attempt and `payment_requests.paid_at`; `price_history` and `supplier_entity_stats` updated |
-| V19 | `Sent` to `Exception` | `erp_send_attempts.reply = FAILED`; a new exception with the reason `PAYMENT_FAILED`; the request keeps `Sent` and gets `erp_failed_at` (D-60, gap 1) |
+| V19 | `Sent` to `Exception` | `erp_send_attempts.reply = FAILED`; a new exception with the reason `PAYMENT_FAILED`; the request keeps `Sent` and gets `erp_failed_at`. The failure is a mocked demo scenario and gets no request state (D-60, D-67) |
 | V2, V3 | Removed (D-33) | Not representable and not needed: there is no state `Awaiting Field Confirmation` and no PDF intake |
 
 An invoice is in exactly one state because `state` is one column. The checks `ck_invoices_readable` and `ck_invoices_rejection` tie the state `REJECTED` to a reason, and an unreadable XML can only be `REJECTED`.
@@ -201,7 +202,7 @@ A new problem with a closed invoice opens a new row: the partial unique index on
 | B1 | batch to `Open` | `payment_batches` row for the calendar month, created by the first admission (unique per entity and period) |
 | B2 | `Open` to `In Review` | `closed_by`, `closed_at`, `sample_rate_pct`, `sample_size`, `sample_method`, model and prompt version of the sample, and the `batch_sample_items` rows |
 | B3 | `In Review` to `In Signing` | `released_by`, `released_at`; the `payment_requests` and their `payment_request_lines`; allowed only when no sample row is `PENDING` |
-| B4, B5, B6 | to `Signed`, `Sent`, `Completed` | Set by the application when every request has reached the state; the check `ck_batches_released` ties them to a release time |
+| B4, B5, B6 | to `Signed`, `Sent`, `Completed` | Set by the application when every request has reached the state (for `Completed`: `Paid`, or the mocked failure recorded, D-67); the check `ck_batches_released` ties them to a release time |
 | R1 | request to `Awaiting Chief Accountant` | Created at B3 with `required_tier_id`, `required_level_name`, `content_hash`, `version = 1`, `prepared_by` |
 | R2, R3, R4 | signed | A `request_signatures` row in the same transaction as the state change; `request_version` and `content_hash` equal the request's current values or nothing is written |
 | R5 | back to `Awaiting Chief Accountant` | A line is ended, `total_amount`, `content_hash`, `required_*`, and `version` are recomputed, and every `VALID` signature of the request becomes `VOIDED` (`voided_at`, `void_reason`) |
@@ -218,7 +219,7 @@ The AI's output is never overwritten, because the gate accuracy compares it with
 | Subject | AI's value | Current value | Person's change |
 |---|---|---|---|
 | Flow | `ai_flow_classifications` (latest run) | `invoices.flow` | `flow_set_by`, `flow_set_at` (AC-12.4) |
-| Entity | `ai_identifications.proposed_entity_id` | `invoices.entity_id` | `entity_confirmed_by`, `entity_confirmed_at` (AC-13.2). Choosing another entity is not modelled (gap 2) |
+| Entity | `ai_identifications.proposed_entity_id` | `invoices.entity_id` | `entity_confirmed_by`, `entity_confirmed_at` (AC-13.2): a person confirmed the entity of the upload. An invoice never changes entity; "Report wrong entity" is a `wrong_entity_reports` row (D-68) |
 | Order, profile | `ai_identifications.order_id`, `recurring_profile_id` | `invoices.order_id`, `recurring_profile_id` | Set by the application when the identification is accepted |
 | Line match | `invoice_line_matches` rows with method `MAPPING_TABLE`, `EMBEDDING_FUSION`, `LLM` | The latest row of the line | A `PERSON` row with `decided_by`; the pair also enters `item_mappings` |
 
@@ -278,6 +279,7 @@ A model call never runs inside a database transaction, so no lock is held while 
 | Resolve an exception | Version check on the exception (BR-37), the person's rows (`invoice_line_matches` with `PERSON`, `item_mappings`, `gate_comparisons`, `correction_requests`), exception state, and the audit entry; then a new check run | The check run |
 | Send a correction request | The `correction_requests` status and the exception state change only when the Email Service answered; on failure `send_status = NOT_SENT` and `last_error`, and the exception does not change | — |
 | Tax-risk decision | Version check, `tax_risk_decisions` row, exception state, and for a rejection the invoice state | Check run after a release |
+| Report wrong entity | Version check on the exception (BR-37), a `wrong_entity_reports` row with the traced source and values, an `exception_reasons` row `WRONG_BUYER_TAX_CODE` (source `BUYER_TAX_CODE`) or `WRONG_ENTITY_REPORTED`, the exception in `IN_REVIEW`, the audit entry. `invoices.entity_id` never changes (D-68) | — |
 | Individual approval | Version check on the exception, `individual_approvals` row, exception closed with `APPROVED_INDIVIDUALLY`, invoice `In Batch`, `batch_items` row | — |
 | Close a batch for review | Version check on the batch, state, sample size, and the `batch_sample_items` rows. The AI selection runs before the transaction; if it fails, the fallback of DF-29 fills the rows and `sample_method = WITHOUT_AI` | — |
 | Mark a sample item | The mark, and for `ERROR` the withdrawal (V15) and, when the alert condition holds, a `gate_alerts` row | — |
@@ -285,7 +287,7 @@ A model call never runs inside a database transaction, so no lock is held while 
 | Sign requests | **One transaction per request**, so a refused request does not block the others: the version and content-hash check, the signer's separation checks (BR-36), the `request_signatures` row with the shared `signing_action_id`, the request state and, for the second signature, the invoices' state `Signed` (V16) and the first `erp_send_attempts` row | The send |
 | Remove a line, decline a request | Version check, the line or the request ended with its reason, recomputed total, hash, level, version, every `VALID` signature voided, invoice back to exception with a `WITHDRAWN_FROM_BATCH` or `APPROVAL_DECLINED` reason | — |
 | ERP send | A worker takes a `PENDING` attempt, sends with the request number as the idempotency key, and records the outcome and the next attempt in one transaction; the third failure leaves the request `Signed` and raises the alert. A hash that differs from the signed one is `HASH_MISMATCH` and is not sent (AC-26.7) | — |
-| ERP paid status | `reply`, `payment_reference`, request `Paid`, invoices `Paid`, `price_history` and `supplier_entity_stats`, and the batch `Completed` when every request is paid | — |
+| ERP paid status | `reply`, `payment_reference`, request `Paid`, invoices `Paid`, `price_history` and `supplier_entity_stats`, and the batch `Completed` when every request is paid or has its mocked failure recorded (D-67, a call awaiting review) | — |
 | ERP sync | One transaction per record type: upserts by `(entity_id, erp_ref)` (so a second run creates no duplicate, AC-07.2), rejections logged, run totals; then new check runs for invoices that wait for goods or for a corrected record, and for invoices of a newly listed supplier (AC-07.10) | Check runs |
 | Lower a group maximum | The group row and every entity policy above the new maximum are changed together, with one audit entry each (AC-03.4) | — |
 
@@ -390,7 +392,7 @@ Every active story has data in at least one table. The same lists fill the Datab
 | US-15 | `anomaly_findings`, `anomaly_finding_invoices`, `price_history`, `supplier_entity_stats`, `erp_supplier_bank_accounts`, `recurring_profile_periods`, `invoices` |
 | US-16 | `rule_evaluations`, `rule_condition_results`, `invoice_check_runs`, `invoices`, `exceptions`, `exception_reasons`, `batch_items`, `payment_batches`, `supplier_gates`, `entity_policies`, `ai_requests` |
 | US-17 | `invoices`, `invoice_documents`, `invoice_lines`, `exceptions`, `exception_reasons`, `rule_condition_results`, `invoice_line_matches`, `anomaly_findings`, `audit_log` |
-| US-18 | `exceptions`, `exception_reasons`, `item_mappings`, `invoice_line_matches`, `gate_comparisons`, `exception_follow_up_links`, `invoices`, `audit_log` |
+| US-18 | `exceptions`, `exception_reasons`, `wrong_entity_reports`, `item_mappings`, `invoice_line_matches`, `gate_comparisons`, `exception_follow_up_links`, `invoices`, `audit_log` |
 | US-19 | `correction_requests`, `message_templates`, `exceptions`, `erp_suppliers` |
 | US-20 | `exception_follow_up_links`, `invoice_corrections`, `exceptions`, `invoices` |
 | US-21 | `tax_risk_entries`, `tax_risk_decisions`, `exceptions`, `exception_reasons` |

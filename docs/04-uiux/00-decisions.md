@@ -48,4 +48,15 @@ None changes a requirement. Each is a place where a wireframe needed a detail th
 
 No error was found in Step 3 while drafting. One ambiguity in Step 2 is recorded as DF-50.
 
+## Changed by user decision D-68
+
+Step 4 is approved. On 2026-10-31 the user ruled that no invoice moves between entities (D-68, recorded in [Step 5 decisions](../05-database/00-decisions.md#decisions-made-by-the-user)). IDs are unchanged.
+
+| Item | Change | Status |
+|---|---|---|
+| `12-invoice-detail.html`, action panel | "Correct entity or flow" is replaced by **Correct flow** and **Report wrong entity**. The `correct` state offers the flow only. | Changed by user decision D-68 |
+| New state `wrong-entity` | Shows the traced mismatch, a required note, and the reason that will be added. PNG `12i-invoice-detail-wrong-entity.png`. | Changed by user decision D-68 |
+| PNGs re-exported | `12-invoice-detail`, `12b-invoice-detail-correction-draft`, `12c-invoice-detail-reject`, `12h-invoice-detail-conflict` (their action panel changed). | Changed by user decision D-68 |
+| `02-screen-notes.md` | Note 9 reworded, note 15 and the `wrong-entity` row added. | Changed by user decision D-68 |
+
 **Related:** [Step index](README.md)

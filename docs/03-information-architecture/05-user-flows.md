@@ -65,7 +65,7 @@ flowchart TD
 
 ## Flow 2: AP Accountant resolves an exception
 
-An exception holds one or more reasons. The AP Accountant resolves them one by one, and after every resolution the Rule Engine checks the invoice again from the stored evidence (UC-16). Two kinds of reason cannot be settled by the AP Accountant and go to other roles: a tax-risk hold to the Chief Accountant, and an individual approval to the Payment Approver. An "Unsupported: foreign invoice" exception (AC-12.9) can only be rejected with a reason on SCR-15; it is never sent for a decision.
+An exception holds one or more reasons. The AP Accountant resolves them one by one, and after every resolution the Rule Engine checks the invoice again from the stored evidence (UC-16). Two kinds of reason cannot be settled by the AP Accountant and go to other roles: a tax-risk hold to the Chief Accountant, and an individual approval to the Payment Approver. An "Unsupported: foreign invoice" exception (AC-12.9) can only be rejected with a reason on SCR-15; it is never sent for a decision. A reported wrong entity (D-68) never moves the invoice to another entity: the invoice stays where it was uploaded, the page traces the mismatch, and the exception gets the reason "Wrong buyer tax code" or "Wrong entity reported". It is then resolved like a wrong invoice, by a correction or reissue request on SCR-14 or by a rejection on SCR-15, and it is never sent for an individual approval.
 
 ```mermaid
 flowchart TD
@@ -76,7 +76,8 @@ flowchart TD
     list --> detail["👤 AP: SCR-12 Invoice Detail and Evidence<br/>reasons with numbers, state In Review"]
     detail --> kind{"👤 AP: What does the<br/>reason need?"}
 
-    kind -->|"Doubtful line, wrong entity,<br/>or wrong flow"| fix["👤 AP: Confirm or correct in the action panel<br/>confirmed pair enters the mapping table"]
+    kind -->|"Doubtful line<br/>or wrong flow"| fix["👤 AP: Confirm or correct in the action panel<br/>confirmed pair enters the mapping table"]
+    kind -->|"Invoice seems to belong<br/>to another entity"| wrongent["👤 AP: Report wrong entity with a note<br/>the system traces the mismatch, D-68<br/>the invoice stays in its entity"]
     kind -->|"Supplier must correct"| draft["👤 AP: SCR-14 Correction Request Draft<br/>AI drafts from an approved template"]:::ai
     kind -->|"ERP data is missing"| notice["👤 AP: SCR-14 as a data-fix notice<br/>to the internal team"]:::ai
     kind -->|"Invoice cannot be used,<br/>or Unsupported: foreign invoice"| reject["👤 AP: SCR-15 Reject Invoice<br/>reason required"]
@@ -94,6 +95,7 @@ flowchart TD
     waitsup -->|"Follow-up invoice linked<br/>or ERP data synced"| recheck
     waitsup -->|"Fresh standard invoice passes"| auto(["Closed, outcome Auto-closed<br/>original invoice Superseded"])
 
+    wrongent -->|"Reason Wrong buyer tax code<br/>or Wrong entity reported added"| detail
     fix --> recheck["Rule Engine checks again, UC-16"]
     reject --> rejected(["Closed, outcome Rejected<br/>invoice Rejected"])
     recheck --> pass{"All six conditions hold?"}

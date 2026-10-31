@@ -32,7 +32,7 @@ The user reviewed Step 3 on 2026-10-31 and said "Step 3 looks good"; the decisio
 | DF-38 | **Screen IDs are numbered by area** (01 and 90 access, 10s invoices, 20s recurring profiles, 30s batch, 40 decisions, 50s signing, 60s oversight, 70 to 74 entity administration, 75 to 79 group administration, 80s demo). A new screen takes the next free number in its area, and existing numbers do not change. | Approved with Step 3 (user, 2026-10-31) |
 | DF-39 | **"Waiting for AP confirmation" is a tag on an exception in `In Review`,** not a state. Step 2 (AC-20.3) says the exception "stays open" with that wording, while BR-34 has no such state. The tag shows when a legal adjustment or replacement invoice is linked and passes the checks (E6, E12). | Approved with Step 3 (user, 2026-10-31) |
 | DF-40 | **A failed ERP send raises an alert on screen** for the AP Accountant (SCR-30) and for the Chief Accountant and the Payment Approver (SCR-50, SCR-51). Step 2 says only "an alert appears" (AC-26.5) and does not say who sees it, and it states no manual retry after the 3 attempts, so none is drawn. | Approved with Step 3 (user, 2026-10-31) |
-| DF-41 | **Inline actions on SCR-12 instead of modals:** confirm a line match, correct the entity or flow, withdraw an invoice from the batch (reason required), and send for a decision. Only actions with a form that needs focus are modals (D-36). Step 2 does not list a modal for withdrawal (AC-24.7). | Awaiting user review (text changed for D-33; approved before the change) |
+| DF-41 | **Inline actions on SCR-12 instead of modals:** confirm a line match, correct the flow, report a wrong entity, withdraw an invoice from the batch (reason required), and send for a decision. Only actions with a form that needs focus are modals (D-36). Step 2 does not list a modal for withdrawal (AC-24.7). | Awaiting user review (text changed for D-33 and for D-68; approved before the changes) |
 | DF-42 | **The demo seed also holds the price history and the earlier recurring periods.** Step 2 seeds only the gate history (DF-33), but the unusual-price check needs at least 3 purchases in 6 months (DF-20, AC-15.1) and a usage-based recurring check needs earlier periods (BR-24, AC-15.5). Without them every price and recurring check would be skipped or fail in the demo. | Approved with Step 3 (user, 2026-10-31) |
 | DF-43 | **After a decision on SCR-12 the user returns to the list they came from** (SCR-10, SCR-40, or SCR-51). After signing the user stays on SCR-50 or SCR-51 with one result per request. | Approved with Step 3 (user, 2026-10-31) |
 | DF-44 | **The Entity Admin's home page is SCR-73 Entity Policy,** which is the "entity settings" of DF-28. | Approved with Step 3 (user, 2026-10-31) |
@@ -68,5 +68,17 @@ D-33 is the user's own decision (foreign invoices, PDF intake, foreign tax dutie
 | D-34, D-37, D-40, DF-41 | Text changed for D-33 (screen count, no foreign tax outcome, no foreign tax documents). | Awaiting user review |
 | Actors in diagrams | On 2026-10-31 the user asked that the use case and information architecture diagrams show the actors as the sample does. The worker's way of doing it: the sitemap is split into two diagrams of three actors each (D-34), and each user flow starts from actor nodes with the person icon and prefixes every human step with 👤 and the actor abbreviation (the flows keep their earlier layout; swimlane subgraphs were tried and dropped as less readable). No requirement, screen, route, or permission changed. | Awaiting user review |
 | Numbering | Step 3 decisions moved from D-33..D-40 to D-34..D-41 (see the top of this page). | Awaiting user review |
+
+## Changed by user decision D-68
+
+Step 3 is approved. On 2026-10-31 the user ruled that no invoice moves between entities (D-68, recorded in [Step 5 decisions](../05-database/00-decisions.md#decisions-made-by-the-user) because the gap arose there). IDs are unchanged.
+
+| Item | Change | Status |
+|---|---|---|
+| SCR-12 in the inventory | "Corrects the entity or flow" becomes "corrects the flow, reports a wrong entity". The page shows the traced mismatch and the reason "Wrong buyer tax code" or "Wrong entity reported". | Changed by user decision D-68 |
+| DF-41 | "Correct the entity or flow" becomes "correct the flow, report a wrong entity". | Changed by user decision D-68 |
+| User flow 2 | A branch "Invoice seems to belong to another entity" is added; the exception stays and follows the wrong-invoice path. | Changed by user decision D-68 |
+| UI states | A row "Wrong entity reported" is added; the list of reasons names the two new reasons. | Changed by user decision D-68 |
+
 
 **Related:** [Step index](README.md) · [Step 2 decisions](../02-usecases-userstories/00-decisions.md) · [Session handoff](../handoff/session-handoff.md)

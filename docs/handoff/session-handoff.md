@@ -10,7 +10,7 @@
 | 2 | Use cases and user stories ([docs/02-usecases-userstories](../02-usecases-userstories/README.md)), [business rules](../requirements/business-rules.md), [traceability](../traceability/master-traceability.md) | Draft for review |
 | 3 | Information architecture ([docs/03-information-architecture](../03-information-architecture/README.md)); the Screen column of the [traceability matrix](../traceability/master-traceability.md) is filled | **Approved by the user** ("Step 3 looks good", 2026-10-31), then adjusted for D-33; the adjustments await review |
 | 4 | UI/UX ([docs/04-uiux](../04-uiux/README.md)): design system, screen notes, 18 HTML page files for the 35 active screens, PNG exports by role | **Approved by the user** ("OK, that's it", 2026-10-31) |
-| 5 | Database ([docs/05-database](../05-database/README.md)): DBML with 62 tables, data model, ER diagrams; the Database column of the [traceability matrix](../traceability/master-traceability.md) is filled | **Draft for review.** Step 6 waits for the user's review of Step 5 |
+| 5 | Database ([docs/05-database](../05-database/README.md)): DBML with 63 tables, data model, ER diagrams; the Database column of the [traceability matrix](../traceability/master-traceability.md) is filled | **Draft for review.** Step 6 waits for the user's review of Step 5 |
 | 6..9 | Not started | Next: Step 6 (API), after the user reviews Step 5 |
 
 Steps 1, 2, 3, and 4 are the baseline for later steps. Steps 1 and 2 are still draft for review and Steps 3 and 4 are approved, so the decisions of Steps 1 and 2 can still change. If a later step changes one, update the source document and its ID, and do not fork the meaning.
@@ -46,6 +46,8 @@ Only these are the user's own decisions:
 - **D-33: remove foreign invoices and the cash payment flag from the MVP and move them to Advanced** as W-19 (foreign invoices from PDF), W-20 (foreign tax duties), and W-21 (cash payment flag). Kept: the tax-risk hold, the XML signature and buyer tax code checks, and the platform e-signature. One reading inside D-33 is not the user's and awaits review: how a foreign invoice that still arrives is treated (see "Calls most likely to change").
 - **Step 3 is approved** ("Step 3 looks good", 2026-10-31): D-34..D-41 and DF-34..DF-44 as they stood before the D-33 adjustments. D-34, D-37, D-40, and DF-41 had their text changed for D-33, and that change awaits review.
 
+- **2026-10-31 rulings on Step 5 gaps.** D-67: an ERP failure after a request is `Sent` is only mocked, with no new BR-35 state. D-68: no invoice moves between entities; the AP Accountant reports a wrong entity, the system traces it, and the invoice becomes an exception like a wrong invoice (Steps 2, 3, and 4 were changed, recorded as "Changed by user decision D-68"). DF-60 (changed bank account means since the last paid invoice of the pair) is approved. Readings added inside D-67 and D-68 are marked "Call, awaiting user review".
+
 Everything else in the `00-decisions.md` files is a call made during document review and awaits user review.
 
 ## Calls most likely to change
@@ -64,15 +66,15 @@ Read these before building on them.
 
 ### Step 5 calls (awaiting review)
 
-These are in [Step 5 decisions](../05-database/00-decisions.md): D-47..D-66, DF-53..DF-60, eleven differences from Steps 1 to 4, and five gaps in approved steps (not edited). The ones most likely to change:
+These are in [Step 5 decisions](../05-database/00-decisions.md): D-47..D-66 (calls), D-67 and D-68 (user decisions), DF-53..DF-60 (DF-60 approved), eleven differences from Steps 1 to 4, and five gaps in approved steps (gaps 1, 2, and 4 resolved). The ones most likely to change:
 
 - D-49: the ERP simulator keeps the ERP side of the demo in its own `sim_*` tables, and the sync copies them into the `erp_*` tables. Step 7 may move them to a separate schema or service.
 - D-50: the tax-risk list is stored per entity, not once for the group.
 - D-51: the exact-duplicate check across the group is one partial unique index on `invoices`, the only cross-entity structure.
 - D-53 and D-54: one exception row per invoice for split orders, and the payment request of an individually approved exception is created at release, not at approval. Both reword BR-10 and AC-23.2.
-- D-60: an ERP failure after `Sent` has no request state in BR-35, so the schema keeps the request `Sent` and records `erp_failed_at`. This needs a decision in Step 2.
+- D-60: the schema keeps the request `Sent` and records `erp_failed_at` after an ERP failure. The user ruled this failure a mocked demo scenario with no new state (D-67), so the point is closed.
 - D-64: `price_history` and `supplier_entity_stats` are written when an invoice is `Paid` and are seeded; the simulated gate history has no invoice rows (DF-56).
-- Gap 2: "Correct the entity" on SCR-12 has no schema meaning, because an invoice cannot move to another entity (BR-09).
+- Gaps 3 and 5 in the Step 5 decisions (AC-23.2 against BR-35 R1, BR-10 against AC-23.3, the seller sector DF-58, and the price history DF-20 / D-64) are still open and are being explained to the user.
 
 **Step 6 must cross-check every story, API, and entity in `matchpay.dbml`.** Each active story has its tables in the [data model](../05-database/01-data-model.md#stories-and-their-tables) and in the Database column of the matrix. Every API operation must name tables that exist in the DBML, the simulator operations of US-08 use the `sim_*` tables, and the derived values (rates, badges, retry counts, alerts) have no table and need an endpoint that computes them.
 

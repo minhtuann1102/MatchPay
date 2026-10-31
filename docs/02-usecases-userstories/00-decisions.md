@@ -14,7 +14,7 @@ Step 2 follows the decisions of Step 1 ([Step 1 decisions](../01-research/00-dec
 | D-28 | **The simulated tax-risk list loads through UC-07 as a simulated external feed.** Each entry carries a source and a date (D-21). No use case and no actor is added: the backlog stays at exactly 28 use cases. (D-33 later removed two of them, UC-11 and UC-22, leaving 26 active use cases.) An entry without a source or a date is rejected. | — | Step 1 review |
 | D-29 | **A new supplier and entity pair starts with its gate closed.** Invoices of a closed pair go to exceptions with the reason "Gate closed". The AI's proposal is recorded next to the person's decision, which is how shadow mode measures accuracy (BR-06). | — | Step 2 |
 | D-30 | **BR-37 applies to every state-changing action,** not only to signing and withdrawal. Signing and withdrawal are the critical cases; resolving an exception, deciding a hold, and approving an exception use the same version check. | — | Step 2 |
-| D-31 | **Only some exceptions can be approved individually by the Payment Approver (UC-23):** gate closed, unusual price, possible duplicate, split orders, new supplier, changed bank account, and a recurring invoice outside its deviation threshold. These cannot: a failed XML signature, an exact duplicate, a wrong buyer tax code, an open tax-risk hold, and an unsupported foreign invoice (D-33). Each of those has its own decision path; an unsupported foreign invoice can only be rejected with a reason. | — | Step 2 |
+| D-31 | **Only some exceptions can be approved individually by the Payment Approver (UC-23):** gate closed, unusual price, possible duplicate, split orders, new supplier, changed bank account, and a recurring invoice outside its deviation threshold. These cannot: a failed XML signature, an exact duplicate, a wrong buyer tax code, an open tax-risk hold, and an unsupported foreign invoice (D-33), and an invoice with a reported wrong entity (D-68). Each of those has its own decision path; an unsupported foreign invoice can only be rejected with a reason, and a reported wrong entity is resolved by a correction or reissue request or by a rejection. | — | Step 2; list extended by user decision D-68 |
 | D-32 | Removed (D-33). **US-22 Confirm Foreign Tax Obligations is a Should, not a Must.** Foreign invoices enter only through US-11, which is a Should, so a Must story would have nothing to work on if US-11 were cut. US-11 and US-22 are cut together. D-33 then removed both stories from the MVP. | — | Step 2 review of the priorities |
 
 ## Scope change decided by the user
@@ -126,5 +126,13 @@ These are not the user's words. They fill gaps that the decision leaves open.
 | O-16 | Usage-based non-coded invoices are confirmed only by plausibility | Stated in BR-17; a call for the user to review |
 
 On 2026-10-31 the user asked that the diagrams show the actors as the sample does; the worker split the use case diagram into one actor diagram and four module-group diagrams with human actors on the left and systems on the right. No use case, actor, or link changed. Awaiting user review.
+
+## Changed by user decisions after the first draft
+
+On 2026-10-31 the user ruled on gap 2 found in Step 5 (see [Step 5 decisions](../05-database/00-decisions.md#decisions-made-by-the-user)). The ID is D-68 and it is recorded there, because the gap arose in Step 5. The changes made here keep every ID.
+
+| Changed by user decision | What changed in Step 2 |
+|---|---|
+| D-68 | UC-18 and US-18 no longer offer to "correct the entity". The AP Accountant reports a wrong entity, the system traces the mismatch, and the exception follows the wrong-invoice path. AC-18.1 is reworded; AC-18.11 and AC-18.12 are added at the end of the range; AC-13.2 and AC-23.4 name the report; D-31 lists the new reason "Wrong entity reported" (and "Wrong buyer tax code") as not individually approvable. The user said: "No moving between entities. Only allow reporting the error, tracing where the error is, then putting it into an exception like a wrong invoice." The choice of the two reason names and of what the trace compares is a call awaiting user review. |
 
 **Related:** [Step index](README.md) · [Step 1 decisions](../01-research/00-decisions.md)

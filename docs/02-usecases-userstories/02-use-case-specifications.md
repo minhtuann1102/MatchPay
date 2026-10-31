@@ -144,8 +144,8 @@ Removed (D-33). Moved to Advanced as W-19 (foreign invoices from PDF with field 
 ## UC-18 Resolve Exception
 
 - **Actor:** AP Accountant · **Re-runs:** UC-16 · **May use:** UC-19
-- **Main flow:** open an exception → read its reasons → confirm or correct a line match, entity, or flow; ask for a correction (UC-19); reject the invoice with a reason; or send it for a decision → the system re-runs UC-16
-- **Alternative:** a legal adjustment or replacement invoice waits for the AP Accountant's confirmation (BR-31); a gate-closed exception records the person's decision beside the AI's proposal (BR-06); a change made from an outdated view is rejected (BR-37); an "Unsupported: foreign invoice" can only be rejected with a reason (BR-17, D-33)
+- **Main flow:** open an exception → read its reasons → confirm or correct a line match, or correct the flow; report a wrong entity (the invoice is never moved to another entity: the system traces where the mismatch comes from and the exception follows the wrong-invoice path, D-68); ask for a correction (UC-19); reject the invoice with a reason; or send it for a decision → the system re-runs UC-16
+- **Alternative:** a legal adjustment or replacement invoice waits for the AP Accountant's confirmation (BR-31); a gate-closed exception records the person's decision beside the AI's proposal (BR-06); a reported wrong entity adds the reason "Wrong buyer tax code" or "Wrong entity reported" and is resolved only by a correction or reissue request (UC-19) or by a rejection, never by an individual approval (D-31, D-68); a change made from an outdated view is rejected (BR-37); an "Unsupported: foreign invoice" can only be rejected with a reason (BR-17, D-33)
 - **Permission:** AP Accountant, own entity only
 - **Result:** a confirmed pair enters the entity's mapping table; the exception moves on (BR-34) · **Stories:** US-18
 
