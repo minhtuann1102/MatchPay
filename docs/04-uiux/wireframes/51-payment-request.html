@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-51 Payment Request Detail — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="chief" data-nav="signing">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-51 Payment Request Detail + SCR-53, SCR-54</strong>
+  <ul class="wf-roles" aria-label="Role">
+    <li><a href="51-payment-request.html?role=chief">Chief Accountant</a></li>
+    <li><a href="51-payment-request.html?role=approver">Payment Approver</a></li>
+  </ul>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="51-payment-request.html">default</a></li>
+    <li><a href="51-payment-request.html?state=loading">loading</a></li>
+    <li><a href="51-payment-request.html?state=summary-loading">summary-loading</a></li>
+    <li><a href="51-payment-request.html?state=summary-unavailable">summary-unavailable</a></li>
+    <li><a href="51-payment-request.html?state=sample-no-ai">sample-no-ai</a></li>
+    <li><a href="51-payment-request.html?state=remove-line">SCR-53 remove-line</a></li>
+    <li><a href="51-payment-request.html?state=decline">SCR-54 decline</a></li>
+    <li><a href="51-payment-request.html?state=decline-error">decline-error</a></li>
+    <li><a href="51-payment-request.html?state=conflict">conflict</a></li>
+    <li><a href="51-payment-request.html?state=chief-signed&amp;role=approver">chief-signed</a></li>
+    <li><a href="51-payment-request.html?state=sending">sending</a></li>
+    <li><a href="51-payment-request.html?state=retry">retry</a></li>
+    <li><a href="51-payment-request.html?state=failed">failed</a></li>
+    <li><a href="51-payment-request.html?state=hash-mismatch">hash-mismatch</a></li>
+    <li><a href="51-payment-request.html?state=paid">paid</a></li>
+    <li><a href="51-payment-request.html?state=server-error">server-error</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="50-signing-queue.html">Signing queue</a><svg class="i i-sm"><use href="#i-chevronr"></use></svg><span aria-current="page" data-hide="paid">PR-0042</span><span aria-current="page" data-show="paid">PR-0038</span></nav>
+      <div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The payment request could not be loaded.</b><span>Try again.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+      <div class="notice n-warn" role="alert" data-show="conflict"><svg class="i"><use href="#i-refresh"></use></svg><div class="grow"><b>This item was changed by someone else. Reload to see the change.</b><span>Nothing was signed. Your reason is kept.</span></div><button class="btn btn-sm" type="button">Reload</button></div>
+      <div class="notice n-err" role="alert" data-show="failed"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>Sending to the ERP failed after 3 attempts.</b><span>The request stays Signed. A repeated send with the same request number never creates a second payment.</span></div><span class="callout" aria-hidden="true">8</span></div>
+      <div class="notice n-err" role="alert" data-show="hash-mismatch"><svg class="i"><use href="#i-hash"></use></svg><div class="grow"><b>Not sent: the content differs from the signed hash.</b><span>The request content changed after signing. Nothing reached the ERP.</span></div></div>
+      <div class="card" data-show="loading"><div class="card-b stack"><span class="sk" style="width:40%;height:22px"></span><span class="sk" style="width:100%"></span><span class="sk" style="width:90%"></span></div><p class="xs muted card-b">Loading the payment request…</p></div>
+
+      <div class="detail-grid" data-hide="loading paid server-error">
+        <section class="card d-head"><div class="card-b stack">
+          <div class="spread"><div class="row"><h1 style="font-size:24px;font-weight:600">PR-0042</h1>
+            <span class="chip c-wait" data-show="default summary-loading summary-unavailable sample-no-ai remove-line decline decline-error conflict">Awaiting Chief Accountant</span>
+            <span class="chip c-wait" data-show="chief-signed">Awaiting Payment Approver</span>
+            <span class="chip c-ok" data-show="sending retry failed hash-mismatch">Signed</span>
+            <span class="tagx tagx-warn" data-show="sending">Sending to ERP…</span><span class="tagx tagx-warn" data-show="retry">Retry 2 of 3, next attempt in 5 minutes</span><span class="tagx tagx-err" data-show="failed">Failed after 3 attempts</span></div>
+            <div class="money strong" style="font-size:20px">VND 53,000,000</div></div>
+          <dl class="dl dl-4"><dt>Supplier</dt><dd>Harbor Cartons Ltd</dd><dt>Entity</dt><dd>Calderwood Foods Co.</dd><dt>Required level</dt><dd><b>CFO</b> (VND 50,000,000 and over)</dd><dt>Invoices</dt><dd>3 invoices</dd></dl>
+          <div><span class="muted small">Flags: none. Harbor Cartons Ltd has been paid before and the bank account is unchanged.</span><span class="callout" aria-hidden="true">4</span></div>
+        </div></section>
+
+        <div class="d-ev">
+          <section class="card">
+            <div class="card-h"><h2>Summary of this request<span class="callout" aria-hidden="true">1</span></h2><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span></div>
+            <div class="blk blk-ai" data-hide="summary-loading summary-unavailable">
+              <p class="small">One supplier, three invoices, all matched to orders PO-CF-0998, PO-CF-1003, and PO-CF-1004 with their receipts. No invoice is VND 50,000,000 or more. Prices are within 1% of the orders. Harbor Cartons Ltd has an open gate. The AI summary is not a signature and does not replace the evidence below.</p></div>
+            <div class="blk blk-ai" data-show="summary-loading" role="status"><p class="small"><span class="spin"></span> The AI is writing the summary… The evidence and the signing controls stay usable.</p></div>
+            <div class="blk" data-show="summary-unavailable" role="alert"><div class="notice n-warn"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><span>The AI summary is unavailable. You can still sign using the evidence.</span><span class="callout" aria-hidden="true">2</span></div></div></div>
+          </section>
+
+          <section class="card">
+            <div class="card-h"><h2>Totals and checks</h2><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></div>
+            <div class="blk blk-rule"><dl class="dl">
+              <dt>By entity</dt><dd>Calderwood Foods Co.: VND 53,000,000</dd>
+              <dt>By supplier</dt><dd>Harbor Cartons Ltd: VND 53,000,000</dd>
+              <dt>Invoices of VND 50,000,000 or more</dt><dd>None</dd>
+              <dt>Sample check</dt><dd>1 of 1 sampled invoice marked OK (C26TAA-0000098), by Alice on 31/10/2026 10:12 <span class="tagx" data-show="sample-no-ai">selected without AI</span><span class="callout" aria-hidden="true">3</span></dd>
+            </dl></div>
+          </section>
+
+          <section class="card">
+            <div class="card-h"><h2>Lines</h2><span class="xs muted">Open an invoice to read its evidence</span></div>
+            <div class="tbl-wrap"><table class="tbl cards">
+              <thead><tr><th>Invoice</th><th>Due date</th><th class="money">Total</th><th>State</th><th></th></tr></thead>
+              <tbody>
+                <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000098</a></td><td data-l="Due">12/11/2026</td><td class="money" data-l="Total">VND 26,400,000</td><td data-l="State"><span class="chip c-ok" data-hide="sending retry failed hash-mismatch">In Batch</span><span class="chip c-ok" data-show="sending retry failed hash-mismatch">Signed</span></td><td></td></tr>
+                <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000099</a></td><td data-l="Due">12/11/2026</td><td class="money" data-l="Total">VND 13,100,000</td><td data-l="State"><span class="chip c-ok" data-hide="sending retry failed hash-mismatch">In Batch</span><span class="chip c-ok" data-show="sending retry failed hash-mismatch">Signed</span></td><td></td></tr>
+                <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000102</a></td><td data-l="Due">15/11/2026</td><td class="money" data-l="Total">VND 13,500,000</td><td data-l="State"><span class="chip c-ok" data-hide="sending retry failed hash-mismatch">In Batch</span><span class="chip c-ok" data-show="sending retry failed hash-mismatch">Signed</span></td><td><button class="btn btn-sm btn-quiet" type="button" data-hide="sending retry failed hash-mismatch">Remove line<span class="callout" aria-hidden="true">5</span></button></td></tr>
+              </tbody>
+              <tfoot><tr><td colspan="2">Total, 3 invoices</td><td class="money">VND 53,000,000</td><td colspan="2"></td></tr></tfoot></table></div>
+          </section>
+        </div>
+
+        <aside class="d-act" aria-label="Signing">
+          <section class="card">
+            <div class="card-h"><h2>Signatures<span class="callout" aria-hidden="true">6</span></h2><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>People sign</span></div>
+            <div class="card-b stack">
+              <div class="sig sig-pending" data-show="default summary-loading summary-unavailable sample-no-ai remove-line decline decline-error conflict"><span class="seal">C</span><div><b>Carol, Chief Accountant</b> signs first<div class="meta">Not signed yet</div></div></div>
+              <div class="sig" data-show="chief-signed sending retry failed hash-mismatch"><span class="seal">C</span><div><b>Carol, Chief Accountant</b> signed first<div class="meta">31/10/2026 10:20 · request version 2 · content hash 8ab3f6c1…02de</div></div></div>
+              <div class="sig sig-pending" data-hide="sending retry failed hash-mismatch"><span class="seal">F</span><div><b>Fiona, Payment Approver (CFO)</b> signs second<div class="meta">Not signed yet. Needs the CFO level.</div></div></div>
+              <div class="sig" data-show="sending retry failed hash-mismatch"><span class="seal">F</span><div><b>Fiona, Payment Approver (CFO)</b> signed second<div class="meta">31/10/2026 10:41 · request version 2 · content hash 8ab3f6c1…02de</div></div></div>
+              <div data-hide="sending retry failed hash-mismatch">
+                <button class="btn btn-primary" type="button" data-roles="chief" data-hide="chief-signed"><svg class="i"><use href="#i-pen"></use></svg>Sign</button>
+                <button class="btn btn-primary" type="button" aria-disabled="true" data-roles="approver" data-hide="chief-signed"><svg class="i"><use href="#i-pen"></use></svg>Sign</button><span class="hint" data-roles="approver" data-hide="chief-signed">Disabled until the Chief Accountant has signed.</span>
+                <button class="btn btn-primary" type="button" data-roles="approver" data-show="chief-signed"><svg class="i"><use href="#i-pen"></use></svg>Sign</button>
+                <button class="btn btn-primary" type="button" aria-disabled="true" data-roles="chief" data-show="chief-signed">Signed by you</button>
+              </div>
+              <div class="actions" data-hide="sending retry failed hash-mismatch"><button class="btn btn-sm btn-danger" type="button">Decline request<span class="callout" aria-hidden="true">7</span></button></div>
+            </div>
+          </section>
+        </aside>
+        <section class="card d-hist">
+          <div class="card-h"><h2>ERP send status</h2></div>
+          <div class="card-b small">
+            <span class="muted" data-show="default summary-loading summary-unavailable sample-no-ai remove-line decline decline-error conflict chief-signed">Not yet sent. The send starts at once when the request is fully signed.</span>
+            <span data-show="sending">Sending to ERP…</span><span data-show="retry">Retry 2 of 3, next attempt in 5 minutes</span><span class="t-err" data-show="failed">Failed after 3 attempts. The request stays Signed.</span><span class="t-err" data-show="hash-mismatch">Not sent: hash mismatch.</span>
+          </div>
+        </section>
+      </div>
+
+      <!-- Paid request -->
+      <div class="detail-grid" data-show="paid">
+        <section class="card d-head"><div class="card-b stack">
+          <div class="spread"><div class="row"><h1 style="font-size:24px;font-weight:600">PR-0038</h1><span class="chip c-ok">Paid</span></div><div class="money strong" style="font-size:20px">VND 9,900,000</div></div>
+          <dl class="dl dl-4"><dt>Supplier</dt><dd>Brightfield Paper Ltd</dd><dt>Entity</dt><dd>Calderwood Foods Co.</dd><dt>Required level</dt><dd>Department Head</dd><dt>Payment reference</dt><dd><b class="mono">PAY-CF-2026-0042</b><span class="callout" aria-hidden="true">9</span></dd></dl>
+        </div></section>
+        <div class="d-ev">
+          <section class="card"><div class="card-h"><h2>Paid status</h2><span class="au au-data">Entity ERP</span></div><div class="card-b"><p class="small">The Entity ERP returned the paid status on 29/10/2026 14:20 with the reference <span class="mono">PAY-CF-2026-0042</span>. The reference is stored on the request and on each invoice. The batch becomes Completed when every request is paid.</p></div></section>
+          <section class="card"><div class="card-h"><h2>Lines</h2></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Invoice</th><th class="money">Total</th><th>State</th></tr></thead><tbody>
+            <tr><td><a href="12-invoice-detail.html?state=paid">C26TAA-0000081</a></td><td class="money">VND 5,200,000</td><td><span class="chip c-ok">Paid</span></td></tr>
+            <tr><td><a href="12-invoice-detail.html?state=paid">C26TAA-0000082</a></td><td class="money">VND 4,700,000</td><td><span class="chip c-ok">Paid</span></td></tr></tbody></table></div></section>
+        </div>
+        <aside class="d-act"><section class="card"><div class="card-h"><h2>Signatures</h2><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>People sign</span></div><div class="card-b stack">
+          <div class="sig"><span class="seal">C</span><div><b>Carol, Chief Accountant</b><div class="meta">27/10/2026 15:02 · request version 3 · content hash 5d1e90ab…77c2</div></div></div>
+          <div class="sig"><span class="seal">D</span><div><b>Dan, Department Head</b><div class="meta">27/10/2026 16:30 · request version 3 · content hash 5d1e90ab…77c2</div></div></div></div></section></aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- SCR-53 Remove Line -->
+  <div class="modal-back" data-show="remove-line" role="dialog" aria-modal="true" aria-labelledby="m53">
+    <div class="modal"><div class="modal-h"><h2 id="m53">Remove line C26TAA-0000102</h2></div>
+      <div class="modal-b">
+        <dl class="dl"><dt>Invoice</dt><dd>C26TAA-0000102, VND 13,500,000</dd><dt>New request total</dt><dd><b>VND 39,500,000</b> (was VND 53,000,000)</dd><dt>Required level</dt><dd>Department Head (was CFO)</dd></dl>
+        <div class="notice n-warn"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><span>Earlier signatures on this request are voided and the required level may change. The invoice returns to exceptions.</span></div></div>
+        <div class="field"><label for="rl">Reason (required)</label><textarea class="textarea" id="rl" style="min-height:64px"></textarea></div></div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-danger-solid" type="button">Remove line</button></div></div>
+  </div>
+  <!-- SCR-54 Decline Request -->
+  <div class="modal-back" data-show="decline decline-error" role="dialog" aria-modal="true" aria-labelledby="m54">
+    <div class="modal"><div class="modal-h"><h2 id="m54">Decline PR-0042</h2></div>
+      <div class="modal-b"><dl class="dl"><dt>Request</dt><dd>PR-0042, VND 53,000,000</dd></dl>
+        <div class="notice n-warn"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><span>The request is cancelled and all 3 invoices return to exceptions.</span></div></div>
+        <div class="field"><label for="dc">Reason (required)</label><textarea class="textarea" id="dc" style="min-height:64px" data-show="decline"></textarea><textarea class="textarea invalid" id="dc2" style="min-height:64px" data-show="decline-error"></textarea><div class="err-msg" data-show="decline-error"><svg class="i i-sm"><use href="#i-alert"></use></svg>A reason is required to decline a request.</div></div></div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-danger-solid" type="button">Decline request</button></div></div>
+  </div>
+</div>
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

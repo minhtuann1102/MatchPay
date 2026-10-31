@@ -9,7 +9,8 @@
 | 1 | Research ([docs/01-research](../01-research/README.md)) | Draft for review |
 | 2 | Use cases and user stories ([docs/02-usecases-userstories](../02-usecases-userstories/README.md)), [business rules](../requirements/business-rules.md), [traceability](../traceability/master-traceability.md) | Draft for review |
 | 3 | Information architecture ([docs/03-information-architecture](../03-information-architecture/README.md)); the Screen column of the [traceability matrix](../traceability/master-traceability.md) is filled | **Approved by the user** ("Step 3 looks good", 2026-10-31), then adjusted for D-33; the adjustments await review |
-| 4..9 | Not started | **Next: Step 4 (UI/UX)** |
+| 4 | UI/UX ([docs/04-uiux](../04-uiux/README.md)): design system, screen notes, 18 HTML page files for the 35 active screens, PNG exports by role | **Draft for review.** Step 5 must wait for the user's review of Step 4. |
+| 5..9 | Not started | Next: Step 5 (database), after the user reviews Step 4 |
 
 Steps 1, 2, and 3 are the baseline for later steps. Steps 1 and 2 are still draft for review and Step 3 is approved, so the decisions of Steps 1 and 2 can still change. If a later step changes one, update the source document and its ID, and do not fork the meaning.
 
@@ -72,6 +73,17 @@ These are in [Step 3 decisions](../03-information-architecture/00-decisions.md).
 - DF-39: "Waiting for AP confirmation" is a tag on an exception in `In Review`, because BR-34 has no such state.
 - DF-40: a failed ERP send shows an alert to the AP Accountant, the Chief Accountant, and the Payment Approver, and no manual retry is drawn. Step 2 does not say who sees it or how a send is retried.
 - DF-42: the demo seed also holds the price history and earlier recurring periods, which Step 2 does not seed.
+
+### Step 4 calls (awaiting user review)
+
+These are in [Step 4 decisions](../04-uiux/00-decisions.md) (D-42..D-46, DF-45..DF-52, and eight differences from Steps 1 to 3). The ones most likely to change:
+
+- D-44: the design concept "three hands" (dotted rail and dashed round tag for AI, double rail and square tag for the Rule Engine, solid rail and filled tag for a person). Step 9 reuses the tokens in `wireframes/assets/wireframe.css`.
+- D-45: one file per page and modals as states of their parent page.
+- DF-47: the Payment Approver in the wireframes is CFO Fiona; Department Head Dan's view is only described.
+- DF-46 and DF-49: sample numbers (October 2026 batch of VND 70,050,000, gate history, request numbers). Step 5 seed data can reuse them.
+- The eight differences: a "Choose another item" action, an "Add sector" control, the XML signature check labelled Rule Engine, and similar details that Steps 1 to 3 do not define. Step 6 should decide them before it writes the API.
+- The wireframe PNGs were made with a throwaway script outside the repository (headless browser, 1440 px, 256-colour reduction). Regenerate them after any change to a page.
 
 ## Open items only people can close
 

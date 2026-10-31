@@ -15,7 +15,7 @@ The work is done in nine steps. A step is only approved when the user approves i
 | 1 | Research and problem analysis | Draft for review |
 | 2 | Use cases and user stories (INVEST, acceptance criteria, business rules, MoSCoW) | Draft for review |
 | 3 | Information architecture (sitemap, routes and permissions, navigation, screen inventory, user flows, UI states) | Approved |
-| 4 | UI/UX and wireframes | Not started (next) |
+| 4 | UI/UX and wireframes (design system, screen notes, HTML wireframes with PNG exports) | Draft for review |
 | 5 | Database | Not started |
 | 6 | API contract | Not started |
 | 7 | C4 architecture, tech stack, and LLM provider | Not started |
@@ -171,12 +171,35 @@ Step 3 (approved by the user) places the 26 active stories on 35 screens: 18 pag
 
 Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with the diagram of areas and page cards. Routes and the page-permission table are in [Routes and Permissions](docs/03-information-architecture/02-routes-and-permissions.md), navigation in [Navigation](docs/03-information-architecture/03-navigation.md), screen IDs and the requirement-to-screen mapping in [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), flows in [Primary User Flows](docs/03-information-architecture/05-user-flows.md), and states in [UI/UX States and Accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md). The calls of this step await review in [Decisions and Defaults](docs/03-information-architecture/00-decisions.md).
 
+### 2.3 UI wireframes
+
+Step 4 (draft for review) draws the 35 active screens as 18 high-fidelity page files; modals are states of their parent page. The design concept is "three hands": what the **AI proposed** (dotted rail, round dashed tag), what the **Rule Engine decided** (double rail, square tag, six conditions with their values), and what a **person decided or signed** (solid rail, filled tag, signature record) are always distinguishable, in text and in shape. Only four core screens are shown here. Every screen and state, in every role, is in the wireframe gallery: open `docs/04-uiux/wireframes/index.html` in a browser from a local clone (GitHub shows `.html` files as source code).
+
+**Invoice worklist (AP Accountant, SCR-10):** every state chip, reasons with numbers, "Due soon", and the sync time.
+
+![Invoice worklist](docs/images/ap-accountant/10-invoice-worklist.png)
+
+**Invoice detail with evidence (SCR-12):** AI evidence, the six conditions of BR-05 with values, line matches with method and probability, the decision history, and an action panel for the role.
+
+![Invoice detail and evidence](docs/images/ap-accountant/12-invoice-detail.png)
+
+**Batch review (SCR-30):** the AI-selected sample the AP Accountant marks before release.
+
+![Batch review](docs/images/ap-accountant/30c-batch-review-sample.png)
+
+**Payment request (Chief Accountant, SCR-51):** the AI summary labelled as AI, Rule Engine totals, and the signature records.
+
+![Payment request](docs/images/chief-accountant/51-payment-request.png)
+
+Sources: [Design system](docs/04-uiux/01-design-system.md), [Screen notes and states](docs/04-uiux/02-screen-notes.md), [Decisions](docs/04-uiux/00-decisions.md).
+
 ## Documentation
 
 - Research: [Context and problem](docs/01-research/01-context-and-problem.md), [Goals and metrics](docs/01-research/02-goals-and-metrics.md), [Stakeholders](docs/01-research/03-stakeholders.md), [Similar products](docs/01-research/04-similar-products.md), [MVP scope](docs/01-research/05-scope.md), [Risks](docs/01-research/06-risks.md), [AI vs rule-based](docs/01-research/07-ai-vs-rule-based.md), [Glossary](docs/01-research/08-glossary.md), [Decisions](docs/01-research/00-decisions.md), [Future work](docs/01-research/09-future-work.md), [Regulatory context](docs/01-research/10-regulatory-context.md), [Invoice flows and data](docs/01-research/11-invoice-flows-and-data.md).
 - Requirements: [Actors and use cases](docs/02-usecases-userstories/01-use-cases.md), [Use case specifications](docs/02-usecases-userstories/02-use-case-specifications.md), [User stories (INVEST)](docs/02-usecases-userstories/03-user-stories-invest.md), [Acceptance criteria](docs/02-usecases-userstories/04-acceptance-criteria.md), [MoSCoW](docs/02-usecases-userstories/05-moscow-prioritization.md), [Decisions and defaults](docs/02-usecases-userstories/00-decisions.md).
 - Requirements catalogs: [Business rules](docs/requirements/business-rules.md).
 - Information architecture: [Step 3 index](docs/03-information-architecture/README.md), [Decisions and defaults](docs/03-information-architecture/00-decisions.md), [Sitemap](docs/03-information-architecture/01-sitemap.md), [Routes and permissions](docs/03-information-architecture/02-routes-and-permissions.md), [Navigation](docs/03-information-architecture/03-navigation.md), [Screen inventory](docs/03-information-architecture/04-screen-inventory.md), [User flows](docs/03-information-architecture/05-user-flows.md), [UI states and accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md).
+- Wireframes: [Wireframe gallery](docs/04-uiux/wireframes/index.html), [Step 4 index](docs/04-uiux/README.md), [Decisions and defaults](docs/04-uiux/00-decisions.md), [Design system](docs/04-uiux/01-design-system.md), [Screen notes and states](docs/04-uiux/02-screen-notes.md).
 - Traceability: [Master traceability matrix](docs/traceability/master-traceability.md).
 
 ## Project Progress
@@ -189,7 +212,7 @@ Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with t
 - [x] Write acceptance criteria (Given/When/Then) and business rules (draft for review)
 - [x] Prioritize the backlog with MoSCoW (draft for review)
 - [x] Design the information architecture, sitemap per role, and user flows (approved)
-- [ ] Design the UI/UX wireframes (next: Step 4)
+- [x] Design the UI/UX wireframes, including AI states and a design system (draft for review)
 - [ ] Design the database
 - [ ] Write the API documentation in OpenAPI 3.0
 - [ ] Design the C4 model and choose the tech stack and LLM provider

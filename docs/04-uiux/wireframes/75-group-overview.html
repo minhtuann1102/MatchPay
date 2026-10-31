@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-75 Group Overview — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="group-admin" data-nav="group">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-75 Group Overview</strong>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="75-group-overview.html">default</a></li>
+    <li><a href="75-group-overview.html?state=loading">loading</a></li>
+    <li><a href="75-group-overview.html?state=no-alerts">no-alerts</a></li>
+    <li><a href="75-group-overview.html?state=server-error">server-error</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+      <div class="page-head"><div><h1>Group overview</h1><p class="sub">Counts only. No invoice, batch, or payment data of any entity is shown.<span class="callout" aria-hidden="true">1</span></p></div>
+        <div class="actions"><a class="btn" href="78-automation-gates.html">Automation gates</a><a class="btn" href="70-users.html">Users</a><span class="callout" aria-hidden="true">4</span></div></div>
+      <div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The overview could not be loaded.</b><span>Try again.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+      <div class="notice n-warn" role="alert" data-hide="no-alerts loading server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>Gate alert: CloudDesk Software Ltd and Calderwood Packaging Co.</b><span>The sample error rate is 7.7% (2 of 26 sampled in 30 days), above 2%. Closing the gate is recommended. The gate stays as it is until you act.</span></div><a class="btn btn-sm" href="78-automation-gates.html">Review the gate</a><span class="callout" aria-hidden="true">2</span></div>
+      <div class="notice n-ok" data-show="no-alerts"><svg class="i"><use href="#i-check"></use></svg><div class="grow"><b>No gate alerts.</b><span>Every open gate is within the limit.</span></div></div>
+      <div class="card" data-show="loading"><div class="card-b stack"><span class="sk" style="width:100%"></span><span class="sk" style="width:90%"></span><span class="sk" style="width:95%"></span></div><p class="xs muted card-b">Loading entities…</p></div>
+      <section class="card" data-hide="loading server-error">
+        <div class="card-h"><h2>Entities</h2><span class="xs muted">3 entities</span></div>
+        <div class="tbl-wrap"><table class="tbl cards">
+          <thead><tr><th>Entity</th><th class="money">Open gates</th><th class="money">Closed gates</th><th>Gate alerts</th><th>Last ERP sync<span class="callout" aria-hidden="true">3</span></th></tr></thead>
+          <tbody>
+            <tr><td data-l="Entity">Calderwood Foods Co.<span class="sub">0100000011</span></td><td class="money" data-l="Open gates">1</td><td class="money" data-l="Closed gates">2</td><td data-l="Alerts"><span class="muted">None</span></td><td data-l="Last sync"><span class="sync"><svg class="i i-sm"><use href="#i-refresh"></use></svg>31/10/2026 09:15</span></td></tr>
+            <tr><td data-l="Entity">Calderwood Packaging Co.<span class="sub">0100000022</span></td><td class="money" data-l="Open gates">1</td><td class="money" data-l="Closed gates">1</td><td data-l="Alerts"><span class="muted" data-show="no-alerts">None</span><span class="tagx tagx-warn" data-hide="no-alerts">1 alert: CloudDesk Software Ltd</span></td><td data-l="Last sync"><span class="sync"><svg class="i i-sm"><use href="#i-refresh"></use></svg>31/10/2026 09:15</span></td></tr>
+            <tr class="attn"><td data-l="Entity">Calderwood Retail Co.<span class="sub">0100000033</span></td><td class="money" data-l="Open gates">0</td><td class="money" data-l="Closed gates">0</td><td data-l="Alerts"><span class="muted">None</span></td><td data-l="Last sync"><span class="sync sync-stale"><svg class="i i-sm"><use href="#i-alert"></use></svg>Failed. Data is from 31/10/2026 08:30</span></td></tr>
+          </tbody></table></div>
+      </section>
+    </main>
+  </div>
+</div>
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

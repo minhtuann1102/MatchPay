@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-74 Approval Matrix — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="entity-admin" data-nav="matrix">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-74 Approval Matrix</strong>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="74-approval-matrix.html">default</a></li>
+    <li><a href="74-approval-matrix.html?state=loading">loading</a></li>
+    <li><a href="74-approval-matrix.html?state=gap-error">gap-error</a></li>
+    <li><a href="74-approval-matrix.html?state=no-approver">no-approver</a></li>
+    <li><a href="74-approval-matrix.html?state=saving">saving</a></li>
+    <li><a href="74-approval-matrix.html?state=saved">saved</a></li>
+    <li><a href="74-approval-matrix.html?state=server-error">server-error</a></li>
+    <li><a href="74-approval-matrix.html?state=conflict">conflict</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page page-narrow">
+      <div class="page-head"><div><h1>Approval matrix</h1><p class="sub">Which approval level a payment request needs, by total amount, and who can sign at each level.</p></div></div>
+      <div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The matrix could not be loaded or saved.</b><span>Try again.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+      <div class="notice n-warn" role="alert" data-show="conflict"><svg class="i"><use href="#i-refresh"></use></svg><div class="grow"><b>This item was changed by someone else. Reload to see the change.</b><span>Nothing was saved.</span></div><button class="btn btn-sm" type="button">Reload</button></div>
+      <div class="notice n-err" role="alert" data-show="gap-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The tiers leave amounts uncovered.</b><span>VND 45,000,000 up to, but not including, VND 50,000,000 has no level. Nothing was saved.<span class="callout" aria-hidden="true">2</span></span></div></div>
+      <div class="notice n-err" role="alert" data-show="no-approver"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>No approver for VND 50,000,000 and over</b><span>The CFO tier has no active Payment Approver. Nothing was saved.<span class="callout" aria-hidden="true">3</span></span></div></div>
+      <div class="card" data-show="loading"><div class="card-b stack"><span class="sk" style="width:100%;height:32px"></span><span class="sk" style="width:100%;height:32px"></span></div></div>
+      <section class="card" data-hide="loading">
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Amount tier</th><th>Level</th><th>Payment Approvers at this level</th></tr></thead>
+          <tbody>
+            <tr><td><div class="row"><span>From</span><input class="input" style="width:110px" value="VND 0" aria-label="Tier 1 from"><span>up to, not including</span><input class="input" style="width:170px" value="VND 50,000,000" data-hide="gap-error" aria-label="Tier 1 to"><input class="input invalid" style="width:170px" value="VND 45,000,000" data-show="gap-error" aria-label="Tier 1 to"></div><span class="callout" aria-hidden="true">1</span></td><td>Department Head</td><td>Dan</td></tr>
+            <tr><td><div class="row"><span>From</span><input class="input" style="width:170px" value="VND 50,000,000" aria-label="Tier 2 from"><span>and over</span></div></td><td>CFO</td><td><span data-hide="no-approver">Fiona</span><span class="t-err" data-show="no-approver">No active approver</span></td></tr>
+          </tbody></table></div>
+        <div class="card-b"><div class="notice n-info"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><span>Requests that are not yet signed are recomputed with the new matrix. A request that needs a different level loses its earlier signatures.</span><span class="callout" aria-hidden="true">4</span></div></div></div>
+        <div class="modal-f" style="border-radius:0 0 8px 8px"><button class="btn btn-primary" type="button" data-hide="saving">Save</button><button class="btn btn-primary" type="button" aria-disabled="true" data-show="saving"><span class="spin" style="border-color:#8a90a0;border-top-color:#fff"></span>Saving…</button></div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" role="status" data-show="saved"><svg class="i"><use href="#i-check"></use></svg>Matrix saved. Unsigned requests were recomputed.</div>
+</div>
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-70 Users — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="entity-admin" data-nav="users">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-70 Users + SCR-71, SCR-72</strong>
+  <ul class="wf-roles" aria-label="Role">
+    <li><a href="70-users.html?role=entity-admin">Entity Admin</a></li>
+    <li><a href="70-users.html?role=group-admin">Group Admin</a></li>
+  </ul>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="70-users.html">default</a></li>
+    <li><a href="70-users.html?state=loading">loading</a></li>
+    <li><a href="70-users.html?state=no-results">no-results</a></li>
+    <li><a href="70-users.html?state=server-error">server-error</a></li>
+    <li><a href="70-users.html?state=create">SCR-71 create</a></li>
+    <li><a href="70-users.html?state=edit">edit</a></li>
+    <li><a href="70-users.html?state=email-error">email-error</a></li>
+    <li><a href="70-users.html?state=role-error">role-error</a></li>
+    <li><a href="70-users.html?state=saving">saving</a></li>
+    <li><a href="70-users.html?state=deactivate">SCR-72 deactivate</a></li>
+    <li><a href="70-users.html?state=conflict">conflict</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+      <div class="page-head"><div><h1>Users</h1><p class="sub" data-roles="entity-admin">Users of Calderwood Foods Co.</p><p class="sub" data-roles="group-admin">Users of all entities.</p></div>
+        <div class="actions"><button class="btn btn-primary" type="button"><svg class="i"><use href="#i-plus"></use></svg>Create user</button><span class="callout" aria-hidden="true">1</span></div></div>
+      <div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The users could not be loaded.</b><span>Try again.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+      <div class="notice n-warn" role="alert" data-show="conflict"><svg class="i"><use href="#i-refresh"></use></svg><div class="grow"><b>This item was changed by someone else. Reload to see the change.</b><span>Nothing was saved.</span></div><button class="btn btn-sm" type="button">Reload</button></div>
+      <section class="card">
+        <form class="filters" onsubmit="return false">
+          <div class="field" data-roles="group-admin"><label for="fe">Entity</label><select class="select" id="fe"><option>All entities</option><option>Calderwood Foods Co.</option><option>Calderwood Packaging Co.</option><option>Calderwood Retail Co.</option></select></div><span class="callout" aria-hidden="true" data-roles="group-admin" style="margin-bottom:8px">2</span>
+          <div class="field"><label for="fr">Role</label><select class="select" id="fr"><option>All roles</option><option>AP Accountant</option><option>Chief Accountant</option><option>Payment Approver</option></select></div>
+        </form>
+        <div class="card-b" data-show="loading"><div class="stack"><span class="sk" style="width:100%"></span><span class="sk" style="width:92%"></span><span class="sk" style="width:96%"></span></div><p class="xs muted" style="margin-top:12px">Loading users…</p></div>
+        <div class="notice n-info" style="margin:12px 16px" data-show="no-results"><svg class="i"><use href="#i-filter"></use></svg><div class="grow"><b>No users match these filters.</b><span>Entity: Calderwood Retail Co.</span></div><button class="btn btn-sm" type="button">Clear filters</button></div>
+        <div class="tbl-wrap" data-hide="loading no-results server-error"><table class="tbl cards">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Entity</th><th>ERP user link</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td data-l="Name">Alice</td><td data-l="Email">alice@calderwood-foods.example</td><td data-l="Role">AP Accountant</td><td data-l="Entity">Calderwood Foods Co.</td><td data-l="ERP link" class="mono">erp.alice</td><td data-l="Status"><span class="chip c-ok">Active</span></td><td><button class="btn btn-sm" type="button">Edit</button> <button class="btn btn-sm btn-quiet" type="button">Deactivate</button></td></tr>
+            <tr><td data-l="Name">Carol</td><td data-l="Email">carol@calderwood-foods.example</td><td data-l="Role">Chief Accountant</td><td data-l="Entity">Calderwood Foods Co.</td><td data-l="ERP link" class="mono">erp.carol</td><td data-l="Status"><span class="chip c-ok">Active</span></td><td><button class="btn btn-sm" type="button">Edit</button> <button class="btn btn-sm btn-quiet" type="button">Deactivate</button></td></tr>
+            <tr><td data-l="Name">Dan</td><td data-l="Email">dan@calderwood-foods.example</td><td data-l="Role">Payment Approver (Department Head)</td><td data-l="Entity">Calderwood Foods Co.</td><td data-l="ERP link" class="mono">erp.dan</td><td data-l="Status"><span class="chip c-ok">Active</span></td><td><button class="btn btn-sm" type="button">Edit</button> <button class="btn btn-sm btn-quiet" type="button">Deactivate</button></td></tr>
+            <tr><td data-l="Name">Fiona</td><td data-l="Email">fiona@calderwood-foods.example</td><td data-l="Role">Payment Approver (CFO)</td><td data-l="Entity">Calderwood Foods Co.</td><td data-l="ERP link" class="mono">erp.fiona</td><td data-l="Status"><span class="chip c-ok">Active</span></td><td><button class="btn btn-sm" type="button">Edit</button> <button class="btn btn-sm btn-quiet" type="button">Deactivate</button></td></tr>
+            <tr data-roles="entity-admin"><td data-l="Name">Evan (you)</td><td data-l="Email">evan@calderwood-foods.example</td><td data-l="Role">Entity Admin</td><td data-l="Entity">Calderwood Foods Co.</td><td data-l="ERP link"><span class="muted">None</span></td><td data-l="Status"><span class="chip c-ok">Active</span></td><td><span class="muted small">Your own role and status cannot be changed here.</span><span class="callout" aria-hidden="true">3</span></td></tr>
+            <tr data-roles="group-admin"><td data-l="Name">Evan</td><td data-l="Email">evan@calderwood-foods.example</td><td data-l="Role">Entity Admin</td><td data-l="Entity">Calderwood Foods Co.</td><td data-l="ERP link"><span class="muted">None</span></td><td data-l="Status"><span class="chip c-ok">Active</span></td><td><button class="btn btn-sm" type="button">Edit</button> <button class="btn btn-sm btn-quiet" type="button">Deactivate</button></td></tr>
+            <tr data-roles="group-admin"><td data-l="Name">Gina (you)</td><td data-l="Email">gina@calderwood-group.example</td><td data-l="Role">Group Admin</td><td data-l="Entity">Calderwood Group</td><td data-l="ERP link"><span class="muted">None</span></td><td data-l="Status"><span class="chip c-ok">Active</span></td><td><span class="muted small">Your own role and status cannot be changed here.</span></td></tr>
+            <tr data-roles="group-admin"><td data-l="Name">Dina</td><td data-l="Email">dina@calderwood-group.example</td><td data-l="Role">Demo Operator</td><td data-l="Entity">Calderwood Group</td><td data-l="ERP link"><span class="muted">None</span></td><td data-l="Status"><span class="chip c-ok">Active</span></td><td><button class="btn btn-sm" type="button">Edit</button> <button class="btn btn-sm btn-quiet" type="button">Deactivate</button></td></tr>
+          </tbody></table></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- SCR-71 User Form -->
+  <div class="modal-back" data-show="create edit email-error role-error saving" role="dialog" aria-modal="true" aria-labelledby="m71">
+    <div class="modal">
+      <div class="modal-h"><h2 id="m71"><span data-hide="edit">Create user</span><span data-show="edit">Edit user: Dan</span><span class="callout" aria-hidden="true">4</span></h2></div>
+      <div class="modal-b">
+        <div class="notice n-err" data-show="role-error" role="alert"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><span>A user has one role in one entity in the MVP</span></div></div>
+        <div class="grid-2">
+          <div class="field"><label for="un">Name</label><input class="input" id="un" value="Dan" data-show="edit"><input class="input" id="un2" value="Ivy" data-hide="edit"></div>
+          <div class="field"><label for="ue">Email (unique)</label><input class="input" id="ue" value="dan@calderwood-foods.example" data-show="edit"><input class="input invalid" id="ue2" value="alice@calderwood-foods.example" data-show="email-error" aria-describedby="ue-err"><input class="input" id="ue3" value="ivy@calderwood-foods.example" data-show="create role-error saving">
+            <div class="err-msg" id="ue-err" data-show="email-error"><svg class="i i-sm"><use href="#i-alert"></use></svg>Email already in use</div></div>
+          <div class="field"><label for="ur">Role</label><select class="select" id="ur"><option>AP Accountant</option><option>Chief Accountant</option><option>Payment Approver</option></select><span class="hint" data-roles="entity-admin">You can choose only these roles, and only your own entity.</span></div>
+          <div class="field"><label for="uen">Entity</label><select class="select" id="uen"><option>Calderwood Foods Co.</option><option data-roles="group-admin">Calderwood Packaging Co.</option><option data-roles="group-admin">Calderwood Retail Co.</option></select></div>
+          <div class="field" data-hide="edit"><label for="up">Initial password (at least 8 characters)</label><input class="input" id="up" type="password" value="••••••••••"></div>
+          <div class="field"><label for="uerp">ERP user link</label><input class="input" id="uerp" value="erp.ivy" data-hide="edit"><input class="input" id="uerp2" value="erp.dan" data-show="edit"><span class="hint">Lets the system tell whether two roles are the same person.</span></div>
+        </div>
+      </div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-primary" type="button" data-hide="saving">Save user</button><button class="btn btn-primary" type="button" aria-disabled="true" data-show="saving"><span class="spin" style="border-color:#8a90a0;border-top-color:#fff"></span>Saving…</button></div>
+    </div>
+  </div>
+  <!-- SCR-72 Deactivate User -->
+  <div class="modal-back" data-show="deactivate" role="dialog" aria-modal="true" aria-labelledby="m72">
+    <div class="modal"><div class="modal-h"><h2 id="m72">Deactivate Dan?<span class="callout" aria-hidden="true">5</span></h2></div>
+      <div class="modal-b"><ul class="stack small"><li>Dan cannot log in.</li><li>Open sessions end on the next request.</li><li>Earlier decisions and signatures stay unchanged.</li></ul></div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-danger-solid" type="button">Deactivate</button></div></div>
+  </div>
+</div>
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

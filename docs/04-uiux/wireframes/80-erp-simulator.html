@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-80 ERP Simulator — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="demo" data-nav="erp">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-80 ERP Simulator + SCR-81, SCR-82</strong>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="80-erp-simulator.html">default (buyer)</a></li>
+    <li><a href="80-erp-simulator.html?state=warehouse">persona: warehouse keeper</a></li>
+    <li><a href="80-erp-simulator.html?state=loading">loading</a></li>
+    <li><a href="80-erp-simulator.html?state=empty">empty</a></li>
+    <li><a href="80-erp-simulator.html?state=server-error">server-error</a></li>
+    <li><a href="80-erp-simulator.html?state=po-form">SCR-81 po-form</a></li>
+    <li><a href="80-erp-simulator.html?state=po-error">po-error</a></li>
+    <li><a href="80-erp-simulator.html?state=receipt-form">SCR-82 receipt-form</a></li>
+    <li><a href="80-erp-simulator.html?state=receipt-no-order">receipt-no-order</a></li>
+    <li><a href="80-erp-simulator.html?state=receipt-same-persona">receipt-same-persona</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+      <div class="notice n-warn" style="border-left-width:6px"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>Demo only</b><span>This simulates the Entity ERP. Orders and receipts are made here and reach MatchPay only through the 15-minute sync.</span></div><span class="callout" aria-hidden="true">1</span></div>
+      <div class="page-head"><div><h1>ERP simulator</h1></div>
+        <div class="actions"><button class="btn btn-primary" type="button" data-hide="warehouse"><svg class="i"><use href="#i-plus"></use></svg>New purchase order</button><button class="btn" type="button" data-show="warehouse"><svg class="i"><use href="#i-check"></use></svg>Confirm receipt</button><span class="callout" aria-hidden="true">3</span></div></div>
+      <div class="card"><div class="card-b row" style="gap:24px">
+        <div class="field" style="min-width:240px"><label for="ent">Entity</label><select class="select" id="ent"><option>Calderwood Foods Co.</option><option>Calderwood Packaging Co.</option><option>Calderwood Retail Co.</option></select></div>
+        <div class="field" style="min-width:240px"><label for="per">Persona</label><select class="select" id="per"><option data-hide="warehouse">Buyer</option><option>Warehouse keeper</option><option>Acceptor</option></select></div><span class="callout" aria-hidden="true">2</span>
+        <span class="muted small">You act as <b data-hide="warehouse">the buyer</b><b data-show="warehouse">the warehouse keeper</b>. Data of one entity is not visible in another.</span>
+      </div></div>
+      <div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The simulator could not be loaded.</b><span>Try again.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+      <div class="card" data-show="loading"><div class="card-b stack"><span class="sk" style="width:100%"></span><span class="sk" style="width:90%"></span></div><p class="xs muted card-b">Loading orders and receipts…</p></div>
+      <div class="empty card" data-show="empty"><span class="empty-icon"><svg class="i"><use href="#i-server"></use></svg></span><h2>No purchase orders yet</h2><p>Create an order as the buyer, then confirm its receipt as another persona.</p></div>
+      <div class="grid-2" data-hide="loading empty server-error">
+        <section class="card"><div class="card-h"><h2>Purchase orders</h2><span class="demo-mark">Demo only</span></div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Order</th><th>Supplier</th><th>Created by</th><th class="money">Outstanding</th><th></th></tr></thead><tbody>
+            <tr><td class="mono">PO-CF-1007</td><td>Brightfield Paper Ltd</td><td>Buyer</td><td class="money">0 of 20 cartons</td><td></td></tr>
+            <tr><td class="mono">PO-CF-1015</td><td>Brightfield Paper Ltd</td><td>Buyer</td><td class="money">0 of 800 reams</td><td></td></tr>
+            <tr><td class="mono">PO-CF-1021</td><td>Harbor Cartons Ltd</td><td>Buyer</td><td class="money">40 of 100 cartons</td><td><button class="btn btn-sm" type="button" data-show="warehouse">Confirm receipt</button></td></tr>
+            <tr><td class="mono">PO-CF-1022</td><td>Harbor Cartons Ltd</td><td>Buyer</td><td class="money">3,000 of 3,000 boxes</td><td><button class="btn btn-sm" type="button" data-show="warehouse">Confirm receipt</button><span class="callout" aria-hidden="true">4</span></td></tr>
+          </tbody></table></div></section>
+        <section class="card"><div class="card-h"><h2>Receipts and acceptances</h2><span class="demo-mark">Demo only</span></div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Receipt</th><th>Order</th><th>Confirmed by</th><th>Note</th></tr></thead><tbody>
+            <tr><td class="mono">GRN-CF-2031</td><td class="mono">PO-CF-1007</td><td>Warehouse keeper</td><td>20 of 20 cartons received</td></tr>
+            <tr><td class="mono">GRN-CF-2044</td><td class="mono">PO-CF-1015</td><td>Warehouse keeper</td><td>800 of 800 reams received</td></tr>
+            <tr><td class="mono">GRN-CF-2050</td><td class="mono">PO-CF-1021</td><td>Warehouse keeper</td><td>60 of 100 received, 40 outstanding</td></tr>
+          </tbody></table></div></section>
+      </div>
+    </main>
+  </div>
+
+  <!-- SCR-81 Purchase Order Form -->
+  <div class="modal-back" data-show="po-form po-error" role="dialog" aria-modal="true" aria-labelledby="m81">
+    <div class="modal"><div class="modal-h"><h2 id="m81">New purchase order<span class="callout" aria-hidden="true">5</span></h2><span class="demo-mark">Demo only</span></div>
+      <div class="modal-b">
+        <div class="field"><label for="po-s">Supplier</label><select class="select" id="po-s"><option>Harbor Cartons Ltd</option><option>Brightfield Paper Ltd</option><option>CloudDesk Software Ltd</option></select></div>
+        <div class="field"><label for="po-k">Kind</label><select class="select" id="po-k"><option>Goods</option><option>Service</option></select></div>
+        <div class="grid-2"><div class="field"><label for="po-i">Item</label><input class="input" id="po-i" value="Corrugated shipping box, 5-ply" data-hide="po-error"><input class="input invalid" id="po-i2" data-show="po-error" aria-describedby="po-e"><div class="err-msg" id="po-e" data-show="po-error"><svg class="i i-sm"><use href="#i-alert"></use></svg>Enter an item for the order line.</div></div>
+          <div class="field"><label for="po-q">Quantity and price (VND)</label><input class="input" id="po-q" value="100 x 11,000"></div></div>
+        <p class="xs muted">The creator is the persona chosen on the page: buyer.</p></div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-primary" type="button">Create order</button></div></div>
+  </div>
+  <!-- SCR-82 Receipt or Acceptance Form -->
+  <div class="modal-back" data-show="receipt-form receipt-no-order receipt-same-persona" role="dialog" aria-modal="true" aria-labelledby="m82">
+    <div class="modal"><div class="modal-h"><h2 id="m82">Confirm receipt<span class="callout" aria-hidden="true">6</span></h2><span class="demo-mark">Demo only</span></div>
+      <div class="modal-b">
+        <div class="notice n-err" data-show="receipt-same-persona" role="alert"><svg class="i"><use href="#i-lock"></use></svg><div class="grow"><span>The receipt must be confirmed by a different person than the order creator</span></div></div>
+        <div class="field"><label for="r-o">Order reference (required)</label><select class="select" id="r-o" data-hide="receipt-no-order"><option>PO-CF-1021</option></select><select class="select invalid" id="r-o2" data-show="receipt-no-order"><option>Choose an order</option></select><div class="err-msg" data-show="receipt-no-order"><svg class="i i-sm"><use href="#i-alert"></use></svg>Choose the order this receipt belongs to.</div></div>
+        <div class="field"><label for="r-q">Received quantity</label><input class="input" id="r-q" value="60 cartons"></div>
+        <div class="field"><label for="r-n">Delivery note</label><input class="input" id="r-n" value="60 of 100 received, 40 outstanding"></div>
+        <p class="xs muted">No field takes data from an invoice. You act as the warehouse keeper.</p></div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-primary" type="button">Confirm receipt</button></div></div>
+  </div>
+</div>
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>
