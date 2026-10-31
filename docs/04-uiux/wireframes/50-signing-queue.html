@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-50 Signing Queue — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="chief" data-nav="signing">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-50 Signing Queue + SCR-52</strong>
+  <ul class="wf-roles" aria-label="Role">
+    <li><a href="50-signing-queue.html?role=chief">Chief Accountant</a></li>
+    <li><a href="50-signing-queue.html?role=approver">Payment Approver</a></li>
+  </ul>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="50-signing-queue.html">default</a></li>
+    <li><a href="50-signing-queue.html?state=loading">loading</a></li>
+    <li><a href="50-signing-queue.html?state=empty">empty</a></li>
+    <li><a href="50-signing-queue.html?state=server-error">server-error</a></li>
+    <li><a href="50-signing-queue.html?state=sign&amp;role=chief">SCR-52 sign</a></li>
+    <li><a href="50-signing-queue.html?state=sign-wrong-password&amp;role=chief">wrong-password</a></li>
+    <li><a href="50-signing-queue.html?state=sign-results&amp;role=chief">sign-results</a></li>
+    <li><a href="50-signing-queue.html?state=chief-signed&amp;role=approver">chief-signed</a></li>
+    <li><a href="50-signing-queue.html?state=erp-retry">erp-retry</a></li>
+    <li><a href="50-signing-queue.html?state=erp-failed">erp-failed</a></li>
+    <li><a href="50-signing-queue.html?state=conflict&amp;role=chief">conflict</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+      <div class="page-head"><div><h1>Signing queue</h1><p class="sub">Payment requests of Calderwood Foods Co. The Chief Accountant signs first, then the Payment Approver at the level the total needs.</p></div></div>
+      <div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The queue could not be loaded.</b><span>Try again.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+      <div class="notice n-warn" role="alert" data-show="conflict"><svg class="i"><use href="#i-refresh"></use></svg><div class="grow"><b>This item was changed by someone else. Reload to see the change.</b><span>Nothing was signed. Your selection is kept.</span></div><button class="btn btn-sm" type="button">Reload</button></div>
+      <div class="notice n-err" role="alert" data-show="erp-failed"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>Sending to the ERP failed after 3 attempts.</b><span>PR-0043 stays Signed.</span></div></div>
+      <div class="notice n-info" data-roles="approver" data-hide="chief-signed loading empty"><svg class="i"><use href="#i-lock"></use></svg><div class="grow"><b>Your signing action is disabled until the Chief Accountant has signed.</b><span>Each row says why.</span></div><span class="callout" aria-hidden="true">3</span></div>
+
+      <div class="notice n-ok" role="status" data-show="sign-results"><svg class="i"><use href="#i-check"></use></svg><div class="grow"><b>Signing finished: 1 signed, 1 not signed.</b><span>PR-0042 is signed and now awaits the Payment Approver. PR-0044 was not signed: the AP Accountant removed a line after you opened it. Reload and review it again.</span></div><span class="callout" aria-hidden="true">5</span></div>
+
+      <section class="card">
+        <form class="filters" onsubmit="return false" data-hide="empty loading"><div class="field"><label for="st">State</label><select class="select" id="st"><option>All states</option><option>To sign</option><option>Awaiting Chief Accountant</option><option>Awaiting Payment Approver</option><option>Signed</option><option>Sent</option><option>Paid</option></select></div><span class="callout" aria-hidden="true" style="margin-bottom:8px">1</span></form>
+        <div class="card-b" data-show="loading"><div class="stack"><span class="sk" style="width:100%"></span><span class="sk" style="width:92%"></span><span class="sk" style="width:96%"></span></div><p class="xs muted" style="margin-top:12px">Loading payment requests…</p></div>
+        <div class="empty" data-show="empty"><span class="empty-icon"><svg class="i"><use href="#i-pen"></use></svg></span><h2>No payment requests to sign</h2><p>Requests appear here when the AP Accountant releases a batch for signing.</p></div>
+        <div class="tbl-wrap" data-hide="loading empty server-error">
+          <table class="tbl cards">
+            <thead><tr><th class="checkbox-cell"><input type="checkbox" data-select-all aria-label="Select all requests"></th><th>Request</th><th>Supplier</th><th class="money">Total</th><th>Required level</th><th>State</th><th>Flags</th><th>Signatures<span class="callout" aria-hidden="true">2</span></th><th>ERP status</th></tr></thead>
+            <tbody data-hide="erp-retry erp-failed chief-signed sign-results">
+              <tr data-roles="chief"><td><input type="checkbox" data-row checked aria-label="Select PR-0042"></td><td data-l="Request"><a href="51-payment-request.html">PR-0042</a></td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 53,000,000</td><td data-l="Level">CFO</td><td data-l="State"><span class="chip c-wait">Awaiting Chief Accountant</span></td><td data-l="Flags"><span class="muted">None</span></td><td data-l="Signatures">0 of 2</td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+              <tr data-roles="approver"><td><input type="checkbox" data-row disabled aria-label="PR-0042 cannot be signed yet"></td><td data-l="Request"><a href="51-payment-request.html">PR-0042</a></td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 53,000,000</td><td data-l="Level">CFO</td><td data-l="State"><span class="chip c-wait">Awaiting Chief Accountant</span><span class="hint">The Chief Accountant signs first</span></td><td data-l="Flags"><span class="muted">None</span></td><td data-l="Signatures">0 of 2</td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+              <tr><td><input type="checkbox" data-row disabled aria-label="PR-0043 cannot be signed"></td><td data-l="Request"><a href="51-payment-request.html">PR-0043</a></td><td data-l="Supplier">Sunrise Electric Utility</td><td class="money" data-l="Total">VND 4,400,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-wait">Awaiting Payment Approver</span><span class="hint" data-roles="chief">You signed this request</span><span class="hint" data-roles="approver">Needs the Department Head level</span></td><td data-l="Flags"><span class="muted">None</span></td><td data-l="Signatures">1 of 2: Carol, 31/10/2026 09:40</td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+              <tr data-roles="chief"><td><input type="checkbox" data-row checked aria-label="Select PR-0044"></td><td data-l="Request"><a href="51-payment-request.html">PR-0044</a></td><td data-l="Supplier">CloudDesk Software Ltd</td><td class="money" data-l="Total">VND 12,650,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-wait">Awaiting Chief Accountant</span></td><td data-l="Flags"><span class="flag"><svg class="i i-sm"><use href="#i-alert"></use></svg>Bank account changed</span></td><td data-l="Signatures">0 of 2</td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+              <tr data-roles="approver"><td><input type="checkbox" data-row disabled aria-label="PR-0044 cannot be signed yet"></td><td data-l="Request"><a href="51-payment-request.html">PR-0044</a></td><td data-l="Supplier">CloudDesk Software Ltd</td><td class="money" data-l="Total">VND 12,650,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-wait">Awaiting Chief Accountant</span></td><td data-l="Flags"><span class="flag"><svg class="i i-sm"><use href="#i-alert"></use></svg>Bank account changed</span></td><td data-l="Signatures">0 of 2</td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+              <tr><td><input type="checkbox" data-row disabled aria-label="PR-0038 is paid"></td><td data-l="Request"><a href="51-payment-request.html?state=paid">PR-0038</a></td><td data-l="Supplier">Brightfield Paper Ltd</td><td class="money" data-l="Total">VND 9,900,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-ok">Paid</span></td><td data-l="Flags"><span class="muted">None</span></td><td data-l="Signatures">2 of 2</td><td data-l="ERP"><span class="mono">PAY-CF-2026-0042</span></td></tr>
+            </tbody>
+            <tbody data-show="chief-signed">
+              <tr><td><input type="checkbox" data-row checked aria-label="Select PR-0042"></td><td data-l="Request"><a href="51-payment-request.html?state=chief-signed">PR-0042</a></td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 53,000,000</td><td data-l="Level">CFO</td><td data-l="State"><span class="chip c-wait">Awaiting Payment Approver</span></td><td data-l="Flags"><span class="muted">None</span></td><td data-l="Signatures">1 of 2: Carol, 31/10/2026 10:20</td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+              <tr><td><input type="checkbox" data-row disabled></td><td data-l="Request">PR-0043</td><td data-l="Supplier">Sunrise Electric Utility</td><td class="money" data-l="Total">VND 4,400,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-wait">Awaiting Payment Approver</span><span class="hint">Needs the Department Head level</span></td><td data-l="Flags"><span class="muted">None</span></td><td data-l="Signatures">1 of 2: Carol</td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+            </tbody>
+            <tbody data-show="sign-results">
+              <tr><td><input type="checkbox" data-row disabled></td><td data-l="Request">PR-0042</td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 53,000,000</td><td data-l="Level">CFO</td><td data-l="State"><span class="chip c-wait">Awaiting Payment Approver</span></td><td data-l="Flags"><span class="muted">None</span></td><td data-l="Signatures">1 of 2: Carol, 31/10/2026 10:20</td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+              <tr class="attn"><td><input type="checkbox" data-row checked></td><td data-l="Request">PR-0044</td><td data-l="Supplier">CloudDesk Software Ltd</td><td class="money" data-l="Total">VND 12,650,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-wait">Awaiting Chief Accountant</span><span class="hint hint-err">Not signed: outdated view</span></td><td data-l="Flags"><span class="flag">Bank account changed</span></td><td data-l="Signatures">0 of 2</td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+            </tbody>
+            <tbody data-show="erp-retry">
+              <tr><td><input type="checkbox" data-row disabled></td><td data-l="Request">PR-0042</td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 53,000,000</td><td data-l="Level">CFO</td><td data-l="State"><span class="chip c-ok">Paid</span></td><td data-l="Flags"><span class="muted">None</span></td><td data-l="Signatures">2 of 2</td><td data-l="ERP"><span class="mono">PAY-CF-2026-0044</span></td></tr>
+              <tr><td><input type="checkbox" data-row disabled></td><td data-l="Request">PR-0043</td><td data-l="Supplier">Sunrise Electric Utility</td><td class="money" data-l="Total">VND 4,400,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-ok">Signed</span></td><td data-l="Flags"><span class="muted">None</span></td><td data-l="Signatures">2 of 2</td><td data-l="ERP"><span class="tagx tagx-warn">Retry 2 of 3, next attempt in 5 minutes</span><span class="callout" aria-hidden="true">4</span></td></tr>
+              <tr><td><input type="checkbox" data-row disabled></td><td data-l="Request">PR-0044</td><td data-l="Supplier">CloudDesk Software Ltd</td><td class="money" data-l="Total">VND 12,650,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-ok">Signed</span></td><td data-l="Flags"><span class="flag">Bank account changed</span></td><td data-l="Signatures">2 of 2</td><td data-l="ERP"><span class="muted">Sending to ERP…</span></td></tr>
+            </tbody>
+            <tbody data-show="erp-failed">
+              <tr><td><input type="checkbox" data-row disabled></td><td data-l="Request">PR-0042</td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 53,000,000</td><td data-l="Level">CFO</td><td data-l="State"><span class="chip c-ok">Paid</span></td><td data-l="Flags"><span class="muted">None</span></td><td data-l="Signatures">2 of 2</td><td data-l="ERP"><span class="mono">PAY-CF-2026-0044</span></td></tr>
+              <tr class="attn"><td><input type="checkbox" data-row disabled></td><td data-l="Request">PR-0043</td><td data-l="Supplier">Sunrise Electric Utility</td><td class="money" data-l="Total">VND 4,400,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-ok">Signed</span></td><td data-l="Flags"><span class="muted">None</span></td><td data-l="Signatures">2 of 2</td><td data-l="ERP"><span class="tagx tagx-err">Failed after 3 attempts</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="sticky-sign" data-hide="loading empty server-error erp-retry erp-failed sign-results">
+        <span><b data-hide="chief-signed" data-roles="chief">2 selected: PR-0042 and PR-0044, total VND 65,650,000</b><b data-roles="approver" data-hide="chief-signed">No request selected</b><b data-show="chief-signed">1 selected: PR-0042, total VND 53,000,000</b></span>
+        <span><button class="btn" type="button" data-roles="chief" data-hide="chief-signed">Sign selected (2)<span class="callout" aria-hidden="true">6</span></button><button class="btn" type="button" aria-disabled="true" data-roles="approver" data-hide="chief-signed">Sign selected</button><button class="btn" type="button" data-show="chief-signed" data-roles="approver">Sign selected (1)</button></span>
+      </div>
+    </main>
+  </div>
+
+  <!-- SCR-52 Sign with Re-authentication -->
+  <div class="modal-back" data-show="sign sign-wrong-password" role="dialog" aria-modal="true" aria-labelledby="m52">
+    <div class="modal">
+      <div class="modal-h"><h2 id="m52">Sign with re-authentication</h2></div>
+      <div class="modal-b">
+        <p class="small">You are signing <b>2 payment requests</b> with a total of <b>VND 65,650,000</b>: PR-0042 and PR-0044. One signature record is made for each request, with your name, the time, the request version, and its content hash.</p>
+        <div class="notice n-err" data-show="sign-wrong-password" role="alert"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><span>The password is incorrect. Nothing was signed.</span></div></div>
+        <div class="field"><label for="pw">Enter your password again</label><input class="input" id="pw" type="password" value="••••••••"></div>
+        <div class="notice n-rule"><svg class="i"><use href="#i-seal"></use></svg><div class="grow"><span>The platform e-signature with the simulated certificate is applied. The AI summary is never a signature.</span></div></div>
+      </div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-primary" type="button"><svg class="i"><use href="#i-pen"></use></svg>Sign 2 requests</button></div>
+    </div>
+  </div>
+</div>
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

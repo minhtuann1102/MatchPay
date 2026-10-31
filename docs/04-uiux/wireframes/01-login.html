@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-01 Login — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="ap">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-01 Login</strong>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="01-login.html">default</a></li>
+    <li><a href="01-login.html?state=error">error</a></li>
+    <li><a href="01-login.html?state=deactivated">deactivated</a></li>
+    <li><a href="01-login.html?state=session-ended">session-ended</a></li>
+    <li><a href="01-login.html?state=saving">saving</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<main class="center-page">
+  <div class="card login-card">
+    <div class="brand" style="color:var(--ink);padding:0"><span class="brand-mark" style="background:var(--nav);color:#fff"><svg class="i"><use href="#i-stack"></use></svg></span><span class="brand-name">MatchPay</span></div>
+    <div>
+      <h1 style="font-size:20px;font-weight:600">Log in</h1>
+      <p class="muted small">Invoice matching and payment approval for Calderwood Group.</p>
+    </div>
+
+    <div class="notice n-info" data-show="session-ended" role="status"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b>Your session ended.</b><span>Log in again to continue.</span></div><span class="callout" aria-hidden="true">4</span></div>
+    <div class="notice n-err" data-show="error" role="alert"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><span>Email or password is incorrect</span></div><span class="callout" aria-hidden="true">2</span></div>
+    <div class="notice n-err" data-show="deactivated" role="alert"><svg class="i"><use href="#i-lock"></use></svg><div class="grow"><span>Your account is deactivated. Please contact your administrator.</span></div><span class="callout" aria-hidden="true">3</span></div>
+
+    <form class="stack" onsubmit="return false">
+      <div class="field"><label for="email">Email</label><input class="input" id="email" type="email" value="alice@calderwood-foods.example" autocomplete="username"></div>
+      <div class="field"><label for="pw">Password</label><input class="input" id="pw" type="password" value="••••••••••" autocomplete="current-password"></div>
+      <button class="btn btn-primary" type="submit" data-hide="saving">Log in<span class="callout" aria-hidden="true">1</span></button>
+      <button class="btn btn-primary" type="button" aria-disabled="true" data-show="saving"><span class="spin" style="border-color:#8a90a0;border-top-color:#fff"></span>Logging in…</button>
+    </form>
+    <p class="xs muted">After login you go to the home page of your role. Passwords have at least 8 characters.</p>
+  </div>
+</main>
+
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-10 Invoice Worklist — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="ap" data-nav="invoices">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-10 Invoice Worklist + SCR-11</strong>
+  <ul class="wf-roles" aria-label="Role">
+    <li><a href="10-invoice-worklist.html?role=ap">AP Accountant</a></li>
+    <li><a href="10-invoice-worklist.html?role=chief">Chief Accountant (read-only)</a></li>
+    <li><a href="10-invoice-worklist.html?role=approver">Payment Approver (read-only)</a></li>
+  </ul>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="10-invoice-worklist.html">default</a></li>
+    <li><a href="10-invoice-worklist.html?state=loading">loading</a></li>
+    <li><a href="10-invoice-worklist.html?state=empty">empty</a></li>
+    <li><a href="10-invoice-worklist.html?state=no-results">no-results</a></li>
+    <li><a href="10-invoice-worklist.html?state=stale">stale</a></li>
+    <li><a href="10-invoice-worklist.html?state=server-error">server-error</a></li>
+    <li><a href="10-invoice-worklist.html?state=upload">SCR-11 upload</a></li>
+    <li><a href="10-invoice-worklist.html?state=upload-results">SCR-11 results</a></li>
+    <li><a href="10-invoice-worklist.html?state=upload-non-xml">SCR-11 non-XML</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+      <div class="page-head">
+        <div>
+          <h1>Invoices</h1>
+          <p class="sub"><span class="sync" data-hide="stale"><svg class="i i-sm"><use href="#i-refresh"></use></svg>Last ERP sync: 31/10/2026 09:15</span><span class="callout" aria-hidden="true" data-hide="stale">1</span></p>
+        </div>
+        <div class="actions" data-roles="ap">
+          <button class="btn btn-primary" type="button"><svg class="i"><use href="#i-upload"></use></svg>Upload XML</button><span class="callout" aria-hidden="true">2</span>
+        </div>
+      </div>
+
+      <div class="notice n-warn" role="alert" data-show="stale"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>ERP sync failed. Data shown is from 31/10/2026 09:15.</b><span>New invoices are checked against the earlier data until a sync succeeds.</span></div><span class="callout" aria-hidden="true">1</span></div>
+      <div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The list could not be loaded.</b><span>Try again. If it keeps failing, contact your administrator.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+
+      <section class="card" aria-label="Invoice list">
+        <form class="filters" onsubmit="return false" data-hide="empty">
+          <div class="field"><label for="f-state">State</label>
+            <select class="select" id="f-state"><option>All states</option><option>Exception</option><option>Waiting for Goods</option><option>In Batch</option><option>Paid</option></select></div>
+          <div class="field"><label for="f-sup">Supplier</label>
+            <select class="select" id="f-sup"><option>All suppliers</option><option>Brightfield Paper Ltd</option><option>Harbor Cartons Ltd</option><option>Sunrise Electric Utility</option><option>CloudDesk Software Ltd</option></select></div>
+          <div class="field"><label for="f-flow">Flow</label>
+            <select class="select" id="f-flow"><option>All flows</option><option>Goods with order</option><option>Services with order</option><option>Recurring</option><option>Unsupported: foreign invoice</option></select></div>
+          <div class="field wide"><label for="f-date">Invoice date</label>
+            <input class="input" id="f-date" value="01/10/2026 to 31/10/2026"></div>
+          <label class="check" style="padding-bottom:8px"><input type="checkbox"> Reminder due</label><span class="callout" aria-hidden="true" style="margin-bottom:8px">3</span>
+          <span class="muted small" style="padding-bottom:8px" data-hide="no-results loading">18 invoices</span>
+        </form>
+        <div class="notice n-info" style="margin:12px 16px;border-radius:5px" data-show="no-results"><svg class="i"><use href="#i-filter"></use></svg><div class="grow"><b>No invoices match these filters.</b><span>State: Exception · Supplier: Sunrise Electric Utility · Reminder due</span></div><button class="btn btn-sm" type="button">Clear filters</button><span class="callout" aria-hidden="true">4</span></div>
+
+        <div class="empty" data-show="empty">
+          <span class="empty-icon"><svg class="i"><use href="#i-file"></use></svg></span>
+          <h2>No invoices yet</h2>
+          <p data-roles="ap">Upload XML e-invoices to start. Each file is checked on arrival and appears here.</p>
+          <p data-roles="chief approver">Invoices of Calderwood Foods Co. appear here once the AP Accountant uploads them.</p>
+          <button class="btn btn-primary" type="button" data-roles="ap"><svg class="i"><use href="#i-upload"></use></svg>Upload XML</button>
+        </div>
+
+        <div class="card-b" data-show="loading"><div class="stack"><span class="sk" style="width:100%"></span><span class="sk" style="width:92%"></span><span class="sk" style="width:96%"></span><span class="sk" style="width:88%"></span><span class="sk" style="width:94%"></span><span class="sk" style="width:90%"></span></div><p class="xs muted" style="margin-top:12px">Loading invoices…</p></div>
+
+        <div class="tbl-wrap" data-hide="empty no-results loading server-error">
+          <table class="tbl cards">
+            <thead><tr><th>Invoice</th><th>Flow</th><th class="money">Total</th><th>Due date</th><th>State</th><th>Reasons and notes</th></tr></thead>
+            <tbody>
+              <tr class="attn"><td data-l="Invoice"><a href="12-invoice-detail.html">C26TAA-0000123</a><span class="sub">Brightfield Paper Ltd</span></td><td data-l="Flow">Goods with order</td><td class="money" data-l="Total">VND 8,098,750</td><td data-l="Due date"><span class="due">04/11/2026</span><span class="due-soon"><svg class="i i-sm"><use href="#i-clock"></use></svg>Due soon</span></td><td data-l="State"><span class="chip c-exc">Exception</span><span class="sub">In Review</span></td><td data-l="Reasons"><span class="reason">Gate closed</span><span class="reason">Line not matched</span><span class="reason">Quantity above received</span><span class="reason">Price +2.5%, tolerance 2%</span></td></tr>
+              <tr class="attn"><td data-l="Invoice"><a href="12-invoice-detail.html?state=approve&amp;role=ap">C26TAA-0000151</a><span class="sub">Brightfield Paper Ltd</span></td><td data-l="Flow">Goods with order</td><td class="money" data-l="Total">VND 63,800,000</td><td data-l="Due date"><span class="due">30/11/2026</span></td><td data-l="State"><span class="chip c-exc">Exception</span><span class="sub">Waiting for Decision: Payment Approver</span></td><td data-l="Reasons"><span class="reason">Gate closed</span><span class="reason">Unusual price +20.8%</span></td></tr>
+              <tr class="attn"><td data-l="Invoice"><a href="12-invoice-detail.html?state=hold&amp;role=ap">C26TAA-0000188</a><span class="sub">Eastbay Trading</span></td><td data-l="Flow">Goods with order</td><td class="money" data-l="Total">VND 24,200,000</td><td data-l="Due date"><span class="due">14/11/2026</span></td><td data-l="State"><span class="chip c-exc">Exception</span><span class="sub">Waiting for Decision: Chief Accountant</span></td><td data-l="Reasons"><span class="reason">Tax-risk hold</span></td></tr>
+              <tr class="attn"><td data-l="Invoice"><a href="12-invoice-detail.html?state=foreign&amp;role=ap">TM-2026-0415</a><span class="sub">Tempest Marketing GmbH</span></td><td data-l="Flow">Unsupported: foreign invoice</td><td class="money" data-l="Total">VND 18,500,000</td><td data-l="Due date"><span class="due">20/11/2026</span></td><td data-l="State"><span class="chip c-exc">Exception</span><span class="sub">Open</span></td><td data-l="Reasons"><span class="reason">Unsupported: foreign invoice</span></td></tr>
+              <tr class="attn"><td data-l="Invoice"><a href="12-invoice-detail.html?state=ai-failure&amp;role=ap">C26TAA-0000140</a><span class="sub">Harbor Cartons Ltd</span></td><td data-l="Flow"><span class="muted">Not classified</span></td><td class="money" data-l="Total">VND 14,300,000</td><td data-l="Due date"><span class="due">10/11/2026</span></td><td data-l="State"><span class="chip c-exc">Exception</span><span class="sub">Open</span></td><td data-l="Reasons"><span class="reason">AI unavailable</span> <button class="btn btn-sm" type="button" data-roles="ap"><svg class="i i-sm"><use href="#i-refresh"></use></svg>Re-run check</button><span class="callout" aria-hidden="true">5</span></td></tr>
+              <tr class="attn"><td data-l="Invoice"><a href="12-invoice-detail.html">C26TAA-0000131</a><span class="sub">CloudDesk Software Ltd</span></td><td data-l="Flow">Services with order</td><td class="money" data-l="Total">VND 6,820,000</td><td data-l="Due date"><span class="due">05/11/2026</span><span class="due-soon"><svg class="i i-sm"><use href="#i-clock"></use></svg>Due soon</span></td><td data-l="State"><span class="chip c-exc">Exception</span><span class="sub">Waiting for Supplier</span></td><td data-l="Reasons"><span class="reason">Price +3.0%, tolerance 2%</span><span class="tagx tagx-warn"><svg class="i i-sm" style="width:12px;height:12px;vertical-align:-2px"><use href="#i-clock"></use></svg> Reminder due</span><span class="sub">Request sent 22/10/2026, no reply</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000098</a><span class="sub">Harbor Cartons Ltd</span></td><td data-l="Flow">Goods with order</td><td class="money" data-l="Total">VND 26,400,000</td><td data-l="Due date"><span class="due">12/11/2026</span></td><td data-l="State"><span class="chip c-ok">In Batch</span></td><td data-l="Reasons"><span class="muted">Admitted by the Rule Engine</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000099</a><span class="sub">Harbor Cartons Ltd</span></td><td data-l="Flow">Goods with order</td><td class="money" data-l="Total">VND 13,100,000</td><td data-l="Due date"><span class="due">12/11/2026</span></td><td data-l="State"><span class="chip c-ok">In Batch</span></td><td data-l="Reasons"><span class="muted">Admitted by the Rule Engine</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000102</a><span class="sub">Harbor Cartons Ltd</span></td><td data-l="Flow">Goods with order</td><td class="money" data-l="Total">VND 13,500,000</td><td data-l="Due date"><span class="due">15/11/2026</span></td><td data-l="State"><span class="chip c-ok">In Batch</span></td><td data-l="Reasons"><span class="muted">Admitted by the Rule Engine</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000110</a><span class="sub">CloudDesk Software Ltd</span></td><td data-l="Flow">Services with order</td><td class="money" data-l="Total">VND 12,650,000</td><td data-l="Due date"><span class="due">14/11/2026</span></td><td data-l="State"><span class="chip c-ok">In Batch</span></td><td data-l="Reasons"><span class="muted">Admitted by the Rule Engine</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000096</a><span class="sub">Sunrise Electric Utility</span></td><td data-l="Flow">Recurring</td><td class="money" data-l="Total">VND 4,400,000</td><td data-l="Due date"><span class="due">10/11/2026</span></td><td data-l="State"><span class="chip c-ok">In Batch</span></td><td data-l="Reasons"><span class="muted">Matches the monthly profile</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000160</a><span class="sub">Harbor Cartons Ltd</span></td><td data-l="Flow">Goods with order</td><td class="money" data-l="Total">VND 9,350,000</td><td data-l="Due date"><span class="due">25/11/2026</span></td><td data-l="State"><span class="chip c-wait">Waiting for Goods</span></td><td data-l="Reasons"><span class="muted">No matching receipt yet. Checked again at the next sync. Not an exception.</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html">C26TAA-0000165</a><span class="sub">CloudDesk Software Ltd</span></td><td data-l="Flow"><span class="muted">Checking…</span></td><td class="money" data-l="Total">VND 3,080,000</td><td data-l="Due date"><span class="due">28/11/2026</span></td><td data-l="State"><span class="chip c-work">In Check</span></td><td data-l="Reasons"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI checking</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html">C26TAA-0000166</a><span class="sub">Brightfield Paper Ltd</span></td><td data-l="Flow"><span class="muted">Not yet read</span></td><td class="money" data-l="Total">VND 5,500,000</td><td data-l="Due date"><span class="due">28/11/2026</span></td><td data-l="State"><span class="chip c-open">Received</span></td><td data-l="Reasons"><span class="muted">Signature check running</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html">C26TAA-0000052</a><span class="sub">Brightfield Paper Ltd</span></td><td data-l="Flow"><span class="muted">Not processed</span></td><td class="money" data-l="Total">VND 2,750,000</td><td data-l="Due date"><span class="due">02/11/2026</span></td><td data-l="State"><span class="chip c-bad">Rejected</span></td><td data-l="Reasons"><span class="reason">XML signature check failed</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=paid">C26TAA-0000081</a><span class="sub">Brightfield Paper Ltd</span></td><td data-l="Flow">Goods with order</td><td class="money" data-l="Total">VND 5,200,000</td><td data-l="Due date"><span class="due">28/10/2026</span></td><td data-l="State"><span class="chip c-ok">Paid</span></td><td data-l="Reasons"><span class="mono">PAY-CF-2026-0042</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=paid">C26TAA-0000082</a><span class="sub">Brightfield Paper Ltd</span></td><td data-l="Flow">Goods with order</td><td class="money" data-l="Total">VND 4,700,000</td><td data-l="Due date"><span class="due">28/10/2026</span></td><td data-l="State"><span class="chip c-ok">Paid</span></td><td data-l="Reasons"><span class="mono">PAY-CF-2026-0042</span></td></tr>
+              <tr><td data-l="Invoice"><a href="12-invoice-detail.html">C26TAA-0000040</a><span class="sub">Sunrise Electric Utility</span></td><td data-l="Flow">Recurring</td><td class="money" data-l="Total">VND 4,150,000</td><td data-l="Due date"><span class="due">25/10/2026</span></td><td data-l="State"><span class="chip c-work">Sent</span></td><td data-l="Reasons"><span class="muted">In the Entity ERP, waiting for the paid status</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- SCR-11 Upload XML Invoices -->
+  <div class="modal-back" data-show="upload upload-results upload-non-xml" role="dialog" aria-modal="true" aria-labelledby="m-up">
+    <div class="modal modal-lg">
+      <div class="modal-h"><h2 id="m-up">Upload XML invoices<span class="callout" aria-hidden="true">6</span></h2><button class="btn btn-quiet btn-sm" type="button" aria-label="Close"><svg class="i"><use href="#i-x"></use></svg></button></div>
+      <div class="modal-b">
+        <p class="muted small" data-show="upload">Choose one or many XML files. Each file is checked on its own: a failing file never stops the others.</p>
+        <div class="field" data-show="upload"><label for="files">XML files</label><input class="input" id="files" type="text" value="3 files selected" readonly></div>
+        <ul class="stack" data-show="upload" aria-label="Selected files">
+          <li class="row"><svg class="i"><use href="#i-file"></use></svg><span class="mono">inv-C26TAA-0000170.xml</span><span class="muted xs">18 KB</span></li>
+          <li class="row"><svg class="i"><use href="#i-file"></use></svg><span class="mono">inv-C26TAA-0000171.xml</span><span class="muted xs">21 KB</span></li>
+          <li class="row"><svg class="i"><use href="#i-file"></use></svg><span class="mono">inv-C26TAA-0000172.xml</span><span class="muted xs">17 KB</span></li>
+        </ul>
+
+        <div aria-live="polite" data-show="upload-results upload-non-xml">
+          <p class="small strong" data-show="upload-results">Result: 1 accepted, 2 rejected</p>
+          <p class="small strong" data-show="upload-non-xml">Result: 1 accepted, 2 rejected<span class="callout" aria-hidden="true">7</span></p>
+          <div class="tbl-wrap"><table class="tbl" style="margin-top:8px">
+            <thead><tr><th>File</th><th>Result</th><th>Reason</th></tr></thead>
+            <tbody data-show="upload-results">
+              <tr><td class="mono">inv-C26TAA-0000170.xml</td><td><span class="chip c-ok">Accepted</span></td><td class="muted">Stored with its hash. The check starts.</td></tr>
+              <tr><td class="mono">inv-C26TAA-0000171.xml</td><td><span class="chip c-bad">Rejected</span></td><td>XML signature check failed</td></tr>
+              <tr><td class="mono">inv-C26TAA-0000172.xml</td><td><span class="chip c-bad">Rejected</span></td><td>An invoice with this seller, series, and number already exists</td></tr>
+            </tbody>
+            <tbody data-show="upload-non-xml">
+              <tr><td class="mono">inv-C26TAA-0000173.xml</td><td><span class="chip c-ok">Accepted</span></td><td class="muted">Stored with its hash. The check starts.</td></tr>
+              <tr><td class="mono">supplier-statement-oct.pdf</td><td><span class="chip c-bad">Rejected</span></td><td>Only XML e-invoices are accepted in the MVP</td></tr>
+              <tr><td class="mono">scan-0007.jpg</td><td><span class="chip c-bad">Rejected</span></td><td>Only XML e-invoices are accepted in the MVP</td></tr>
+            </tbody>
+          </table></div>
+          <p class="xs muted" style="margin-top:8px">No invoice is created from a rejected file. The original of a rejected XML file is kept as evidence.</p>
+        </div>
+      </div>
+      <div class="modal-f">
+        <button class="btn" type="button" data-show="upload">Cancel</button>
+        <button class="btn btn-primary" type="button" data-show="upload"><svg class="i"><use href="#i-upload"></use></svg>Upload 3 files</button>
+        <button class="btn btn-primary" type="button" data-show="upload-results upload-non-xml">Close and view new rows</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

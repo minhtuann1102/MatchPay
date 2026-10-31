@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-40 Decision Queue — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="chief" data-nav="decisions">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-40 Decision Queue</strong>
+  <ul class="wf-roles" aria-label="Role">
+    <li><a href="40-decision-queue.html?role=chief">Chief Accountant: Decisions</a></li>
+    <li><a href="40-decision-queue.html?role=approver">Payment Approver: Approvals</a></li>
+  </ul>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="40-decision-queue.html">default</a></li>
+    <li><a href="40-decision-queue.html?state=loading">loading</a></li>
+    <li><a href="40-decision-queue.html?state=empty">empty</a></li>
+    <li><a href="40-decision-queue.html?state=no-results">no-results</a></li>
+    <li><a href="40-decision-queue.html?state=server-error">server-error</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+      <div class="page-head"><div>
+        <h1 data-roles="chief">Decisions</h1><h1 data-roles="approver">Approvals</h1>
+        <p class="sub" data-roles="chief">Tax-risk holds waiting for your decision.<span class="callout" aria-hidden="true">1</span></p>
+        <p class="sub" data-roles="approver">Exceptions at your level (CFO: VND 50,000,000 and over) waiting for an individual approval.<span class="callout" aria-hidden="true">2</span></p></div></div>
+      <div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The queue could not be loaded.</b><span>Try again.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+      <section class="card">
+        <form class="filters" onsubmit="return false" data-hide="empty"><div class="field"><label for="k">Kind</label><select class="select" id="k"><option>All kinds</option><option data-roles="chief">Tax-risk hold</option><option data-roles="approver">Gate closed</option><option data-roles="approver">Unusual price</option><option data-roles="approver">Possible duplicate</option></select></div><span class="muted small" style="padding-bottom:8px" data-hide="no-results loading">Rows you cannot decide are not listed.</span></form>
+        <div class="card-b" data-show="loading"><div class="stack"><span class="sk" style="width:100%"></span><span class="sk" style="width:92%"></span><span class="sk" style="width:96%"></span></div><p class="xs muted" style="margin-top:12px">Loading the queue…</p></div>
+        <div class="empty" data-show="empty"><span class="empty-icon"><svg class="i"><use href="#i-scale"></use></svg></span><h2>Nothing is waiting for your decision</h2><p>New items appear here when the AP Accountant sends an exception for a decision. The badge in the sidebar shows the count.</p></div>
+        <div class="notice n-info" style="margin:12px 16px" data-show="no-results"><svg class="i"><use href="#i-filter"></use></svg><div class="grow"><b>No items match these filters.</b><span>Kind: Possible duplicate</span></div><button class="btn btn-sm" type="button">Clear filters</button></div>
+        <div class="tbl-wrap" data-hide="loading empty no-results server-error">
+          <table class="tbl cards" data-roles="chief">
+            <thead><tr><th>Invoice</th><th>Supplier</th><th class="money">Amount</th><th>Reason</th><th>Age</th></tr></thead>
+            <tbody><tr class="attn"><td data-l="Invoice"><a href="12-invoice-detail.html?state=hold&amp;role=chief">C26TAA-0000188</a></td><td data-l="Supplier">Eastbay Trading</td><td class="money" data-l="Amount">VND 24,200,000</td><td data-l="Reason"><span class="reason">Tax-risk hold</span></td><td data-l="Age">1 day, sent 31/10/2026 09:44</td></tr></tbody>
+          </table>
+          <table class="tbl cards" data-roles="approver">
+            <thead><tr><th>Invoice</th><th>Supplier</th><th class="money">Amount</th><th>Reasons</th><th>Level</th><th>Age</th></tr></thead>
+            <tbody>
+              <tr class="attn"><td data-l="Invoice"><a href="12-invoice-detail.html?state=approve&amp;role=approver">C26TAA-0000151</a></td><td data-l="Supplier">Brightfield Paper Ltd</td><td class="money" data-l="Amount">VND 63,800,000</td><td data-l="Reasons"><span class="reason">Gate closed</span><span class="reason">Unusual price +20.8%</span></td><td data-l="Level">CFO</td><td data-l="Age">Today, sent 31/10/2026 09:47</td></tr>
+              <tr class="attn"><td data-l="Invoice"><a href="12-invoice-detail.html?state=approve&amp;role=approver">C26TAA-0000149</a></td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Amount">VND 55,000,000</td><td data-l="Reasons"><span class="reason">Possible duplicate</span></td><td data-l="Level">CFO</td><td data-l="Age">3 days, sent 28/10/2026 14:10</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

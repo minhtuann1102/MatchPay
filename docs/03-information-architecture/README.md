@@ -16,4 +16,4 @@ Step 3 organizes the screens of **MatchPay**: a sitemap by role, routes and page
 | [05-user-flows.md](05-user-flows.md) | Demo set-up and invoice intake; AP Accountant resolves an exception; month-end batch, signing, and payment; Group Admin opens an automation gate |
 | [06-ui-states-and-accessibility.md](06-ui-states-and-accessibility.md) | UI state contract, status chips for BR-33..BR-35, AI and ERP send states, responsive and accessibility rules |
 
-**Related:** [README](../../README.md) · [Previous: Use cases and user stories](../02-usecases-userstories/README.md) · [Master traceability](../traceability/master-traceability.md)
+**Related:** [README](../../README.md) · [Previous: Use cases and user stories](../02-usecases-userstories/README.md) · [Next: UI/UX](../04-uiux/README.md) · [Master traceability](../traceability/master-traceability.md)

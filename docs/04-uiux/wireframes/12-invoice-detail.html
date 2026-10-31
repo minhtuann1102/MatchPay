@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-12 Invoice Detail and Evidence — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="ap" data-nav="invoices">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-12 Invoice Detail + SCR-14, 15, 16, 18</strong>
+  <ul class="wf-roles" aria-label="Role">
+    <li><a href="12-invoice-detail.html?role=ap">AP Accountant</a></li>
+    <li><a href="12-invoice-detail.html?role=chief">Chief Accountant</a></li>
+    <li><a href="12-invoice-detail.html?role=approver">Payment Approver</a></li>
+  </ul>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="12-invoice-detail.html?role=ap">default</a></li>
+    <li><a href="12-invoice-detail.html?state=loading">loading</a></li>
+    <li><a href="12-invoice-detail.html?state=server-error">server-error</a></li>
+    <li><a href="12-invoice-detail.html?state=checking">checking</a></li>
+    <li><a href="12-invoice-detail.html?state=confirm-line&amp;role=ap">confirm-line</a></li>
+    <li><a href="12-invoice-detail.html?state=correct&amp;role=ap">correct</a></li>
+    <li><a href="12-invoice-detail.html?state=draft&amp;role=ap">SCR-14 draft</a></li>
+    <li><a href="12-invoice-detail.html?state=draft-loading&amp;role=ap">draft-loading</a></li>
+    <li><a href="12-invoice-detail.html?state=draft-ai-error&amp;role=ap">draft-ai-error</a></li>
+    <li><a href="12-invoice-detail.html?state=draft-not-sent&amp;role=ap">draft-not-sent</a></li>
+    <li><a href="12-invoice-detail.html?state=reject&amp;role=ap">SCR-15 reject</a></li>
+    <li><a href="12-invoice-detail.html?state=reject-error&amp;role=ap">reject-error</a></li>
+    <li><a href="12-invoice-detail.html?state=hold&amp;role=chief">hold</a></li>
+    <li><a href="12-invoice-detail.html?state=hold-decision&amp;role=chief">SCR-16 hold-decision</a></li>
+    <li><a href="12-invoice-detail.html?state=approve&amp;role=approver">approve</a></li>
+    <li><a href="12-invoice-detail.html?state=approve-modal&amp;role=approver">SCR-18 approve-modal</a></li>
+    <li><a href="12-invoice-detail.html?state=approve-blocked&amp;role=approver">approve-blocked</a></li>
+    <li><a href="12-invoice-detail.html?state=foreign&amp;role=ap">foreign</a></li>
+    <li><a href="12-invoice-detail.html?state=foreign-reject&amp;role=ap">foreign-reject</a></li>
+    <li><a href="12-invoice-detail.html?state=ai-failure&amp;role=ap">ai-failure</a></li>
+    <li><a href="12-invoice-detail.html?state=in-batch&amp;role=ap">in-batch</a></li>
+    <li><a href="12-invoice-detail.html?state=paid&amp;role=ap">paid</a></li>
+    <li><a href="12-invoice-detail.html?state=conflict&amp;role=ap">conflict</a></li>
+    <li><a href="12-invoice-detail.html?state=audit-error&amp;role=ap">audit-error</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <span data-hide="hold hold-decision approve approve-modal approve-blocked paid" ><a href="10-invoice-worklist.html">Invoices</a></span>
+        <span data-show="hold hold-decision" data-roles="chief"><a href="40-decision-queue.html">Decisions</a></span>
+        <span data-show="hold hold-decision" data-roles="ap approver"><a href="10-invoice-worklist.html">Invoices</a></span>
+        <span data-show="approve approve-modal approve-blocked" data-roles="approver"><a href="40-decision-queue.html">Approvals</a></span>
+        <span data-show="approve approve-modal approve-blocked" data-roles="ap chief"><a href="10-invoice-worklist.html">Invoices</a></span>
+        <span data-show="paid"><a href="50-signing-queue.html" data-roles="chief approver">Signing queue</a></span>
+        <svg class="i i-sm"><use href="#i-chevronr"></use></svg>
+        <span aria-current="page" data-hide="hold hold-decision approve approve-modal approve-blocked foreign foreign-reject ai-failure in-batch paid checking">C26TAA-0000123</span>
+        <span aria-current="page" data-show="hold hold-decision">C26TAA-0000188</span>
+        <span aria-current="page" data-show="approve approve-modal approve-blocked">C26TAA-0000151</span>
+        <span aria-current="page" data-show="foreign foreign-reject">TM-2026-0415</span>
+        <span aria-current="page" data-show="ai-failure">C26TAA-0000140</span>
+        <span aria-current="page" data-show="in-batch">C26TAA-0000098</span>
+        <span aria-current="page" data-show="paid">C26TAA-0000081</span>
+        <span aria-current="page" data-show="checking">C26TAA-0000165</span>
+      </nav>
+
+      <div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The invoice could not be loaded.</b><span>Try again. If it keeps failing, contact your administrator.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+      <div class="notice n-warn" role="alert" data-show="conflict"><svg class="i"><use href="#i-refresh"></use></svg><div class="grow"><b>This item was changed by someone else. Reload to see the change.</b><span>Nothing was saved. Your reason and your selection are kept.</span></div><button class="btn btn-sm" type="button">Reload</button><span class="callout" aria-hidden="true">13</span></div>
+      <div class="notice n-err" role="alert" data-show="audit-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>Action not completed. The audit log could not be written. Try again.</b><span>Nothing was saved.</span></div><button class="btn btn-sm" type="button">Retry</button><span class="callout" aria-hidden="true">14</span></div>
+
+      <!-- ============ LOADING ============ -->
+      <div class="card" data-show="loading"><div class="card-b stack"><span class="sk" style="width:40%;height:22px"></span><span class="sk" style="width:70%"></span><span class="sk" style="width:100%"></span><span class="sk" style="width:90%"></span><span class="sk" style="width:95%"></span></div><p class="xs muted card-b">Loading the invoice and its evidence…</p></div>
+
+      <!-- ============ CASE A: exception In Review (AP Accountant works on it) ============ -->
+      <div class="detail-grid" data-show="default confirm-line correct draft draft-loading draft-ai-error draft-not-sent reject reject-error conflict audit-error">
+        <section class="card d-head">
+          <div class="card-b stack">
+            <div class="spread">
+              <div class="row"><h1 style="font-size:24px;font-weight:600">C26TAA-0000123</h1>
+                <span class="chip c-exc">Exception</span><span class="chip c-work">In Review</span>
+                <span class="sync"><span class="mono muted">version 7</span></span></div>
+              <div class="money strong" style="font-size:20px">VND 8,098,750</div>
+            </div>
+            <dl class="dl dl-4">
+              <dt>Supplier</dt><dd>Brightfield Paper Ltd <span class="muted mono">0301122334</span></dd>
+              <dt>Entity</dt><dd>Calderwood Foods Co. <span class="muted mono">0100000011</span></dd>
+              <dt>Invoice date</dt><dd>20/10/2026</dd>
+              <dt>Due date</dt><dd><span class="due">04/11/2026</span><span class="due-soon"><svg class="i i-sm"><use href="#i-clock"></use></svg>Due soon</span></dd>
+              <dt>Flow</dt><dd>Goods with order <span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span><span class="callout" aria-hidden="true">2</span></dd>
+              <dt>Trust level</dt><dd>High: seller signature and tax-authority code</dd>
+            </dl>
+            <div>
+              <div class="lbl" style="margin-bottom:4px">Exception reasons<span class="callout" aria-hidden="true">1</span></div>
+              <div><span class="reason">Gate closed</span><span class="reason">Line not matched</span><span class="reason">Quantity above received</span><span class="reason">Price +2.5%, tolerance 2%</span></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="d-ev">
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Source document</h2><span class="row"><span class="au au-data">Document data</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="card-b">
+              <dl class="dl">
+                <dt>Seller</dt><dd>Brightfield Paper Ltd, tax code 0301122334</dd>
+                <dt>Series and number</dt><dd class="mono">C26TAA / 0000123</dd>
+                <dt>Buyer tax code</dt><dd class="mono">0100000011 (matches Calderwood Foods Co.)</dd>
+                <dt>Order reference</dt><dd class="mono">PO-CF-1007</dd>
+                <dt>Signature check</dt><dd><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span> Seller signature valid, checked 31/10/2026 08:52</dd>
+                <dt>Stored hash</dt><dd class="mono">9f2c4a71…e41a</dd>
+              </dl>
+              <p class="evidence-note" style="margin-top:8px">Text read from the XML is data. Text that looks like an instruction changes nothing.</p>
+            </div>
+          </details>
+
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Order and receipt from the Entity ERP<span class="callout" aria-hidden="true">3</span></h2><span class="row"><span class="au au-data">ERP data</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="card-b flush">
+              <div class="tbl-wrap"><table class="tbl lines">
+                <thead><tr><th>Document</th><th>Item</th><th class="money">Quantity</th><th class="money">Price per carton</th><th>Last ERP sync</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">PO-CF-1007</td><td>A4 copy paper, grade 1 (carton of 5 reams)</td><td class="money">20 cartons</td><td class="money">VND 300,000</td><td><span class="sync"><svg class="i i-sm"><use href="#i-refresh"></use></svg>31/10/2026 09:15</span></td></tr>
+                  <tr><td class="mono">PO-CF-1007</td><td>Stapler staples No.10, box</td><td class="money">40 boxes</td><td class="money">VND 12,000</td><td><span class="sync"><svg class="i i-sm"><use href="#i-refresh"></use></svg>31/10/2026 09:15</span></td></tr>
+                  <tr><td class="mono">PO-CF-1007</td><td>Folder A4 blue, 5 cm</td><td class="money">50 pieces</td><td class="money">VND 8,500</td><td><span class="sync"><svg class="i i-sm"><use href="#i-refresh"></use></svg>31/10/2026 09:15</span></td></tr>
+                  <tr><td class="mono">GRN-CF-2031</td><td>Receipt: A4 copy paper 100 reams (20 cartons), staples 40 boxes, folders 50 pieces</td><td class="money">received</td><td class="money">—</td><td><span class="sync"><svg class="i i-sm"><use href="#i-refresh"></use></svg>31/10/2026 09:15</span></td></tr>
+                </tbody></table></div>
+            </div>
+          </details>
+
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Flow and identification<span class="callout" aria-hidden="true">4</span></h2><span class="row"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-ai">
+              <dl class="dl">
+                <dt>Flow</dt><dd>Goods with order, confidence <b>0.97</b></dd>
+                <dt>AI reason</dt><dd>The XML refers to order PO-CF-1007 and lists goods that were delivered.</dd>
+                <dt>Entity</dt><dd>Calderwood Foods Co., from the buyer tax code 0100000011</dd>
+                <dt>Order and receipt</dt><dd>PO-CF-1007 and GRN-CF-2031, from the order number in the XML</dd>
+                <dt>Versions</dt><dd class="mono">model 2026.10 · prompt v14</dd>
+              </dl>
+            </div>
+          </details>
+
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Line matches<span class="callout" aria-hidden="true">5</span></h2><span class="row"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="card-b flush"><div class="tbl-wrap"><table class="tbl lines">
+              <thead><tr><th>#</th><th>Invoice text</th><th>Matched to</th><th>Method</th><th>Probability (threshold 0.90)</th><th class="money">Line total</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>Brand-X 70gsm copy paper, carton of 5 reams</td><td>A4 copy paper, grade 1</td><td>Mapping table</td><td><span class="prob"><span class="val">1.00</span><span class="meter m-ai"><i style="width:100%"></i><u style="left:90%"></u></span><span class="bandtxt t-ok">Matched</span></span></td><td class="money">VND 6,457,500</td></tr>
+                <tr><td>2</td><td>Staples No.10 (box of 1,000)</td><td>Stapler staples No.10, box</td><td>Embedding with signal fusion</td><td><span class="prob"><span class="val">0.93</span><span class="meter m-ai"><i style="width:93%"></i><u style="left:90%"></u></span><span class="bandtxt t-ok">Matched</span></span></td><td class="money">VND 480,000</td></tr>
+                <tr class="attn"><td>3</td><td>Folder file blue 5cm</td><td>Folder A4 blue, 5 cm (proposed)</td><td>LLM, after fusion gave 0.62</td><td><span class="prob"><span class="val">0.74</span><span class="meter m-low"><i style="width:74%"></i><u style="left:90%"></u></span><span class="bandtxt t-warn">Doubtful</span></span><span class="sub">The unit of the invoice line is unknown (piece or pack).</span></td><td class="money">VND 425,000</td></tr>
+              </tbody></table></div></div>
+          </details>
+
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Anomaly numbers<span class="callout" aria-hidden="true">6</span></h2><span class="row"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-ai"><dl class="dl">
+              <dt>Price against history</dt><dd>A4 copy paper VND 61,500 per ream against a 6-month median of VND 60,000 from 6 purchases: +2.5%. Flag limit 20%. No flag.</dd>
+              <dt>Near-duplicate</dt><dd>None. No invoice of this supplier with the same total within 3 days.</dd>
+              <dt>Supplier</dt><dd>Paid before: 14 invoices. Bank account unchanged.</dd>
+              <dt>Period</dt><dd>Not a recurring invoice.</dd>
+            </dl></div>
+          </details>
+
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Six conditions for the batch<span class="callout" aria-hidden="true">7</span></h2><span class="row"><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-rule" style="padding:0">
+              <div class="chk"><span class="no">1</span><span>Key fields confirmed by an independent source</span><span class="val">Seller, amount, quantity agree with PO-CF-1007 and GRN-CF-2031</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk fail"><span class="no">2</span><span>Every line matched at or above 0.90</span><span class="val">Line 3 probability 0.74, below 0.90</span><span class="res res-fail"><svg class="i i-sm"><use href="#i-x"></use></svg>Fail</span></div>
+              <div class="chk fail"><span class="no">3</span><span>Price and quantity inside tolerance; quantity not above received</span><span class="val">Price +2.5%, tolerance 2%. Quantity 105 reams invoiced, 100 received.</span><span class="res res-fail"><svg class="i i-sm"><use href="#i-x"></use></svg>Fail</span></div>
+              <div class="chk"><span class="no">4</span><span>Total below the batch threshold</span><span class="val">VND 8,098,750 is below VND 200,000,000</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk fail"><span class="no">5</span><span>Gate open and supplier not on the tax-risk list</span><span class="val">Gate closed for Brightfield Paper Ltd and Calderwood Foods Co. Not on the tax-risk list.</span><span class="res res-fail"><svg class="i i-sm"><use href="#i-x"></use></svg>Fail</span></div>
+              <div class="chk"><span class="no">6</span><span>No anomaly</span><span class="val">No anomaly found (price, duplicate, new supplier, period)</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+            </div>
+          </details>
+        </div>
+
+        <aside class="d-act" aria-label="Actions">
+          <div data-roles="ap">
+            <section class="card">
+              <div class="card-h"><h2>Resolve this exception<span class="callout" aria-hidden="true">9</span></h2><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>You decide</span></div>
+              <div class="act-sec">
+                <h3>Line 3: doubtful match</h3>
+                <p>The AI proposes "Folder A4 blue, 5 cm". Your confirmation is saved to the mapping table of Calderwood Foods Co.</p>
+                <div class="actions"><button class="btn btn-sm btn-primary" type="button">Confirm match</button><button class="btn btn-sm" type="button">Choose another item</button></div>
+                <div class="notice n-info" data-show="confirm-line" style="margin-top:6px"><svg class="i"><use href="#i-check"></use></svg><div class="grow"><b>Confirm "Folder file blue 5cm" as "Folder A4 blue, 5 cm"?</b><span>Saved with your name and the time. The Rule Engine then checks the invoice again.</span><div class="actions" style="margin-top:6px"><button class="btn btn-sm btn-primary" type="button">Save confirmation</button><button class="btn btn-sm btn-quiet" type="button">Cancel</button></div></div></div>
+              </div>
+              <div class="act-sec">
+                <h3>Entity or flow is wrong</h3>
+                <div class="actions"><button class="btn btn-sm" type="button">Correct entity or flow</button></div>
+                <div class="stack" data-show="correct" style="margin-top:6px">
+                  <div class="field"><label for="c-flow">Flow</label><select class="select" id="c-flow"><option>Goods with order</option><option>Services with order</option><option>Recurring</option><option>Employee expense</option><option>Other</option></select></div>
+                  <div class="field"><label for="c-ent">Entity</label><select class="select" id="c-ent"><option>Calderwood Foods Co.</option><option>Calderwood Packaging Co.</option><option>Calderwood Retail Co.</option></select></div>
+                  <div class="actions"><button class="btn btn-sm btn-primary" type="button">Save correction</button><button class="btn btn-sm btn-quiet" type="button">Cancel</button></div>
+                </div>
+              </div>
+              <div class="act-sec">
+                <h3>Quantity and price differ from the order</h3>
+                <p>Ask Brightfield Paper Ltd for a corrected invoice. The AI drafts the text. Nothing is sent until you press Send.</p>
+                <div class="actions"><button class="btn btn-sm" type="button">Request correction<span class="callout" aria-hidden="true">10</span></button><button class="btn btn-sm" type="button">Data-fix notice</button></div>
+              </div>
+              <div class="act-sec">
+                <h3>Gate closed: needs a decision</h3>
+                <p>An individual approval at the Payment Approver level.</p>
+                <div class="actions"><button class="btn btn-sm" type="button">Send for a decision<span class="callout" aria-hidden="true">12</span></button></div>
+              </div>
+              <div class="act-sec">
+                <h3>Invoice cannot be used</h3>
+                <div class="actions"><button class="btn btn-sm btn-danger" type="button">Reject invoice<span class="callout" aria-hidden="true">11</span></button></div>
+              </div>
+            </section>
+          </div>
+          <div class="notice n-info" data-roles="chief approver"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b>This invoice does not wait for your decision.</b><span>The evidence is read-only. The AP Accountant resolves this exception.</span></div></div>
+        </aside>
+
+        <section class="card d-hist">
+          <div class="card-h"><h2>Decision history<span class="callout" aria-hidden="true">8</span></h2><span class="xs muted">Who or what decided, newest last</span></div>
+          <div class="timeline">
+            <div class="tl"><time>31/10/2026 08:51</time><span><span class="au au-data">System</span></span><span>Received. XML stored with hash 9f2c4a71…e41a.</span></div>
+            <div class="tl"><time>31/10/2026 08:52</time><span><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></span><span>Seller signature valid. Trust level High.</span></div>
+            <div class="tl"><time>31/10/2026 08:53</time><span><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span></span><span>Flow Goods with order (0.97). Entity and order identified. Lines 1 and 2 matched, line 3 doubtful (0.74).</span></div>
+            <div class="tl"><time>31/10/2026 08:54</time><span><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></span><span>Decided Exception: conditions 2, 3, and 5 failed. Nothing was admitted.</span></div>
+            <div class="tl"><time>31/10/2026 09:41</time><span><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>Alice</span></span><span>Opened the exception. State In Review.</span></div>
+          </div>
+          <div class="card-b" style="border-top:1px solid var(--line)"><dl class="dl"><dt>Payment request</dt><dd class="muted">None yet. Signature records appear here once the invoice is in a request.</dd></dl></div>
+        </section>
+      </div>
+
+      <!-- ============ CASE B: tax-risk hold (Chief Accountant decides) ============ -->
+      <div class="detail-grid" data-show="hold hold-decision">
+        <section class="card d-head"><div class="card-b stack">
+          <div class="spread"><div class="row"><h1 style="font-size:24px;font-weight:600">C26TAA-0000188</h1><span class="chip c-exc">Exception</span><span class="chip c-wait">Waiting for Decision</span><span class="tagx">Chief Accountant</span></div><div class="money strong" style="font-size:20px">VND 24,200,000</div></div>
+          <dl class="dl dl-4">
+            <dt>Supplier</dt><dd>Eastbay Trading <span class="muted mono">0309988776</span></dd>
+            <dt>Entity</dt><dd>Calderwood Foods Co. <span class="muted mono">0100000011</span></dd>
+            <dt>Invoice date</dt><dd>29/10/2026</dd>
+            <dt>Due date</dt><dd><span class="due">14/11/2026</span></dd>
+            <dt>Flow</dt><dd>Goods with order <span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span></dd>
+            <dt>Trust level</dt><dd>High</dd>
+          </dl>
+          <div><div class="lbl" style="margin-bottom:4px">Exception reasons</div><span class="reason">Tax-risk hold</span></div>
+        </div></section>
+        <div class="d-ev">
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Tax-risk list entry</h2><span class="row"><span class="au au-data">ERP feed (simulated)</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="card-b"><dl class="dl">
+              <dt>Supplier</dt><dd>Eastbay Trading</dd>
+              <dt>Source</dt><dd>Simulated tax-risk feed (demo data)</dd>
+              <dt>Listed on</dt><dd>28/10/2026 00:00, loaded at the sync of 31/10/2026 09:15</dd>
+              <dt>Effect</dt><dd>The VAT deduction on this invoice may be at risk. The system holds the invoice and does not reject it.</dd>
+            </dl></div>
+          </details>
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Line matches</h2><span class="row"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="card-b flush"><div class="tbl-wrap"><table class="tbl lines">
+              <thead><tr><th>#</th><th>Invoice text</th><th>Matched to</th><th>Method</th><th>Probability</th><th class="money">Line total</th></tr></thead>
+              <tbody><tr><td>1</td><td>Corrugated shipping box, 5-ply</td><td>Shipping box, 5-ply, 40x30x30</td><td>Mapping table</td><td><span class="prob"><span class="val">1.00</span><span class="meter m-ai"><i style="width:100%"></i><u style="left:90%"></u></span></span></td><td class="money">VND 22,000,000</td></tr></tbody></table></div></div>
+          </details>
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Six conditions for the batch</h2><span class="row"><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-rule" style="padding:0">
+              <div class="chk"><span class="no">1</span><span>Key fields confirmed</span><span class="val">Agree with PO-CF-1012 and GRN-CF-2040</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">2</span><span>Every line matched at or above 0.90</span><span class="val">Line 1 probability 1.00</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">3</span><span>Price and quantity inside tolerance</span><span class="val">Price +0.0%. Quantity 2,000 invoiced, 2,000 received.</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">4</span><span>Total below the batch threshold</span><span class="val">VND 24,200,000 is below VND 200,000,000</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk fail"><span class="no">5</span><span>Gate open and supplier not on the tax-risk list</span><span class="val">Eastbay Trading is on the tax-risk list. Not released by the Chief Accountant.</span><span class="res res-fail"><svg class="i i-sm"><use href="#i-x"></use></svg>Fail</span></div>
+              <div class="chk"><span class="no">6</span><span>No anomaly</span><span class="val">No anomaly found</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+            </div>
+          </details>
+        </div>
+        <aside class="d-act" aria-label="Actions">
+          <section class="card" data-roles="chief">
+            <div class="card-h"><h2>Tax-risk hold<span class="callout" aria-hidden="true">9</span></h2><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>You decide</span></div>
+            <div class="act-sec"><p>Release lets the Rule Engine check the invoice again. Reject closes it. Both need a reason, and the decision goes to the audit log.</p>
+              <div class="actions"><button class="btn btn-primary" type="button">Decide on the hold<span class="callout" aria-hidden="true">10</span></button></div></div>
+          </section>
+          <div class="notice n-info" data-roles="ap"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b>Waiting for the Chief Accountant.</b><span>A tax-risk hold is decided by the Chief Accountant only.</span></div></div>
+          <div class="notice n-info" data-roles="approver"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b>This invoice does not wait for your decision.</b><span>The evidence is read-only.</span></div></div>
+        </aside>
+        <section class="card d-hist"><div class="card-h"><h2>Decision history</h2></div><div class="timeline">
+          <div class="tl"><time>31/10/2026 08:58</time><span><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span></span><span>Flow Goods with order (0.96). All lines matched.</span></div>
+          <div class="tl"><time>31/10/2026 08:59</time><span><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></span><span>Held as Exception, reason Tax-risk hold. Not rejected.</span></div>
+          <div class="tl"><time>31/10/2026 09:44</time><span><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>Alice</span></span><span>Sent for a decision to the Chief Accountant.</span></div>
+        </div></section>
+      </div>
+
+      <!-- ============ CASE C: individual approval (Payment Approver decides) ============ -->
+      <div class="detail-grid" data-show="approve approve-modal approve-blocked">
+        <section class="card d-head"><div class="card-b stack">
+          <div class="spread"><div class="row"><h1 style="font-size:24px;font-weight:600">C26TAA-0000151</h1><span class="chip c-exc">Exception</span><span class="chip c-wait">Waiting for Decision</span><span class="tagx">Payment Approver</span></div><div class="money strong" style="font-size:20px">VND 63,800,000</div></div>
+          <dl class="dl dl-4">
+            <dt>Supplier</dt><dd>Brightfield Paper Ltd <span class="muted mono">0301122334</span></dd>
+            <dt>Entity</dt><dd>Calderwood Foods Co. <span class="muted mono">0100000011</span></dd>
+            <dt>Invoice date</dt><dd>27/10/2026</dd>
+            <dt>Due date</dt><dd><span class="due">30/11/2026</span></dd>
+            <dt>Flow</dt><dd>Goods with order <span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span></dd>
+            <dt>Approval level</dt><dd><b>CFO</b>: the amount is VND 50,000,000 or more</dd>
+          </dl>
+          <div><div class="lbl" style="margin-bottom:4px">Exception reasons</div><span class="reason">Gate closed</span><span class="reason">Unusual price +20.8%</span></div>
+        </div></section>
+        <div class="d-ev">
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Anomaly numbers</h2><span class="row"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-ai"><dl class="dl">
+              <dt>Price against history</dt><dd>A4 copy paper VND 72,500 per ream against a 6-month median of VND 60,000 from 6 purchases: <b>+20.8%</b>. Flag limit 20%.</dd>
+              <dt>Order and receipt</dt><dd>PO-CF-1015 price VND 72,500 and quantity 800 reams. GRN-CF-2044 received 800 reams. They match the invoice.</dd>
+              <dt>Supplier</dt><dd>Paid before: 14 invoices. Bank account unchanged.</dd>
+            </dl></div>
+          </details>
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Line matches</h2><span class="row"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="card-b flush"><div class="tbl-wrap"><table class="tbl lines">
+              <thead><tr><th>#</th><th>Invoice text</th><th>Matched to</th><th>Method</th><th>Probability</th><th class="money">Line total</th></tr></thead>
+              <tbody><tr><td>1</td><td>A4 copy paper, grade 1 (ream), 800 reams at VND 72,500</td><td>A4 copy paper, grade 1</td><td>Mapping table</td><td><span class="prob"><span class="val">1.00</span><span class="meter m-ai"><i style="width:100%"></i><u style="left:90%"></u></span></span></td><td class="money">VND 58,000,000</td></tr></tbody>
+              <tfoot><tr><td colspan="5">VAT 10%: VND 5,800,000. Total</td><td class="money">VND 63,800,000</td></tr></tfoot></table></div></div>
+          </details>
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Six conditions for the batch</h2><span class="row"><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-rule" style="padding:0">
+              <div class="chk"><span class="no">1</span><span>Key fields confirmed</span><span class="val">Agree with PO-CF-1015 and GRN-CF-2044</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">2</span><span>Every line matched at or above 0.90</span><span class="val">Line 1 probability 1.00</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">3</span><span>Price and quantity inside tolerance</span><span class="val">Price +0.0% against the order. Quantity 800 of 800 received.</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">4</span><span>Total below the batch threshold</span><span class="val">VND 63,800,000 is below VND 200,000,000</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk fail"><span class="no">5</span><span>Gate open and supplier not on the tax-risk list</span><span class="val">Gate closed for Brightfield Paper Ltd and Calderwood Foods Co.</span><span class="res res-fail"><svg class="i i-sm"><use href="#i-x"></use></svg>Fail</span></div>
+              <div class="chk fail"><span class="no">6</span><span>No anomaly</span><span class="val">Unusual price +20.8%, limit 20%</span><span class="res res-fail"><svg class="i i-sm"><use href="#i-x"></use></svg>Fail</span></div>
+            </div>
+          </details>
+        </div>
+        <aside class="d-act" aria-label="Actions">
+          <section class="card" data-roles="approver">
+            <div class="card-h"><h2>Individual approval<span class="callout" aria-hidden="true">9</span></h2><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>You decide</span></div>
+            <div class="act-sec"><div class="kv"><span>Amount</span><span class="strong">VND 63,800,000</span></div><div class="kv"><span>Level needed</span><span class="strong">CFO</span></div>
+              <p>Approving makes a single-invoice payment request. It still needs the co-signature of the Chief Accountant.</p>
+              <div class="actions"><button class="btn btn-primary" type="button">Review and decide<span class="callout" aria-hidden="true">10</span></button></div></div>
+          </section>
+          <div class="notice n-info" data-roles="ap chief"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b data-roles="ap">Waiting for the Payment Approver (CFO level).</b><b data-roles="chief">This invoice does not wait for your decision.</b><span>The evidence is read-only.</span></div></div>
+        </aside>
+        <section class="card d-hist"><div class="card-h"><h2>Decision history</h2></div><div class="timeline">
+          <div class="tl"><time>31/10/2026 09:02</time><span><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></span><span>Decided Exception: conditions 5 and 6 failed.</span></div>
+          <div class="tl"><time>31/10/2026 09:47</time><span><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>Alice</span></span><span>Checked the evidence and sent it for a decision at the CFO level.</span></div>
+        </div></section>
+      </div>
+
+      <!-- ============ CASE D: Unsupported: foreign invoice ============ -->
+      <div class="detail-grid" data-show="foreign foreign-reject">
+        <section class="card d-head"><div class="card-b stack">
+          <div class="spread"><div class="row"><h1 style="font-size:24px;font-weight:600">TM-2026-0415</h1><span class="chip c-exc">Exception</span><span class="chip c-open">Open</span></div><div class="money strong" style="font-size:20px">VND 18,500,000</div></div>
+          <dl class="dl dl-4">
+            <dt>Supplier</dt><dd>Tempest Marketing GmbH <span class="muted">no Vietnamese tax code</span></dd>
+            <dt>Entity</dt><dd>Calderwood Foods Co.</dd>
+            <dt>Invoice date</dt><dd>18/10/2026</dd>
+            <dt>Due date</dt><dd><span class="due">20/11/2026</span></dd>
+            <dt>Flow</dt><dd>Unsupported: foreign invoice <span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span></dd>
+            <dt>Confidence</dt><dd>0.95</dd>
+          </dl>
+          <div><div class="lbl" style="margin-bottom:4px">Exception reasons</div><span class="reason">Unsupported: foreign invoice</span></div>
+        </div></section>
+        <div class="d-ev">
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Flow and identification</h2><span class="row"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-ai"><dl class="dl"><dt>Flow</dt><dd>Unsupported: foreign invoice, confidence <b>0.95</b></dd><dt>AI reason</dt><dd>The seller is a company in Germany and has no Vietnamese tax code.</dd><dt>Versions</dt><dd class="mono">model 2026.10 · prompt v14</dd></dl></div>
+          </details>
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Six conditions for the batch</h2><span class="row"><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-rule"><p class="small">The Rule Engine does not admit an invoice of this flow to a batch. It takes the exception path and conditions are not evaluated.</p></div>
+          </details>
+        </div>
+        <aside class="d-act" aria-label="Actions">
+          <section class="card" data-roles="ap">
+            <div class="card-h"><h2>Resolve this exception<span class="callout" aria-hidden="true">9</span></h2><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>You decide</span></div>
+            <div class="act-sec"><div class="notice n-warn"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>This invoice cannot be processed in the MVP.</b><span>The only way to resolve it is to reject it with a reason. It is then handled outside MatchPay.</span></div></div>
+              <div class="actions"><button class="btn btn-danger" type="button">Reject invoice<span class="callout" aria-hidden="true">10</span></button></div>
+              <span class="hint">Individual approval and sending for a decision are not offered for this reason.</span></div>
+          </section>
+          <div class="notice n-info" data-roles="chief approver"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b>This invoice does not wait for your decision.</b><span>The evidence is read-only.</span></div></div>
+        </aside>
+        <section class="card d-hist"><div class="card-h"><h2>Decision history</h2></div><div class="timeline">
+          <div class="tl"><time>30/10/2026 16:20</time><span><span class="au au-data">System</span></span><span>Received. XML stored with its hash.</span></div>
+          <div class="tl"><time>30/10/2026 16:21</time><span><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span></span><span>Flow Unsupported: foreign invoice (0.95).</span></div>
+          <div class="tl"><time>30/10/2026 16:21</time><span><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></span><span>Decided Exception, state Open. Never admitted to a batch.</span></div>
+        </div></section>
+      </div>
+
+      <!-- ============ CASE E: AI failure at intake ============ -->
+      <div class="detail-grid" data-show="ai-failure">
+        <section class="card d-head"><div class="card-b stack">
+          <div class="spread"><div class="row"><h1 style="font-size:24px;font-weight:600">C26TAA-0000140</h1><span class="chip c-exc">Exception</span><span class="chip c-open">Open</span></div><div class="money strong" style="font-size:20px">VND 14,300,000</div></div>
+          <dl class="dl dl-4">
+            <dt>Supplier</dt><dd>Harbor Cartons Ltd <span class="muted mono">0305566778</span></dd>
+            <dt>Entity</dt><dd>Calderwood Foods Co. <span class="muted mono">0100000011</span></dd>
+            <dt>Invoice date</dt><dd>29/10/2026</dd>
+            <dt>Due date</dt><dd><span class="due">10/11/2026</span></dd>
+          </dl>
+          <div><div class="lbl" style="margin-bottom:4px">Exception reasons</div><span class="reason">AI unavailable</span></div>
+        </div></section>
+        <div class="d-ev">
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Flow, identification, and line matches</h2><span class="row"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-ai"><div class="notice n-err"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The AI did not answer within 20 seconds.</b><span>There is no automatic retry. Re-run the check from the invoice worklist, or reject the invoice with a reason.</span></div></div><a class="btn btn-sm" href="10-invoice-worklist.html" style="margin-top:8px">Go to the invoice worklist<span class="callout" aria-hidden="true">10</span></a></div>
+          </details>
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Six conditions for the batch</h2><span class="row"><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-rule" style="padding:0">
+              <div class="chk"><span class="no">1</span><span>Key fields confirmed</span><span class="val">Evidence missing</span><span class="res res-skip">Not evaluated</span></div>
+              <div class="chk"><span class="no">2</span><span>Every line matched</span><span class="val">Evidence missing</span><span class="res res-skip">Not evaluated</span></div>
+              <div class="chk"><span class="no">3</span><span>Price and quantity inside tolerance</span><span class="val">Evidence missing</span><span class="res res-skip">Not evaluated</span></div>
+              <div class="chk"><span class="no">4</span><span>Total below the batch threshold</span><span class="val">VND 14,300,000 is below VND 200,000,000</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">5</span><span>Gate open and not on the tax-risk list</span><span class="val">Evidence missing</span><span class="res res-skip">Not evaluated</span></div>
+              <div class="chk"><span class="no">6</span><span>No anomaly</span><span class="val">Anomaly check did not run</span><span class="res res-skip">Not evaluated</span></div>
+            </div>
+          </details>
+        </div>
+        <aside class="d-act" aria-label="Actions">
+          <section class="card" data-roles="ap">
+            <div class="card-h"><h2>Resolve this exception<span class="callout" aria-hidden="true">9</span></h2><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>You decide</span></div>
+            <div class="act-sec"><p>An invoice whose evidence is missing is never admitted. After the check is re-run the Rule Engine decides again.</p><div class="actions"><button class="btn btn-sm btn-danger" type="button">Reject invoice</button></div></div>
+          </section>
+          <div class="notice n-info" data-roles="chief approver"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b>This invoice does not wait for your decision.</b><span>The evidence is read-only.</span></div></div>
+        </aside>
+        <section class="card d-hist"><div class="card-h"><h2>Decision history</h2></div><div class="timeline">
+          <div class="tl"><time>31/10/2026 09:20</time><span><span class="au au-data">System</span></span><span>Received. Signature check valid.</span></div>
+          <div class="tl"><time>31/10/2026 09:21</time><span><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></span><span>AI step failed. Decided Exception, reason AI unavailable. Intake was not blocked.</span></div>
+        </div></section>
+      </div>
+
+      <!-- ============ CASE F: In Batch (AP Accountant may withdraw) ============ -->
+      <div class="detail-grid" data-show="in-batch">
+        <section class="card d-head"><div class="card-b stack">
+          <div class="spread"><div class="row"><h1 style="font-size:24px;font-weight:600">C26TAA-0000098</h1><span class="chip c-ok">In Batch</span><span class="tagx">October 2026 batch</span></div><div class="money strong" style="font-size:20px">VND 26,400,000</div></div>
+          <dl class="dl dl-4">
+            <dt>Supplier</dt><dd>Harbor Cartons Ltd <span class="muted mono">0305566778</span></dd>
+            <dt>Entity</dt><dd>Calderwood Foods Co. <span class="muted mono">0100000011</span></dd>
+            <dt>Invoice date</dt><dd>14/10/2026</dd>
+            <dt>Due date</dt><dd><span class="due">12/11/2026</span></dd>
+            <dt>Flow</dt><dd>Goods with order <span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span></dd>
+            <dt>Trust level</dt><dd>High</dd>
+          </dl>
+        </div></section>
+        <div class="d-ev">
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Six conditions for the batch</h2><span class="row"><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-rule" style="padding:0">
+              <div class="chk"><span class="no">1</span><span>Key fields confirmed</span><span class="val">Agree with PO-CF-0998 and GRN-CF-2012</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">2</span><span>Every line matched at or above 0.90</span><span class="val">Lowest probability 0.95</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">3</span><span>Price and quantity inside tolerance</span><span class="val">Price +0.8%, tolerance 2%. Quantity 4,000 of 4,000 received.</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">4</span><span>Total below the batch threshold</span><span class="val">VND 26,400,000 is below VND 200,000,000</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">5</span><span>Gate open and not on the tax-risk list</span><span class="val">Gate open since 12/10/2026. Not on the tax-risk list.</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+              <div class="chk"><span class="no">6</span><span>No anomaly</span><span class="val">No anomaly found</span><span class="res res-pass"><svg class="i i-sm"><use href="#i-check"></use></svg>Pass</span></div>
+            </div>
+          </details>
+        </div>
+        <aside class="d-act" aria-label="Actions">
+          <section class="card" data-roles="ap">
+            <div class="card-h"><h2>Batch<span class="callout" aria-hidden="true">9</span></h2><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>You decide</span></div>
+            <div class="act-sec"><p>You can withdraw the invoice until its payment request is fully signed. It then returns to exceptions.</p>
+              <div class="field"><label for="w-reason">Reason (required)</label><textarea class="textarea" id="w-reason" style="min-height:60px"></textarea></div>
+              <div class="actions"><button class="btn btn-sm btn-danger" type="button">Withdraw from batch<span class="callout" aria-hidden="true">10</span></button></div></div>
+          </section>
+          <div class="notice n-info" data-roles="chief approver"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b>This invoice is admitted. Nothing waits for you here.</b><span>The evidence is read-only.</span></div></div>
+        </aside>
+        <section class="card d-hist"><div class="card-h"><h2>Decision history</h2></div><div class="timeline">
+          <div class="tl"><time>20/10/2026 10:02</time><span><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></span><span>All six conditions hold. Admitted to the October 2026 batch. No person acted on it.</span></div>
+        </div></section>
+      </div>
+
+      <!-- ============ CASE G: Paid, with payment request and signature records ============ -->
+      <div class="detail-grid" data-show="paid">
+        <section class="card d-head"><div class="card-b stack">
+          <div class="spread"><div class="row"><h1 style="font-size:24px;font-weight:600">C26TAA-0000081</h1><span class="chip c-ok">Paid</span></div><div class="money strong" style="font-size:20px">VND 5,200,000</div></div>
+          <dl class="dl dl-4">
+            <dt>Supplier</dt><dd>Brightfield Paper Ltd</dd><dt>Entity</dt><dd>Calderwood Foods Co.</dd>
+            <dt>Due date</dt><dd><span class="due">28/10/2026</span></dd><dt>Payment reference</dt><dd><b class="mono">PAY-CF-2026-0042</b></dd>
+          </dl>
+        </div></section>
+        <div class="d-ev">
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Payment request PR-0038</h2><span class="row"><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>Signed by people</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="card-b stack">
+              <dl class="dl"><dt>Request</dt><dd>PR-0038, Brightfield Paper Ltd, VND 9,900,000 (2 invoices) <span class="chip c-ok">Paid</span></dd><dt>Paid status</dt><dd>Returned by the Entity ERP on 29/10/2026 14:20. Reference <span class="mono">PAY-CF-2026-0042</span>.</dd><dt>Required level</dt><dd>Department Head (under VND 50,000,000)</dd></dl>
+              <div class="sig"><span class="seal">C</span><div><b>Carol, Chief Accountant</b> signed first<div class="meta">27/10/2026 15:02 · request version 3 · content hash 5d1e90ab…77c2</div></div></div>
+              <div class="sig"><span class="seal">D</span><div><b>Dan, Department Head</b> signed second<div class="meta">27/10/2026 16:30 · request version 3 · content hash 5d1e90ab…77c2</div></div></div>
+            </div>
+          </details>
+        </div>
+        <aside class="d-act"><div class="notice n-ok"><svg class="i"><use href="#i-check"></use></svg><div class="grow"><b>Paid.</b><span>The invoice cannot be withdrawn or changed.</span></div></div></aside>
+        <section class="card d-hist"><div class="card-h"><h2>Decision history</h2></div><div class="timeline">
+          <div class="tl"><time>20/10/2026 10:15</time><span><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></span><span>All six conditions hold. Admitted to the September 2026 batch.</span></div>
+          <div class="tl"><time>27/10/2026 15:02</time><span><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>Carol</span></span><span>Signed payment request PR-0038.</span></div>
+          <div class="tl"><time>27/10/2026 16:30</time><span><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>Dan</span></span><span>Signed payment request PR-0038. Request Signed.</span></div>
+          <div class="tl"><time>29/10/2026 14:20</time><span><span class="au au-data">Entity ERP</span></span><span>Paid status received. Reference PAY-CF-2026-0042. Invoice Paid.</span></div>
+        </div></section>
+      </div>
+
+      <!-- ============ CASE H: In Check ============ -->
+      <div class="detail-grid" data-show="checking">
+        <section class="card d-head"><div class="card-b stack">
+          <div class="spread"><div class="row"><h1 style="font-size:24px;font-weight:600">C26TAA-0000165</h1><span class="chip c-work">In Check</span></div><div class="money strong" style="font-size:20px">VND 3,080,000</div></div>
+          <dl class="dl dl-4"><dt>Supplier</dt><dd>CloudDesk Software Ltd</dd><dt>Entity</dt><dd>Calderwood Foods Co.</dd></dl>
+        </div></section>
+        <div class="d-ev">
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Flow, identification, and line matches</h2><span class="row"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span></span></summary>
+            <div class="blk blk-ai stack"><p class="small"><span class="spin"></span> Checking… The AI reads the document. This page refreshes when the result is ready, and you can keep using it.</p><span class="sk" style="width:80%"></span><span class="sk" style="width:60%"></span></div>
+          </details>
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Six conditions for the batch</h2><span class="row"><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></span></summary>
+            <div class="blk blk-rule"><p class="small muted">The Rule Engine decides after the AI evidence is stored.</p></div>
+          </details>
+        </div>
+        <aside class="d-act"><div class="notice n-info"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b>No action yet.</b><span>Actions appear when the invoice needs a person.</span></div></div></aside>
+        <section class="card d-hist"><div class="card-h"><h2>Decision history</h2></div><div class="timeline"><div class="tl"><time>31/10/2026 10:02</time><span><span class="au au-data">System</span></span><span>Received. State In Check.</span></div></div></section>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- SCR-14 Correction Request Draft -->
+  <div class="modal-back" data-show="draft draft-loading draft-ai-error draft-not-sent" role="dialog" aria-modal="true" aria-labelledby="m14">
+    <div class="modal modal-lg">
+      <div class="modal-h"><h2 id="m14">Request correction: C26TAA-0000123</h2><button class="btn btn-quiet btn-sm" type="button" aria-label="Close"><svg class="i"><use href="#i-x"></use></svg></button></div>
+      <div class="modal-b">
+        <div class="grid-2">
+          <div class="field"><label for="rt">Request type</label><select class="select" id="rt"><option>Correction request</option><option>Data-fix notice</option><option>Reissue request</option></select></div>
+          <div class="field"><label for="rc">Recipient</label><input class="input" id="rc" value="ar@brightfield-paper.example"></div>
+        </div>
+        <div class="field"><label for="rs">Subject</label><input class="input" id="rs" value="Invoice C26TAA-0000123, order PO-CF-1007: quantity differs from delivery"></div>
+        <div class="notice n-ai" data-show="draft draft-not-sent"><svg class="i"><use href="#i-ai"></use></svg><div class="grow"><span class="au au-ai" style="justify-self:start"><svg class="i"><use href="#i-ai"></use></svg>AI draft from an approved template</span><span>Edit the text freely. Nothing is sent until you press Send.</span></div></div>
+        <div class="notice n-ai" data-show="draft-loading" role="status"><span class="spin"></span><div class="grow"><b>The AI is writing the draft…</b><span>Send stays disabled until the draft or an error arrives.</span></div></div>
+        <div class="notice n-warn" data-show="draft-ai-error" role="alert"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The AI draft is unavailable.</b><span>The approved blank template is shown. Write the request yourself.</span></div></div>
+        <div class="notice n-err" data-show="draft-not-sent" role="alert"><svg class="i"><use href="#i-mail"></use></svg><div class="grow"><b>Not sent.</b><span>The email could not be delivered. The exception keeps its state.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+        <div class="field" data-hide="draft-loading"><label for="body">Message</label>
+          <textarea class="textarea" id="body" style="min-height:170px" data-hide="draft-ai-error">Dear Brightfield Paper Ltd,
+
+Invoice C26TAA-0000123 refers to order PO-CF-1007 and lists 105 reams of A4 copy paper (21 cartons). Our goods receipt GRN-CF-2031 records 100 reams (20 cartons). The unit price per carton is VND 307,500 against VND 300,000 on the order.
+
+Please send a corrected invoice, or tell us if more goods are on the way.
+
+Calderwood Foods Co., Accounts Payable</textarea>
+          <textarea class="textarea" style="min-height:170px" data-show="draft-ai-error">Dear [supplier],
+
+Invoice [number] refers to order [order]. [Describe the difference.]
+
+Please send a corrected invoice.
+
+Calderwood Foods Co., Accounts Payable</textarea>
+        </div>
+        <div class="stack" data-show="draft-loading"><span class="sk" style="width:100%;height:14px"></span><span class="sk" style="width:90%;height:14px"></span><span class="sk" style="width:95%;height:14px"></span><span class="sk" style="width:60%;height:14px"></span></div>
+      </div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-primary" type="button" data-hide="draft-loading"><svg class="i"><use href="#i-mail"></use></svg>Send</button><button class="btn btn-primary" type="button" aria-disabled="true" data-show="draft-loading">Send</button></div>
+    </div>
+  </div>
+
+  <!-- SCR-15 Reject Invoice -->
+  <div class="modal-back" data-show="reject reject-error foreign-reject" role="dialog" aria-modal="true" aria-labelledby="m15">
+    <div class="modal">
+      <div class="modal-h"><h2 id="m15">Reject invoice <span data-hide="foreign-reject">C26TAA-0000123</span><span data-show="foreign-reject">TM-2026-0415</span></h2></div>
+      <div class="modal-b">
+        <p class="small">The invoice becomes Rejected and the exception closes with the outcome Rejected. This cannot be undone.</p>
+        <p class="small" data-show="foreign-reject">This is the only way to resolve an "Unsupported: foreign invoice" exception.</p>
+        <div class="field"><label for="rj">Reason (required)</label><textarea class="textarea" id="rj" data-show="reject foreign-reject"></textarea><textarea class="textarea invalid" id="rj2" data-show="reject-error" aria-describedby="rj-err"></textarea>
+          <div class="err-msg" id="rj-err" data-show="reject-error"><svg class="i i-sm"><use href="#i-alert"></use></svg>A reason is required to reject an invoice.</div></div>
+      </div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-danger-solid" type="button">Reject invoice</button></div>
+    </div>
+  </div>
+
+  <!-- SCR-16 Tax-Risk Hold Decision -->
+  <div class="modal-back" data-show="hold-decision" role="dialog" aria-modal="true" aria-labelledby="m16">
+    <div class="modal">
+      <div class="modal-h"><h2 id="m16">Tax-risk hold: C26TAA-0000188</h2></div>
+      <div class="modal-b">
+        <dl class="dl"><dt>List entry</dt><dd>Eastbay Trading, simulated tax-risk feed, listed 28/10/2026</dd><dt>Amount</dt><dd><b>VND 24,200,000</b></dd></dl>
+        <div class="notice n-warn"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><span>The VAT deduction on this invoice may be at risk.</span></div></div>
+        <fieldset style="border:0;padding:0;margin:0" class="stack"><legend class="lbl">Decision</legend>
+          <label class="check"><input type="radio" name="hd" checked> Release: the Rule Engine checks the invoice again</label>
+          <label class="check"><input type="radio" name="hd"> Reject: the invoice is rejected</label></fieldset>
+        <div class="field"><label for="hr">Reason (required)</label><textarea class="textarea" id="hr"></textarea></div>
+        <p class="xs muted">The decision, your name, and the time go to the audit log.</p>
+      </div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-primary" type="button">Save decision</button></div>
+    </div>
+  </div>
+
+  <!-- SCR-18 Approve Exception Individually -->
+  <div class="modal-back" data-show="approve-modal approve-blocked" role="dialog" aria-modal="true" aria-labelledby="m18">
+    <div class="modal">
+      <div class="modal-h"><h2 id="m18">Approve exception individually</h2></div>
+      <div class="modal-b">
+        <dl class="dl"><dt>Invoice</dt><dd>C26TAA-0000151, Brightfield Paper Ltd</dd><dt>Amount</dt><dd><b>VND 63,800,000</b></dd><dt>Level needed</dt><dd>CFO (VND 50,000,000 or more)</dd><dt>Reasons</dt><dd><span class="reason">Gate closed</span><span class="reason">Unusual price +20.8%</span></dd></dl>
+        <p class="small">Evidence: the order and receipt match the invoice (800 reams at VND 72,500). The price is +20.8% against the 6-month median of VND 60,000.</p>
+        <div class="notice n-err" data-show="approve-blocked" role="alert"><svg class="i"><use href="#i-lock"></use></svg><div class="grow"><b>You created the order for this invoice</b><span>Another approver at this level must decide.</span></div></div>
+        <div class="field"><label for="ar">Reason (required to decline)</label><textarea class="textarea" id="ar" style="min-height:64px"></textarea></div>
+      </div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-danger" type="button">Decline</button><button class="btn btn-primary" type="button" data-hide="approve-blocked">Approve</button><button class="btn btn-primary" type="button" aria-disabled="true" data-show="approve-blocked">Approve</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

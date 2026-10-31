@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-90 Access denied — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="ap" data-nav="">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-90 Access denied</strong>
+  <ul class="wf-roles" aria-label="Role">
+    <li><a href="90-access-denied.html?role=ap">AP Accountant opens /signing</a></li>
+    <li><a href="90-access-denied.html?role=chief">Chief Accountant opens /users</a></li>
+    <li><a href="90-access-denied.html?role=entity-admin">Entity Admin opens /invoices</a></li>
+    <li><a href="90-access-denied.html?role=demo">Demo Operator opens /dashboard</a></li>
+  </ul>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="90-access-denied.html">default</a></li>
+    <li><a href="90-access-denied.html?state=other-entity">other-entity</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+      <div class="empty">
+        <span class="empty-icon"><svg class="i"><use href="#i-lock"></use></svg></span>
+        <h1 style="font-size:24px;font-weight:600">Access denied<span class="callout" aria-hidden="true">1</span></h1>
+        <p data-hide="other-entity">Your role cannot open this page. The sidebar shows only the pages you can use.</p>
+        <p data-show="other-entity">This record cannot be shown. The message is the same whether or not the record exists.<span class="callout" aria-hidden="true">2</span></p>
+        <a class="btn btn-primary" id="home-link" href="10-invoice-worklist.html?role=ap">Go to your home page<span class="callout" aria-hidden="true">3</span></a>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+<script>
+  var homes = {ap:'10-invoice-worklist.html', chief:'40-decision-queue.html', approver:'50-signing-queue.html', 'entity-admin':'73-entity-policy.html', 'group-admin':'75-group-overview.html', demo:'80-erp-simulator.html'};
+  var r = document.body.getAttribute('data-role');
+  document.getElementById('home-link').setAttribute('href', homes[r] + '?role=' + r);
+</script>
+</body>
+</html>
