@@ -1,6 +1,6 @@
 # Session Handoff
 
-> Written 2026-10-31 at the end of the local session that produced Steps 1 and 2, updated after the Step 3 draft, and updated again when the user approved Step 3 and the scope change D-33 was applied, and updated once more when the user approved Step 4. The conversation itself does not transfer, so this page carries what a new session needs.
+> Written 2026-10-31 at the end of the local session that produced Steps 1 and 2, updated after the Step 3 draft, and updated again when the user approved Step 3 and the scope change D-33 was applied, updated once more when the user approved Step 4, and updated after the Step 5 draft. The conversation itself does not transfer, so this page carries what a new session needs.
 
 ## Current state
 
@@ -10,7 +10,8 @@
 | 2 | Use cases and user stories ([docs/02-usecases-userstories](../02-usecases-userstories/README.md)), [business rules](../requirements/business-rules.md), [traceability](../traceability/master-traceability.md) | Draft for review |
 | 3 | Information architecture ([docs/03-information-architecture](../03-information-architecture/README.md)); the Screen column of the [traceability matrix](../traceability/master-traceability.md) is filled | **Approved by the user** ("Step 3 looks good", 2026-10-31), then adjusted for D-33; the adjustments await review |
 | 4 | UI/UX ([docs/04-uiux](../04-uiux/README.md)): design system, screen notes, 18 HTML page files for the 35 active screens, PNG exports by role | **Approved by the user** ("OK, that's it", 2026-10-31) |
-| 5..9 | Not started | Next: Step 5 (database) |
+| 5 | Database ([docs/05-database](../05-database/README.md)): DBML with 62 tables, data model, ER diagrams; the Database column of the [traceability matrix](../traceability/master-traceability.md) is filled | **Draft for review.** Step 6 waits for the user's review of Step 5 |
+| 6..9 | Not started | Next: Step 6 (API), after the user reviews Step 5 |
 
 Steps 1, 2, 3, and 4 are the baseline for later steps. Steps 1 and 2 are still draft for review and Steps 3 and 4 are approved, so the decisions of Steps 1 and 2 can still change. If a later step changes one, update the source document and its ID, and do not fork the meaning.
 
@@ -60,6 +61,20 @@ Read these before building on them.
 - BR-24, BR-29, and DF-20: the minimum-history limits on the recurring and unusual-price checks. The price check relaxes the brief.
 - D-27: US-06 moved to Must.
 - D-33, the reading of a foreign invoice that still arrives: a PDF is rejected at upload, and an XML or other foreign invoice becomes an "Unsupported: foreign invoice" exception that only a rejection with a reason resolves (BR-17, AC-10.8, AC-12.9). The user decided the removal; this reading is a call.
+
+### Step 5 calls (awaiting review)
+
+These are in [Step 5 decisions](../05-database/00-decisions.md): D-47..D-66, DF-53..DF-60, eleven differences from Steps 1 to 4, and five gaps in approved steps (not edited). The ones most likely to change:
+
+- D-49: the ERP simulator keeps the ERP side of the demo in its own `sim_*` tables, and the sync copies them into the `erp_*` tables. Step 7 may move them to a separate schema or service.
+- D-50: the tax-risk list is stored per entity, not once for the group.
+- D-51: the exact-duplicate check across the group is one partial unique index on `invoices`, the only cross-entity structure.
+- D-53 and D-54: one exception row per invoice for split orders, and the payment request of an individually approved exception is created at release, not at approval. Both reword BR-10 and AC-23.2.
+- D-60: an ERP failure after `Sent` has no request state in BR-35, so the schema keeps the request `Sent` and records `erp_failed_at`. This needs a decision in Step 2.
+- D-64: `price_history` and `supplier_entity_stats` are written when an invoice is `Paid` and are seeded; the simulated gate history has no invoice rows (DF-56).
+- Gap 2: "Correct the entity" on SCR-12 has no schema meaning, because an invoice cannot move to another entity (BR-09).
+
+**Step 6 must cross-check every story, API, and entity in `matchpay.dbml`.** Each active story has its tables in the [data model](../05-database/01-data-model.md#stories-and-their-tables) and in the Database column of the matrix. Every API operation must name tables that exist in the DBML, the simulator operations of US-08 use the `sim_*` tables, and the derived values (rates, badges, retry counts, alerts) have no table and need an endpoint that computes them.
 
 ### Step 3 calls (approved by the user)
 

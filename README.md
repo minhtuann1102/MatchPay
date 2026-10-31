@@ -16,7 +16,7 @@ The work is done in nine steps. A step is only approved when the user approves i
 | 2 | Use cases and user stories (INVEST, acceptance criteria, business rules, MoSCoW) | Draft for review |
 | 3 | Information architecture (sitemap, routes and permissions, navigation, screen inventory, user flows, UI states) | Approved |
 | 4 | UI/UX and wireframes (design system, screen notes, HTML wireframes with PNG exports) | Approved |
-| 5 | Database | Not started |
+| 5 | Database | Draft for review |
 | 6 | API contract | Not started |
 | 7 | C4 architecture, tech stack, and LLM provider | Not started |
 | 8 | Code structure | Not started |
@@ -498,6 +498,89 @@ Step 4 (approved by the user) draws the 35 active screens as 18 high-fidelity pa
 
 Sources: [Design system](docs/04-uiux/01-design-system.md), [Screen notes and states](docs/04-uiux/02-screen-notes.md), [Decisions](docs/04-uiux/00-decisions.md).
 
+## 3. C4 Architecture
+
+Designed in Step 7, together with the tech stack and the LLM provider.
+
+## 4. Database Diagrams and OpenAPI 3.0 Contract
+
+Step 5 defines the persistence contract. The HTTP contract (4.2) follows in Step 6.
+
+### 4.1 Database diagrams
+
+The PostgreSQL model (assumed here, confirmed in Step 7) has 62 tables in ten groups. Every business row carries its entity and the server enforces the scope; the only structure that sees the whole group is the unique index behind the exact-duplicate check. An invoice is stored with its original XML and hash, and every AI output (flow, identification, line match, anomaly finding) and every Rule Engine condition is a row with its numbers and its model and prompt version, so that a decision can be explained later. Exceptions, batches, payment requests, and signatures follow the lifecycles of BR-33, BR-34, and BR-35, a signature is bound to the version and the content hash of its request, and the audit log is append-only. Values that can be computed, such as the touchless rate and the badges, are not stored. The diagram below shows the tables that carry an invoice from upload to payment; the other groups are in the [ER diagram](docs/05-database/02-er-diagram.md), and the schema source is [matchpay.dbml](docs/05-database/matchpay.dbml).
+
+```mermaid
+erDiagram
+    entities ||--o{ users : employs
+    entities ||--o| entity_policies : "has one"
+    entities ||--o{ payment_batches : "has one per month"
+    entities ||--o{ invoices : receives
+    erp_suppliers ||--o{ invoices : sends
+    erp_suppliers ||--o{ supplier_gates : "has a gate per entity"
+    erp_purchase_orders |o--o{ invoices : "is billed by"
+    erp_purchase_orders ||--o{ erp_receipts : "is received by"
+    invoices ||--o| invoice_documents : "keeps the original XML"
+    invoices ||--o{ invoice_lines : has
+    invoices ||--o{ invoice_check_runs : "is checked in"
+    invoice_check_runs ||--o{ rule_evaluations : "ends in"
+    rule_evaluations ||--o{ rule_condition_results : "records six"
+    invoice_lines ||--o{ invoice_line_matches : "is matched by"
+    invoices ||--o{ anomaly_findings : "has findings"
+    invoices ||--o{ exceptions : "may open"
+    exceptions ||--o{ exception_reasons : lists
+    payment_batches ||--o{ batch_items : holds
+    invoices ||--o{ batch_items : "is admitted as"
+    payment_batches ||--o{ payment_requests : releases
+    payment_requests ||--o{ payment_request_lines : covers
+    invoices ||--o{ payment_request_lines : "is paid through"
+    payment_requests ||--o{ request_signatures : "is signed by"
+    users ||--o{ request_signatures : signs
+    payment_requests ||--o{ erp_send_attempts : "is sent in"
+    invoices |o--o{ audit_log : "is traced in"
+
+    entities {
+        bigint id PK
+        char tax_code UK
+    }
+    users {
+        bigint id PK
+        bigint entity_id FK
+        user_role role
+    }
+    invoices {
+        bigint id PK
+        bigint entity_id FK
+        invoice_state state
+        integer version
+    }
+    exceptions {
+        bigint id PK
+        exception_state state
+        exception_outcome outcome
+    }
+    payment_batches {
+        bigint id PK
+        date period_start
+        batch_state state
+    }
+    payment_requests {
+        bigint id PK
+        varchar request_no
+        request_state state
+        char content_hash
+    }
+    request_signatures {
+        bigint id PK
+        signer_role signer_role
+        integer request_version
+    }
+```
+
+### 4.2 OpenAPI 3.0 contract
+
+Written in Step 6. Every story needs an API, and every API must use an entity from the database model above.
+
 ## Documentation
 
 - Research: [Context and problem](docs/01-research/01-context-and-problem.md), [Goals and metrics](docs/01-research/02-goals-and-metrics.md), [Stakeholders](docs/01-research/03-stakeholders.md), [Similar products](docs/01-research/04-similar-products.md), [MVP scope](docs/01-research/05-scope.md), [Risks](docs/01-research/06-risks.md), [AI vs rule-based](docs/01-research/07-ai-vs-rule-based.md), [Glossary](docs/01-research/08-glossary.md), [Decisions](docs/01-research/00-decisions.md), [Future work](docs/01-research/09-future-work.md), [Regulatory context](docs/01-research/10-regulatory-context.md), [Invoice flows and data](docs/01-research/11-invoice-flows-and-data.md).
@@ -505,6 +588,7 @@ Sources: [Design system](docs/04-uiux/01-design-system.md), [Screen notes and st
 - Requirements catalogs: [Business rules](docs/requirements/business-rules.md).
 - Information architecture: [Step 3 index](docs/03-information-architecture/README.md), [Decisions and defaults](docs/03-information-architecture/00-decisions.md), [Sitemap](docs/03-information-architecture/01-sitemap.md), [Routes and permissions](docs/03-information-architecture/02-routes-and-permissions.md), [Navigation](docs/03-information-architecture/03-navigation.md), [Screen inventory](docs/03-information-architecture/04-screen-inventory.md), [User flows](docs/03-information-architecture/05-user-flows.md), [UI states and accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md).
 - Wireframes: [Wireframe gallery](docs/04-uiux/wireframes/index.html), [Step 4 index](docs/04-uiux/README.md), [Decisions and defaults](docs/04-uiux/00-decisions.md), [Design system](docs/04-uiux/01-design-system.md), [Screen notes and states](docs/04-uiux/02-screen-notes.md).
+- Database: [Step 5 index](docs/05-database/README.md), [Decisions and defaults](docs/05-database/00-decisions.md), [Data model](docs/05-database/01-data-model.md), [ER diagram](docs/05-database/02-er-diagram.md), [DBML schema](docs/05-database/matchpay.dbml).
 - Traceability: [Master traceability matrix](docs/traceability/master-traceability.md).
 
 ## Project Progress
@@ -518,7 +602,7 @@ Sources: [Design system](docs/04-uiux/01-design-system.md), [Screen notes and st
 - [x] Prioritize the backlog with MoSCoW (draft for review)
 - [x] Design the information architecture, sitemap per role, and user flows (approved)
 - [x] Design the UI/UX wireframes, including AI states and a design system (approved)
-- [ ] Design the database
+- [x] Design the database (draft for review)
 - [ ] Write the API documentation in OpenAPI 3.0
 - [ ] Design the C4 model and choose the tech stack and LLM provider
 - [ ] Design the code structure
