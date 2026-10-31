@@ -867,4 +867,14 @@ fl_bad = [i_ for i_, b_ in enumerate(fl_blocks) if not re.search(r"<span style='
 print('  user flows: %d; flows without an actor node with the person icon: %s' % (len(fl_blocks), fl_bad or 'none'))
 if fl_bad or len(fl_blocks) != 4: fail('user flow actor nodes')
 
+print('\n== CHECK: README Mermaid blocks match their source documents ==')
+_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None}
+_pool = []
+for _p in _src:
+    _pool += re.findall(r'```mermaid\n(.*?)```', open(_p, encoding='utf-8').read(), re.S)
+_rd = re.findall(r'```mermaid\n(.*?)```', open('README.md', encoding='utf-8').read(), re.S)
+_drift = [i_ + 1 for i_, b_ in enumerate(_rd) if b_ not in _pool]
+print('  README diagrams: %d; not identical to a source block: %s' % (len(_rd), _drift or 'none'))
+if _drift: fail('README diagram drift')
+
 print('\nRESULT:', 'ALL CHECKS PASSED' if not failures else '%d FAILURE(S): %s' % (len(failures), failures))
