@@ -1,0 +1,46 @@
+# Future Work (after the MVP)
+
+> Design status: MVP — Step 1 of 9, draft for review; nothing here is in the MVP scope
+>
+> Implementation status: NOT PLANNED for the MVP
+
+Everything on this page is **outside the MVP**. It is the brief's "Advanced" column, plus the places where a decision (D-xx) moved something out of the MVP. It is recorded so that a later release starts from this analysis and so the reasons for leaving things out are visible. Each item has a `W-xx` number; Step 2 reuses these numbers for the "Won't (now)" items in the MoSCoW prioritisation. No use case, user story, or business rule numbers are reserved for them.
+
+## Automation roadmap
+
+Automation grows one level at a time. Each level keeps the guardrails of the one before it and moves on only when the measurements of that level show the AI can be trusted.
+
+| Level | What happens | Who decides | Measured before moving on |
+|---|---|---|---|
+| **MVP** | The AI works in shadow mode and its accuracy is measured per supplier and entity pair. The Group Admin opens and closes each automation gate by hand. A sample-check failure raises an alert and recommends closing the gate (D-06). | Group Admin for the gate; the Rule Engine for each invoice; people sign | Touchless rate (G-01), misplacement rate (G-02), LLM-free match rate (G-07) |
+| **Level 1** | The gate opens and closes by itself from shadow-mode accuracy and sample-check results (W-01), with an alert to the Group Admin. A group-control actor supervises (W-02). | The system, inside limits the Group Admin sets | Misplacement rate stays at or below target over a full period; false closings counted |
+| **Level 2** | PDFs confirmed by an independent source (a card transaction and a subscription profile) may join a batch without a person viewing each one, with a low amount limit (W-03). Anomaly detection also compares entities (W-07). | The system for confirmed sources; people for everything else | Error rate of the independently confirmed PDFs on a sampled review |
+
+## Candidates
+
+| ID | Item | Idea | Why it waits | Related |
+|---|---|---|---|---|
+| W-01 | Automatic gate opening and closing | The gate opens when accuracy reaches the threshold in shadow mode and closes when sample checks find errors above the threshold. | The MVP first needs real accuracy numbers; a gate that flips by itself without them is risky. | BR-06, D-06 |
+| W-02 | Group-control actor | A role that watches accuracy and gate changes across the group. | Needs W-01. | BR-06 |
+| W-03 | Medium-trust PDF invoices | A PDF confirmed by an independent source joins a batch after the gate opens, with a low amount limit. | Needs card transactions and subscription profiles (W-04). | BR-17 |
+| W-04 | Subscriptions charged to a card | Subscription profile plus card transactions; confirm afterwards; a wrong charge leads to a refund request, fewer seats, or a card block; card limit per profile. | Money leaves before the check; needs a bank statement feed. In the MVP a fixed-price subscription follows a recurring profile. | BR-22, R-04 |
+| W-05 | Invoice mailbox and supplier portal | The system fetches XML invoices from an inbox or accepts them through a supplier portal. | The MVP takes files by upload; no official portal API was found. | O-10 |
+| W-06 | Real ERP per entity | Replace the ERP simulator with each entity's real ERP through the connection point. | Needs real systems and their data. | A-03 |
+| W-07 | Cross-entity anomaly detection | Price far above the group median; several orders just under an approval threshold across entities; near-duplicate invoices across entities. Aggregates only, and hidden when fewer than 3 entities buy the item. | Needs data from several entities; the MVP checks only an exact key duplicate across the group. | BR-09, D-09 |
+| W-08 | Suggested foreign contractor tax type | The AI proposes the type of tax with a reason; the accountant decides. | Needs deep tax expertise; the rules under the new Tax Administration Law are Unverified. | BR-21, O-07 |
+| W-09 | Finding the original XML from a PDF | When a PDF arrives, find the XML at the tax portal or the seller. | Needs a portal connection (O-10). | BR-18 |
+| W-10 | Periodic retraining | Retrain the signal-fusion model from the accountants' confirmations when a new version beats the current one on the test set. | Needs enough confirmations. | BR-28 |
+| W-11 | Approval on mobile | Sign and approve from a phone. | The MVP is a web application. | A-08 |
+| W-12 | Mid-period batches | Sign during the period when a contract deadline is shorter than the period. | The MVP has one open batch per entity per period and shows due dates. | D-10 |
+| W-13 | Invoice status lookup | Ask the tax authority for the status of an invoice through a connection point. | No official API found. | O-10 |
+| W-14 | Customs declaration cross-check | Compare the declaration with the invoice for imported goods. | Needs a customs data feed; the MVP only requires the attachments. | BR-21 |
+| W-15 | Manual entry of other documents and self-made purchase lists | The accountant enters paper invoices and builds the purchase list (form 02/TNDN, O-08); always through a person. | Rare, low value, legal details open. | BR-23 |
+| W-16 | Travel and hotel bookings through agents | Match the invoice with an approved booking request and trip confirmation. | Needs a booking source. | |
+| W-17 | One person across entities | A finance user who works in several entities, with a switch of entity. | Weakens isolation; the MVP binds a user to one entity. | D-13, R-16 |
+| W-18 | Comparison between entities in reports | Dashboard comparison of entities. | Needs W-07's aggregate rules. | BR-09 |
+
+## Not planned
+
+Procurement itself and employee travel reimbursement; replacing the ERP's purchasing or warehouse functions; direct connection to the tax authority's systems; real bank payment; tax filing; the AI signing a voucher; the AI negotiating prices.
+
+**Related:** [Step index](README.md) · [MVP scope](05-scope.md)
