@@ -17,4 +17,4 @@ Step 2 defines who uses **MatchPay** and what they can do: 26 active use cases b
 
 Rules shared by many stories, including the lifecycles of invoices, exceptions, and batches, are in [Business rules](../requirements/business-rules.md); links to screens, APIs, and data are in [Master traceability](../traceability/master-traceability.md).
 
-**Related:** [README](../../README.md) · [Previous: Research](../01-research/README.md)
+**Related:** [README](../../README.md) · [Previous: Research](../01-research/README.md) · [Next: Information architecture](../03-information-architecture/README.md)

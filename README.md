@@ -14,8 +14,8 @@ The work is done in nine steps. A step is only approved when the user approves i
 |---|---|---|
 | 1 | Research and problem analysis | Draft for review |
 | 2 | Use cases and user stories (INVEST, acceptance criteria, business rules, MoSCoW) | Draft for review |
-| 3 | Information architecture | Not started |
-| 4 | UI/UX and wireframes | Not started |
+| 3 | Information architecture (sitemap, routes and permissions, navigation, screen inventory, user flows, UI states) | Approved |
+| 4 | UI/UX and wireframes | Not started (next) |
 | 5 | Database | Not started |
 | 6 | API contract | Not started |
 | 7 | C4 architecture, tech stack, and LLM provider | Not started |
@@ -156,11 +156,27 @@ Thick arrows show actor generalization: every role inherits UC-01 from User, and
 
 The Demo Operator, who plays the buyer and the warehouse keeper in the ERP simulator, appears only in the demo. The Rule Engine alone admits an invoice to a batch, from stored evidence and without an LLM; the AI supplies evidence and never decides. The server enforces roles and entity scope, and hiding a control in the screen serves only the user interface. The rules, including the lifecycles of invoices, exceptions, and batches, are in [Business rules](docs/requirements/business-rules.md).
 
+## 2. Information Architecture and Screen Hierarchy
+
+Step 3 (approved by the user) places the 26 active stories on 35 screens: 18 pages and 17 modals. SCR-13 and SCR-17 were removed by D-33 and their numbers are not reused. Each role has a left sidebar with only the pages it may open, and a top bar with the entity name, the user, and Log out. Pages are grouped into areas by the roles that use them, and decisions, confirmations, and forms are modals on their parent page. The Rule Engine's work and the other system behaviour has no screen of its own; its results appear on the invoice worklist, the invoice evidence, the batch review, the payment request, and the group overview.
+
+| Role | Home page after login (DF-28) | Sidebar pages |
+|---|---|---|
+| AP Accountant | Invoice Worklist | Invoices, Batch, Recurring profiles, Dashboard |
+| Chief Accountant | Decision Queue | Decisions, Signing queue, Invoices (read-only), Dashboard, Audit log |
+| Payment Approver | Signing Queue | Signing queue, Approvals, Invoices (read-only), Dashboard |
+| Entity Admin | Entity Policy | Entity policy, Approval matrix, Users, Dashboard, Audit log |
+| Group Admin | Group Overview | Group overview, Automation gates, Entities and limits, Users, Dashboard, Audit log |
+| Demo Operator | ERP Simulator (demo only) | ERP simulator |
+
+Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with the diagram of areas and page cards. Routes and the page-permission table are in [Routes and Permissions](docs/03-information-architecture/02-routes-and-permissions.md), navigation in [Navigation](docs/03-information-architecture/03-navigation.md), screen IDs and the requirement-to-screen mapping in [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), flows in [Primary User Flows](docs/03-information-architecture/05-user-flows.md), and states in [UI/UX States and Accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md). The calls of this step await review in [Decisions and Defaults](docs/03-information-architecture/00-decisions.md).
+
 ## Documentation
 
 - Research: [Context and problem](docs/01-research/01-context-and-problem.md), [Goals and metrics](docs/01-research/02-goals-and-metrics.md), [Stakeholders](docs/01-research/03-stakeholders.md), [Similar products](docs/01-research/04-similar-products.md), [MVP scope](docs/01-research/05-scope.md), [Risks](docs/01-research/06-risks.md), [AI vs rule-based](docs/01-research/07-ai-vs-rule-based.md), [Glossary](docs/01-research/08-glossary.md), [Decisions](docs/01-research/00-decisions.md), [Future work](docs/01-research/09-future-work.md), [Regulatory context](docs/01-research/10-regulatory-context.md), [Invoice flows and data](docs/01-research/11-invoice-flows-and-data.md).
 - Requirements: [Actors and use cases](docs/02-usecases-userstories/01-use-cases.md), [Use case specifications](docs/02-usecases-userstories/02-use-case-specifications.md), [User stories (INVEST)](docs/02-usecases-userstories/03-user-stories-invest.md), [Acceptance criteria](docs/02-usecases-userstories/04-acceptance-criteria.md), [MoSCoW](docs/02-usecases-userstories/05-moscow-prioritization.md), [Decisions and defaults](docs/02-usecases-userstories/00-decisions.md).
 - Requirements catalogs: [Business rules](docs/requirements/business-rules.md).
+- Information architecture: [Step 3 index](docs/03-information-architecture/README.md), [Decisions and defaults](docs/03-information-architecture/00-decisions.md), [Sitemap](docs/03-information-architecture/01-sitemap.md), [Routes and permissions](docs/03-information-architecture/02-routes-and-permissions.md), [Navigation](docs/03-information-architecture/03-navigation.md), [Screen inventory](docs/03-information-architecture/04-screen-inventory.md), [User flows](docs/03-information-architecture/05-user-flows.md), [UI states and accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md).
 - Traceability: [Master traceability matrix](docs/traceability/master-traceability.md).
 
 ## Project Progress
@@ -172,8 +188,8 @@ The Demo Operator, who plays the buyer and the warehouse keeper in the ERP simul
 - [x] Write user stories following INVEST (draft for review)
 - [x] Write acceptance criteria (Given/When/Then) and business rules (draft for review)
 - [x] Prioritize the backlog with MoSCoW (draft for review)
-- [ ] Design the information architecture, sitemap per role, and user flows
-- [ ] Design the UI/UX wireframes
+- [x] Design the information architecture, sitemap per role, and user flows (approved)
+- [ ] Design the UI/UX wireframes (next: Step 4)
 - [ ] Design the database
 - [ ] Write the API documentation in OpenAPI 3.0
 - [ ] Design the C4 model and choose the tech stack and LLM provider

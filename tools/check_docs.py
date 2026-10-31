@@ -52,7 +52,8 @@ US_REMOVED = [u for u in US_ALL if u not in US]
 N_ACTIVE = len(US)
 N_MUST, N_SHOULD = 20, 6
 W_MAX = 21
-D_MAX = 33
+D_MAX = 41  # D-33 is the scope decision; Step 3 calls are D-34..D-41
+DF_MAX = 44  # DF-34..DF-44 are the Step 3 defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
 BR = ['BR-%02d' % n for n in range(1, 38)]
@@ -348,14 +349,13 @@ fam = {}
 defs, refs = {}, {}
 for f, t in text.items():
     t2 = re.sub(r'https?://\S+', '', t)
+    t2 = re.sub(r'\bSCR-\d\d\b', 'SCR', t2)  # screen IDs have their own family and check (CHECK 6)
     for m in re.finditer(r'^\|\s*\*{0,2}((?:D|O|R|L|A|M|W|F|G|P|DF|ES|TS)-\d\d)\*{0,2}\s*\|', t2, re.M): defs.setdefault(m.group(1), set()).add(f)
-    # a line that points to the Step 3 draft on another branch (dreamy-bohr) names that branch's own IDs, which are not defined here
-    t2 = '\n'.join(l for l in t2.split('\n') if 'dreamy-bohr' not in l)
     for m in re.finditer(r'\b((?:D|O|R|L|A|M|W|F|G|P|DF|ES|TS)-\d\d)\b', t2): refs.setdefault(m.group(1), set()).add(f)
 undef = sorted(k for k in refs if k not in defs)
 print('  IDs defined as table rows: %d; IDs referenced: %d; referenced but not defined as a table row: %s' % (len(defs), len(refs), undef))
 if undef: fail('IDs referenced but undefined')
-for prefix, lo, hi in [('D', 1, D_MAX), ('O', 1, 16), ('DF', 1, 33)]:
+for prefix, lo, hi in [('D', 1, D_MAX), ('O', 1, 16), ('DF', 1, DF_MAX)]:
     miss = ['%s-%02d' % (prefix, n) for n in range(lo, hi + 1) if '%s-%02d' % (prefix, n) not in defs]
     print('  %s-%02d..%s-%02d all defined: %s' % (prefix, lo, prefix, hi, 'yes' if not miss else miss))
     if miss: fail(prefix + ' gap')
@@ -389,7 +389,7 @@ brief_links = [m.group(1) for t in text.values() for m in link.finditer(t) if 'B
 print('  links to the brief:', len(brief_links), 'all resolve' if not [x for x in missing if 'Brief' in x[1]] else 'BROKEN')
 
 # ---------------------------------------------------------------- CHECK 4 (lint only)
-print('\n== CHECK 4: Mermaid structural lint (nothing is parsed by mermaid; mermaid-cli was not run) ==')
+print('\n== CHECK 4: Mermaid structural lint (no mermaid parser runs here) ==')
 nblocks = 0; lint_problems = []
 for f, t in text.items():
     for m in re.finditer(r'```mermaid\n(.*?)```', t, re.S):
@@ -423,7 +423,7 @@ for f, t in text.items():
 print('  blocks linted:', nblocks)
 print('  lint problems:', lint_problems or 'none')
 if lint_problems: fail('mermaid lint')
-print('  NOTE: this is a structural lint. No diagram was parsed or rendered.')
+print('  NOTE: this is a structural lint. Parsing with mermaid itself needs a browser and is done outside this script (see the session handoff).')
 
 print('\n== CHECK 5: review checks (dependencies, priorities, totals, pronouns, diagram) ==')
 # parse backlog rows
@@ -580,5 +580,251 @@ if stale: fail('stale counts')
 d28 = [l for l in open(ROOT + '/docs/02-usecases-userstories/00-decisions.md', encoding='utf-8').read().split('\n') if l.startswith('| D-28 |')][0]
 print('  D-28 source and resolves cells:', [c.strip() for c in d28.strip('|').split('|')[-2:]])
 if 'User ruling' in ''.join(text.values()): fail('User ruling still present')
+
+print('\n== CHECK 6: Step 3 screens (SCR family) ==')
+IA = 'docs/03-information-architecture/'
+IA_FILES = ['README.md', '00-decisions.md', '01-sitemap.md', '02-routes-and-permissions.md', '03-navigation.md',
+            '04-screen-inventory.md', '05-user-flows.md', '06-ui-states-and-accessibility.md']
+missing_ia = [f for f in IA_FILES if IA + f not in text]
+print('  Step 3 files present (8 expected):', 'yes' if not missing_ia else 'MISSING ' + str(missing_ia))
+if missing_ia: fail('Step 3 files missing')
+else:
+    inv3 = text[IA + '04-screen-inventory.md']
+    routes3 = text[IA + '02-routes-and-permissions.md']
+    sitemap3 = text[IA + '01-sitemap.md']
+    def section(t, start, end=None):
+        i = t.index(start)
+        j = t.index(end, i + 1) if end and end in t[i + 1:] else len(t)
+        return t[i:j]
+    # (a) inventory rows
+    inv_sec = section(inv3, '## Screen inventory', '\n## Requirement-to-screen mapping')
+    scr = {}
+    scr_removed = {}
+    dup_scr = []
+    for l in inv_sec.split('\n'):
+        m = re.match(r'^\| `?(SCR-\d\d)`? \|(.+)\|\s*$', l)
+        if not m: continue
+        cells = [c.strip() for c in ('| ' + m.group(1) + ' |' + m.group(2)).strip().strip('|').split('|')]
+        cells[0] = m.group(1)
+        if len(cells) != 7: fail('inventory row %s has %d cells, expected 7' % (m.group(1), len(cells))); continue
+        if m.group(1) in scr or m.group(1) in scr_removed: dup_scr.append(m.group(1))
+        pres = cells[2]
+        if cells[1] == RM:
+            # removed screen: the row stays, every other cell is "Removed (D-33)" or a dash, and the number is never reused
+            if pres != RM or cells[3] != '—' or cells[4] != '—' or cells[6] != '—': fail('removed screen row %s is not in the form "Removed (D-33) | Removed (D-33) | — | — | note | —"' % m.group(1))
+            scr_removed[m.group(1)] = cells
+            continue
+        scr[m.group(1)] = {'name': cells[1], 'pres': pres, 'roles': cells[3],
+                           'from': [x.strip() for x in cells[4].split(',')],
+                           'rel': sorted(set(re.findall(r'US-\d\d', cells[6]))),
+                           'page': pres.startswith('Page') or pres.startswith('System page'),
+                           'modal': pres.startswith('Modal')}
+    print('  active screens in the inventory: %d (%d pages, %d modals); removed rows: %s; duplicate rows: %s' % (
+        len(scr), sum(1 for v in scr.values() if v['page']), sum(1 for v in scr.values() if v['modal']), sorted(scr_removed), dup_scr or 'none'))
+    if dup_scr: fail('duplicate SCR rows')
+    if len(scr) != 35 or sorted(scr_removed) != ['SCR-13', 'SCR-17']: fail('expected 35 active screens and the removed rows SCR-13 and SCR-17')
+    undefined_scr = sorted({(f, x) for f, t in text.items() for x in re.findall(r'\bSCR-\d\d\b', t) if x not in scr and x not in scr_removed})
+    # a removed screen may be named only on a line that says it is removed (D-33), never live
+    live_removed = sorted({(f, x) for f, t in text.items() for l in t.split('\n') for x in re.findall(r'\bSCR-\d\d\b', l)
+                           if x in scr_removed and not re.search(r'Removed|removed|D-33', l)})
+    print('  removed screens SCR-13 and SCR-17 named on a live line (no removal marker):', live_removed or 'none')
+    if live_removed: fail('removed screen used live')
+    print('  SCR ids referenced anywhere but not defined in the inventory:', undefined_scr or 'none')
+    if undefined_scr: fail('SCR referenced but undefined')
+    bad_pres = [k for k, v in scr.items() if not (v['page'] or v['modal'])]
+    if bad_pres: fail('presentation is neither Page, System page, nor Modal: %s' % bad_pres)
+    # (b) requirement-to-screen mapping
+    map_sec = section(inv3, '## Requirement-to-screen mapping', '\n## Reachability')
+    mapping = {}
+    map_removed = []
+    dup_map = []
+    for l in map_sec.split('\n'):
+        m = re.match(r'^\| (US-\d\d(?:[^|]*?))\|(.+)\|\s*$', l)
+        if not m: continue
+        key = m.group(1).strip()
+        if not re.fullmatch(r'US-\d\d', key):
+            fail('mapping row must hold exactly one story: %r' % key); continue
+        if key in mapping or key in map_removed: dup_map.append(key)
+        if key in US_REMOVED:
+            if m.group(2).strip() != RM: fail('mapping row of removed %s must read exactly "%s"' % (key, RM))
+            map_removed.append(key); continue
+        mapping[key] = sorted(set(re.findall(r'SCR-\d\d', m.group(2))))
+    miss_map = [u for u in US if u not in mapping]
+    empty_map = [u for u, v in mapping.items() if not v]
+    unknown_map = sorted({x for v in mapping.values() for x in v if x not in scr})
+    print('  active stories with exactly one mapping row: %d of %d (removed rows %s); duplicates %s; missing %s; rows with no screen %s; unknown screens %s' % (
+        len(mapping), N_ACTIVE, map_removed, dup_map or 'none', miss_map or 'none', empty_map or 'none', unknown_map or 'none'))
+    if dup_map or miss_map or empty_map or unknown_map or len(mapping) != N_ACTIVE or sorted(map_removed) != US_REMOVED: fail('requirement-to-screen mapping')
+    rev = {}
+    for u, v in mapping.items():
+        for x in v: rev.setdefault(x, set()).add(u)
+    rel_bad = [(k, sorted(rev.get(k, set())), v['rel']) for k, v in scr.items() if sorted(rev.get(k, set())) != v['rel']]
+    print('  inventory "Related stories" that differ from the mapping:', rel_bad or 'none')
+    if rel_bad: fail('inventory related stories differ from mapping')
+    sysrows = [u for u in ['US-07', 'US-12', 'US-13', 'US-14', 'US-15', 'US-16', 'US-20', 'US-26']
+               if not re.search(r'^\| %s \| No screen of its own' % u, map_sec, re.M)]
+    print('  system-behaviour stories whose mapping row says "No screen of its own":', 'all 8' if not sysrows else 'MISSING ' + str(sysrows))
+    if sysrows: fail('system-behaviour mapping text')
+    # (c) traceability Screen column
+    tr_screen = {}
+    for l in trace.split('\n'):
+        m = re.match(r'^\| (US-\d\d) \| UC-\d\d \| [^|]+ \| [^|]+ \| ([^|]+) \|', l)
+        if m: tr_screen[m.group(1)] = sorted(set(re.findall(r'SCR-\d\d', m.group(2)))), m.group(2).strip()
+    tbd3 = [u for u, (_, raw) in tr_screen.items() if 'TBD' in raw]
+    tr_bad = [u for u in US if u in tr_screen and tr_screen[u][0] != mapping.get(u)]
+    tr_bad += [u for u in US_REMOVED if tr_screen.get(u, (None, ''))[1] != RM]
+    print('  traceability rows with a TBD Screen cell: %s; rows whose SCR set differs from the mapping: %s' % (tbd3 or 'none', tr_bad or 'none'))
+    if tbd3 or tr_bad or len(tr_screen) != len(US_ALL) or 'TBD (Step 3)' in trace: fail('traceability Screen column')
+    # (d) opened-from
+    d_bad = []
+    for k, v in scr.items():
+        for p_ in v['from']:
+            if p_ == 'Navigation': continue
+            if p_ not in scr: d_bad.append((k, p_, 'unknown')); continue
+            if not scr[p_]['page']: d_bad.append((k, p_, 'parent is a modal'))
+        if v['modal']:
+            par = re.findall(r'SCR-\d\d', v['pres'])
+            if 'Navigation' in v['from'] or not par or any(x not in v['from'] for x in par):
+                d_bad.append((k, v['from'], 'modal must name its page parent(s) from the Presentation cell'))
+        if v['page'] and not v['modal'] and not v['from']: d_bad.append((k, 'empty'))
+    print('  "Opened from" problems:', d_bad or 'none')
+    if d_bad: fail('opened-from')
+    # (e) routes, permissions, sitemap cards
+    route_rows = re.findall(r'^\| `(/[^`]*)` \| (SCR-\d\d)', routes3, re.M)
+    route_of = {}
+    for r_, sid in route_rows: route_of.setdefault(sid, []).append(r_)
+    perm_sec = section(routes3, '## Page permissions', '\n## Behaviour when access is missing')
+    perm = {}
+    roles6 = ['AP Accountant', 'Chief Accountant', 'Payment Approver', 'Entity Admin', 'Group Admin', 'Demo Operator']
+    for l in perm_sec.split('\n'):
+        m = re.match(r'^\| (SCR-\d\d) [^|]*\|(.+)\|\s*$', l)
+        if m:
+            cells = [c.strip() for c in m.group(2).split('|')]
+            if len(cells) != 6: fail('permission row %s has %d role cells' % (m.group(1), len(cells))); continue
+            perm[m.group(1)] = dict(zip(roles6, cells))
+    pages = [k for k, v in scr.items() if v['page']]
+    no_route = [k for k in pages if len(route_of.get(k, [])) != 1]
+    modal_route = [k for k, v in scr.items() if v['modal'] and k in route_of]
+    no_perm = [k for k in pages if k not in perm]
+    extra_perm = [k for k in perm if k not in pages]
+    hdr_ok = all(('| ' + r_ + ' ') in perm_sec for r_ in roles6)
+    print('  pages without exactly one route: %s; modals with a route: %s; pages without a permission row: %s; permission rows for non-pages: %s; six role columns: %s' % (
+        no_route or 'none', modal_route or 'none', no_perm or 'none', extra_perm or 'none', hdr_ok))
+    if no_route or modal_route or no_perm or extra_perm or not hdr_ok: fail('routes or permission table')
+    sm = re.search(r'```mermaid\n(flowchart TB.*?)```', sitemap3, re.S).group(1)
+    node_scr = {}
+    for m in re.finditer(r'^\s+(\w+)\["<b>(SCR-\d\d) ', sm, re.M): node_scr[m.group(1)] = m.group(2)
+    cards = set(node_scr.values())
+    need_cards = {k for k in pages if k not in ('SCR-01', 'SCR-90')}
+    card_bad = sorted(need_cards - cards) + [x + ' (not a page)' for x in sorted(cards) if x not in pages] + [x + ' (SCR-90 is not a card)' for x in cards if x == 'SCR-90']
+    dupcards = [x for x in cards if list(node_scr.values()).count(x) != 1]
+    print('  sitemap cards: %d; page screens missing as cards or cards that are not pages: %s; duplicate cards: %s' % (len(cards), card_bad or 'none', dupcards or 'none'))
+    if card_bad or dupcards: fail('sitemap cards')
+    # (f) dashed edges agree with the permission table
+    area_of_node = {}
+    area = None
+    for l in sm.split('\n'):
+        m = re.match(r'^\s+subgraph (\w+)\[', l)
+        if m: area = m.group(1); continue
+        if re.match(r'^\s+end\s*$', l): area = None; continue
+        if area:
+            m = re.match(r'^\s+(\w+)\["', l)
+            if m: area_of_node[m.group(1)] = area
+    role_node = {'ap': 'AP Accountant', 'ca': 'Chief Accountant', 'pa': 'Payment Approver', 'entityAdmin': 'Entity Admin', 'groupAdmin': 'Group Admin', 'demo': 'Demo Operator'}
+    areas = {a for a in area_of_node.values()}
+    dashed = {(role_node[a], b) for a, b in re.findall(r'^\s+(\w+) -\.-> (\w+)\s*$', sm, re.M) if a in role_node}
+    expected = set()
+    for sid in cards:
+        node = [n for n, x in node_scr.items() if x == sid][0]
+        if node not in area_of_node: fail('card %s is in no area' % sid); continue
+        for r_ in roles6:
+            if sid in perm and perm[sid][r_] != '—': expected.add((r_, area_of_node[node]))
+    f_bad = sorted(dashed ^ expected)
+    unknown_area = sorted({b for _, b in dashed if b not in areas})
+    print('  dashed actor -> area arrows: %d; expected from the permission table: %d; differences: %s; arrows to unknown areas: %s' % (len(dashed), len(expected), f_bad or 'none', unknown_area or 'none'))
+    if f_bad or unknown_area: fail('sitemap arrows differ from the permission table')
+    # solid arrows between cards match "Opened from"
+    solid = {(node_scr[a], node_scr[b]) for a, b in re.findall(r'^\s+(\w+) --> (\w+)\s*$', sm, re.M) if a in node_scr and b in node_scr}
+    solid_exp = {(p_, k) for k in cards for p_ in scr[k]['from'] if p_ in cards}
+    print('  solid parent -> child arrows differ from "Opened from":', sorted(solid ^ solid_exp) or 'none')
+    if solid ^ solid_exp: fail('sitemap solid arrows')
+    # screens-per-role table equals the permission table
+    spr = section(sitemap3, '## Screens per role', '\n**Related:**')
+    spr_bad = []
+    for l in spr.split('\n'):
+        m = re.match(r'^\| (AP Accountant|Chief Accountant|Payment Approver|Entity Admin|Group Admin|Demo Operator) \| ([^|]*)\| ([^|]*)\| ([^|]*)\|', l)
+        if m:
+            got = set(re.findall(r'SCR-\d\d', m.group(3)))
+            want = {sid for sid in perm if sid != 'SCR-90' and perm[sid][m.group(1)] != '—'}
+            if got != want: spr_bad.append((m.group(1), sorted(got ^ want)))
+            home = re.findall(r'SCR-\d\d', m.group(2))
+            if len(home) != 1 or home[0] not in want: spr_bad.append((m.group(1), 'home page', home))
+    print('  "Screens per role" rows that differ from the permission table or have a bad home page:', spr_bad or 'none')
+    if spr_bad: fail('screens per role')
+    # (g) Must reachability
+    prio = {u: rows_b[u][1] for u in rows_b}
+    has_must = {k: any(prio[u] == 'Must' for u in v['rel']) for k, v in scr.items()}
+    memo = {}
+    def reach(k, stack=()):
+        if k in memo: return memo[k]
+        if k in stack: return False
+        ok = False
+        if has_must[k]:
+            for p_ in scr[k]['from']:
+                if p_ == 'Navigation' or (p_ in scr and reach(p_, stack + (k,))):
+                    ok = True; break
+        memo[k] = ok
+        return ok
+    g_bad = [u for u in US if prio[u] == 'Must' and not any(reach(k) for k in mapping[u])]
+    g_screens = sorted(k for k in scr if not reach(k))
+    print('  Must stories with no screen reachable through Must-used screens only: %s' % (g_bad or 'none'))
+    print('  screens used only by Should stories or reached only through them (informational):', g_screens or 'none')
+    if g_bad: fail('Must story reachable only through Should screens')
+    cut_sec = section(inv3, '## Reachability of Must stories', '\n## Screen-to-API mapping')
+    cut_doc = {}
+    for l in cut_sec.split('\n'):
+        m = re.match(r'^\| (US-\d\d) \| ([^|]+) \|', l)
+        if m: cut_doc[m.group(1)] = sorted(set(re.findall(r'SCR-\d\d', m.group(2))))
+    cut_calc = {u: sorted(k for k, v in scr.items() if v['rel'] == [u]) for u in prio if prio[u] == 'Should'}
+    cut_bad = [(u, cut_doc.get(u), cut_calc[u]) for u in cut_calc if cut_doc.get(u) != cut_calc[u]]
+    print('  screens that disappear when one Should story is cut: documented = computed:', 'yes' if not cut_bad else cut_bad)
+    if cut_bad: fail('cut table differs from the computed set')
+    cut_removed = [u for u in US_REMOVED if u in cut_doc]
+    print('  removed stories listed in the "if a Should story is cut" table:', cut_removed or 'none')
+    if cut_removed: fail('cut table lists a removed story')
+    # (h) headers
+    h_bad = []
+    for f_ in IA_FILES:
+        t_ = text[IA + f_]
+        if '> Design status: MVP — Step 3 of 9, approved\n>\n> Implementation status: NOT STARTED' not in t_: h_bad.append((f_, 'header'))
+        if not re.search(r'^\*\*Related:\*\*', t_, re.M): h_bad.append((f_, 'Related line'))
+    print('  Step 3 files with the "approved" header and a Related line: %s' % ('all 8' if not h_bad else h_bad))
+    if h_bad: fail('Step 3 headers')
+    # (i) Step 3 decisions: D-34..D-41 and DF-34..DF-44, approved by the user, except rows changed for D-33
+    dec3 = text[IA + '00-decisions.md']
+    step3_ids = ['D-%d' % n for n in range(34, 42)] + ['DF-%d' % n for n in range(34, 45)]
+    st_bad = []
+    for i_ in step3_ids:
+        r_ = row(dec3, i_)
+        if not r_: st_bad.append((i_, 'missing')); continue
+        st = r_.strip().strip('|').split('|')[-1].strip()
+        if not (st == 'Approved with Step 3 (user, 2026-10-31)' or st.startswith('Awaiting user review')): st_bad.append((i_, st))
+    d33_in_ia = row(dec3, 'D-33')
+    print('  Step 3 decisions D-34..D-41 and defaults DF-34..DF-44 present with a valid status; D-33 not redefined in Step 3: %s' % (
+        'yes' if not st_bad and not d33_in_ia else (st_bad, d33_in_ia)))
+    if st_bad or d33_in_ia: fail('Step 3 decision rows')
+    # (j) nothing live in Step 3 depends on a removed item
+    rm_ids = r'\b(BR-21|BR-32|DF-04|DF-26|D-25|D-32|UC-11|UC-22|US-11|US-22|AC-11\.\d+|AC-22\.\d+)\b'
+    words = r'\b(foreign|PDF|contractor|customs|imports?|imported|cash|multimodal|payment method)\b'
+    marks = re.compile(r'Removed|removed|D-33|Unsupported|Advanced|Only XML|non-cash|moved')
+    live = []
+    for f_ in IA_FILES:
+        for n_, l in enumerate(text[IA + f_].split('\n'), 1):
+            if (re.search(rm_ids, l) or re.search(words, l, re.I)) and not marks.search(l): live.append((f_, n_, l[:90]))
+    print('  Step 3 lines naming a removed ID or a foreign, PDF, customs, import, cash, or payment-method topic without a removal marker:', live or 'none')
+    if live: fail('Step 3 text depends on a removed item')
+    ia_old = [(f_, n_) for f_ in IA_FILES for n_, l in enumerate(text[IA + f_].split('\n'), 1) if re.search(r'confirm-fields|Awaiting Field Confirmation|Upload foreign PDF', l) and not marks.search(l)]
+    print('  Step 3 lines with the removed route, state, or button and no removal marker:', ia_old or 'none')
+    if ia_old: fail('Step 3 removed route or state live')
 
 print('\nRESULT:', 'ALL CHECKS PASSED' if not failures else '%d FAILURE(S): %s' % (len(failures), failures))
