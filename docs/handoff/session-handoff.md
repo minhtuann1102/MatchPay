@@ -1,6 +1,6 @@
 # Session Handoff
 
-> Written 2026-10-31 at the end of the local session that produced Steps 1 and 2. The conversation itself does not transfer, so this page carries what a new session needs.
+> Written 2026-10-31 at the end of the local session that produced Steps 1 and 2, and updated after the Step 3 draft. The conversation itself does not transfer, so this page carries what a new session needs.
 
 ## Current state
 
@@ -8,9 +8,10 @@
 |---|---|---|
 | 1 | Research ([docs/01-research](../01-research/README.md)) | Draft for review |
 | 2 | Use cases and user stories ([docs/02-usecases-userstories](../02-usecases-userstories/README.md)), [business rules](../requirements/business-rules.md), [traceability](../traceability/master-traceability.md) | Draft for review |
-| 3..9 | Not started | **Next: Step 3** |
+| 3 | Information architecture ([docs/03-information-architecture](../03-information-architecture/README.md)); the Screen column of the [traceability matrix](../traceability/master-traceability.md) is filled | Draft for review |
+| 4..9 | Not started | **Next: Step 4, but only after the user has reviewed Step 3** |
 
-Steps 1 and 2 are the baseline for later steps. The user asked to continue but has **not approved** them, so their decisions can still change. If a later step changes one, update the source document and its ID, and do not fork the meaning.
+Steps 1, 2, and 3 are the baseline for later steps. The user asked to continue but has **not approved** them, so their decisions can still change. Step 4 must not start until the user has reviewed Step 3. If a later step changes one, update the source document and its ID, and do not fork the meaning.
 
 ## Remaining steps
 
@@ -52,6 +53,19 @@ Read these before building on them.
 - BR-24, BR-29, and DF-20: the minimum-history limits on the recurring and unusual-price checks. The price check relaxes the brief.
 - D-27, D-32: US-06 moved to Must, US-22 moved to Should.
 
+### Step 3 calls most likely to change
+
+These are in [Step 3 decisions](../03-information-architecture/00-decisions.md) and all await review.
+
+- D-34: a left sidebar plus a top bar for every role.
+- D-36: SCR-12 has a role-dependent action panel, so the Chief Accountant and the Payment Approver decide from the same page where the evidence stays read-only (AC-17.4).
+- D-37: no profile screen and no password change, because no story asks for one.
+- D-38: the Group Admin home page is SCR-75 Group Overview, built from US-06 and US-07 so that it does not depend on the Should story US-27.
+- D-39: one Decision Queue (SCR-40) shared by the Chief Accountant and the Payment Approver.
+- DF-39: "Waiting for AP confirmation" is a tag on an exception in `In Review`, because BR-34 has no such state.
+- DF-40: a failed ERP send shows an alert to the AP Accountant, the Chief Accountant, and the Payment Approver, and no manual retry is drawn. Step 2 does not say who sees it or how a send is retried.
+- DF-42: the demo seed also holds the price history and earlier recurring periods, which Step 2 does not seed.
+
 ## Open items only people can close
 
 - O-01 official project name, and O-04 whether the internship workplace may be mentioned: the user or their manager.
@@ -59,7 +73,7 @@ Read these before building on them.
 
 ## Known gaps
 
-- **Mermaid diagrams were never parsed.** Running `npx @mermaid-js/mermaid-cli` was denied by the local permission system. All 10 blocks passed only a structural lint. The riskiest are [the mind map](../mindmap.md) and the state diagrams in BR-33 to BR-35. Parse them if this environment's permissions allow it. If it is denied again, tell the user and do not work around it.
+- **Mermaid diagrams are now parsed.** In Step 3 every `mermaid` block in the repo (10 from Steps 1 and 2, 5 from Step 3) was parsed with `mermaid.parse` from mermaid 11.4.1 inside the pre-installed Playwright Chromium: 15 of 15 parsed, none failed. Parsing is not rendering, so the look of the diagrams is unchecked. The script lives in the session scratchpad and is not in the repo; the structural lint in `tools/check_docs.py` still runs without a browser.
 - **Weak legal evidence.** The move to Decree 254/2026 and Circular 91/2026 rests on one EY summary and the official texts were not opened (D-17). D-26 rests on one Sapo summary. The [research log](research-log.md) has every claim, URL, and verdict from Step 1.
 - **SAP, Oracle, Odoo, and FAST were not verified** in [Similar products](../01-research/04-similar-products.md). This need not be pursued, because O-14 is skipped.
 - **Unverified legal points** are marked in [Regulatory context](../01-research/10-regulatory-context.md).

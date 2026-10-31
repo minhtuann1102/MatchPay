@@ -1,10 +1,10 @@
 # Master Traceability Matrix — MatchPay MVP
 
-> Design status: MVP — updated at every step (last update: Step 2, draft for review)
+> Design status: MVP — updated at every step (last update: Step 3, draft for review)
 >
 > Implementation status: NOT STARTED
 
-Columns marked TBD are filled in by the step that owns them: Screen (Step 3), Database (Step 5), API operationId (Step 6), C4 Component (Step 7). Step 6 uses this matrix for its cross-check: every user story must have an API, and every API must use an entity from the database model. The top-down chain is: business goal, problem (P), capability, module (M), then use case (UC), user story (US), acceptance criteria (AC), and business rule (BR). The chain from goal to module is in [Context and problem](../01-research/01-context-and-problem.md).
+Columns marked TBD are filled in by the step that owns them: Database (Step 5), API operationId (Step 6), C4 Component (Step 7). The Screen column was filled in Step 3 from the [requirement-to-screen mapping](../03-information-architecture/04-screen-inventory.md#requirement-to-screen-mapping); stories that describe system behaviour list the screens where their results are visible. Step 6 uses this matrix for its cross-check: every user story must have an API, and every API must use an entity from the database model. The top-down chain is: business goal, problem (P), capability, module (M), then use case (UC), user story (US), acceptance criteria (AC), and business rule (BR). The chain from goal to module is in [Context and problem](../01-research/01-context-and-problem.md).
 
 ## Functional traceability
 
@@ -12,34 +12,34 @@ Each user story has the number of its use case. The acceptance criteria and the 
 
 | Requirement | Use Case | Acceptance Criteria | Business Rules | Screen | API operationId | Database | C4 Component | MoSCoW |
 |---|---|---|---|---|---|---|---|---|
-| US-01 | UC-01 | AC-01.1–AC-01.9 | BR-09, BR-12 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-02 | UC-02 | AC-02.1–AC-02.8 | BR-02, BR-09, BR-12, BR-36 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-03 | UC-03 | AC-03.1–AC-03.6 | BR-01, BR-09, BR-12, BR-16, BR-17 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
-| US-04 | UC-04 | AC-04.1–AC-04.8 | BR-04, BR-07, BR-09, BR-12, BR-16, BR-20 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-05 | UC-05 | AC-05.1–AC-05.6 | BR-03, BR-09, BR-12 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-06 | UC-06 | AC-06.1–AC-06.10 | BR-06, BR-07, BR-09, BR-12 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-07 | UC-07 | AC-07.1–AC-07.10 | BR-08, BR-09, BR-12, BR-13, BR-14, BR-19, BR-25 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-08 | UC-08 | AC-08.1–AC-08.8 | BR-02, BR-09, BR-13, BR-15, BR-19 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-09 | UC-09 | AC-09.1–AC-09.6 | BR-09, BR-12, BR-24 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
-| US-10 | UC-10 | AC-10.1–AC-10.11 | BR-01, BR-09, BR-11, BR-12, BR-17, BR-18, BR-31, BR-33 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-11 | UC-11 | AC-11.1–AC-11.9 | BR-01, BR-17, BR-18, BR-21, BR-27, BR-33 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
-| US-12 | UC-12 | AC-12.1–AC-12.8 | BR-12, BR-23, BR-27, BR-33 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-13 | UC-13 | AC-13.1–AC-13.8 | BR-01, BR-09, BR-12, BR-14, BR-24, BR-27, BR-33 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-14 | UC-14 | AC-14.1–AC-14.10 | BR-09, BR-12, BR-27, BR-28 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-15 | UC-15 | AC-15.1–AC-15.12 | BR-09, BR-10, BR-11, BR-12, BR-24, BR-29, BR-30 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-16 | UC-16 | AC-16.1–AC-16.15 | BR-04, BR-05, BR-06, BR-08, BR-12, BR-14, BR-15, BR-16, BR-17, BR-21, BR-24, BR-27, BR-28, BR-30, BR-33 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-17 | UC-17 | AC-17.1–AC-17.9 | BR-09, BR-12 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-18 | UC-18 | AC-18.1–AC-18.10 | BR-05, BR-06, BR-09, BR-12, BR-25, BR-26, BR-31, BR-33, BR-34, BR-37 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-19 | UC-19 | AC-19.1–AC-19.10 | BR-01, BR-09, BR-25, BR-26, BR-27, BR-31 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
-| US-20 | UC-20 | AC-20.1–AC-20.9 | BR-09, BR-11, BR-12, BR-25, BR-26, BR-31, BR-34 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
-| US-21 | UC-21 | AC-21.1–AC-21.9 | BR-08, BR-12, BR-34, BR-37 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-22 | UC-22 | AC-22.1–AC-22.9 | BR-12, BR-21, BR-34 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
-| US-23 | UC-23 | AC-23.1–AC-23.10 | BR-02, BR-03, BR-09, BR-10, BR-30, BR-34, BR-35, BR-36, BR-37 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-24 | UC-24 | AC-24.1–AC-24.11 | BR-05, BR-06, BR-07, BR-09, BR-14, BR-30, BR-35, BR-37 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-25 | UC-25 | AC-25.1–AC-25.15 | BR-02, BR-03, BR-09, BR-12, BR-20, BR-30, BR-35, BR-36, BR-37 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-26 | UC-26 | AC-26.1–AC-26.9 | BR-09, BR-12, BR-20, BR-25, BR-32, BR-33, BR-35, BR-37 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
-| US-27 | UC-27 | AC-27.1–AC-27.9 | BR-05, BR-07, BR-09, BR-23 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
-| US-28 | UC-28 | AC-28.1–AC-28.7 | BR-06, BR-09, BR-12, BR-32 | TBD (Step 3) | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
+| US-01 | UC-01 | AC-01.1–AC-01.9 | BR-09, BR-12 | SCR-01, SCR-90 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-02 | UC-02 | AC-02.1–AC-02.8 | BR-02, BR-09, BR-12, BR-36 | SCR-70, SCR-71, SCR-72 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-03 | UC-03 | AC-03.1–AC-03.6 | BR-01, BR-09, BR-12, BR-16, BR-17 | SCR-76, SCR-77 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
+| US-04 | UC-04 | AC-04.1–AC-04.8 | BR-04, BR-07, BR-09, BR-12, BR-16, BR-20 | SCR-73 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-05 | UC-05 | AC-05.1–AC-05.6 | BR-03, BR-09, BR-12 | SCR-74 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-06 | UC-06 | AC-06.1–AC-06.10 | BR-06, BR-07, BR-09, BR-12 | SCR-75, SCR-78, SCR-79 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-07 | UC-07 | AC-07.1–AC-07.10 | BR-08, BR-09, BR-12, BR-13, BR-14, BR-19, BR-25 | SCR-10, SCR-12, SCR-16, SCR-75 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-08 | UC-08 | AC-08.1–AC-08.8 | BR-02, BR-09, BR-13, BR-15, BR-19 | SCR-80, SCR-81, SCR-82 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-09 | UC-09 | AC-09.1–AC-09.6 | BR-09, BR-12, BR-24 | SCR-20, SCR-21 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
+| US-10 | UC-10 | AC-10.1–AC-10.11 | BR-01, BR-09, BR-11, BR-12, BR-17, BR-18, BR-31, BR-33 | SCR-10, SCR-11 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-11 | UC-11 | AC-11.1–AC-11.9 | BR-01, BR-17, BR-18, BR-21, BR-27, BR-33 | SCR-10, SCR-13 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
+| US-12 | UC-12 | AC-12.1–AC-12.8 | BR-12, BR-23, BR-27, BR-33 | SCR-10, SCR-12 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-13 | UC-13 | AC-13.1–AC-13.8 | BR-01, BR-09, BR-12, BR-14, BR-24, BR-27, BR-33 | SCR-10, SCR-12 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-14 | UC-14 | AC-14.1–AC-14.10 | BR-09, BR-12, BR-27, BR-28 | SCR-12 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-15 | UC-15 | AC-15.1–AC-15.12 | BR-09, BR-10, BR-11, BR-12, BR-24, BR-29, BR-30 | SCR-12 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-16 | UC-16 | AC-16.1–AC-16.15 | BR-04, BR-05, BR-06, BR-08, BR-12, BR-14, BR-15, BR-16, BR-17, BR-21, BR-24, BR-27, BR-28, BR-30, BR-33 | SCR-10, SCR-12, SCR-30 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-17 | UC-17 | AC-17.1–AC-17.9 | BR-09, BR-12 | SCR-10, SCR-12 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-18 | UC-18 | AC-18.1–AC-18.10 | BR-05, BR-06, BR-09, BR-12, BR-25, BR-26, BR-31, BR-33, BR-34, BR-37 | SCR-10, SCR-12, SCR-15 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-19 | UC-19 | AC-19.1–AC-19.10 | BR-01, BR-09, BR-25, BR-26, BR-27, BR-31 | SCR-10, SCR-12, SCR-14 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
+| US-20 | UC-20 | AC-20.1–AC-20.9 | BR-09, BR-11, BR-12, BR-25, BR-26, BR-31, BR-34 | SCR-10, SCR-12 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
+| US-21 | UC-21 | AC-21.1–AC-21.9 | BR-08, BR-12, BR-34, BR-37 | SCR-12, SCR-16, SCR-40 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-22 | UC-22 | AC-22.1–AC-22.9 | BR-12, BR-21, BR-34 | SCR-12, SCR-17, SCR-40 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
+| US-23 | UC-23 | AC-23.1–AC-23.10 | BR-02, BR-03, BR-09, BR-10, BR-30, BR-34, BR-35, BR-36, BR-37 | SCR-12, SCR-18, SCR-40 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-24 | UC-24 | AC-24.1–AC-24.11 | BR-05, BR-06, BR-07, BR-09, BR-14, BR-30, BR-35, BR-37 | SCR-12, SCR-30, SCR-31, SCR-32 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-25 | UC-25 | AC-25.1–AC-25.15 | BR-02, BR-03, BR-09, BR-12, BR-20, BR-30, BR-35, BR-36, BR-37 | SCR-50, SCR-51, SCR-52, SCR-53, SCR-54 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-26 | UC-26 | AC-26.1–AC-26.9 | BR-09, BR-12, BR-20, BR-25, BR-32, BR-33, BR-35, BR-37 | SCR-12, SCR-30, SCR-50, SCR-51 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Must |
+| US-27 | UC-27 | AC-27.1–AC-27.9 | BR-05, BR-07, BR-09, BR-23 | SCR-60 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
+| US-28 | UC-28 | AC-28.1–AC-28.7 | BR-06, BR-09, BR-12, BR-32 | SCR-61 | TBD (Step 6) | TBD (Step 5) | TBD (Step 7) | Should |
 
 ## Module traceability
 
@@ -110,4 +110,4 @@ Links the decisions of Step 1 that shape the use cases to the rules and criteria
 | D-25 Non-cash payment | BR-32 | US-26, US-28 |
 | D-26 BR-01 keys on the tax code | BR-01, BR-31 | US-10, US-13, US-19 |
 
-**Related:** [Research](../01-research/README.md) · [Use cases and user stories](../02-usecases-userstories/README.md) · [Business rules](../requirements/business-rules.md)
+**Related:** [Research](../01-research/README.md) · [Use cases and user stories](../02-usecases-userstories/README.md) · [Information architecture](../03-information-architecture/README.md) · [Business rules](../requirements/business-rules.md)
