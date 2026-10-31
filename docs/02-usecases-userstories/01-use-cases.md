@@ -11,8 +11,8 @@ Every finance user belongs to one entity and has one role (D-13, DF-14). An Admi
 | Role | Display name in UI | Description |
 |---|---|---|
 | — | User (not shown) | Abstract actor: anyone with an account. It groups the use cases all roles share and is not a role of its own. |
-| `AP_ACCOUNTANT` | AP Accountant | Main user, one entity. Uploads invoices, creates recurring profiles, confirms fields read from a foreign PDF, resolves exceptions, sends supplier requests, runs the sample check. |
-| `CHIEF_ACCOUNTANT` | Chief Accountant | One entity. Decides tax-risk holds and foreign tax duties, and signs payment requests first. |
+| `AP_ACCOUNTANT` | AP Accountant | Main user, one entity. Uploads XML invoices, creates recurring profiles, resolves exceptions, sends supplier requests, runs the sample check. |
+| `CHIEF_ACCOUNTANT` | Chief Accountant | One entity. Decides tax-risk holds and signs payment requests first. |
 | `PAYMENT_APPROVER` | Payment Approver | A department head or the CFO, one entity, at a level set in the approval matrix. Signs consolidated payment requests and approves single exceptions. |
 | `ADMIN` (scope Entity) | Entity Admin | Administrator of one entity. Manages the entity's users, policy, and approval matrix inside the group limits. |
 | `ADMIN` (scope Group) | Group Admin | Administrator of the whole group. Adds entities, sets group limits, and manages the AI and the automation gates. |
@@ -41,7 +41,7 @@ Every finance user belongs to one entity and has one role (D-13, DF-14). An Admi
 | UC-08 Create PO and Confirm Receipt in ERP Simulator | | | | | | Yes | |
 | UC-09 Manage Recurring Profiles | Own entity | | | | | | |
 | UC-10 Upload XML Invoice | Own entity | | | | | | |
-| UC-11 Upload Foreign PDF and Confirm Fields | Own entity | | | | | | |
+| UC-11 Upload Foreign PDF and Confirm Fields: Removed (D-33), now Advanced W-19 | | | | | | | |
 | UC-12 Classify Invoice Flow | | | | | | | AI Agent |
 | UC-13 Read and Identify Invoice | | | | | | | AI Agent |
 | UC-14 Match Invoice Lines | | | | | | | AI Agent |
@@ -52,7 +52,7 @@ Every finance user belongs to one entity and has one role (D-13, DF-14). An Admi
 | UC-19 Send Correction Request or Data-Fix Notice | Own entity | | | | | | AI Agent drafts |
 | UC-20 Re-check Follow-up Invoice and Close Exception | | | | | | | System |
 | UC-21 Decide on Tax-Risk Hold | | Own entity | | | | | |
-| UC-22 Confirm Foreign Tax Obligations | Attaches documents | Decides | | | | | |
+| UC-22 Confirm Foreign Tax Obligations: Removed (D-33), now Advanced W-20 | | | | | | | |
 | UC-23 Approve Exception Individually | | | Own entity, own level | | | | |
 | UC-24 Review Batch and Perform Sample Check | Own entity | | | | | | AI Agent selects the sample |
 | UC-25 Sign Payment Requests | | Own entity | Own entity, own level | | | | AI Agent summarises |
@@ -64,7 +64,7 @@ Menus and buttons are **not displayed** when the user lacks permission. A direct
 
 ## Use case diagram
 
-Every use case is a separate node, grouped by module inside the system boundary. UC-07, UC-12..UC-16, UC-20, and UC-26 have no human actor: the System, the AI Agent, or the Rule Engine runs them. Thick arrows marked «generalize» point from a child actor to the parent whose use cases it inherits. A Group Admin and an Entity Admin are two scopes of the Administrator. Purple nodes use an LLM.
+Every use case is a separate node, grouped by module inside the system boundary. UC-11 and UC-22 are not drawn: D-33 removed them and their numbers are not reused. UC-07, UC-12..UC-16, UC-20, and UC-26 have no human actor: the System, the AI Agent, or the Rule Engine runs them. Thick arrows marked «generalize» point from a child actor to the parent whose use cases it inherits. A Group Admin and an Entity Admin are two scopes of the Administrator. Purple nodes use an LLM.
 
 ```mermaid
 flowchart LR
@@ -100,7 +100,6 @@ flowchart LR
         subgraph intake["Intake and AI understanding"]
             direction LR
             uc10["UC-10 Upload XML Invoice"]
-            uc11["UC-11 Upload Foreign PDF and Confirm Fields"]
             uc12["UC-12 Classify Invoice Flow"]
             uc13["UC-13 Read and Identify Invoice"]
             uc14["UC-14 Match Invoice Lines"]
@@ -114,7 +113,6 @@ flowchart LR
             uc19["UC-19 Send Correction Request or Data-Fix Notice"]
             uc20["UC-20 Re-check Follow-up Invoice and Close Exception"]
             uc21["UC-21 Decide on Tax-Risk Hold"]
-            uc22["UC-22 Confirm Foreign Tax Obligations"]
             uc23["UC-23 Approve Exception Individually"]
         end
         subgraph batch["Batch and signing"]
@@ -151,14 +149,14 @@ flowchart LR
     groupAdmin --> uc03 & uc06
     entityAdmin --> uc04 & uc05
     demo --> uc08
-    ap --> uc09 & uc10 & uc11 & uc17 & uc18 & uc19 & uc22 & uc24
-    ca --> uc17 & uc21 & uc22 & uc25
+    ap --> uc09 & uc10 & uc17 & uc18 & uc19 & uc24
+    ca --> uc17 & uc21 & uc25
     pa --> uc17 & uc23 & uc25
     ap --> uc27
     ca --> uc27 & uc28
     pa --> uc27
     admin --> uc27 & uc28
-    aiAgent --> uc11 & uc12 & uc13 & uc14 & uc15 & uc19 & uc24 & uc25
+    aiAgent --> uc12 & uc13 & uc14 & uc15 & uc19 & uc24 & uc25
     rules --> uc16
     erp --> uc07
     uc26 --> erp
@@ -169,8 +167,8 @@ flowchart LR
     classDef ai fill:#7b3fbf,color:#fff,stroke:#5a2d8c
     classDef external fill:#666,color:#fff,stroke:#333
     class user,ap,ca,pa,admin,groupAdmin,entityAdmin,demo actor
-    class uc01,uc02,uc03,uc04,uc05,uc06,uc07,uc08,uc09,uc10,uc16,uc17,uc18,uc20,uc21,uc22,uc23,uc26,uc27,uc28 usecase
-    class uc11,uc12,uc13,uc14,uc15,uc19,uc24,uc25 ai
+    class uc01,uc02,uc03,uc04,uc05,uc06,uc07,uc08,uc09,uc10,uc16,uc17,uc18,uc20,uc21,uc23,uc26,uc27,uc28 usecase
+    class uc12,uc13,uc14,uc15,uc19,uc24,uc25 ai
     class aiAgent,rules,erp,mail external
     style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
     style right fill:#fff,stroke:#bbb,stroke-dasharray:5 5
@@ -184,7 +182,6 @@ flowchart LR
 ```mermaid
 flowchart LR
     upXml["UC-10 Upload XML Invoice"]
-    upPdf["UC-11 Upload Foreign PDF and Confirm Fields"]
     classify["UC-12 Classify Invoice Flow"]:::ai
     identify["UC-13 Read and Identify Invoice"]:::ai
     match["UC-14 Match Invoice Lines"]:::ai
@@ -193,7 +190,6 @@ flowchart LR
     resolve["UC-18 Resolve Exception"]
     recheck["UC-20 Re-check Follow-up Invoice and Close Exception"]
     hold["UC-21 Decide on Tax-Risk Hold"]
-    foreign["UC-22 Confirm Foreign Tax Obligations"]
     sync["UC-07 Sync Source Data from ERP"]
     sign["UC-25 Sign Payment Requests"]
     send["UC-26 Send Signed Batch to ERP"]:::shared
@@ -204,15 +200,9 @@ flowchart LR
     upXml -.->|"«include»"| match
     upXml -.->|"«include»"| detect
     upXml -.->|"«include»"| route
-    upPdf -.->|"«include»"| classify
-    upPdf -.->|"«include»"| identify
-    upPdf -.->|"«include»"| match
-    upPdf -.->|"«include»"| detect
-    upPdf -.->|"«include»"| route
     resolve -.->|"re-runs"| route
     recheck -.->|"re-runs"| route
     hold -.->|"re-runs"| route
-    foreign -.->|"re-runs"| route
     sync -.->|"re-runs when a receipt arrives"| route
     sign -.->|"«include»"| send
     send --> erp
@@ -222,15 +212,17 @@ flowchart LR
     classDef external fill:#e8f1fc,color:#123,stroke:#3a7bd5
 ```
 
-A resolved exception, a decision on a hold or on foreign tax duties, a follow-up invoice, and a new receipt each re-run the Rule Engine (UC-16) on the invoice. UC-23 is not a re-run: an exception approved individually becomes a single-invoice payment request in the open batch and is co-signed in UC-25 (DF-03). The simulated tax-risk list is loaded by UC-07 together with the other source data (D-28).
+A resolved exception, a decision on a hold, a follow-up invoice, and a new receipt each re-run the Rule Engine (UC-16) on the invoice. UC-23 is not a re-run: an exception approved individually becomes a single-invoice payment request in the open batch and is co-signed in UC-25 (DF-03). The simulated tax-risk list is loaded by UC-07 together with the other source data (D-28).
+
+The MVP takes XML invoices only (BR-17). Foreign invoices, their tax duties, and PDF reading are Advanced (W-19, W-20); UC-11 and UC-22 were removed by D-33.
 
 ## Use cases by actor
 
 | Actor | Use cases |
 |---|---|
 | User (abstract) | UC-01 Log in and out |
-| AP Accountant | Inherits User · UC-09 Manage recurring profiles · UC-10 Upload XML invoice · UC-11 Upload foreign PDF and confirm fields · UC-17 View invoice worklist and evidence · UC-18 Resolve exception · UC-19 Send correction request or data-fix notice · UC-22 Attach documents for foreign tax duties · UC-24 Review batch and perform sample check · UC-27 View dashboard |
-| Chief Accountant | Inherits User · UC-17 View invoice worklist and evidence · UC-21 Decide on tax-risk hold · UC-22 Confirm foreign tax obligations · UC-25 Sign payment requests · UC-27 View dashboard · UC-28 View audit log |
+| AP Accountant | Inherits User · UC-09 Manage recurring profiles · UC-10 Upload XML invoice · UC-17 View invoice worklist and evidence · UC-18 Resolve exception · UC-19 Send correction request or data-fix notice · UC-24 Review batch and perform sample check · UC-27 View dashboard |
+| Chief Accountant | Inherits User · UC-17 View invoice worklist and evidence · UC-21 Decide on tax-risk hold · UC-25 Sign payment requests · UC-27 View dashboard · UC-28 View audit log |
 | Payment Approver | Inherits User · UC-17 View invoice worklist and evidence · UC-23 Approve exception individually · UC-25 Sign payment requests · UC-27 View dashboard |
 | Administrator | Inherits User · UC-02 Manage users and roles · UC-27 View dashboard · UC-28 View audit log |
 | Entity Admin | Inherits Administrator (own entity) · UC-04 Configure entity policy · UC-05 Configure approval matrix |

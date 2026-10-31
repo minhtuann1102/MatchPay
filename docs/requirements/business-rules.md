@@ -4,12 +4,12 @@
 >
 > Implementation status: NOT STARTED
 
-BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where this page words a rule differently, the change comes from a decision and is named in the rule (D-08, D-24, D-26). BR-32..BR-37 are new. Values marked DF-xx are defaults pending confirmation; see [Step 2 defaults](../02-usecases-userstories/00-decisions.md#defaults-pending-confirmation). The brief's example numbers are the demo configuration of each entity (DF-11); thresholds are parameters set per entity inside the group limits (BR-16). The Related API lines are filled in by Step 6. A rule that spans the MVP and Advanced says which part is which.
+BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where this page words a rule differently, the change comes from a decision and is named in the rule (D-08, D-24, D-26, D-33). BR-32..BR-37 are new. The user's scope change D-33 removed foreign invoices and the cash payment flag from the MVP: BR-21 and BR-32 read "Removed (D-33)" and are carried by the Advanced items W-20 and W-21, and BR-18 is entirely Advanced (W-19, W-09); they keep their number and have no user story. Values marked DF-xx are defaults pending confirmation; see [Step 2 defaults](../02-usecases-userstories/00-decisions.md#defaults-pending-confirmation). The brief's example numbers are the demo configuration of each entity (DF-11); thresholds are parameters set per entity inside the group limits (BR-16). The Related API lines are filled in by Step 6. A rule that spans the MVP and Advanced says which part is which.
 
 ## BR-01 — One entity per document
 
 - **Source:** brief (BR-01), D-26
-- **Related US:** US-03, US-10, US-11, US-13, US-19
+- **Related US:** US-03, US-10, US-13, US-19
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - Every document (order, receipt, acceptance, invoice, payment request) belongs to exactly one entity. Entities are identified by a unique tax code.
@@ -58,7 +58,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
     3. Price and quantity are inside the entity's tolerance, and the quantity does not exceed the quantity received (BR-04, BR-15).
     4. The total is below the entity's batch threshold (BR-16).
     5. The automation gate of the supplier and entity pair is open, and the supplier is not on the tax-risk list unless the Chief Accountant has released this invoice (BR-06, BR-08).
-    6. There is no anomaly and no open tax obligation (BR-10, BR-11, BR-21, BR-24, BR-29, BR-30).
+    6. There is no anomaly (BR-10, BR-11, BR-24, BR-29, BR-30).
   - The Rule Engine uses no LLM. It reads the stored evidence, records every condition with its value (BR-12), and never admits an invoice whose evidence is missing (BR-27).
   - An invoice in a batch can be withdrawn until its payment request is fully signed (DF-07).
   - An invoice with no matching receipt is `Waiting for Goods` (BR-14), and an employee-expense invoice is separated (BR-23); neither is an exception.
@@ -115,7 +115,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 ## BR-10 — Split orders
 
 - **Source:** brief (BR-10), DF-11
-- **Related US:** US-15, US-23
+- **Related US:** US-15, US-16, US-23
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - Several orders from one entity to the same supplier within a short window (example 7 days), each below the approval threshold but together reaching it, are combined. The combined amount decides the approval level (BR-03), which is higher.
@@ -124,7 +124,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 ## BR-11 — No duplicate payment
 
 - **Source:** brief (BR-11), D-09, DF-19
-- **Related US:** US-10, US-15, US-20
+- **Related US:** US-10, US-15, US-16, US-20
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - An invoice with the same supplier, series, and number as an existing invoice is blocked (state `Rejected`). This check covers the whole group (D-09, BR-09).
@@ -134,11 +134,11 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 ## BR-12 — Audit log
 
 - **Source:** brief (BR-12), DF-30
-- **Related US:** US-01, US-02, US-03, US-04, US-05, US-06, US-07, US-09, US-10, US-12, US-13, US-14, US-15, US-16, US-17, US-18, US-20, US-21, US-22, US-25, US-26, US-28
+- **Related US:** US-01, US-02, US-03, US-04, US-05, US-06, US-07, US-09, US-10, US-12, US-13, US-14, US-15, US-16, US-17, US-18, US-20, US-21, US-25, US-26, US-28
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - Every AI decision stores its reason, confidence, method (mapping table, embedding with the signal-fusion model, or LLM), model version, and prompt version.
-  - Every Rule Engine decision stores each condition with its value. Every decision by a person, every signature, every configuration change, every gate change, and every flag (BR-32) stores who and when.
+  - Every Rule Engine decision stores each condition with its value. Every decision by a person, every signature, every configuration change, and every gate change stores who and when.
   - The audit log cannot be edited or deleted through the application. If an entry cannot be written, the action does not complete (DF-30).
 
 ## BR-13 — Goods receipt note
@@ -179,25 +179,27 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 ## BR-17 — Independent source
 
-- **Source:** brief (BR-17), D-08, D-24, DF-04, DF-25
-- **Related US:** US-03, US-10, US-11, US-16
-- **Advanced part:** W-03, medium-trust PDF
+- **Source:** brief (BR-17), D-08, D-24, DF-25, D-33
+- **Related US:** US-03, US-10, US-12, US-16
+- **Advanced part:** W-03, medium-trust PDF; W-19, PDF intake and foreign invoices
 - **Related API:** TBD (Step 6)
 - **Rule:** The Rule Engine admits an invoice only when an independent source confirms the seller, the amount, and the quantity. The brief says that the AI puts the invoice in the batch; this page rewords it according to D-08, because the AI supplies evidence and the Rule Engine decides. A document with no independent source always goes through a person.
   - **MVP part.**
+    - **Only XML e-invoices are accepted (D-33).** A PDF, an image, or any other file that is not XML is rejected at upload with the reason "Only XML e-invoices are accepted in the MVP". The reading of PDF and of images by a multimodal LLM is Advanced (W-19).
     - **High:** an XML invoice with the seller's digital signature and a tax-authority code.
     - **Signed non-coded XML (D-24):** an XML invoice with the seller's digital signature and no tax-authority code, accepted only from sellers in a sector listed in configuration (DF-25; the default list holds electricity). The signature confirms where the invoice came from. A matching recurring profile (BR-24) is the independent source. With no matching profile the invoice goes to an exception. For a **fixed price** the amount must equal the contract. For a **usage-based price** the profile gives only a plausibility check through the BR-24 deviation threshold; it is not an independent confirmation of the amount. This limit is a call for the user to review (O-16).
-    - **Low:** a PDF with no independent source, a scanned image, or a paper document. These never join a batch untouched. A foreign PDF invoice, after the AP Accountant confirms every field, always takes the exception path (DF-04).
-  - **Advanced part (W-03).** A PDF confirmed by an independent source, such as a matching card transaction and subscription profile, may join a batch after the gate opens, with a low amount limit.
+    - **Unsupported: foreign invoice.** A foreign invoice that still arrives, for example an XML whose seller has no Vietnamese tax code, or a foreign supplier invoice that the flow classifier recognises (UC-12), is classified "Unsupported: foreign invoice" and becomes an exception. It cannot be approved individually (D-31) and cannot join a batch. The AP Accountant resolves it by rejecting it with a reason, and it is handled outside the system. This reading of D-33 is a call awaiting user review.
+  - **Advanced part (W-03, W-19).** A PDF confirmed by an independent source, such as a matching card transaction and subscription profile, may join a batch after the gate opens, with a low amount limit (W-03). A PDF, a scanned image, or a paper document with no independent source (Low trust), and a foreign PDF invoice whose fields the AP Accountant confirms, always take the exception path (W-19, DF-04).
 
-## BR-18 — PDF and XML of the same invoice
+## BR-18 — PDF and XML of the same invoice (Advanced)
 
-- **Source:** brief (BR-18)
-- **Related US:** US-10, US-11
+- **Source:** brief (BR-18), D-33
+- **Related US:** none in the MVP; this rule is entirely Advanced and is carried by W-19 and W-09
 - **Related API:** TBD (Step 6)
-- **Rule:**
-  - When the PDF and the XML of one invoice differ in an amount, a quantity, or a tax code, the invoice is flagged as suspected fraud and goes to an exception.
-  - When the original XML is available, the system does not accept the PDF as a data source. An XML invoice whose signature check fails is not used as a source either; it is `Rejected`.
+- **Rule:** *(Advanced, W-19 and W-09; status Advanced, not Removed)*
+  - The MVP accepts XML only (BR-17), so no PDF exists to compare with an XML file.
+  - When PDF intake exists (W-19): if the PDF and the XML of one invoice differ in an amount, a quantity, or a tax code, the invoice is flagged as suspected fraud and goes to an exception.
+  - When the original XML is available, the system does not accept the PDF as a data source. An XML invoice whose signature check fails is not used as a source either; it is `Rejected` (UC-10).
 
 ## BR-19 — Received quantity and acceptance
 
@@ -223,14 +225,14 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 ## BR-21 — Foreign invoices
 
-- **Source:** brief (BR-21), O-07
-- **Related US:** US-11, US-16, US-22
+- **Source:** brief (BR-21), O-07, D-33
+- **Related US:** none; Removed (D-33), now Advanced W-20
 - **Related API:** TBD (Step 6)
-- **Rule:**
+- **Rule:** **Removed (D-33), now Advanced W-20.** The design below is kept for W-20. Nothing here applies to the MVP, which accepts XML only (BR-17); a foreign invoice that still arrives is an "Unsupported: foreign invoice" exception (BR-17).
   - **Foreign service:** payment is blocked until the Chief Accountant records the outcome for foreign contractor tax: the entity handled the tax (payment proof attached), the supplier is registered directly in Vietnam (registration evidence attached; the status of this outcome under Tax Administration Law No. 108/2025/QH15, which Circular 91 guides, is Unverified, O-07), or the tax does not apply (reason recorded).
   - **Imported goods:** the customs declaration and the proof of paying import-stage VAT must be attached before the invoice can join a batch. The AP Accountant attaches the documents.
   - The original currency and the exchange rate are stored.
-  - The MVP only flags and blocks. The AI does not suggest a tax type (W-08).
+  - Advanced W-20 only flags and blocks. The AI does not suggest a tax type (W-08).
 
 ## BR-22 — Subscriptions charged to a card (Advanced)
 
@@ -285,10 +287,10 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 ## BR-27 — Document content is data
 
 - **Source:** brief (BR-27), DF-08
-- **Related US:** US-11, US-12, US-13, US-14, US-16, US-19
+- **Related US:** US-12, US-13, US-14, US-16, US-19
 - **Related API:** TBD (Step 6)
 - **Rule:**
-  - The content of a document (item names, notes, text inside a PDF) is always data and never an instruction.
+  - The content of a document (item names, notes, any text inside the file) is always data and never an instruction.
   - The LLM output must follow a fixed schema. A wrong schema, a timeout, or an unavailable LLM sends the invoice to an exception, and intake never blocks (DF-08).
   - An LLM result never puts an invoice in a batch by itself.
 
@@ -305,7 +307,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 ## BR-29 — Unusual price
 
 - **Source:** brief (BR-29), DF-11, DF-20
-- **Related US:** US-15
+- **Related US:** US-15, US-16
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - The price of each line is compared with the entity's own purchase history. A deviation of more than the threshold (example 20% from the 6-month median) becomes an exception, even when the order, the receipt, and the invoice match each other. This catches an order placed at a high price from the start.
@@ -332,26 +334,25 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 ## BR-32 — Non-cash payment
 
-- **Source:** D-25, [Regulatory context](../01-research/10-regulatory-context.md) L-12
-- **Related US:** US-26, US-28
+- **Source:** D-25, D-33, [Regulatory context](../01-research/10-regulatory-context.md) L-12
+- **Related US:** none; Removed (D-33), now Advanced W-21
 - **Related API:** TBD (Step 6)
-- **Rule:**
+- **Rule:** **Removed (D-33), now Advanced W-21.** The design below is kept for W-21. In the MVP, a signed batch is a non-cash transfer instruction by design (D-11, BR-35), and UC-26 records only the paid status and the payment document reference. The non-cash rule of L-12 stays as regulatory background.
   - A signed batch is a non-cash transfer instruction by design (D-11).
-  - When the Entity ERP returns the paid status, MatchPay records the payment method and the payment document reference returned with it (UC-26).
+  - When the Entity ERP returns the paid status, MatchPay records the payment method and the payment document reference returned with it (W-21).
   - If a recorded payment is cash, and the amount is at or above the configured threshold (VND 5,000,000 including VAT, summing the purchases from one seller on the same day, DF-26), the invoice is flagged with a warning that its VAT deduction is at risk, and the flag is written to the audit log (BR-12).
   - The platform does not block the payment, because the payment happens outside the platform.
 
 ## BR-33 — Invoice lifecycle
 
 - **Source:** Step 2 (new rule)
-- **Related US:** US-10, US-11, US-12, US-13, US-16, US-18, US-26
+- **Related US:** US-10, US-12, US-13, US-16, US-18, US-26
 - **Related API:** TBD (Step 6)
 - **Rule:** An invoice is always in exactly one state, and only the transitions below are allowed. `Rejected`, `Separated`, `Superseded`, and `Paid` are final.
 
 ```mermaid
 stateDiagram-v2
     state "Received" as Received
-    state "Awaiting Field Confirmation" as Awaiting
     state "In Check" as InCheck
     state "Waiting for Goods" as WaitGoods
     state "Separated" as Separated
@@ -364,8 +365,6 @@ stateDiagram-v2
     state "Superseded" as Superseded
 
     [*] --> Received: XML uploaded
-    [*] --> Awaiting: Foreign PDF uploaded
-    Awaiting --> InCheck: AP Accountant confirms every field
     Received --> InCheck: Signature valid
     Received --> Rejected: Signature fails or XML not supported
     InCheck --> Rejected: Tax code mismatch or exact duplicate
@@ -391,8 +390,8 @@ stateDiagram-v2
 | # | From | To | Trigger | Who or what |
 |---|---|---|---|---|
 | V1 | — | `Received` | XML invoice uploaded and stored unchanged with a hash | AP Accountant (UC-10) |
-| V2 | — | `Awaiting Field Confirmation` | Foreign PDF uploaded and its fields read | AP Accountant (UC-11), AI Agent |
-| V3 | `Awaiting Field Confirmation` | `In Check` | Every field confirmed | AP Accountant |
+| V2 | — | — | Removed (D-33). The foreign PDF path moved to W-19 | — |
+| V3 | — | — | Removed (D-33). The foreign PDF path moved to W-19 | — |
 | V4 | `Received` | `In Check` | Signature check passed and schema version supported | System |
 | V5 | `Received` | `Rejected` | Signature check failed, or XML not well-formed or not supported | System |
 | V6 | `In Check` | `Rejected` | Buyer tax code mismatch (BR-01) or exact duplicate (BR-11) | Rule Engine |
@@ -407,13 +406,15 @@ stateDiagram-v2
 | V15 | `In Batch` | `Exception` | Withdrawn: sample-check error, a signer removes or declines, the AP Accountant withdraws, or a risk-list change (BR-08) | AP Accountant, signer, System |
 | V16 | `In Batch` | `Signed` | Its payment request is fully signed (BR-35) | System |
 | V17 | `Signed` | `Sent` | The instruction is sent to the Entity ERP | System |
-| V18 | `Sent` | `Paid` | The ERP returns the paid status (BR-32) | System |
+| V18 | `Sent` | `Paid` | The ERP returns the paid status (UC-26) | System |
 | V19 | `Sent` | `Exception` | The ERP returns a failure | System |
+
+V2 and V3 were removed by D-33 together with the state `Awaiting Field Confirmation`; their numbers are not reused.
 
 ## BR-34 — Exception lifecycle
 
 - **Source:** Step 2 (new rule)
-- **Related US:** US-18, US-20, US-21, US-22, US-23
+- **Related US:** US-18, US-20, US-21, US-23
 - **Related API:** TBD (Step 6)
 - **Rule:** An exception holds one or more reasons and is always in one state. `Closed` is final and carries an outcome. A new problem with the same invoice creates a new exception.
 
@@ -445,7 +446,7 @@ stateDiagram-v2
 | E2 | `Open` | `In Review` | The AP Accountant starts work on it | AP Accountant |
 | E3 | `In Review` | `Waiting for Supplier` | A correction request is sent (UC-19) | AP Accountant |
 | E4 | `In Review` | `Waiting for Data Fix` | A data-fix notice is sent (UC-19) | AP Accountant |
-| E5 | `Open`, `In Review` | `Waiting for Decision` | Routed to the Chief Accountant (tax-risk hold, foreign tax duties) or to the Payment Approver (individual approval) | System, AP Accountant |
+| E5 | `Open`, `In Review` | `Waiting for Decision` | Routed to the Chief Accountant (tax-risk hold) or to the Payment Approver (individual approval) | System, AP Accountant |
 | E6 | `Waiting for Supplier` | `In Review` | A follow-up invoice is linked (UC-20), a reply is recorded, or the reminder date passes | System, AP Accountant |
 | E7 | `Waiting for Data Fix` | `In Review` | A sync brings changed ERP data (UC-07) | System |
 | E8 | `Waiting for Decision` | `In Review` | A decision is recorded | Chief Accountant, Payment Approver |

@@ -15,7 +15,7 @@ Every incoming invoice is first classified into a flow. An invoice with no purch
 | F-01 | Domestic goods | Purchase order + goods receipt note | MVP |
 | F-02 | Domestic services | Purchase order + service acceptance record (confirmed in the system) | MVP |
 | F-03 | Software subscription | Subscription profile + card transaction. When the card is charged first, the invoice is confirmed afterwards and a wrong charge leads to a refund request. | Advanced. In the MVP a fixed-price subscription follows a recurring profile (F-06). |
-| F-04 | Foreign invoice (PDF) | As F-01 or F-02 by type. A person confirms every field. Imported goods need the customs declaration and the proof of paying import-stage VAT. A service needs foreign contractor tax handled before payment. | MVP, "level A": the system flags the tax obligation and blocks payment until the Chief Accountant confirms (BR-21). A suggested tax type is Advanced. |
+| F-04 | Foreign invoice (PDF; Advanced, D-33) | As F-01 or F-02 by type. A person confirms every field. Imported goods need the customs declaration and the proof of paying import-stage VAT. A service needs foreign contractor tax handled before payment. | Advanced (W-19, W-20). The user removed it from the MVP (D-33); the brief had it as "level A". In the MVP a PDF is rejected at upload, and a foreign invoice that still arrives is an "Unsupported: foreign invoice" exception (BR-17). |
 | F-05 | Travel and hotel booked through agents | Approved booking request + trip confirmation | Advanced |
 | F-06 | Recurring invoice without a purchase order (electricity, water, office rent) | Recurring profile (contract, fixed or usage-based price) + the history of earlier periods | MVP |
 | F-07 | Employee expense without a booking request | Separated into a list waiting for a reimbursement file | Classified only; processing is out of scope (BR-23) |
@@ -27,7 +27,7 @@ Invoices from F-07 are not exceptions and are left out of the G-01 denominator (
 
 | Group | Contents | In the demo |
 |---|---|---|
-| Transaction documents | Purchase orders, goods receipt notes, service acceptance records, subscription profiles, invoices | Purchase orders, receipts, and acceptances sync from the simulated ERP; the AP Accountant creates recurring profiles; sample XML and PDF invoices are uploaded |
+| Transaction documents | Purchase orders, goods receipt notes, service acceptance records, subscription profiles, invoices | Purchase orders, receipts, and acceptances sync from the simulated ERP; the AP Accountant creates recurring profiles; sample XML invoices are uploaded |
 | Master data | Entities, suppliers, goods and services, units of measure and their conversions | Syncs from the simulated ERP |
 | Policy configuration | Group limits, approval matrix, tolerances, thresholds, sample-check rate | Set by the Administrator |
 | External data | List of high-risk businesses for tax, card transactions | Simulated. Each risk-list entry carries a source and a date (D-21). |
@@ -43,19 +43,19 @@ The level of trust in the source decides how far an invoice can go without a per
 |---|---|---|
 | High | XML with a digital signature and a tax-authority code | Yes, if all six batch conditions are met |
 | Signed non-coded XML | XML with the seller's digital signature but no tax-authority code, from a sector listed in configuration (electricity is one, L-03). The signature confirms origin. A matching recurring profile is the independent source. | Only with a matching recurring profile and if all six batch conditions are met. Fixed price: the amount must equal the contract. Usage-based price: the profile gives only a plausibility check through the deviation threshold, not independent confirmation of the amount (D-24, O-16). No matching profile: exception. |
-| Medium | PDF confirmed by an independent source (for example a matching card transaction and subscription profile) | Possibly, after the automation gate has opened, with a low amount limit (Advanced) |
-| Low | PDF with no independent source, scanned image, paper document | No |
+| Medium | PDF confirmed by an independent source (for example a matching card transaction and subscription profile). Not accepted in the MVP (D-33). | Possibly, after the automation gate has opened, with a low amount limit (Advanced, W-03) |
+| Low | PDF with no independent source, scanned image, paper document. Not accepted in the MVP: the upload rejects it with "Only XML e-invoices are accepted in the MVP" (BR-17, D-33). | No (Advanced, W-19) |
 
 Two points follow from research:
 
 - **Non-coded XML (D-24).** Under the e-invoice rules in force since 2026-07-01, some consumer-facing sectors, including electricity, may issue invoices without a tax-authority code (L-03). The High level would then never apply to them, so they get their own level, "Signed non-coded XML", in the table above. **Limit, stated plainly:** for a usage-based price the recurring profile is only a plausibility check, not an independent confirmation of the amount, so an invoice of that kind can join a batch with its amount confirmed by nothing but its own history. This is a call for the user to review (O-16).
-- **PDF next to XML (BR-18).** When the original XML can be obtained, the system does not accept the PDF as a data source, because a seller can edit a file and send it by email or Zalo (L-19). When PDF and XML of one invoice differ in an amount, a quantity, or a tax code, the invoice is flagged as suspected fraud.
+- **PDF next to XML (BR-18, Advanced).** In the MVP only XML is accepted, so no PDF is compared. With PDF intake (W-19), when the original XML can be obtained, the system does not accept the PDF as a data source, because a seller can edit a file and send it by email or Zalo (L-19). When PDF and XML of one invoice differ in an amount, a quantity, or a tax code, the invoice is flagged as suspected fraud.
 
-A foreign PDF always has Low or no independent trust in the MVP, so a person confirms every field and the invoice never joins a batch untouched (BR-17).
+The MVP accepts XML only (BR-17, D-33). With PDF intake (W-19), a foreign PDF would have Low or no independent trust, a person would confirm every field, and the invoice would never join a batch untouched.
 
 ## Common document model
 
-Adapters for each source (XML, PDF, ERP) convert everything to one model, so matching and rules are written once. Every document carries:
+Adapters for each source (XML and ERP in the MVP; PDF in Advanced, W-19) convert everything to one model, so matching and rules are written once. Every document carries:
 
 | Field | Meaning |
 |---|---|
@@ -63,7 +63,7 @@ Adapters for each source (XML, PDF, ERP) convert everything to one model, so mat
 | Supplier code | The supplier in the entity's master data |
 | Internal item code | The entity's own item, after matching |
 | Converted unit of measure | The supplier's unit converted to the internal unit (for example 1 carton = 5 reams) |
-| Currency and exchange rate | The original currency and the rate, kept for foreign invoices (BR-21) |
+| Currency and exchange rate | The original currency and the rate. In the MVP every invoice is in VND; the rate matters for foreign invoices (Advanced, W-19, W-20) |
 | Source and trust level | Where the document came from and how far it is trusted |
 
 Purchase orders and receipts are internal documents and already match this model.

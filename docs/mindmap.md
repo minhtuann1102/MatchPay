@@ -35,7 +35,6 @@ mindmap
       Match lines
       Detect anomalies
       Handle exceptions
-      Flag foreign tax duties
       Select the sample
       Prepare the signer
     Controls
@@ -59,6 +58,9 @@ mindmap
       Card subscriptions
       Mid-period batches
       Mobile approval
+      Foreign invoices and PDF intake
+      Foreign tax duties
+      Cash payment flag
     Out of scope
       Real bank payment
       Tax filing

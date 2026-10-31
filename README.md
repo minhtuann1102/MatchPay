@@ -1,8 +1,8 @@
 # MatchPay
 
-MatchPay is a shared platform for a group of several legal entities. AI checks every incoming invoice against its purchase order and goods receipt, and the Rule Engine admits invoices that pass six conditions into a payment batch. Authorised people then sign consolidated payment requests per supplier, many in one action, and only exceptions need to be handled one by one. The goal is to pay the right amount, to the right entity, on time, without losing tax deductions.
+MatchPay is a shared platform for a group of several legal entities. AI checks every incoming invoice against its purchase order and goods receipt, and the Rule Engine admits invoices that pass six conditions into a payment batch. The MVP reads XML e-invoices only; foreign invoices and the cash payment flag are Advanced. Authorised people then sign consolidated payment requests per supplier, many in one action, and only exceptions need to be handled one by one. The goal is to pay the right amount, to the right entity, on time, without losing tax deductions.
 
-AI helps at nine points: it classifies the invoice flow, reads the document, identifies the entity and the order, matches invoice lines, detects anomalies, explains and drafts the handling of exceptions, flags foreign tax duties, selects the sample for the sample check, and summarises the batch for the signer. **The AI provides evidence, the Rule Engine decides, and a person signs and is accountable.** The AI never signs and never sends anything outside the system by itself.
+AI helps at eight points: it classifies the invoice flow, reads the document, identifies the entity and the order, matches invoice lines, detects anomalies, explains and drafts the handling of exceptions, selects the sample for the sample check, and summarises the batch for the signer. **The AI provides evidence, the Rule Engine decides, and a person signs and is accountable.** The AI never signs and never sends anything outside the system by itself.
 
 MatchPay serves the finance teams of a group, not the purchasing or warehouse teams. Those teams keep working in their ERP, and their data is synced in. Examples and sample data use one fictional group, **Calderwood Group**, with three fictional entities. The real source documents (invoices, laws) are Vietnamese; all documentation is written in English. "MatchPay" is a working name (O-01).
 
@@ -37,7 +37,7 @@ Step 1 analyses four problems: manual matching of invoice, order, and receipt (P
 The brief's facts were checked against sources opened on 2026-10-31. Four points matter most:
 
 - **The legal base moved.** The e-invoice decree and circular in force changed on 2026-07-01. This rests on one secondary source (an EY summary); the official texts were not opened. The brief's 2025 sentence about all businesses with revenue of VND 1 billion was wrong and is replaced by a rationale that holds ([Decisions](docs/01-research/00-decisions.md), D-15..D-17).
-- **A tax rule ties payment to deduction.** A purchase of VND 5 million or more keeps its VAT deduction only if it is paid by non-cash means ([Regulatory context](docs/01-research/10-regulatory-context.md)). Step 2 turns this into rule BR-32 (D-25).
+- **A tax rule ties payment to deduction.** A purchase of VND 5 million or more keeps its VAT deduction only if it is paid by non-cash means ([Regulatory context](docs/01-research/10-regulatory-context.md)). It stays as regulatory background and in the "why now" rationale. A rule that flagged cash payments (BR-32, D-25) was removed from the MVP by the user's decision D-33 and is Advanced (W-21); a signed batch is a non-cash transfer instruction by design.
 - **The market gap is still an assumption.** Cost does not support it, Vietnam e-invoice support of international products is unpublished rather than disproven, and data location is a compliance step ([Similar products](docs/01-research/04-similar-products.md)).
 - **Open items remain** for the user, the manager, an accountant, or a lawyer, including the name, the legal effect of policy delegation, and the usage-based non-coded invoices of D-24 ([Decisions](docs/01-research/00-decisions.md), O-01..O-16).
 
@@ -47,7 +47,7 @@ Start with the [Step 1 index](docs/01-research/README.md).
 
 #### 1.3.1 INVEST requirements
 
-The MVP backlog includes 28 user stories, one per use case and numbered like it (US-01 is UC-01). They cover access and configuration, source data, intake and AI understanding, exceptions, the batch with its sample check and signing, and oversight. Before a user story is ready for development, it is checked using the INVEST criteria.
+The MVP backlog includes 26 user stories, one per use case and numbered like it (US-01 is UC-01). The user removed foreign invoices and the cash payment flag from the MVP (D-33), so UC-11, UC-22, US-11, and US-22 are removed and their numbers are not reused. They cover access and configuration, source data, intake and AI understanding, exceptions, the batch with its sample check and signing, and oversight. Before a user story is ready for development, it is checked using the INVEST criteria.
 
 | Criterion | Meaning in MatchPay |
 |---|---|
@@ -62,15 +62,15 @@ The MVP backlog includes 28 user stories, one per use case and numbered like it 
 US-01–US-06   Access and configuration (log in with entity scope, users and roles, entities and group limits,
               entity policy, approval matrix, automation gates)
 US-07–US-09   Source data (sync from the ERP, ERP simulator, recurring profiles)
-US-10–US-16   Intake and AI understanding (XML and foreign PDF upload, flow, identification, line matching,
-              anomalies, the six batch conditions)
+US-10–US-16   Intake and AI understanding (XML upload, flow, identification, line matching,
+              anomalies, the six batch conditions; US-11 removed)
 US-17–US-23   Exceptions (worklist and evidence, resolve, correction requests, follow-up invoices,
-              tax-risk hold, foreign tax duties, individual approval)
+              tax-risk hold, individual approval; US-22 removed)
 US-24–US-26   Batch and signing (sample check, signing of payment requests, sending to the ERP)
 US-27–US-28   Oversight (dashboard, audit log)
 ```
 
-Stories are prioritized with MoSCoW: 20 Must, 8 Should, 0 Could, and 18 Won't (Advanced items W-01..W-18). The complete backlog and per-story INVEST review are in [User Stories (INVEST)](docs/02-usecases-userstories/03-user-stories-invest.md), the Given/When/Then criteria in [Acceptance Criteria](docs/02-usecases-userstories/04-acceptance-criteria.md), and the priorities in [MoSCoW Prioritization](docs/02-usecases-userstories/05-moscow-prioritization.md). The goals G-03, G-04, and G-06 are measured on named evaluation sets and a permissions test suite, defined in the acceptance criteria.
+Stories are prioritized with MoSCoW: 20 Must, 6 Should, 0 Could, and 21 Won't (Advanced items W-01..W-21). The complete backlog and per-story INVEST review are in [User Stories (INVEST)](docs/02-usecases-userstories/03-user-stories-invest.md), the Given/When/Then criteria in [Acceptance Criteria](docs/02-usecases-userstories/04-acceptance-criteria.md), and the priorities in [MoSCoW Prioritization](docs/02-usecases-userstories/05-moscow-prioritization.md). The goals G-03, G-04, and G-06 are measured on named evaluation sets and a permissions test suite, defined in the acceptance criteria.
 
 #### 1.3.2 Use cases
 
@@ -91,8 +91,8 @@ flowchart TB
     subgraph system["MatchPay — System Boundary"]
         direction LR
         userCases["<b>User</b> (any account)<br/><br/>UC-01 Log In and Out"]
-        apCases["<b>AP Accountant</b> (own entity)<br/><br/>UC-09 Manage Recurring Profiles<br/>UC-10 Upload XML Invoice<br/>UC-11 Upload Foreign PDF<br/>UC-17 View Worklist and Evidence<br/>UC-18 Resolve Exception<br/>UC-19 Send Correction Request<br/>UC-24 Review Batch and Sample Check"]
-        chiefCases["<b>Chief Accountant</b> (own entity)<br/><br/>UC-21 Decide on Tax-Risk Hold<br/>UC-22 Confirm Foreign Tax Obligations<br/>UC-25 Sign Payment Requests"]
+        apCases["<b>AP Accountant</b> (own entity)<br/><br/>UC-09 Manage Recurring Profiles<br/>UC-10 Upload XML Invoice<br/>UC-17 View Worklist and Evidence<br/>UC-18 Resolve Exception<br/>UC-19 Send Correction Request<br/>UC-24 Review Batch and Sample Check"]
+        chiefCases["<b>Chief Accountant</b> (own entity)<br/><br/>UC-21 Decide on Tax-Risk Hold<br/>UC-25 Sign Payment Requests"]
         approverCases["<b>Payment Approver</b> (own entity and level)<br/><br/>UC-23 Approve Exception Individually<br/>UC-25 Sign Payment Requests"]
         adminCases["<b>Administrator</b><br/><br/>UC-02 Manage Users and Roles<br/>UC-27 View Dashboard · UC-28 View Audit Log<br/>Entity Admin: UC-04 Entity Policy · UC-05 Approval Matrix<br/>Group Admin: UC-03 Entities and Limits · UC-06 Automation Gates"]
         demoCases["<b>Demo Operator</b> (demo only)<br/><br/>UC-08 Create PO and Confirm Receipt"]
@@ -115,7 +115,7 @@ flowchart TB
     approver --> approverCases
     admin --> adminCases
     demo --> demoCases
-    apCases -.->|"UC-10, UC-11 include UC-12..UC-16"| systemCases
+    apCases -.->|"UC-10 includes UC-12..UC-16"| systemCases
     chiefCases -.->|"UC-25 includes UC-26"| systemCases
     approverCases -.->|"UC-25 includes UC-26"| systemCases
     systemCases -.->|"source data and paid status"| erp
@@ -142,9 +142,9 @@ Thick arrows show actor generalization: every role inherits UC-01 from User, and
 | Capability | AP Accountant | Chief Accountant | Payment Approver | Entity Admin | Group Admin |
 |---|---|---|---|---|---|
 | Log in and out | Yes | Yes | Yes | Yes | Yes |
-| Upload XML and foreign PDF invoices, manage recurring profiles | Own entity | No | No | No | No |
+| Upload XML invoices, manage recurring profiles | Own entity | No | No | No | No |
 | Resolve exceptions, send requests to suppliers, run the sample check | Own entity | No | No | No | No |
-| Decide on tax-risk holds and foreign tax duties | No | Own entity | No | No | No |
+| Decide on tax-risk holds | No | Own entity | No | No | No |
 | Approve a single exception | No | No | Own entity, own level | No | No |
 | Sign payment requests | No | Own entity, first | Own entity, own level, second | No | No |
 | View the invoice worklist and evidence | Own entity | Own entity (read-only) | Own entity (read-only) | No | No |
