@@ -80,6 +80,7 @@ These are in [Step 3 decisions](../03-information-architecture/00-decisions.md).
 
 ## Known gaps
 
+- **Diagram presentation change awaiting review (2026-10-31).** At the user's request, the use case diagram is split into an actor diagram and four module-group diagrams, the sitemap into two diagrams of three actors, and the user flows start from actor nodes with the person icon, with a 👤 actor prefix on every human step (swimlanes were tried and dropped). `tools/check_docs.py` now reads several diagrams per file.
 - **Mermaid diagrams are parsed only by a script outside the repo.** `tools/check_docs.py` does only a structural lint. A script in the session scratchpad (not part of the repo) parses every `mermaid` block with `mermaid.parse` inside headless Chromium; parsing is not rendering, so the look of the diagrams is unchecked. Parse them again after any diagram change. The result of the last run is in the Step 3 report.
 - **Weak legal evidence.** The move to Decree 254/2026 and Circular 91/2026 rests on one EY summary and the official texts were not opened (D-17). D-26 rests on one Sapo summary. The [research log](research-log.md) has every claim, URL, and verdict from Step 1.
 - **SAP, Oracle, Odoo, and FAST were not verified** in [Similar products](../01-research/04-similar-products.md). This need not be pursued, because O-14 is skipped.

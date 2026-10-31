@@ -62,28 +62,57 @@ Every finance user belongs to one entity and has one role (D-13, DF-14). An Admi
 
 Menus and buttons are **not displayed** when the user lacks permission. A direct request without permission is rejected by the server, and an unauthorized page shows an "Access denied" page.
 
-## Use case diagram
+## Use case diagrams
 
-Every use case is a separate node, grouped by module inside the system boundary. UC-11 and UC-22 are not drawn: D-33 removed them and their numbers are not reused. UC-07, UC-12..UC-16, UC-20, and UC-26 have no human actor: the System, the AI Agent, or the Rule Engine runs them. Thick arrows marked «generalize» point from a child actor to the parent whose use cases it inherits. A Group Admin and an Entity Admin are two scopes of the Administrator. Purple nodes use an LLM.
+The model is drawn as one actor diagram and four use case diagrams, one per group of modules, so each picture stays readable. Every use case is a separate node inside the system boundary of exactly one diagram, and the role and use case matrix above stays the source of truth for the links. Human actors stand on the left with the person icon. Systems stand on the right as rounded nodes, and each arrow points from the use case to the system it uses. UC-11 and UC-22 are not drawn: D-33 removed them and their numbers are not reused. UC-07, UC-12..UC-16, UC-20, and UC-26 have no human actor: the System, the AI Agent, or the Rule Engine runs them. The System is the platform itself and has no node of its own. Purple nodes use an LLM.
+
+### Actors and generalization
+
+Thick arrows marked «generalize» point from a child actor to the parent whose use cases it inherits. A Group Admin and an Entity Admin are two scopes of the Administrator.
+
+```mermaid
+flowchart LR
+    ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
+    ca["<span style='font-size:40px'>👤</span><br/><b>Chief Accountant</b>"]
+    pa["<span style='font-size:40px'>👤</span><br/><b>Payment Approver</b>"]
+    demo["<span style='font-size:40px'>👤</span><br/><b>Demo Operator</b>"]
+    entityAdmin["<span style='font-size:40px'>👤</span><br/><b>Entity Admin</b>"]
+    groupAdmin["<span style='font-size:40px'>👤</span><br/><b>Group Admin</b>"]
+    admin["<span style='font-size:40px'>👤</span><br/><b>Administrator</b>"]
+    user["<span style='font-size:40px'>👤</span><br/><b>User</b>"]
+
+    ap ==>|"«generalize»"| user
+    ca ==>|"«generalize»"| user
+    pa ==>|"«generalize»"| user
+    demo ==>|"«generalize»"| user
+    entityAdmin ==>|"«generalize»"| admin
+    groupAdmin ==>|"«generalize»"| admin
+    admin ==>|"«generalize»"| user
+
+    classDef actor fill:none,stroke:none,color:#111
+    class ap,ca,pa,demo,entityAdmin,groupAdmin,admin,user actor
+```
+
+**What the generalization means.** It says only which use cases an actor can start. Every role inherits UC-01 from User. A Group Admin and an Entity Admin inherit UC-02, UC-27, and UC-28 from Administrator, with the narrower or wider scope shown in the matrix above. In the rules and the data, the Administrator is not a finance role: an Administrator never signs, approves, or resolves an invoice.
+
+### Access and configuration (UC-01 to UC-06)
+
+Everyone logs in; the two administrator scopes manage users, entities, policy, the approval matrix, and the automation gates.
 
 ```mermaid
 flowchart LR
     subgraph left["Actors"]
         direction TB
-        user["<b>User</b>"]
-        ap["<b>AP Accountant</b>"]
-        ca["<b>Chief Accountant</b>"]
-        pa["<b>Payment Approver</b>"]
-        admin["<b>Administrator</b>"]
-        groupAdmin["<b>Group Admin</b>"]
-        entityAdmin["<b>Entity Admin</b>"]
-        demo["<b>Demo Operator</b>"]
+        user["<span style='font-size:40px'>👤</span><br/><b>User</b>"]
+        admin["<span style='font-size:40px'>👤</span><br/><b>Administrator</b>"]
+        entityAdmin["<span style='font-size:40px'>👤</span><br/><b>Entity Admin</b>"]
+        groupAdmin["<span style='font-size:40px'>👤</span><br/><b>Group Admin</b>"]
     end
 
-    subgraph system["MatchPay — System Boundary"]
+    subgraph system["System Boundary"]
         direction TB
         subgraph access["Access and configuration"]
-            direction LR
+            direction TB
             uc01["UC-01 Log In and Out"]
             uc02["UC-02 Manage Users and Roles"]
             uc03["UC-03 Manage Entities and Group Limits"]
@@ -91,14 +120,47 @@ flowchart LR
             uc05["UC-05 Configure Approval Matrix"]
             uc06["UC-06 Manage Automation Gates"]
         end
+    end
+
+    admin ==>|"«generalize»"| user
+    entityAdmin ==>|"«generalize»"| admin
+    groupAdmin ==>|"«generalize»"| admin
+
+    user --> uc01
+    admin --> uc02
+    entityAdmin --> uc04 & uc05
+    groupAdmin --> uc03 & uc06
+
+    classDef actor fill:none,stroke:none,color:#111
+    classDef usecase fill:#1168bd,color:#fff,stroke:#0b4f9e
+    class user,admin,entityAdmin,groupAdmin actor
+    class uc01,uc02,uc03,uc04,uc05,uc06 usecase
+    style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
+```
+
+### Source data and intake (UC-07 to UC-10, UC-12 to UC-16)
+
+The Demo Operator creates orders and receipts in the simulator, the AP Accountant adds profiles and uploads XML invoices, and the AI Agent and the Rule Engine do the reading, matching, and routing.
+
+```mermaid
+flowchart LR
+    subgraph left["Actors"]
+        direction TB
+        demo["<span style='font-size:40px'>👤</span><br/><b>Demo Operator</b>"]
+        ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
+    end
+
+    subgraph system["System Boundary"]
+        direction TB
         subgraph source["Source data"]
-            direction LR
+            direction TB
             uc07["UC-07 Sync Source Data from ERP"]
             uc08["UC-08 Create PO and Confirm Receipt in ERP Simulator"]
             uc09["UC-09 Manage Recurring Profiles"]
         end
         subgraph intake["Intake and AI understanding"]
-            direction LR
+            direction TB
             uc10["UC-10 Upload XML Invoice"]
             uc12["UC-12 Classify Invoice Flow"]
             uc13["UC-13 Read and Identify Invoice"]
@@ -106,23 +168,111 @@ flowchart LR
             uc15["UC-15 Detect Anomalies"]
             uc16["UC-16 Evaluate Batch Conditions and Route"]
         end
-        subgraph exceptions["Exceptions"]
-            direction LR
-            uc17["UC-17 View Invoice Worklist and Evidence"]
+    end
+
+    subgraph right["Systems"]
+        direction TB
+        erp(["Entity ERP"])
+        aiAgent(["AI Agent"])
+        rules(["Rule Engine"])
+    end
+
+    demo --> uc08
+    ap --> uc09 & uc10
+    uc07 --> erp
+    uc12 & uc13 & uc14 & uc15 --> aiAgent
+    uc16 --> rules
+
+    classDef actor fill:none,stroke:none,color:#111
+    classDef usecase fill:#1168bd,color:#fff,stroke:#0b4f9e
+    classDef ai fill:#7b3fbf,color:#fff,stroke:#5a2d8c
+    classDef external fill:#666,color:#fff,stroke:#333
+    class demo,ap actor
+    class uc07,uc08,uc09,uc10,uc16 usecase
+    class uc12,uc13,uc14,uc15 ai
+    class erp,aiAgent,rules external
+    style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    style right fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
+```
+
+### Exceptions and decisions (UC-17 to UC-21, UC-23)
+
+The AP Accountant resolves exceptions, the Chief Accountant decides tax-risk holds, and the Payment Approver approves single exceptions. The AI Agent drafts the request, and the Email Service delivers it.
+
+```mermaid
+flowchart LR
+    subgraph left["Actors"]
+        direction TB
+        ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
+        ca["<span style='font-size:40px'>👤</span><br/><b>Chief Accountant</b>"]
+        pa["<span style='font-size:40px'>👤</span><br/><b>Payment Approver</b>"]
+    end
+
+    subgraph system["System Boundary"]
+        direction TB
+        subgraph exceptions["Exceptions and decisions"]
+            direction TB
             uc18["UC-18 Resolve Exception"]
             uc19["UC-19 Send Correction Request or Data-Fix Notice"]
-            uc20["UC-20 Re-check Follow-up Invoice and Close Exception"]
+            uc17["UC-17 View Invoice Worklist and Evidence"]
             uc21["UC-21 Decide on Tax-Risk Hold"]
             uc23["UC-23 Approve Exception Individually"]
+            uc20["UC-20 Re-check Follow-up Invoice and Close Exception"]
         end
+    end
+
+    subgraph right["Systems"]
+        direction TB
+        aiAgent(["AI Agent"])
+        mail(["Email Service"])
+    end
+
+    ap --> uc18 & uc19 & uc17
+    ca --> uc17 & uc21
+    pa --> uc17 & uc23
+    uc19 --> mail
+    uc19 --> aiAgent
+
+    classDef actor fill:none,stroke:none,color:#111
+    classDef usecase fill:#1168bd,color:#fff,stroke:#0b4f9e
+    classDef ai fill:#7b3fbf,color:#fff,stroke:#5a2d8c
+    classDef external fill:#666,color:#fff,stroke:#333
+    class ap,ca,pa actor
+    class uc17,uc18,uc20,uc21,uc23 usecase
+    class uc19 ai
+    class aiAgent,mail external
+    style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    style right fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
+```
+
+UC-20 has no human actor: the System runs it, and it re-runs the Rule Engine (UC-16).
+
+### Batch, signing, and oversight (UC-24 to UC-28)
+
+The AP Accountant reviews the batch, the Chief Accountant and the Payment Approver sign, and the System sends the signed batch to the ERP. The Administrator views the dashboard and the audit log; a Group Admin and an Entity Admin do the same because they inherit from the Administrator (see the actor diagram above, and the matrix for the scope).
+
+```mermaid
+flowchart LR
+    subgraph left["Actors"]
+        direction TB
+        ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
+        ca["<span style='font-size:40px'>👤</span><br/><b>Chief Accountant</b>"]
+        pa["<span style='font-size:40px'>👤</span><br/><b>Payment Approver</b>"]
+        admin["<span style='font-size:40px'>👤</span><br/><b>Administrator</b>"]
+    end
+
+    subgraph system["System Boundary"]
+        direction TB
         subgraph batch["Batch and signing"]
-            direction LR
+            direction TB
             uc24["UC-24 Review Batch and Perform Sample Check"]
             uc25["UC-25 Sign Payment Requests"]
             uc26["UC-26 Send Signed Batch to ERP"]
         end
         subgraph oversight["Oversight"]
-            direction LR
+            direction TB
             uc27["UC-27 View Dashboard"]
             uc28["UC-28 View Audit Log"]
         end
@@ -131,51 +281,30 @@ flowchart LR
     subgraph right["Systems"]
         direction TB
         aiAgent(["AI Agent"])
-        rules(["Rule Engine"])
         erp(["Entity ERP"])
-        mail(["Email Service"])
     end
 
-    ap ==>|"«generalize»"| user
-    ca ==>|"«generalize»"| user
-    pa ==>|"«generalize»"| user
-    admin ==>|"«generalize»"| user
-    demo ==>|"«generalize»"| user
-    groupAdmin ==>|"«generalize»"| admin
-    entityAdmin ==>|"«generalize»"| admin
-
-    user --> uc01
-    admin --> uc02
-    groupAdmin --> uc03 & uc06
-    entityAdmin --> uc04 & uc05
-    demo --> uc08
-    ap --> uc09 & uc10 & uc17 & uc18 & uc19 & uc24
-    ca --> uc17 & uc21 & uc25
-    pa --> uc17 & uc23 & uc25
-    ap --> uc27
-    ca --> uc27 & uc28
-    pa --> uc27
+    ap --> uc24 & uc27
+    ca --> uc25 & uc27 & uc28
+    pa --> uc25 & uc27
     admin --> uc27 & uc28
-    aiAgent --> uc12 & uc13 & uc14 & uc15 & uc19 & uc24 & uc25
-    rules --> uc16
-    erp --> uc07
+    uc24 & uc25 --> aiAgent
     uc26 --> erp
-    uc19 --> mail
 
     classDef actor fill:none,stroke:none,color:#111
     classDef usecase fill:#1168bd,color:#fff,stroke:#0b4f9e
     classDef ai fill:#7b3fbf,color:#fff,stroke:#5a2d8c
     classDef external fill:#666,color:#fff,stroke:#333
-    class user,ap,ca,pa,admin,groupAdmin,entityAdmin,demo actor
-    class uc01,uc02,uc03,uc04,uc05,uc06,uc07,uc08,uc09,uc10,uc16,uc17,uc18,uc20,uc21,uc23,uc26,uc27,uc28 usecase
-    class uc12,uc13,uc14,uc15,uc19,uc24,uc25 ai
-    class aiAgent,rules,erp,mail external
+    class ap,ca,pa,admin actor
+    class uc26,uc27,uc28 usecase
+    class uc24,uc25 ai
+    class aiAgent,erp external
     style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
     style right fill:#fff,stroke:#bbb,stroke-dasharray:5 5
     style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
 ```
 
-**What the generalization means.** It says only which use cases an actor can start. Every role inherits UC-01 from User. A Group Admin and an Entity Admin inherit UC-02, UC-27, and UC-28 from Administrator, with the narrower or wider scope shown in the matrix above. In the rules and the data, the Administrator is not a finance role: an Administrator never signs, approves, or resolves an invoice.
+UC-26 has no human actor: it is part of UC-25 (see below) and the System runs it.
 
 ### Included and extending use cases
 
@@ -193,7 +322,10 @@ flowchart LR
     sync["UC-07 Sync Source Data from ERP"]
     sign["UC-25 Sign Payment Requests"]
     send["UC-26 Send Signed Batch to ERP"]:::shared
-    erp(["Entity ERP"]):::external
+
+    subgraph right["Systems"]
+        erp(["Entity ERP"]):::external
+    end
 
     upXml -.->|"«include»"| classify
     upXml -.->|"«include»"| identify
@@ -210,6 +342,7 @@ flowchart LR
     classDef shared fill:#1168bd,color:#fff,stroke:#0b4884
     classDef ai fill:#7b3fbf,color:#fff,stroke:#5a2d8c
     classDef external fill:#e8f1fc,color:#123,stroke:#3a7bd5
+    style right fill:#fff,stroke:#bbb,stroke-dasharray:5 5
 ```
 
 A resolved exception, a decision on a hold, a follow-up invoice, and a new receipt each re-run the Rule Engine (UC-16) on the invoice. UC-23 is not a re-run: an exception approved individually becomes a single-invoice payment request in the open batch and is co-signed in UC-25 (DF-03). The simulated tax-risk list is loaded by UC-07 together with the other source data (D-28).
