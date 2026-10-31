@@ -957,19 +957,18 @@ UX_FILES = ['README.md', '00-decisions.md', '01-design-system.md', '02-screen-no
 h7 = []
 for f_ in UX_FILES:
     t_ = text.get(UX + f_, '')
-    if '> Design status: MVP — Step 4 of 9, draft for review\n>\n> Implementation status: NOT STARTED' not in t_: h7.append((f_, 'header'))
+    if '> Design status: MVP — Step 4 of 9, approved\n>\n> Implementation status: NOT STARTED' not in t_: h7.append((f_, 'header'))
     if not re.search(r'^\*\*Related:\*\*', t_, re.M): h7.append((f_, 'Related line'))
-print('  Step 4 files with the "draft for review" header and a Related line: %s' % ('all 4' if not h7 else h7))
+print('  Step 4 files with the "approved" header and a Related line: %s' % ('all 4' if not h7 else h7))
 if h7: fail('Step 4 headers')
-# (f) Step 4 decisions: D-42..D-46 and DF-45..DF-52 exist and all await review
+# (f) Step 4 decisions: D-42..D-46 and DF-45..DF-52 exist and are approved
 dec4 = text.get(UX + '00-decisions.md', '')
 st7 = []
 for i_ in ['D-%d' % n_ for n_ in range(42, 47)] + ['DF-%d' % n_ for n_ in range(45, 53)]:
     r_ = row(dec4, i_)
     if not r_: st7.append((i_, 'missing')); continue
-    if r_.strip().strip('|').split('|')[-1].strip() != 'Awaiting user review': st7.append((i_, 'status'))
-    if re.search(r"user'?s? (own )?decision|decided by the user|Approved", r_, re.I): st7.append((i_, 'presented as the user decision'))
-print('  Step 4 decisions D-42..D-46 and defaults DF-45..DF-52 present and awaiting user review: %s' % ('yes' if not st7 else st7))
+    if r_.strip().strip('|').split('|')[-1].strip() != 'Approved with Step 4 (user, 2026-10-31)': st7.append((i_, 'status'))
+print('  Step 4 decisions D-42..D-46 and defaults DF-45..DF-52 present and approved with Step 4: %s' % ('yes' if not st7 else st7))
 if st7: fail('Step 4 decision rows')
 # (g) states: links in the screen notes exist in the wf-bar; data-show names exist in the wf-bar; every wf-bar state has an effect
 bad_state_link = []
