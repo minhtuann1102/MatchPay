@@ -1007,4 +1007,14 @@ print('  data-show or data-hide names not in the wf-bar: %s; wf-bar states with 
 if unknown_state: fail('state name used in the page but not in the wf-bar')
 if dead_state: fail('wf-bar state with no effect')
 
+print('\n== CHECK: README Mermaid blocks match their source documents ==')
+_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None}
+_pool = []
+for _p in _src:
+    _pool += re.findall(r'```mermaid\n(.*?)```', open(_p, encoding='utf-8').read(), re.S)
+_rd = re.findall(r'```mermaid\n(.*?)```', open('README.md', encoding='utf-8').read(), re.S)
+_drift = [i_ + 1 for i_, b_ in enumerate(_rd) if b_ not in _pool]
+print('  README diagrams: %d; not identical to a source block: %s' % (len(_rd), _drift or 'none'))
+if _drift: fail('README diagram drift')
+
 print('\nRESULT:', 'ALL CHECKS PASSED' if not failures else '%d FAILURE(S): %s' % (len(failures), failures))

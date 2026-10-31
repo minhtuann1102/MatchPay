@@ -74,68 +74,233 @@ Stories are prioritized with MoSCoW: 20 Must, 6 Should, 0 Could, and 21 Won't (A
 
 #### 1.3.2 Use cases
 
+The model is drawn as one actor diagram and four use case diagrams, one per group of modules, so each picture stays readable. Human actors carry the person icon; systems are rounded nodes, and purple nodes use an LLM. UC-11 and UC-22 are not drawn (removed by D-33).
+
+Thick arrows marked «generalize» point from a child actor to the parent whose use cases it inherits. A Group Admin and an Entity Admin are two scopes of the Administrator.
+
 ```mermaid
-flowchart TB
-    subgraph roles["Actors"]
-        direction LR
-        user["<b>User</b>"]
-        ap["<b>AP Accountant</b>"]
-        chief["<b>Chief Accountant</b>"]
-        approver["<b>Payment Approver</b>"]
-        admin["<b>Administrator</b>"]
-        groupAdmin["<b>Group Admin</b>"]
-        entityAdmin["<b>Entity Admin</b>"]
-        demo["<b>Demo Operator</b>"]
-    end
-
-    subgraph system["MatchPay — System Boundary"]
-        direction LR
-        userCases["<b>User</b> (any account)<br/><br/>UC-01 Log In and Out"]
-        apCases["<b>AP Accountant</b> (own entity)<br/><br/>UC-09 Manage Recurring Profiles<br/>UC-10 Upload XML Invoice<br/>UC-17 View Worklist and Evidence<br/>UC-18 Resolve Exception<br/>UC-19 Send Correction Request<br/>UC-24 Review Batch and Sample Check"]
-        chiefCases["<b>Chief Accountant</b> (own entity)<br/><br/>UC-21 Decide on Tax-Risk Hold<br/>UC-25 Sign Payment Requests"]
-        approverCases["<b>Payment Approver</b> (own entity and level)<br/><br/>UC-23 Approve Exception Individually<br/>UC-25 Sign Payment Requests"]
-        adminCases["<b>Administrator</b><br/><br/>UC-02 Manage Users and Roles<br/>UC-27 View Dashboard · UC-28 View Audit Log<br/>Entity Admin: UC-04 Entity Policy · UC-05 Approval Matrix<br/>Group Admin: UC-03 Entities and Limits · UC-06 Automation Gates"]
-        demoCases["<b>Demo Operator</b> (demo only)<br/><br/>UC-08 Create PO and Confirm Receipt"]
-        systemCases["<b>AI Agent, Rule Engine, System</b> (automatic)<br/><br/>UC-07 Sync Source Data from ERP<br/>UC-12 Classify · UC-13 Identify · UC-14 Match Lines<br/>UC-15 Detect Anomalies · UC-16 Evaluate Conditions<br/>UC-20 Re-check Follow-up Invoice<br/>UC-26 Send Signed Batch to ERP"]
-    end
-
-    erp(["Entity ERP"])
-    mail(["Email Service"])
+flowchart LR
+    ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
+    ca["<span style='font-size:40px'>👤</span><br/><b>Chief Accountant</b>"]
+    pa["<span style='font-size:40px'>👤</span><br/><b>Payment Approver</b>"]
+    demo["<span style='font-size:40px'>👤</span><br/><b>Demo Operator</b>"]
+    entityAdmin["<span style='font-size:40px'>👤</span><br/><b>Entity Admin</b>"]
+    groupAdmin["<span style='font-size:40px'>👤</span><br/><b>Group Admin</b>"]
+    admin["<span style='font-size:40px'>👤</span><br/><b>Administrator</b>"]
+    user["<span style='font-size:40px'>👤</span><br/><b>User</b>"]
 
     ap ==>|"«generalize»"| user
-    chief ==>|"«generalize»"| user
-    approver ==>|"«generalize»"| user
-    admin ==>|"«generalize»"| user
+    ca ==>|"«generalize»"| user
+    pa ==>|"«generalize»"| user
     demo ==>|"«generalize»"| user
-    groupAdmin ==>|"«generalize»"| admin
     entityAdmin ==>|"«generalize»"| admin
-    user --> userCases
-    ap --> apCases
-    chief --> chiefCases
-    approver --> approverCases
-    admin --> adminCases
-    demo --> demoCases
-    apCases -.->|"UC-10 includes UC-12..UC-16"| systemCases
-    chiefCases -.->|"UC-25 includes UC-26"| systemCases
-    approverCases -.->|"UC-25 includes UC-26"| systemCases
-    systemCases -.->|"source data and paid status"| erp
-    apCases -.->|"requests to suppliers"| mail
+    groupAdmin ==>|"«generalize»"| admin
+    admin ==>|"«generalize»"| user
 
     classDef actor fill:none,stroke:none,color:#111
-    classDef external fill:#666,color:#fff,stroke:#333
-    classDef primary fill:#1168bd,color:#fff,stroke:#0b4f9e
-    classDef standard fill:#3a7bd5,color:#fff,stroke:#245fa8
-    classDef ai fill:#7b3fbf,color:#fff,stroke:#5a2d8c
-    class user,ap,chief,approver,admin,groupAdmin,entityAdmin,demo actor
-    class erp,mail external
-    class apCases,chiefCases,approverCases,adminCases primary
-    class userCases,demoCases standard
-    class systemCases ai
-    style roles fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    class ap,ca,pa,demo,entityAdmin,groupAdmin,admin,user actor
+```
+
+Everyone logs in; the two administrator scopes manage users, entities, policy, the approval matrix, and the automation gates.
+
+```mermaid
+flowchart LR
+    subgraph left["Actors"]
+        direction TB
+        user["<span style='font-size:40px'>👤</span><br/><b>User</b>"]
+        admin["<span style='font-size:40px'>👤</span><br/><b>Administrator</b>"]
+        entityAdmin["<span style='font-size:40px'>👤</span><br/><b>Entity Admin</b>"]
+        groupAdmin["<span style='font-size:40px'>👤</span><br/><b>Group Admin</b>"]
+    end
+
+    subgraph system["System Boundary"]
+        direction TB
+        subgraph access["Access and configuration"]
+            direction TB
+            uc01["UC-01 Log In and Out"]
+            uc02["UC-02 Manage Users and Roles"]
+            uc03["UC-03 Manage Entities and Group Limits"]
+            uc04["UC-04 Configure Entity Policy"]
+            uc05["UC-05 Configure Approval Matrix"]
+            uc06["UC-06 Manage Automation Gates"]
+        end
+    end
+
+    admin ==>|"«generalize»"| user
+    entityAdmin ==>|"«generalize»"| admin
+    groupAdmin ==>|"«generalize»"| admin
+
+    user --> uc01
+    admin --> uc02
+    entityAdmin --> uc04 & uc05
+    groupAdmin --> uc03 & uc06
+
+    classDef actor fill:none,stroke:none,color:#111
+    classDef usecase fill:#1168bd,color:#fff,stroke:#0b4f9e
+    class user,admin,entityAdmin,groupAdmin actor
+    class uc01,uc02,uc03,uc04,uc05,uc06 usecase
+    style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
     style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
 ```
 
-Thick arrows show actor generalization: every role inherits UC-01 from User, and a Group Admin and an Entity Admin are two scopes of the Administrator. An Administrator is not a finance role and never signs or approves. For detailed actors and the full use case diagram, see [Actors and Use Cases](docs/02-usecases-userstories/01-use-cases.md); for the flows, see [Use Case Specifications](docs/02-usecases-userstories/02-use-case-specifications.md).
+The Demo Operator creates orders and receipts in the simulator, the AP Accountant adds profiles and uploads XML invoices, and the AI Agent and the Rule Engine do the reading, matching, and routing.
+
+```mermaid
+flowchart LR
+    subgraph left["Actors"]
+        direction TB
+        demo["<span style='font-size:40px'>👤</span><br/><b>Demo Operator</b>"]
+        ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
+    end
+
+    subgraph system["System Boundary"]
+        direction TB
+        subgraph source["Source data"]
+            direction TB
+            uc07["UC-07 Sync Source Data from ERP"]
+            uc08["UC-08 Create PO and Confirm Receipt in ERP Simulator"]
+            uc09["UC-09 Manage Recurring Profiles"]
+        end
+        subgraph intake["Intake and AI understanding"]
+            direction TB
+            uc10["UC-10 Upload XML Invoice"]
+            uc12["UC-12 Classify Invoice Flow"]
+            uc13["UC-13 Read and Identify Invoice"]
+            uc14["UC-14 Match Invoice Lines"]
+            uc15["UC-15 Detect Anomalies"]
+            uc16["UC-16 Evaluate Batch Conditions and Route"]
+        end
+    end
+
+    subgraph right["Systems"]
+        direction TB
+        erp(["Entity ERP"])
+        aiAgent(["AI Agent"])
+        rules(["Rule Engine"])
+    end
+
+    demo --> uc08
+    ap --> uc09 & uc10
+    uc07 --> erp
+    uc12 & uc13 & uc14 & uc15 --> aiAgent
+    uc16 --> rules
+
+    classDef actor fill:none,stroke:none,color:#111
+    classDef usecase fill:#1168bd,color:#fff,stroke:#0b4f9e
+    classDef ai fill:#7b3fbf,color:#fff,stroke:#5a2d8c
+    classDef external fill:#666,color:#fff,stroke:#333
+    class demo,ap actor
+    class uc07,uc08,uc09,uc10,uc16 usecase
+    class uc12,uc13,uc14,uc15 ai
+    class erp,aiAgent,rules external
+    style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    style right fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
+```
+
+The AP Accountant resolves exceptions, the Chief Accountant decides tax-risk holds, and the Payment Approver approves single exceptions. The AI Agent drafts the request, and the Email Service delivers it.
+
+```mermaid
+flowchart LR
+    subgraph left["Actors"]
+        direction TB
+        ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
+        ca["<span style='font-size:40px'>👤</span><br/><b>Chief Accountant</b>"]
+        pa["<span style='font-size:40px'>👤</span><br/><b>Payment Approver</b>"]
+    end
+
+    subgraph system["System Boundary"]
+        direction TB
+        subgraph exceptions["Exceptions and decisions"]
+            direction TB
+            uc18["UC-18 Resolve Exception"]
+            uc19["UC-19 Send Correction Request or Data-Fix Notice"]
+            uc17["UC-17 View Invoice Worklist and Evidence"]
+            uc21["UC-21 Decide on Tax-Risk Hold"]
+            uc23["UC-23 Approve Exception Individually"]
+            uc20["UC-20 Re-check Follow-up Invoice and Close Exception"]
+        end
+    end
+
+    subgraph right["Systems"]
+        direction TB
+        aiAgent(["AI Agent"])
+        mail(["Email Service"])
+    end
+
+    ap --> uc18 & uc19 & uc17
+    ca --> uc17 & uc21
+    pa --> uc17 & uc23
+    uc19 --> mail
+    uc19 --> aiAgent
+
+    classDef actor fill:none,stroke:none,color:#111
+    classDef usecase fill:#1168bd,color:#fff,stroke:#0b4f9e
+    classDef ai fill:#7b3fbf,color:#fff,stroke:#5a2d8c
+    classDef external fill:#666,color:#fff,stroke:#333
+    class ap,ca,pa actor
+    class uc17,uc18,uc20,uc21,uc23 usecase
+    class uc19 ai
+    class aiAgent,mail external
+    style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    style right fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
+```
+
+The AP Accountant reviews the batch, the Chief Accountant and the Payment Approver sign, and the System sends the signed batch to the ERP. The Administrator views the dashboard and the audit log; a Group Admin and an Entity Admin do the same because they inherit from the Administrator (see the actor diagram above, and the matrix for the scope).
+
+```mermaid
+flowchart LR
+    subgraph left["Actors"]
+        direction TB
+        ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
+        ca["<span style='font-size:40px'>👤</span><br/><b>Chief Accountant</b>"]
+        pa["<span style='font-size:40px'>👤</span><br/><b>Payment Approver</b>"]
+        admin["<span style='font-size:40px'>👤</span><br/><b>Administrator</b>"]
+    end
+
+    subgraph system["System Boundary"]
+        direction TB
+        subgraph batch["Batch and signing"]
+            direction TB
+            uc24["UC-24 Review Batch and Perform Sample Check"]
+            uc25["UC-25 Sign Payment Requests"]
+            uc26["UC-26 Send Signed Batch to ERP"]
+        end
+        subgraph oversight["Oversight"]
+            direction TB
+            uc27["UC-27 View Dashboard"]
+            uc28["UC-28 View Audit Log"]
+        end
+    end
+
+    subgraph right["Systems"]
+        direction TB
+        aiAgent(["AI Agent"])
+        erp(["Entity ERP"])
+    end
+
+    ap --> uc24 & uc27
+    ca --> uc25 & uc27 & uc28
+    pa --> uc25 & uc27
+    admin --> uc27 & uc28
+    uc24 & uc25 --> aiAgent
+    uc26 --> erp
+
+    classDef actor fill:none,stroke:none,color:#111
+    classDef usecase fill:#1168bd,color:#fff,stroke:#0b4f9e
+    classDef ai fill:#7b3fbf,color:#fff,stroke:#5a2d8c
+    classDef external fill:#666,color:#fff,stroke:#333
+    class ap,ca,pa,admin actor
+    class uc26,uc27,uc28 usecase
+    class uc24,uc25 ai
+    class aiAgent,erp external
+    style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    style right fill:#fff,stroke:#bbb,stroke-dasharray:5 5
+    style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
+```
+
+An Administrator is not a finance role and never signs or approves. For the actors, the role and use case matrix, and the included and extending use cases, see [Actors and Use Cases](docs/02-usecases-userstories/01-use-cases.md); for the flows, see [Use Case Specifications](docs/02-usecases-userstories/02-use-case-specifications.md).
 
 #### 1.3.3 Roles and permissions
 
@@ -160,6 +325,146 @@ The Demo Operator, who plays the buyer and the warehouse keeper in the ERP simul
 
 Step 3 (approved by the user) places the 26 active stories on 35 screens: 18 pages and 17 modals. SCR-13 and SCR-17 were removed by D-33 and their numbers are not reused. Each role has a left sidebar with only the pages it may open, and a top bar with the entity name, the user, and Log out. Pages are grouped into areas by the roles that use them, and decisions, confirmations, and forms are modals on their parent page. The Rule Engine's work and the other system behaviour has no screen of its own; its results appear on the invoice worklist, the invoice evidence, the batch review, the payment request, and the group overview.
 
+### 2.1 Information architecture
+
+Solid lines connect a parent page to a child page; dashed arrows show which areas each actor uses; purple cards are pages with AI features.
+
+Finance roles: the AP Accountant, the Chief Accountant, and the Payment Approver, with the areas each one uses.
+
+```mermaid
+flowchart TB
+    ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
+    ca["<span style='font-size:40px'>👤</span><br/><b>Chief Accountant</b>"]
+    pa["<span style='font-size:40px'>👤</span><br/><b>Payment Approver</b>"]
+
+    subgraph access["Access"]
+        direction TB
+        scr01["<b>SCR-01 Login</b><br/>• Email, password<br/>• Goes to the role home page"]
+    end
+
+    subgraph prep["AP preparation (AP Accountant)"]
+        direction TB
+        scr20["<b>SCR-20 Recurring Profiles</b><br/>• Profiles, earlier amounts<br/>• Add, deactivate"]
+        scr30["<b>SCR-30 Batch Review</b><br/>• Close batch, AI sample, OK or Error<br/>• Release for signing<br/>• Request and ERP send status"]
+    end
+
+    subgraph invoices["Invoices (AP: full · Chief Accountant, Payment Approver: read-only)"]
+        direction TB
+        scr10["<b>SCR-10 Invoice Worklist</b><br/>• Invoices by state, filters<br/>• Due soon mark, last ERP sync<br/>• Upload XML only (AP)"]
+        scr12["<b>SCR-12 Invoice Detail and Evidence</b><br/>• Document, order, receipt, line matches<br/>• Anomalies, six conditions, history<br/>• AI text labelled AI<br/>• Action panel for the role that must decide"]
+        scr10 --> scr12
+    end
+
+    subgraph decisions["Decisions (Chief Accountant, Payment Approver)"]
+        direction TB
+        scr40["<b>SCR-40 Decision Queue</b><br/>• CA: tax-risk holds<br/>• PA: exceptions at my level<br/>• Each row opens the invoice"]
+    end
+
+    subgraph signing["Signing (Chief Accountant, Payment Approver)"]
+        direction TB
+        scr50["<b>SCR-50 Signing Queue</b><br/>• Requests to sign, select many<br/>• Sign in one action<br/>• ERP status"]
+        scr51["<b>SCR-51 Payment Request Detail</b><br/>• AI summary labelled AI<br/>• Totals, large invoices, flags<br/>• Lines, remove, decline<br/>• Paid status and reference"]
+        scr50 --> scr51
+    end
+
+    subgraph oversight["Oversight"]
+        direction TB
+        scr60["<b>SCR-60 Dashboard</b><br/>• Touchless rate and AI misplacement rate<br/>• Exception backlog by state and age<br/>• Group Admin: per-entity figures only"]
+        scr61["<b>SCR-61 Audit Log</b><br/>• AI, rule, human, signature entries<br/>• Filters, read-only<br/>• Group Admin: group events only"]
+    end
+
+    scr40 --> scr12
+    scr51 --> scr12
+
+    ap -.-> access
+    ap -.-> invoices
+    ap -.-> prep
+    ap -.-> oversight
+    ca -.-> access
+    ca -.-> invoices
+    ca -.-> decisions
+    ca -.-> signing
+    ca -.-> oversight
+    pa -.-> access
+    pa -.-> invoices
+    pa -.-> decisions
+    pa -.-> signing
+    pa -.-> oversight
+
+    classDef actor fill:none,stroke:none,color:#111
+    classDef screen fill:#fff,color:#111,stroke:#1168bd,text-align:left
+    classDef ai fill:#f3ecfb,color:#111,stroke:#7b3fbf,text-align:left
+    class ap,ca,pa actor
+    class scr01,scr10,scr20,scr40,scr50,scr60,scr61 screen
+    class scr12,scr30,scr51 ai
+```
+
+Administration and demo: the Entity Admin, the Group Admin, and the Demo Operator, with the areas each one uses. Access and Oversight are drawn again because the finance roles share them.
+
+```mermaid
+flowchart TB
+    entityAdmin["<span style='font-size:40px'>👤</span><br/><b>Entity Admin</b>"]
+    groupAdmin["<span style='font-size:40px'>👤</span><br/><b>Group Admin</b>"]
+    demo["<span style='font-size:40px'>👤</span><br/><b>Demo Operator</b>"]
+
+    subgraph access["Access"]
+        direction TB
+        scr01["<b>SCR-01 Login</b><br/>• Email, password<br/>• Goes to the role home page"]
+    end
+
+    subgraph oversight["Oversight"]
+        direction TB
+        scr60["<b>SCR-60 Dashboard</b><br/>• Touchless rate and AI misplacement rate<br/>• Exception backlog by state and age<br/>• Group Admin: per-entity figures only"]
+        scr61["<b>SCR-61 Audit Log</b><br/>• AI, rule, human, signature entries<br/>• Filters, read-only<br/>• Group Admin: group events only"]
+    end
+
+    subgraph useradmin["User administration"]
+        direction TB
+        scr70["<b>SCR-70 Users</b><br/>• Users, roles, ERP link<br/>• Create, deactivate<br/>• Group Admin: entity filter"]
+    end
+
+    subgraph entityconfig["Entity configuration (Entity Admin)"]
+        direction TB
+        scr73["<b>SCR-73 Entity Policy</b><br/>• Tolerance, batch threshold<br/>• Sample rate, grouping mode<br/>• Group limit beside each field"]
+        scr74["<b>SCR-74 Approval Matrix</b><br/>• Tiers, levels, approvers<br/>• Gap and overlap errors"]
+    end
+
+    subgraph groupadmin["Group administration (Group Admin)"]
+        direction TB
+        scr75["<b>SCR-75 Group Overview</b><br/>• Entities, open and closed gates<br/>• Gate alerts<br/>• Last ERP sync per entity"]
+        scr76["<b>SCR-76 Entities and Group Limits</b><br/>• Entities, group maximums<br/>• Non-coded invoice sectors"]
+        scr78["<b>SCR-78 Automation Gates</b><br/>• Pair state, compared count<br/>• Accuracy against 98%<br/>• Open or close"]
+    end
+
+    subgraph demoarea["Demo only"]
+        direction TB
+        scr80["<b>SCR-80 ERP Simulator</b><br/>• Entity and persona<br/>• Purchase orders, receipts<br/>• Marked Demo only"]
+    end
+
+
+    entityAdmin -.-> access
+    entityAdmin -.-> oversight
+    entityAdmin -.-> useradmin
+    entityAdmin -.-> entityconfig
+    groupAdmin -.-> access
+    groupAdmin -.-> oversight
+    groupAdmin -.-> useradmin
+    groupAdmin -.-> groupadmin
+    demo -.-> access
+    demo -.-> demoarea
+
+    classDef actor fill:none,stroke:none,color:#111
+    classDef screen fill:#fff,color:#111,stroke:#1168bd,text-align:left
+    classDef ai fill:#f3ecfb,color:#111,stroke:#7b3fbf,text-align:left
+    class entityAdmin,groupAdmin,demo actor
+    class scr01,scr60,scr61,scr70,scr73,scr74,scr75,scr76,scr80 screen
+    class scr78 ai
+```
+
+### 2.2 Screen hierarchy
+
+Login takes each role to its home page (DF-28, D-39, DF-44), as the table below shows. Lists open full detail pages; decisions, forms, and confirmations are modals on their parent page. SCR-13 and SCR-17 were removed by D-33.
+
 | Role | Home page after login (DF-28) | Sidebar pages |
 |---|---|---|
 | AP Accountant | Invoice Worklist | Invoices, Batch, Recurring profiles, Dashboard |
@@ -169,7 +474,7 @@ Step 3 (approved by the user) places the 26 active stories on 35 screens: 18 pag
 | Group Admin | Group Overview | Group overview, Automation gates, Entities and limits, Users, Dashboard, Audit log |
 | Demo Operator | ERP Simulator (demo only) | ERP simulator |
 
-Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with the diagram of areas and page cards. Routes and the page-permission table are in [Routes and Permissions](docs/03-information-architecture/02-routes-and-permissions.md), navigation in [Navigation](docs/03-information-architecture/03-navigation.md), screen IDs and the requirement-to-screen mapping in [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), flows in [Primary User Flows](docs/03-information-architecture/05-user-flows.md), and states in [UI/UX States and Accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md). The calls of this step await review in [Decisions and Defaults](docs/03-information-architecture/00-decisions.md).
+Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with the diagram of areas and page cards. Routes and the page-permission table are in [Routes and Permissions](docs/03-information-architecture/02-routes-and-permissions.md), navigation in [Navigation](docs/03-information-architecture/03-navigation.md), screen IDs and the requirement-to-screen mapping in [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), flows in [Primary User Flows](docs/03-information-architecture/05-user-flows.md), and states in [UI/UX States and Accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md). Only the D-33 adjustments and the diagram presentation await review in [Decisions and Defaults](docs/03-information-architecture/00-decisions.md).
 
 ### 2.3 UI wireframes
 
