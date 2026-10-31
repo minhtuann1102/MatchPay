@@ -52,7 +52,7 @@ US_REMOVED = [u for u in US_ALL if u not in US]
 N_ACTIVE = len(US)
 N_MUST, N_SHOULD = 20, 6
 W_MAX = 21
-D_MAX = 68  # D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67 and D-68 are user decisions on Step 5 gaps
+D_MAX = 72  # D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
 DF_MAX = 60  # DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
@@ -1071,7 +1071,7 @@ else:
     if no_ent or bad_grp or ent_ref: fail('entity_id coverage')
     # (f) every identifier column and every who-column has a ref
     ref_cols = {(r_[0], r_[1]) for r_ in db_refs}
-    SOFT = {('audit_log', 'subject_id'), ('request_signatures', 'signing_action_id'), ('audit_log', 'correlation_id')}
+    SOFT = {('audit_log', 'subject_id'), ('request_signatures', 'signing_action_id'), ('audit_log', 'correlation_id'), ('individual_approvals', 'decision_action_id')}
     no_fk = [(n_, c_) for n_, d_ in db_tables.items() for c_ in d_['cols'] if c_ != 'id' and (c_.endswith('_id') or c_.endswith('_by')) and (n_, c_) not in ref_cols and (n_, c_) not in SOFT]
     print('  columns that end in _id or _by without a ref (allowed: %s): %s' % (sorted(SOFT), no_fk or 'none'))
     if no_fk: fail('identifier column without ref')
@@ -1170,12 +1170,19 @@ else:
     for i_ in ['D-%d' % n_ for n_ in range(47, 67)] + ['DF-%d' % n_ for n_ in range(53, 61)]:
         r_ = row(dec5, i_)
         if not r_: st8.append((i_, 'missing')); continue
-        want_ = 'Approved by the user, 2026-10-31' if i_ == 'DF-60' else 'Awaiting user review'
+        want_ = {'DF-60': 'Approved by the user, 2026-10-31', 'D-53': 'Decided by the user, D-70', 'D-54': 'Decided by the user, D-69', 'D-64': 'Decided by the user, D-72', 'DF-58': 'Decided by the user, D-71'}.get(i_, 'Awaiting user review')
         if r_.strip().strip('|').split('|')[-1].strip() != want_: st8.append((i_, 'status'))
-    for i_ in ('D-67', 'D-68'):
+    for i_ in ('D-67', 'D-68', 'D-69', 'D-70', 'D-71', 'D-72'):
         r_ = row(dec5, i_)
         if not r_ or r_.strip().strip('|').split('|')[-1].strip() != 'User decision, 2026-10-31': st8.append((i_, 'user decision source'))
-        elif 'Call, awaiting user review' not in r_: st8.append((i_, 'call not separated'))
+        elif i_ in ('D-67', 'D-68', 'D-70') and 'Call, awaiting user review' not in r_: st8.append((i_, 'call not separated'))
+    # D-69, D-70: the changed Steps 2-4 record the user decision, and gaps 3 and 5 are resolved
+    for f_, ids_ in (('docs/02-usecases-userstories/00-decisions.md', ('D-69', 'D-70', 'D-72')), ('docs/03-information-architecture/00-decisions.md', ('D-69', 'D-70')), ('docs/04-uiux/00-decisions.md', ('D-69', 'D-70'))):
+        for i_ in ids_:
+            if 'Changed by user decision' not in text.get(f_, '') or i_ not in text.get(f_, ''): st8.append((f_, 'no record of ' + i_))
+    if re.search(r'still need a decision|still open', dec5): st8.append(('05 decisions', 'a gap is still marked open'))
+    if 'become one exception for the CFO level' in ''.join(text.values()): st8.append(('docs', 'split orders still described as one exception'))
+    if re.search(r'becomes a single-invoice payment request in the open batch', ''.join(v_ for k_, v_ in text.items() if '05-database/00-decisions' not in k_)): st8.append(('docs', 'request still created at approval'))
     # D-68: no text may offer moving an invoice to another entity
     for f_, t_ in text.items():
         if f_.startswith('docs/') and re.search(r'correct(s|ing)? the entity|Correct entity|change the entity|correct entity or flow', t_, re.I) and not f_.endswith('00-decisions.md') and 'handoff' not in f_:

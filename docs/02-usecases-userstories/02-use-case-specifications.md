@@ -180,8 +180,8 @@ Removed (D-33). Moved to Advanced as W-20 (foreign tax duties: foreign contracto
 ## UC-23 Approve Exception Individually
 
 - **Actor:** Payment Approver
-- **Main flow:** open an exception awaiting approval at the approver's level → see the evidence → approve, or decline with a reason → an approved exception becomes a single-invoice payment request in the open batch, with the approver's approval recorded (DF-03)
-- **Alternative:** only the categories of D-31 can be approved; a split-order exception needs the level of the combined amount (BR-10); a conflict with the person who created the order or confirmed the receipt blocks the approval (BR-36)
+- **Main flow:** open an exception awaiting approval at the approver's level → see the evidence → approve, or decline with a reason → an approved exception is recorded at once and its invoice is `In Batch`; when the batch is released, a single-invoice payment request is created and waits for the Chief Accountant's co-signature (DF-03, D-69)
+- **Alternative:** only the categories of D-31 can be approved; split-order exceptions are linked, need the level of the combined amount, and are approved or declined all together in one action (BR-10, D-70); a conflict with the person who created the order or confirmed the receipt blocks the approval (BR-36)
 - **Permission:** Payment Approver, own entity, own level only
 - **Result:** the invoice is in the batch and awaits the Chief Accountant's co-signature · **Stories:** US-23
 

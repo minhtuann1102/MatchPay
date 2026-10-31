@@ -100,7 +100,7 @@ Related sources of truth: [matchpay.dbml](matchpay.dbml), [ER diagram](02-er-dia
 | `message_templates` | The three approved request templates, seeded (DF-21). |
 | `correction_requests` | Correction requests, data-fix notices, and reissue requests: the AI draft, the sent text, send status, reply deadline (US-19). |
 | `tax_risk_decisions` | The Chief Accountant's release or rejection of a hold, with a reason (US-21). |
-| `individual_approvals` | The Payment Approver's approval or decline of an exception, with the amount and level judged (US-23). |
+| `individual_approvals` | The Payment Approver's approval or decline of an exception, with the amount and level judged, and a `decision_action_id` shared by the exceptions decided in one action (US-23, D-70). |
 
 ### Batch, signing, and ERP send
 
@@ -262,6 +262,7 @@ These are computed when read and never stored (D-63). Each query is scoped by `e
 | `payment_request_lines.amount` | The invoice total at release, so a request still reads the same if the invoice record is corrected. |
 | `payment_requests.payment_reference`, `paid_at` | The ERP's answer, and a unique index per entity. The same value is on the attempt that received it. |
 | `individual_approvals.required_level_name`, `approval_amount` | The level and the amount the approver judged (D-62). |
+| `individual_approvals.decision_action_id` | The rows written by one approve or decline action; for linked split-order exceptions it proves that all of them were decided together (D-70). |
 | `supplier_entity_stats`, `price_history` | The seed has no paid invoices, and the checks must work from the first day (D-64). |
 | `rule_evaluations.tolerance_pct`, `batch_threshold_vnd`, `anomaly_findings.limit_pct`, `gate_alerts.limit_pct` | The values in force at the decision, so that a later change of the entity policy does not change the explanation (BR-12). |
 | `invoices.holds_key` | The partial unique index of D-51 needs a column to hang on. |
@@ -280,7 +281,7 @@ A model call never runs inside a database transaction, so no lock is held while 
 | Send a correction request | The `correction_requests` status and the exception state change only when the Email Service answered; on failure `send_status = NOT_SENT` and `last_error`, and the exception does not change | — |
 | Tax-risk decision | Version check, `tax_risk_decisions` row, exception state, and for a rejection the invoice state | Check run after a release |
 | Report wrong entity | Version check on the exception (BR-37), a `wrong_entity_reports` row with the traced source and values, an `exception_reasons` row `WRONG_BUYER_TAX_CODE` (source `BUYER_TAX_CODE`) or `WRONG_ENTITY_REPORTED`, the exception in `IN_REVIEW`, the audit entry. `invoices.entity_id` never changes (D-68) | — |
-| Individual approval | Version check on the exception, `individual_approvals` row, exception closed with `APPROVED_INDIVIDUALLY`, invoice `In Batch`, `batch_items` row | — |
+| Individual approval | Version check on the exception, `individual_approvals` row, exception closed with `APPROVED_INDIVIDUALLY`, invoice `In Batch`, `batch_items` row. The payment request is not created here: it is created when the batch is released, with `individual_approval_id` (D-69). For linked split-order exceptions the same transaction does this for every exception of the split finding with one `decision_action_id`, checks every version and the separation of duties on every one, and saves nothing when a check fails; a decline writes a `DECLINED` row for each and returns all of them to the AP Accountant (D-70) | — |
 | Close a batch for review | Version check on the batch, state, sample size, and the `batch_sample_items` rows. The AI selection runs before the transaction; if it fails, the fallback of DF-29 fills the rows and `sample_method = WITHOUT_AI` | — |
 | Mark a sample item | The mark, and for `ERROR` the withdrawal (V15) and, when the alert condition holds, a `gate_alerts` row | — |
 | Release a batch | Version check, no `PENDING` sample row, batch state `In Signing`, the `payment_requests` and `payment_request_lines` with totals, level, and content hash | AI summaries, which the signer's page waits for only as long as it chooses (AC-25.13) |
@@ -328,10 +329,10 @@ The seed is described in DF-56 and uses the sample data of DF-12, DF-33, DF-42, 
 
 - The fictional **Calderwood Group** with three entities and their policies (price tolerance 2%, batch threshold VND 200,000,000 for Calderwood Foods Co., group maximums 5% and VND 300,000,000, sample rate 10%, grouping by supplier), and the users of DF-12 (Alice, Carol, Dan, Fiona, Evan, Gina, Dina).
 - The approval matrix of Calderwood Foods Co.: Department Head below VND 50,000,000 (Dan), CFO from VND 50,000,000 (Fiona).
-- The sector list with electricity (DF-25).
+- The sector list with electricity (DF-25), and the sector of each seller on the ERP supplier data (Sunrise Electric Utility is electricity, D-71).
 - ERP master data, orders, and receipts of the invoices in the wireframes, with the simulator personas (buyer, warehouse keeper, acceptor), and the tax-risk entry for Eastbay Trading with its source and date.
 - Gate pairs and their history as in DF-49 (for example 50 compared with 49 unchanged for Brightfield Paper Ltd and Calderwood Foods Co.), as `gate_comparisons` rows with `is_simulated = true` and no invoice.
-- Price history of at least 3 purchases per item in the last 6 months, the paid-invoice counts per supplier (for example 14 for Brightfield Paper Ltd), and earlier recurring periods for the usage-based electricity profile, as seed rows (DF-42, D-64).
+- Price history of at least 3 purchases per item in the last 6 months, the paid-invoice counts per supplier (for example 14 for Brightfield Paper Ltd), and earlier recurring periods for the usage-based electricity profile, as seed rows (DF-42, D-64, D-72). Where the demo has fewer than 3 paid purchases of an item, the history is seeded.
 - The three message templates approved by the Chief Accountant (DF-21).
 - Sample XML invoices and the October 2026 batch of DF-46 (5 invoices, VND 70,050,000, three requests) for the demo and for ES-04.
 

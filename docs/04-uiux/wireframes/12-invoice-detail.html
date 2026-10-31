@@ -34,6 +34,8 @@
     <li><a href="12-invoice-detail.html?state=approve&amp;role=approver">approve</a></li>
     <li><a href="12-invoice-detail.html?state=approve-modal&amp;role=approver">SCR-18 approve-modal</a></li>
     <li><a href="12-invoice-detail.html?state=approve-blocked&amp;role=approver">approve-blocked</a></li>
+    <li><a href="12-invoice-detail.html?state=approve-split&amp;role=approver">approve-split</a></li>
+    <li><a href="12-invoice-detail.html?state=approve-split-modal&amp;role=approver">SCR-18 approve-split-modal</a></li>
     <li><a href="12-invoice-detail.html?state=foreign&amp;role=ap">foreign</a></li>
     <li><a href="12-invoice-detail.html?state=foreign-reject&amp;role=ap">foreign-reject</a></li>
     <li><a href="12-invoice-detail.html?state=ai-failure&amp;role=ap">ai-failure</a></li>
@@ -52,16 +54,17 @@
     <main class="page">
 
       <nav class="crumbs" aria-label="Breadcrumb">
-        <span data-hide="hold hold-decision approve approve-modal approve-blocked paid" ><a href="10-invoice-worklist.html">Invoices</a></span>
+        <span data-hide="hold hold-decision approve approve-modal approve-blocked approve-split approve-split-modal paid" ><a href="10-invoice-worklist.html">Invoices</a></span>
         <span data-show="hold hold-decision" data-roles="chief"><a href="40-decision-queue.html">Decisions</a></span>
         <span data-show="hold hold-decision" data-roles="ap approver"><a href="10-invoice-worklist.html">Invoices</a></span>
-        <span data-show="approve approve-modal approve-blocked" data-roles="approver"><a href="40-decision-queue.html">Approvals</a></span>
-        <span data-show="approve approve-modal approve-blocked" data-roles="ap chief"><a href="10-invoice-worklist.html">Invoices</a></span>
+        <span data-show="approve approve-modal approve-blocked approve-split approve-split-modal" data-roles="approver"><a href="40-decision-queue.html">Approvals</a></span>
+        <span data-show="approve approve-modal approve-blocked approve-split approve-split-modal" data-roles="ap chief"><a href="10-invoice-worklist.html">Invoices</a></span>
         <span data-show="paid"><a href="50-signing-queue.html" data-roles="chief approver">Signing queue</a></span>
         <svg class="i i-sm"><use href="#i-chevronr"></use></svg>
-        <span aria-current="page" data-hide="hold hold-decision approve approve-modal approve-blocked foreign foreign-reject ai-failure in-batch paid checking">C26TAA-0000123</span>
+        <span aria-current="page" data-hide="hold hold-decision approve approve-modal approve-blocked approve-split approve-split-modal foreign foreign-reject ai-failure in-batch paid checking">C26TAA-0000123</span>
         <span aria-current="page" data-show="hold hold-decision">C26TAA-0000188</span>
         <span aria-current="page" data-show="approve approve-modal approve-blocked">C26TAA-0000151</span>
+        <span aria-current="page" data-show="approve-split approve-split-modal">C26TAA-0000160</span>
         <span aria-current="page" data-show="foreign foreign-reject">TM-2026-0415</span>
         <span aria-current="page" data-show="ai-failure">C26TAA-0000140</span>
         <span aria-current="page" data-show="in-batch">C26TAA-0000098</span>
@@ -349,7 +352,7 @@
           <section class="card" data-roles="approver">
             <div class="card-h"><h2>Individual approval<span class="callout" aria-hidden="true">9</span></h2><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>You decide</span></div>
             <div class="act-sec"><div class="kv"><span>Amount</span><span class="strong">VND 63,800,000</span></div><div class="kv"><span>Level needed</span><span class="strong">CFO</span></div>
-              <p>Approving makes a single-invoice payment request. It still needs the co-signature of the Chief Accountant.</p>
+              <p>Approving records your approval and puts the invoice In Batch. When the batch is released, a single-invoice payment request is created. It needs the co-signature of the Chief Accountant.</p>
               <div class="actions"><button class="btn btn-primary" type="button">Review and decide<span class="callout" aria-hidden="true">10</span></button></div></div>
           </section>
           <div class="notice n-info" data-roles="ap chief"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b data-roles="ap">Waiting for the Payment Approver (CFO level).</b><b data-roles="chief">This invoice does not wait for your decision.</b><span>The evidence is read-only.</span></div></div>
@@ -357,6 +360,56 @@
         <section class="card d-hist"><div class="card-h"><h2>Decision history</h2></div><div class="timeline">
           <div class="tl"><time>31/10/2026 09:02</time><span><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></span><span>Decided Exception: conditions 5 and 6 failed.</span></div>
           <div class="tl"><time>31/10/2026 09:47</time><span><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>Alice</span></span><span>Checked the evidence and sent it for a decision at the CFO level.</span></div>
+        </div></section>
+      </div>
+
+      <!-- ============ CASE C2: individual approval of linked split-order exceptions (D-70) ============ -->
+      <div class="detail-grid" data-show="approve-split approve-split-modal">
+        <section class="card d-head"><div class="card-b stack">
+          <div class="spread"><div class="row"><h1 style="font-size:24px;font-weight:600">C26TAA-0000160</h1><span class="chip c-exc">Exception</span><span class="chip c-wait">Waiting for Decision</span><span class="tagx">Payment Approver</span></div><div class="money strong" style="font-size:20px">VND 20,000,000</div></div>
+          <dl class="dl dl-4">
+            <dt>Supplier</dt><dd>Harbor Cartons Ltd <span class="muted mono">0302233445</span></dd>
+            <dt>Entity</dt><dd>Calderwood Foods Co. <span class="muted mono">0100000011</span></dd>
+            <dt>Invoice date</dt><dd>28/10/2026</dd>
+            <dt>Due date</dt><dd><span class="due">27/11/2026</span></dd>
+            <dt>Flow</dt><dd>Goods with order <span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span></dd>
+            <dt>Approval level</dt><dd><b>CFO</b>: the combined amount VND 53,000,000 is VND 50,000,000 or more</dd>
+          </dl>
+          <div><div class="lbl" style="margin-bottom:4px">Exception reasons</div><span class="reason">Split orders</span></div>
+        </div></section>
+        <div class="d-ev">
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Linked split-order exceptions</h2><span class="row"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="card-b flush"><div class="tbl-wrap"><table class="tbl lines">
+              <thead><tr><th>Invoice</th><th>Order</th><th>Order date</th><th>Exception</th><th class="money">Amount</th></tr></thead>
+              <tbody>
+                <tr><td>C26TAA-0000160 <span class="muted small">this page</span></td><td>PO-CF-1031</td><td>24/10/2026</td><td>Split orders</td><td class="money">VND 20,000,000</td></tr>
+                <tr><td>C26TAA-0000161</td><td>PO-CF-1033</td><td>27/10/2026</td><td>Split orders</td><td class="money">VND 18,000,000</td></tr>
+                <tr><td>C26TAA-0000162</td><td>PO-CF-1036</td><td>30/10/2026</td><td>Split orders</td><td class="money">VND 15,000,000</td></tr>
+              </tbody>
+              <tfoot><tr><td colspan="4">Combined amount. Each invoice is below VND 50,000,000, the combined amount is not.</td><td class="money">VND 53,000,000</td></tr></tfoot></table></div></div>
+          </details>
+          <details class="card panel" open>
+            <summary class="card-h"><h2>Anomaly numbers</h2><span class="row"><span class="au au-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed</span><svg class="i i-chev"><use href="#i-chevron"></use></svg></span></summary>
+            <div class="blk blk-ai"><dl class="dl">
+              <dt>Split orders</dt><dd>Three orders to Harbor Cartons Ltd within 7 days (24/10 to 30/10/2026), each below VND 50,000,000, together <b>VND 53,000,000</b>. The three exceptions are joined by this one finding.</dd>
+              <dt>Order and receipt</dt><dd>Each invoice matches its order and its receipt.</dd>
+              <dt>Supplier</dt><dd>Paid before: 9 invoices. Bank account unchanged.</dd>
+            </dl></div>
+          </details>
+        </div>
+        <aside class="d-act" aria-label="Actions">
+          <section class="card" data-roles="approver">
+            <div class="card-h"><h2>Individual approval, 3 linked exceptions<span class="callout" aria-hidden="true">9</span></h2><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>You decide</span></div>
+            <div class="act-sec"><div class="kv"><span>Combined amount</span><span class="strong">VND 53,000,000</span></div><div class="kv"><span>Level needed</span><span class="strong">CFO</span></div>
+              <p>The three exceptions are decided together. You cannot approve or decline only one. Approving puts the three invoices In Batch; each gets a single-invoice payment request when the batch is released.</p>
+              <div class="actions"><button class="btn btn-primary" type="button">Review and decide all three<span class="callout" aria-hidden="true">10</span></button></div></div>
+          </section>
+          <div class="notice n-info" data-roles="ap chief"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b data-roles="ap">Waiting for the Payment Approver (CFO level), for all three invoices together.</b><b data-roles="chief">This invoice does not wait for your decision.</b><span>The evidence is read-only.</span></div></div>
+        </aside>
+        <section class="card d-hist"><div class="card-h"><h2>Decision history</h2></div><div class="timeline">
+          <div class="tl"><time>31/10/2026 09:10</time><span><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></span><span>Decided Exception for each of the three invoices: condition 6 failed (split orders).</span></div>
+          <div class="tl"><time>31/10/2026 09:52</time><span><span class="au au-person"><svg class="i"><use href="#i-seal"></use></svg>Alice</span></span><span>Checked the evidence and sent the three exceptions for a decision at the CFO level.</span></div>
         </div></section>
       </div>
 
@@ -611,6 +664,23 @@ Calderwood Foods Co., Accounts Payable</textarea>
         <div class="field"><label for="ar">Reason (required to decline)</label><textarea class="textarea" id="ar" style="min-height:64px"></textarea></div>
       </div>
       <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-danger" type="button">Decline</button><button class="btn btn-primary" type="button" data-hide="approve-blocked">Approve</button><button class="btn btn-primary" type="button" aria-disabled="true" data-show="approve-blocked">Approve</button></div>
+    </div>
+  </div>
+
+  <!-- SCR-18 Approve Exception Individually: linked split-order exceptions (D-70) -->
+  <div class="modal-back" data-show="approve-split-modal" role="dialog" aria-modal="true" aria-labelledby="m18g">
+    <div class="modal">
+      <div class="modal-h"><h2 id="m18g">Approve split orders together</h2></div>
+      <div class="modal-b">
+        <dl class="dl"><dt>Supplier</dt><dd>Harbor Cartons Ltd</dd><dt>Combined amount</dt><dd><b>VND 53,000,000</b></dd><dt>Level needed</dt><dd>CFO (VND 50,000,000 or more)</dd><dt>Reason</dt><dd><span class="reason">Split orders</span></dd></dl>
+        <div class="tbl-wrap"><table class="tbl lines">
+          <thead><tr><th>Linked invoice</th><th>Order</th><th class="money">Amount</th></tr></thead>
+          <tbody><tr><td>C26TAA-0000160</td><td>PO-CF-1031</td><td class="money">VND 20,000,000</td></tr><tr><td>C26TAA-0000161</td><td>PO-CF-1033</td><td class="money">VND 18,000,000</td></tr><tr><td>C26TAA-0000162</td><td>PO-CF-1036</td><td class="money">VND 15,000,000</td></tr></tbody>
+          <tfoot><tr><td colspan="2">Combined</td><td class="money">VND 53,000,000</td></tr></tfoot></table></div>
+        <div class="notice n-info"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b>One decision for all three invoices</b><span>You cannot approve or decline only one of them. If you are blocked on one invoice, or one was changed meanwhile, nothing is saved for any of them.</span></div></div>
+        <div class="field"><label for="arg">Reason (required to decline)</label><textarea class="textarea" id="arg" style="min-height:64px"></textarea></div>
+      </div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-danger" type="button">Decline all three</button><button class="btn btn-primary" type="button">Approve all three</button></div>
     </div>
   </div>
 </div>

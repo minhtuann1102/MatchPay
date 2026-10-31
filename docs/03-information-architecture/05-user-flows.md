@@ -107,8 +107,8 @@ flowchart TD
     who -->|"Gate closed, unusual price,<br/>possible duplicate, split orders,<br/>new supplier, changed bank account,<br/>recurring jump"| approver["👤 PA: SCR-40 Decision Queue<br/>SCR-18 at the approver level"]
     hold -->|"Release"| recheck
     hold -->|"Reject"| rejected
-    approver -->|"Approve"| approved(["Closed, outcome Approved individually<br/>single-invoice request, invoice In Batch"])
-    approver -->|"Decline with reason"| detail
+    approver -->|"Approve (split orders:<br/>all linked together)"| approved(["Closed, outcome Approved individually<br/>invoice In Batch, request created at release"])
+    approver -->|"Decline with reason<br/>(split orders: all linked)"| detail
     approver -->|"Conflict of duty<br/>or amount above the level"| blocked["Approval blocked with the reason<br/>another approver is needed"]
 
     detail -.->|"Object changed meanwhile, BR-37"| reload["Nothing saved, input kept<br/>Reload to see the change"]
