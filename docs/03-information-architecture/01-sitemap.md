@@ -9,22 +9,28 @@
 - **Area (box):** a group of pages that the same roles use.
 - **Solid arrow:** parent page → child page (where the child is opened from).
 - **Dashed arrow:** the actor uses the pages in that area. The arrows match the [page-permission table](02-routes-and-permissions.md) exactly.
+- **Two diagrams:** the six actors are split into three finance roles and three administration and demo roles, so every actor stays visible. A page card that appears in both diagrams (SCR-01, SCR-60, SCR-61) has the same ID and content in each.
 - **Purple card:** a page with AI features (SCR-12, SCR-30, SCR-51, SCR-78).
 - Modals, the "Access denied" page, and loading or error states are **not** cards. They are listed in the [screen inventory](04-screen-inventory.md) and the [UI states](06-ui-states-and-accessibility.md).
 - The Demo Operator and the ERP simulator exist only in the demo and carry a visible "Demo only" mark.
+
+Finance roles: the AP Accountant, the Chief Accountant, and the Payment Approver, with the areas each one uses.
 
 ```mermaid
 flowchart TB
     ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
     ca["<span style='font-size:40px'>👤</span><br/><b>Chief Accountant</b>"]
     pa["<span style='font-size:40px'>👤</span><br/><b>Payment Approver</b>"]
-    entityAdmin["<span style='font-size:40px'>👤</span><br/><b>Entity Admin</b>"]
-    groupAdmin["<span style='font-size:40px'>👤</span><br/><b>Group Admin</b>"]
-    demo["<span style='font-size:40px'>👤</span><br/><b>Demo Operator</b>"]
 
     subgraph access["Access"]
         direction TB
         scr01["<b>SCR-01 Login</b><br/>• Email, password<br/>• Goes to the role home page"]
+    end
+
+    subgraph prep["AP preparation (AP Accountant)"]
+        direction TB
+        scr20["<b>SCR-20 Recurring Profiles</b><br/>• Profiles, earlier amounts<br/>• Add, deactivate"]
+        scr30["<b>SCR-30 Batch Review</b><br/>• Close batch, AI sample, OK or Error<br/>• Release for signing<br/>• Request and ERP send status"]
     end
 
     subgraph invoices["Invoices (AP: full · Chief Accountant, Payment Approver: read-only)"]
@@ -32,12 +38,6 @@ flowchart TB
         scr10["<b>SCR-10 Invoice Worklist</b><br/>• Invoices by state, filters<br/>• Due soon mark, last ERP sync<br/>• Upload XML only (AP)"]
         scr12["<b>SCR-12 Invoice Detail and Evidence</b><br/>• Document, order, receipt, line matches<br/>• Anomalies, six conditions, history<br/>• AI text labelled AI<br/>• Action panel for the role that must decide"]
         scr10 --> scr12
-    end
-
-    subgraph prep["AP preparation (AP Accountant)"]
-        direction TB
-        scr20["<b>SCR-20 Recurring Profiles</b><br/>• Profiles, earlier amounts<br/>• Add, deactivate"]
-        scr30["<b>SCR-30 Batch Review</b><br/>• Close batch, AI sample, OK or Error<br/>• Release for signing<br/>• Request and ERP send status"]
     end
 
     subgraph decisions["Decisions (Chief Accountant, Payment Approver)"]
@@ -50,6 +50,51 @@ flowchart TB
         scr50["<b>SCR-50 Signing Queue</b><br/>• Requests to sign, select many<br/>• Sign in one action<br/>• ERP status"]
         scr51["<b>SCR-51 Payment Request Detail</b><br/>• AI summary labelled AI<br/>• Totals, large invoices, flags<br/>• Lines, remove, decline<br/>• Paid status and reference"]
         scr50 --> scr51
+    end
+
+    subgraph oversight["Oversight"]
+        direction TB
+        scr60["<b>SCR-60 Dashboard</b><br/>• Touchless rate and AI misplacement rate<br/>• Exception backlog by state and age<br/>• Group Admin: per-entity figures only"]
+        scr61["<b>SCR-61 Audit Log</b><br/>• AI, rule, human, signature entries<br/>• Filters, read-only<br/>• Group Admin: group events only"]
+    end
+
+    scr40 --> scr12
+    scr51 --> scr12
+
+    ap -.-> access
+    ap -.-> invoices
+    ap -.-> prep
+    ap -.-> oversight
+    ca -.-> access
+    ca -.-> invoices
+    ca -.-> decisions
+    ca -.-> signing
+    ca -.-> oversight
+    pa -.-> access
+    pa -.-> invoices
+    pa -.-> decisions
+    pa -.-> signing
+    pa -.-> oversight
+
+    classDef actor fill:none,stroke:none,color:#111
+    classDef screen fill:#fff,color:#111,stroke:#1168bd,text-align:left
+    classDef ai fill:#f3ecfb,color:#111,stroke:#7b3fbf,text-align:left
+    class ap,ca,pa actor
+    class scr01,scr10,scr20,scr40,scr50,scr60,scr61 screen
+    class scr12,scr30,scr51 ai
+```
+
+Administration and demo: the Entity Admin, the Group Admin, and the Demo Operator, with the areas each one uses. Access and Oversight are drawn again because the finance roles share them.
+
+```mermaid
+flowchart TB
+    entityAdmin["<span style='font-size:40px'>👤</span><br/><b>Entity Admin</b>"]
+    groupAdmin["<span style='font-size:40px'>👤</span><br/><b>Group Admin</b>"]
+    demo["<span style='font-size:40px'>👤</span><br/><b>Demo Operator</b>"]
+
+    subgraph access["Access"]
+        direction TB
+        scr01["<b>SCR-01 Login</b><br/>• Email, password<br/>• Goes to the role home page"]
     end
 
     subgraph oversight["Oversight"]
@@ -81,23 +126,7 @@ flowchart TB
         scr80["<b>SCR-80 ERP Simulator</b><br/>• Entity and persona<br/>• Purchase orders, receipts<br/>• Marked Demo only"]
     end
 
-    scr40 --> scr12
-    scr51 --> scr12
 
-    ap -.-> access
-    ap -.-> invoices
-    ap -.-> prep
-    ap -.-> oversight
-    ca -.-> access
-    ca -.-> invoices
-    ca -.-> decisions
-    ca -.-> signing
-    ca -.-> oversight
-    pa -.-> access
-    pa -.-> invoices
-    pa -.-> decisions
-    pa -.-> signing
-    pa -.-> oversight
     entityAdmin -.-> access
     entityAdmin -.-> oversight
     entityAdmin -.-> useradmin
@@ -112,9 +141,9 @@ flowchart TB
     classDef actor fill:none,stroke:none,color:#111
     classDef screen fill:#fff,color:#111,stroke:#1168bd,text-align:left
     classDef ai fill:#f3ecfb,color:#111,stroke:#7b3fbf,text-align:left
-    class ap,ca,pa,entityAdmin,groupAdmin,demo actor
-    class scr01,scr10,scr20,scr40,scr50,scr60,scr61,scr70,scr73,scr74,scr75,scr76,scr80 screen
-    class scr12,scr30,scr51,scr78 ai
+    class entityAdmin,groupAdmin,demo actor
+    class scr01,scr60,scr61,scr70,scr73,scr74,scr75,scr76,scr80 screen
+    class scr78 ai
 ```
 
 The Access denied page SCR-90 is shown to any role that opens a URL without permission, so it is not drawn. Three pages are reached only from another page: SCR-12 from SCR-10, SCR-40, or SCR-51; SCR-51 from SCR-50. Every other page is reached from the sidebar. All other screens are modals on these pages.

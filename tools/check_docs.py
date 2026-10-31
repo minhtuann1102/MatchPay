@@ -66,12 +66,17 @@ trace = text['docs/traceability/master-traceability.md']
 brf = text['docs/requirements/business-rules.md']
 
 # 2a UC in diagram, matrix, spec
-diagram = re.search(r'```mermaid\n(flowchart LR\n    subgraph left.*?)```', uc_file, re.S).group(1)
+uc_blocks = re.findall(r'```mermaid\n(.*?)```', uc_file[uc_file.index('## Use case diagram'):], re.S)
+uc_split = [b_ for b_ in uc_blocks if 'System Boundary' in b_]  # one block per module group
+uc_actor_dgm = [b_ for b_ in uc_blocks if 'System Boundary' not in b_ and '«generalize»' in b_]
+diagram = '\n'.join(uc_split)
+print('  use case diagrams: %d split by module group, %d actor generalization diagram' % (len(uc_split), len(uc_actor_dgm)))
+if len(uc_split) < 2 or len(uc_actor_dgm) != 1: fail('use case diagram set')
 matrix = uc_file[uc_file.index('## Role'):uc_file.index('## Use case diagram')]
 miss = {'diagram': [], 'matrix': [], 'spec': []}
 for u in UC:
     n = u[3:]
-    if not re.search(r'uc%s\["%s ' % (n, u), diagram): miss['diagram'].append(u)
+    if len(re.findall(r'uc%s\["%s ' % (n, u), diagram)) != 1: miss['diagram'].append(u)  # exactly one split diagram
     if not re.search(r'^\| %s ' % u, matrix, re.M): miss['matrix'].append(u)
     if len(re.findall(r'^## %s ' % u, spec, re.M)) != 1: miss['spec'].append(u)
 for k, v in miss.items():
@@ -507,6 +512,24 @@ for l in diagram.split('\n'):
     m = re.match(r'^\s+(\w+) --> ((?:uc\d\d(?: & )?)+)\s*$', l)
     if m:
         for t_ in re.findall(r'uc\d\d', m.group(2)): edges.add((m.group(1), 'UC-' + t_[2:]))
+    m = re.match(r'^\s+((?:uc\d\d(?: & )?)+) --> (\w+)\s*$', l)  # use case -> system
+    if m:
+        for t_ in re.findall(r'uc\d\d', m.group(1)): edges.add((m.group(2), 'UC-' + t_[2:]))
+# actor and system node rules in every use case diagram and in the sitemap
+ICON_RE = r"^\s+(\w+)\[\"<span style='font-size:40px'>👤</span><br/><b>[^<]+</b>\"\]\s*$"
+actor_bad = []
+for b_ in uc_blocks + re.findall(r'```mermaid\n(.*?)```', text['docs/03-information-architecture/01-sitemap.md'], re.S):
+    cls_actor = set()
+    for m_ in re.finditer(r'^\s+class ([\w,]+) actor\s*$', b_, re.M): cls_actor |= set(m_.group(1).split(','))
+    icon_nodes = {m_.group(1) for m_ in re.finditer(ICON_RE, b_, re.M)}
+    if not cls_actor and not icon_nodes and '«generalize»' not in b_ and 'System Boundary' not in b_ and 'SCR-' not in b_: continue  # include/extend diagram has no actors
+    if cls_actor != icon_nodes or not cls_actor: actor_bad.append(sorted(cls_actor ^ icon_nodes) or 'no actors')
+    sysnodes = {m_.group(1) for m_ in re.finditer(r'^\s+(\w+)\(\["', b_, re.M)}
+    ucnodes = set(re.findall(r'^\s+(uc\d\d)\["', b_, re.M))
+    for m_ in re.finditer(r'^\s+(\w+) --> ((?:uc\d\d(?: & )?)+)\s*$', b_, re.M):
+        if m_.group(1) in sysnodes: actor_bad.append(('system node points into a use case', m_.group(1)))
+print('  actor nodes in the use case diagrams carry the person icon and the actor class; no system points into a use case:', actor_bad or 'yes')
+if actor_bad: fail('actor icon or system edge direction')
 colmap = {'AP Accountant': 'ap', 'Chief Accountant': 'ca', 'Payment Approver': 'pa', 'Entity Admin': 'entityAdmin', 'Group Admin': 'groupAdmin', 'Demo Operator': 'demo'}
 mlines = [l for l in matrix.split('\n') if l.startswith('| UC-') or l.startswith('| Use case')]
 cols = [c.strip() for c in mlines[0].strip('|').split('|')]
@@ -711,28 +734,41 @@ else:
     print('  pages without exactly one route: %s; modals with a route: %s; pages without a permission row: %s; permission rows for non-pages: %s; six role columns: %s' % (
         no_route or 'none', modal_route or 'none', no_perm or 'none', extra_perm or 'none', hdr_ok))
     if no_route or modal_route or no_perm or extra_perm or not hdr_ok: fail('routes or permission table')
-    sm = re.search(r'```mermaid\n(flowchart TB.*?)```', sitemap3, re.S).group(1)
-    node_scr = {}
-    for m in re.finditer(r'^\s+(\w+)\["<b>(SCR-\d\d) ', sm, re.M): node_scr[m.group(1)] = m.group(2)
-    cards = set(node_scr.values())
-    need_cards = {k for k in pages if k not in ('SCR-01', 'SCR-90')}
-    card_bad = sorted(need_cards - cards) + [x + ' (not a page)' for x in sorted(cards) if x not in pages] + [x + ' (SCR-90 is not a card)' for x in cards if x == 'SCR-90']
-    dupcards = [x for x in cards if list(node_scr.values()).count(x) != 1]
-    print('  sitemap cards: %d; page screens missing as cards or cards that are not pages: %s; duplicate cards: %s' % (len(cards), card_bad or 'none', dupcards or 'none'))
-    if card_bad or dupcards: fail('sitemap cards')
-    # (f) dashed edges agree with the permission table
-    area_of_node = {}
-    area = None
-    for l in sm.split('\n'):
-        m = re.match(r'^\s+subgraph (\w+)\[', l)
-        if m: area = m.group(1); continue
-        if re.match(r'^\s+end\s*$', l): area = None; continue
-        if area:
-            m = re.match(r'^\s+(\w+)\["', l)
-            if m: area_of_node[m.group(1)] = area
+    sm_blocks = re.findall(r'```mermaid\n(flowchart TB.*?)```', sitemap3, re.S)
+    print('  sitemap diagrams:', len(sm_blocks))
+    if len(sm_blocks) != 2: fail('sitemap must have two diagrams (finance roles; administration and demo)')
+    node_scr = {}; card_text = {}; dup_in_one = []; area_of_node = {}
+    dashed = set(); solid = set()
     role_node = {'ap': 'AP Accountant', 'ca': 'Chief Accountant', 'pa': 'Payment Approver', 'entityAdmin': 'Entity Admin', 'groupAdmin': 'Group Admin', 'demo': 'Demo Operator'}
+    actors_seen = []
+    for sm in sm_blocks:
+        local = {}
+        for m in re.finditer(r'^\s+(\w+)\["(<b>(SCR-\d\d) [^"]*)"\]', sm, re.M):
+            if m.group(3) in local.values(): dup_in_one.append(m.group(3))
+            local[m.group(1)] = m.group(3)
+            if m.group(1) in node_scr and node_scr[m.group(1)] != m.group(3): dup_in_one.append(m.group(1))
+            node_scr[m.group(1)] = m.group(3)
+            card_text.setdefault(m.group(3), set()).add(m.group(2))
+        area = None
+        for l in sm.split('\n'):
+            m = re.match(r'^\s+subgraph (\w+)\[', l)
+            if m: area = m.group(1); continue
+            if re.match(r'^\s+end\s*$', l): area = None; continue
+            if area:
+                m = re.match(r'^\s+(\w+)\["', l)
+                if m: area_of_node[m.group(1)] = area
+        actors_seen.append(sorted(set(re.findall(r'^\s+(\w+)\["<span', sm, re.M))))
+        dashed |= {(role_node[a], b) for a, b in re.findall(r'^\s+(\w+) -\.-> (\w+)\s*$', sm, re.M) if a in role_node}
+        solid |= {(local[a], local[b]) for a, b in re.findall(r'^\s+(\w+) --> (\w+)\s*$', sm, re.M) if a in local and b in local}
+    cards = set(node_scr.values())
+    need_cards = {k for k in pages if k not in ('SCR-90',)}
+    card_bad = sorted(need_cards - cards) + [x + ' (not a page)' for x in sorted(cards) if x not in pages] + [x + ' (SCR-90 is not a card)' for x in cards if x == 'SCR-90']
+    diff_content = [x for x, v in card_text.items() if len(v) != 1]
+    n_actors = sorted(a_ for l_ in actors_seen for a_ in l_)
+    print('  sitemap cards: %d; page screens missing as cards or cards that are not pages: %s; duplicate cards inside one diagram: %s; cards with different content in two diagrams: %s; actors per diagram: %s' % (
+        len(cards), card_bad or 'none', dup_in_one or 'none', diff_content or 'none', [len(l_) for l_ in actors_seen]))
+    if card_bad or dup_in_one or diff_content or [len(l_) for l_ in actors_seen] != [3, 3] or sorted(role_node) != n_actors: fail('sitemap cards or actors')
     areas = {a for a in area_of_node.values()}
-    dashed = {(role_node[a], b) for a, b in re.findall(r'^\s+(\w+) -\.-> (\w+)\s*$', sm, re.M) if a in role_node}
     expected = set()
     for sid in cards:
         node = [n for n, x in node_scr.items() if x == sid][0]
@@ -741,10 +777,8 @@ else:
             if sid in perm and perm[sid][r_] != '—': expected.add((r_, area_of_node[node]))
     f_bad = sorted(dashed ^ expected)
     unknown_area = sorted({b for _, b in dashed if b not in areas})
-    print('  dashed actor -> area arrows: %d; expected from the permission table: %d; differences: %s; arrows to unknown areas: %s' % (len(dashed), len(expected), f_bad or 'none', unknown_area or 'none'))
+    print('  dashed actor -> area arrows (both diagrams): %d; expected from the permission table: %d; differences: %s; arrows to unknown areas: %s' % (len(dashed), len(expected), f_bad or 'none', unknown_area or 'none'))
     if f_bad or unknown_area: fail('sitemap arrows differ from the permission table')
-    # solid arrows between cards match "Opened from"
-    solid = {(node_scr[a], node_scr[b]) for a, b in re.findall(r'^\s+(\w+) --> (\w+)\s*$', sm, re.M) if a in node_scr and b in node_scr}
     solid_exp = {(p_, k) for k in cards for p_ in scr[k]['from'] if p_ in cards}
     print('  solid parent -> child arrows differ from "Opened from":', sorted(solid ^ solid_exp) or 'none')
     if solid ^ solid_exp: fail('sitemap solid arrows')
@@ -826,5 +860,11 @@ else:
     ia_old = [(f_, n_) for f_ in IA_FILES for n_, l in enumerate(text[IA + f_].split('\n'), 1) if re.search(r'confirm-fields|Awaiting Field Confirmation|Upload foreign PDF', l) and not marks.search(l)]
     print('  Step 3 lines with the removed route, state, or button and no removal marker:', ia_old or 'none')
     if ia_old: fail('Step 3 removed route or state live')
+
+# user flows: each flow starts from at least one actor node with the person icon and the actor class
+fl_blocks = re.findall(r'```mermaid\n(.*?)```', text['docs/03-information-architecture/05-user-flows.md'], re.S)
+fl_bad = [i_ for i_, b_ in enumerate(fl_blocks) if not re.search(r"<span style='font-size:40px'>👤</span><br/><b>[^<]+</b>\"\]:::actor", b_) or 'classDef actor' not in b_]
+print('  user flows: %d; flows without an actor node with the person icon: %s' % (len(fl_blocks), fl_bad or 'none'))
+if fl_bad or len(fl_blocks) != 4: fail('user flow actor nodes')
 
 print('\nRESULT:', 'ALL CHECKS PASSED' if not failures else '%d FAILURE(S): %s' % (len(failures), failures))

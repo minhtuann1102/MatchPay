@@ -125,4 +125,6 @@ These are not the user's words. They fill gaps that the decision leaves open.
 | O-15 | One signature record per request | Chosen as a default in review (BR-20, UC-25); legal confirmation stays open |
 | O-16 | Usage-based non-coded invoices are confirmed only by plausibility | Stated in BR-17; a call for the user to review |
 
+On 2026-10-31 the user asked that the diagrams show the actors as the sample does; the worker split the use case diagram into one actor diagram and four module-group diagrams with human actors on the left and systems on the right. No use case, actor, or link changed. Awaiting user review.
+
 **Related:** [Step index](README.md) · [Step 1 decisions](../01-research/00-decisions.md)
