@@ -80,5 +80,15 @@ Step 3 is approved. On 2026-10-31 the user ruled that no invoice moves between e
 | User flow 2 | A branch "Invoice seems to belong to another entity" is added; the exception stays and follows the wrong-invoice path. | Changed by user decision D-68 |
 | UI states | A row "Wrong entity reported" is added; the list of reasons names the two new reasons. | Changed by user decision D-68 |
 
+## Changed by user decisions D-69 and D-70
+
+On 2026-10-31 the user ruled on the timing of the individual-approval request and on split orders (D-69, D-70, recorded in [Step 5 decisions](../05-database/00-decisions.md#decisions-made-by-the-user)). IDs are unchanged.
+
+| Item | Change | Status |
+|---|---|---|
+| SCR-18 in the inventory | For split orders the modal shows the three linked invoices and the combined amount, with one Approve and one Decline for the group. | Changed by user decision D-70 |
+| User flow 2 | The outcome of Approve reads "invoice In Batch, request created at release"; the Approve and Decline branches say that split orders are decided all together. | Changed by user decisions D-69 and D-70 |
+| UI states | A row "Split-order group" is added. | Changed by user decision D-70 |
+
 
 **Related:** [Step index](README.md) · [Step 2 decisions](../02-usecases-userstories/00-decisions.md) · [Session handoff](../handoff/session-handoff.md)

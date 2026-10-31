@@ -119,7 +119,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - Several orders from one entity to the same supplier within a short window (example 7 days), each below the approval threshold but together reaching it, are combined. The combined amount decides the approval level (BR-03), which is higher.
-  - The invoices of the combined orders become one exception for individual approval by the Payment Approver (UC-23). The window is measured on the order dates.
+  - The invoices of the combined orders become **linked exceptions**, one per invoice, joined by the split-order finding, for individual approval by the Payment Approver (UC-23). The level is set by the combined amount. The approver approves or declines all linked exceptions together in one action; a partial approval is not possible, so no one can approve the invoices one by one to stay under the level (D-70). The window is measured on the order dates.
 
 ## BR-11 — No duplicate payment
 

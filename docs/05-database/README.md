@@ -8,7 +8,7 @@ Step 5 turns the [business rules](../requirements/business-rules.md), the [use c
 
 | File | Content |
 |---|---|
-| [00-decisions.md](00-decisions.md) | Decisions D-47..D-66 and the user decisions D-67 and D-68; defaults DF-53..DF-60; differences from Steps 1 to 4; gaps found in approved steps |
+| [00-decisions.md](00-decisions.md) | Decisions D-47..D-66 and the user decisions D-67..D-72; defaults DF-53..DF-60; differences from Steps 1 to 4; gaps found in approved steps |
 | [01-data-model.md](01-data-model.md) | Tables by group, entity isolation, who created each record, state columns against the BR-33, BR-34, and BR-35 lifecycles, derived values, transaction boundaries, concurrency, duplicate checks, privacy, seed data, stories and their tables, and what is not modelled |
 | [02-er-diagram.md](02-er-diagram.md) | Overview diagram, enums with their UI labels, and detailed ER diagrams by group |
 | [matchpay.dbml](matchpay.dbml) | Schema source of truth in DBML; paste it into dbdiagram.io to view it |

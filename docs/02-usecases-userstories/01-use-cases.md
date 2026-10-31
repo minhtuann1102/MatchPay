@@ -345,7 +345,7 @@ flowchart LR
     style right fill:#fff,stroke:#bbb,stroke-dasharray:5 5
 ```
 
-A resolved exception, a decision on a hold, a follow-up invoice, and a new receipt each re-run the Rule Engine (UC-16) on the invoice. UC-23 is not a re-run: an exception approved individually becomes a single-invoice payment request in the open batch and is co-signed in UC-25 (DF-03). The simulated tax-risk list is loaded by UC-07 together with the other source data (D-28).
+A resolved exception, a decision on a hold, a follow-up invoice, and a new receipt each re-run the Rule Engine (UC-16) on the invoice. UC-23 is not a re-run: an exception approved individually puts its invoice in the open batch, its single-invoice payment request is created when the batch is released, and the Chief Accountant co-signs it in UC-25 (DF-03, D-69). The simulated tax-risk list is loaded by UC-07 together with the other source data (D-28).
 
 The MVP takes XML invoices only (BR-17). Foreign invoices, their tax duties, and PDF reading are Advanced (W-19, W-20); UC-11 and UC-22 were removed by D-33.
 

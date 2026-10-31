@@ -84,7 +84,7 @@ These are not the user's words. They fill gaps that the decision leaves open.
 |---|---|
 | DF-01 | **Signature order:** the Chief Accountant signs a consolidated payment request first, then the Payment Approver. They must be two different people. The preparer of the batch cannot sign (extends BR-02, BR-36). For an individually approved exception (DF-03) the Approver's approval is already recorded and the Chief Accountant co-signs. |
 | DF-02 | **Approval level of a consolidated request** is decided by the request total, not by each invoice, and is recomputed when lines are removed. Per-invoice levels would make grouping a way round the threshold. |
-| DF-03 | **An individually approved exception** becomes a single-invoice payment request in the open batch, with the Approver's signature recorded. The Chief Accountant co-signs it in UC-25. Every invoice still traces to its signature (BR-20). |
+| DF-03 | **An individually approved exception** puts its invoice `In Batch` with the Approver's approval recorded. Its single-invoice payment request is created when the batch is released (BR-35 R1; changed by user decision D-69), and the Chief Accountant co-signs it in UC-25. Every invoice still traces to its signature (BR-20). |
 | DF-04 | Removed (D-33). **Foreign PDF invoices** have low trust. After the AP Accountant confirms every field they always take the exception path and never join a batch untouched. (Moved to Advanced, W-19.) |
 | DF-05 | **New supplier** means no previously paid invoice for that supplier and entity pair. A new supplier and a changed bank account both take the exception path and are flagged on the signing screen (BR-30). |
 | DF-06 | **Sample size** = the sample rate times the number of invoices in the batch, rounded up, with a minimum of 1. An invoice that fails the sample check is withdrawn into exceptions. |
@@ -101,12 +101,12 @@ These are not the user's words. They fill gaps that the decision leaves open.
 | DF-17 | **Shadow-mode accuracy** of a pair = invoices where the person confirmed every AI result unchanged (entity, order, line matches, amounts), divided by invoices compared. |
 | DF-18 | **A period is a calendar month.** The AP Accountant closes the open batch for review; invoices that arrive afterwards go to the next period's batch. Invoice due dates are shown, and an invoice due within 7 days is marked "Due soon". |
 | DF-19 | **Near-duplicate** means the same supplier and entity, the same total, an invoice date within 3 days of the other, and a different invoice number. |
-| DF-20 | **Price history:** the unusual-price check (BR-29) needs at least 3 purchases of the same item by the entity in the last 6 months. With fewer, the check is skipped and the skip is recorded. |
+| DF-20 | **Price history:** the unusual-price check (BR-29) needs at least 3 purchases of the same item by the entity in the last 6 months. A purchase is a paid invoice; where the demo has fewer than 3, the history is seeded (changed by user decision D-72). With fewer, the check is skipped and the skip is recorded. |
 | DF-21 | **Correction requests:** the reply deadline is 5 working days, after which an internal reminder appears for the AP Accountant. Three request templates (correction request, data-fix notice, reissue request) are approved by the Chief Accountant and kept in configuration. |
 | DF-22 | **Attachments** on an exception: up to 5 files of type pdf, jpg, or png, at most 10 MB each, stored unchanged with a hash. After D-33 no MVP story attaches files; the default is kept for the foreign tax documents of W-20. |
 | DF-23 | **Dashboard:** the default range is the current calendar month. A Group Admin sees counts and rates for each entity and no invoice-level data (BR-09). |
 | DF-24 | **Sending to the ERP:** up to 3 attempts, 5 minutes apart. The request number is the idempotency key, so a second send never creates a second payment. |
-| DF-25 | **Sectors allowed to issue non-coded invoices** are listed in group configuration. The default list holds one sector: electricity (D-24). |
+| DF-25 | **Sectors allowed to issue non-coded invoices** are listed in group configuration. The default list holds one sector: electricity (D-24). The sector of a seller comes from the ERP supplier data, seeded in the demo ERP (user decision D-71). |
 | DF-26 | Removed (D-33). **Cash flag threshold:** VND 5,000,000 including VAT, in group configuration (BR-32). (Moved to Advanced, W-21.) |
 | DF-27 | **Versions:** every invoice, exception, batch, and payment request has a version number that changes with each change. An action made from an outdated view is rejected and the user is asked to reload (BR-37). |
 | DF-28 | **Home page after login:** AP Accountant, the invoice worklist; Chief Accountant, the decision queue; Payment Approver, the signing queue; Entity Admin, entity settings; Group Admin, the group overview; Demo Operator, the ERP simulator. |
@@ -129,10 +129,14 @@ On 2026-10-31 the user asked that the diagrams show the actors as the sample doe
 
 ## Changed by user decisions after the first draft
 
-On 2026-10-31 the user ruled on gap 2 found in Step 5 (see [Step 5 decisions](../05-database/00-decisions.md#decisions-made-by-the-user)). The ID is D-68 and it is recorded there, because the gap arose in Step 5. The changes made here keep every ID.
+On 2026-10-31 the user ruled on gaps found in Step 5 (see [Step 5 decisions](../05-database/00-decisions.md#decisions-made-by-the-user)). The IDs are D-68..D-72 and they are recorded there, because the gaps arose in Step 5. The changes made here keep every ID.
 
 | Changed by user decision | What changed in Step 2 |
 |---|---|
 | D-68 | UC-18 and US-18 no longer offer to "correct the entity". The AP Accountant reports a wrong entity, the system traces the mismatch, and the exception follows the wrong-invoice path. AC-18.1 is reworded; AC-18.11 and AC-18.12 are added at the end of the range; AC-13.2 and AC-23.4 name the report; D-31 lists the new reason "Wrong entity reported" (and "Wrong buyer tax code") as not individually approvable. The user said: "No moving between entities. Only allow reporting the error, tracing where the error is, then putting it into an exception like a wrong invoice." The choice of the two reason names and of what the trace compares is a call awaiting user review. |
+| D-69 | AC-23.2, UC-23, DF-03, and the note under the UC-16 diagram: an individually approved exception is recorded at once and its invoice is `In Batch`; the single-invoice payment request is created when the batch is released (BR-35 R1 is unchanged) and goes straight to the Chief Accountant's co-signature (R4). The user chose to fix the wording of AC-23.2 and keep BR-35. |
+| D-70 | BR-10, AC-15.4, AC-23.3, UC-23: split orders become three linked exceptions, one per invoice, joined by the split finding; the combined amount sets the level; the approver approves or declines all of them together. AC-23.11 and AC-23.12 are added at the end of the range. The user said the approver must decide all linked exceptions together, so that nobody can approve piecemeal to dodge the level. The handling of a blocked or changed linked exception in AC-23.12 is a call awaiting user review. |
+| D-71 | DF-25: the seller's sector comes from the ERP supplier data (no change to a requirement). |
+| D-72 | DF-20: a purchase for the price check is a paid invoice, and the demo seeds the history where it has fewer than 3. |
 
 **Related:** [Step index](README.md) · [Step 1 decisions](../01-research/00-decisions.md)

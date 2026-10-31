@@ -829,7 +829,7 @@ Table erp_suppliers {
   erp_ref varchar(50) [not null]
   name varchar(200) [not null]
   tax_code varchar(14) [not null, note: 'Seller tax code; matched with the tax code on the invoice']
-  sector varchar(100) [note: 'Compared with group_sectors for non-coded invoices (D-24)']
+  sector varchar(100) [note: 'Seller sector from the ERP supplier data, seeded in the demo ERP; compared with group_sectors for non-coded invoices (D-24, D-71)']
   contact_email varchar(255) [note: 'Recipient of correction requests (US-19)']
   is_active boolean [not null, default: true]
   sync_run_id bigint [not null]
@@ -1192,7 +1192,7 @@ Table price_history {
     `source <> 'INVOICE' OR source_line_id IS NOT NULL` [name: 'ck_price_history_source']
   }
 
-  Note: 'The entity\'s own purchase history for the unusual-price check: median of the last 6 months from at least 3 purchases (US-15, BR-29, DF-20, DF-42). One row is added when an invoice is Paid. Never compared across entities (BR-09, AC-15.12).'
+  Note: 'The entity\'s own purchase history for the unusual-price check: median of the last 6 months from at least 3 purchases (US-15, BR-29, DF-20, DF-42). A purchase is a paid invoice; one row is added when an invoice is Paid, and the demo seeds rows where it has fewer than 3 (D-72). Never compared across entities (BR-09, AC-15.12).'
 }
 
 Table supplier_entity_stats {
@@ -1588,7 +1588,7 @@ Table exceptions {
   waiting_role decision_role [note: 'Set in WAITING_FOR_DECISION: who decides (E5)']
   awaiting_ap_confirmation boolean [not null, default: false, note: 'The tag "Waiting for AP confirmation" on IN_REVIEW (DF-39, AC-20.3)']
   approval_amount numeric(18,2) [note: 'Amount that decides the approval level: the invoice total, or the combined amount of split orders (BR-03, BR-10)']
-  split_finding_id bigint [note: 'The SPLIT_ORDERS finding shared by the exceptions of one combined set (D-53)']
+  split_finding_id bigint [note: 'The SPLIT_ORDERS finding shared by the linked exceptions of one combined set, one per invoice; they are approved or declined together (D-53, D-70)']
   closed_by bigint [note: 'NULL when the system closed it (E9, E13)']
   closed_at timestamptz
   version integer [not null, default: 1, note: 'BR-37, DF-27']
@@ -1776,19 +1776,21 @@ Table individual_approvals {
   approval_amount numeric(18,2) [not null, note: 'Amount judged: invoice total or combined split-order amount']
   required_tier_id bigint [not null]
   required_level_name varchar(60) [not null, note: 'Copied so the level stays after the matrix changes']
-  split_finding_id bigint
+  split_finding_id bigint [note: 'Set for linked split-order exceptions (D-70)']
+  decision_action_id uuid [not null, note: 'Shared by the rows written by one approve or decline action. Linked split-order exceptions are decided in one action, so every exception of a split_finding_id has a row with the same decision_action_id and the same decision (D-70)']
   decided_at timestamptz [not null, default: `now()`]
 
   indexes {
     exception_id [unique, name: 'ux_individual_approvals_approved', note: 'partial: WHERE decision = \'APPROVED\'']
     invoice_id [name: 'ix_individual_approvals_invoice']
+    (decision_action_id, exception_id) [unique, name: 'ux_individual_approvals_action']
   }
 
   checks {
     `decision <> 'DECLINED' OR (reason IS NOT NULL AND length(trim(reason)) > 0)` [name: 'ck_individual_approvals_reason']
   }
 
-  Note: 'Individual approval or decline of an exception at the approver level (US-23, BR-02, BR-03, BR-10, BR-36, BR-37, D-31, DF-03, D-54). An approval keeps the invoice In Batch as an individually approved item; the Chief Accountant co-signs its request later.'
+  Note: 'Individual approval or decline of an exception at the approver level (US-23, BR-02, BR-03, BR-10, BR-36, BR-37, D-31, DF-03, D-54, D-69, D-70). An approval keeps the invoice In Batch as an individually approved item; its payment request is created when the batch is released and the Chief Accountant co-signs it. Linked split-order exceptions are decided together: one transaction writes a row for every exception of the split finding with one decision_action_id, checks the version of each (BR-37) and the separation of duties on each (BR-36), and writes nothing if any check fails. A deferred constraint trigger refuses a commit in which only some exceptions of a split_finding_id have a row for the action.'
 }
 
 // ───────── Batch, signing, and ERP send ─────────

@@ -149,6 +149,8 @@ Purpose: the AP Accountant writes a correction request, data-fix notice, or reis
 |---|---|---|
 | [`approve-modal`](wireframes/12-invoice-detail.html?state=approve-modal&role=approver) | US-23 | Evidence summary, amount, level needed, **Approve** or **Decline** with a reason ([PNG](../images/payment-approver/12b-invoice-detail-approve-modal.png)). |
 | [`approve-blocked`](wireframes/12-invoice-detail.html?state=approve-blocked&role=approver) | Separation of duties (BR-02, BR-36) | "You created the order for this invoice" (AC-23.6); **Approve** disabled ([PNG](../images/payment-approver/12c-invoice-detail-approve-blocked.png)). |
+| [`approve-split`](wireframes/12-invoice-detail.html?state=approve-split&role=approver) | Split orders (BR-10, D-70) | C26TAA-0000160 with its two linked invoices and the combined amount VND 53,000,000 that sets the level (CFO); the action panel says the three exceptions are decided together ([PNG](../images/payment-approver/12d-invoice-detail-approve-split.png)). |
+| [`approve-split-modal`](wireframes/12-invoice-detail.html?state=approve-split-modal&role=approver) | Split orders (BR-10, D-70) | The three linked invoices, the combined amount, the level, one **Approve all three** and one **Decline all three** with a reason; no control for a single invoice; a note that a block or a change on one invoice saves nothing for any (AC-23.11, AC-23.12) ([PNG](../images/payment-approver/12e-invoice-detail-approve-split-modal.png)). |
 
 ## Recurring profiles
 

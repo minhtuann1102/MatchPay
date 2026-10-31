@@ -59,4 +59,15 @@ Step 4 is approved. On 2026-10-31 the user ruled that no invoice moves between e
 | PNGs re-exported | `12-invoice-detail`, `12b-invoice-detail-correction-draft`, `12c-invoice-detail-reject`, `12h-invoice-detail-conflict` (their action panel changed). | Changed by user decision D-68 |
 | `02-screen-notes.md` | Note 9 reworded, note 15 and the `wrong-entity` row added. | Changed by user decision D-68 |
 
+## Changed by user decisions D-69 and D-70
+
+On 2026-10-31 the user ruled on the timing of the individual-approval request and on split orders (D-69, D-70, recorded in [Step 5 decisions](../05-database/00-decisions.md#decisions-made-by-the-user)). IDs are unchanged.
+
+| Item | Change | Status |
+|---|---|---|
+| `12-invoice-detail.html`, individual approval panel (SCR-18 background) | The text no longer says that approving makes the request at once: approving records the approval and puts the invoice In Batch, and the request is created at release. | Changed by user decision D-69 |
+| New states `approve-split` and `approve-split-modal` | The split-order set of Harbor Cartons Ltd (C26TAA-0000160, -0161, -0162, combined VND 53,000,000): the linked invoices, the combined amount, and one Approve and one Decline for the three. PNGs `12d-invoice-detail-approve-split.png` and `12e-invoice-detail-approve-split-modal.png`. | Changed by user decision D-70 |
+| PNGs re-exported | `12-invoice-detail-approve`, `12b-invoice-detail-approve-modal`, `12c-invoice-detail-approve-blocked` (the panel text changed). | Changed by user decision D-69 |
+| `02-screen-notes.md` | Two rows added under SCR-18. | Changed by user decision D-70 |
+
 **Related:** [Step index](README.md)

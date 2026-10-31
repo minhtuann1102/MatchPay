@@ -1,6 +1,6 @@
 # Session Handoff
 
-> Written 2026-10-31 at the end of the local session that produced Steps 1 and 2, updated after the Step 3 draft, and updated again when the user approved Step 3 and the scope change D-33 was applied, updated once more when the user approved Step 4, and updated after the Step 5 draft. The conversation itself does not transfer, so this page carries what a new session needs.
+> Written 2026-10-31 at the end of the local session that produced Steps 1 and 2, updated after the Step 3 draft, and updated again when the user approved Step 3 and the scope change D-33 was applied, updated once more when the user approved Step 4, updated after the Step 5 draft, and updated again after the user ruled on the last Step 5 gaps. The conversation itself does not transfer, so this page carries what a new session needs.
 
 ## Current state
 
@@ -47,6 +47,7 @@ Only these are the user's own decisions:
 - **Step 3 is approved** ("Step 3 looks good", 2026-10-31): D-34..D-41 and DF-34..DF-44 as they stood before the D-33 adjustments. D-34, D-37, D-40, and DF-41 had their text changed for D-33, and that change awaits review.
 
 - **2026-10-31 rulings on Step 5 gaps.** D-67: an ERP failure after a request is `Sent` is only mocked, with no new BR-35 state. D-68: no invoice moves between entities; the AP Accountant reports a wrong entity, the system traces it, and the invoice becomes an exception like a wrong invoice (Steps 2, 3, and 4 were changed, recorded as "Changed by user decision D-68"). DF-60 (changed bank account means since the last paid invoice of the pair) is approved. Readings added inside D-67 and D-68 are marked "Call, awaiting user review".
+- **2026-10-31 rulings on the remaining Step 5 gaps.** D-69: the payment request of an individually approved exception is created when the batch is released (BR-35 R1 unchanged, AC-23.2 reworded). D-70: split orders become three linked exceptions that the CFO approves or declines together in one action, at the level of the combined amount (BR-10, AC-15.4, AC-23.3 reworded; AC-23.11 and AC-23.12 added; SCR-18 and the wireframe states `approve-split` and `approve-split-modal` added). D-71: the seller's sector comes from the ERP supplier data, seeded in the demo ERP. D-72: a purchase for the price check is a paid invoice, and the demo seeds the history where it has fewer than 3. Steps 2, 3, and 4 record "Changed by user decision". Readings added inside D-70 are marked "Call, awaiting user review".
 
 Everything else in the `00-decisions.md` files is a call made during document review and awaits user review.
 
@@ -66,15 +67,15 @@ Read these before building on them.
 
 ### Step 5 calls (awaiting review)
 
-These are in [Step 5 decisions](../05-database/00-decisions.md): D-47..D-66 (calls), D-67 and D-68 (user decisions), DF-53..DF-60 (DF-60 approved), eleven differences from Steps 1 to 4, and five gaps in approved steps (gaps 1, 2, and 4 resolved). The ones most likely to change:
+These are in [Step 5 decisions](../05-database/00-decisions.md): D-47..D-66 (calls), D-67..D-72 (user decisions), DF-53..DF-60 (DF-60 approved, DF-58 decided by D-71), eleven differences from Steps 1 to 4, and five gaps in approved steps (all resolved; no gap from Step 5 is open). The ones most likely to change:
 
 - D-49: the ERP simulator keeps the ERP side of the demo in its own `sim_*` tables, and the sync copies them into the `erp_*` tables. Step 7 may move them to a separate schema or service.
 - D-50: the tax-risk list is stored per entity, not once for the group.
 - D-51: the exact-duplicate check across the group is one partial unique index on `invoices`, the only cross-entity structure.
-- D-53 and D-54: one exception row per invoice for split orders, and the payment request of an individually approved exception is created at release, not at approval. Both reword BR-10 and AC-23.2.
+- D-53 and D-54: one exception row per invoice for split orders, and the payment request of an individually approved exception is created at release, not at approval. The user decided both (D-70, D-69).
 - D-60: the schema keeps the request `Sent` and records `erp_failed_at` after an ERP failure. The user ruled this failure a mocked demo scenario with no new state (D-67), so the point is closed.
-- D-64: `price_history` and `supplier_entity_stats` are written when an invoice is `Paid` and are seeded; the simulated gate history has no invoice rows (DF-56).
-- Gaps 3 and 5 in the Step 5 decisions (AC-23.2 against BR-35 R1, BR-10 against AC-23.3, the seller sector DF-58, and the price history DF-20 / D-64) are still open and are being explained to the user.
+- D-64: `price_history` and `supplier_entity_stats` are written when an invoice is `Paid` and are seeded; the simulated gate history has no invoice rows (DF-56). The user decided this (D-72).
+- No gap from Step 5 is open. Gaps 3 and 5 (AC-23.2 against BR-35 R1, BR-10 against AC-23.3, the seller sector DF-58, the price history DF-20 / D-64) were ruled by the user on 2026-10-31 (D-69..D-72). The one call left inside them, how a blocked or changed linked split-order exception is handled (D-70, AC-23.12), awaits review.
 
 **Step 6 must cross-check every story, API, and entity in `matchpay.dbml`.** Each active story has its tables in the [data model](../05-database/01-data-model.md#stories-and-their-tables) and in the Database column of the matrix. Every API operation must name tables that exist in the DBML, the simulator operations of US-08 use the `sim_*` tables, and the derived values (rates, badges, retry counts, alerts) have no table and need an endpoint that computes them.
 
