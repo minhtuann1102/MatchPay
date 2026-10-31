@@ -9,11 +9,12 @@
 | Priority | Stories | Count |
 |---|---|---|
 | **Must**: the core chain cannot work without it (users and policy, source data, intake, the AI checks, the Rule Engine, exceptions, sample check, signing, sending to the ERP) | US-01, US-02, US-04, US-05, US-06, US-07, US-08, US-10, US-12, US-13, US-14, US-15, US-16, US-17, US-18, US-21, US-23, US-24, US-25, US-26 | 20 |
-| **Should**: important and planned, but the core chain still works without it | US-03, US-09, US-11, US-19, US-20, US-22, US-27, US-28 | 8 |
+| **Should**: important and planned, but the core chain still works without it | US-03, US-09, US-19, US-20, US-27, US-28 | 6 |
 | **Could** | None. Every remaining item was either in the brief's Advanced column or explicitly ruled out. | 0 |
-| **Won't** (this release) | W-01..W-18, listed below | 18 |
+| **Won't** (this release) | W-01..W-21, listed below | 21 |
+| **Removed (D-33)**: US-11 Upload foreign PDF invoice and confirm fields, US-22 Confirm foreign tax obligations. They are not in the 26 active stories; their numbers are not reused. | Moved to Advanced as W-19 and W-20 | — |
 
-Two priorities differ from the first proposal. **US-06 (automation gates) is a Must** (D-27): without a way to open a gate, condition 5 of BR-05 fails for every supplier and no invoice can join a batch. **US-22 (foreign tax duties) is a Should** (D-32): foreign invoices enter only through US-11, which is a Should, so the two are cut together. No Must story has a Should part inside it.
+One priority differs from the first proposal: **US-06 (automation gates) is a Must** (D-27), because without a way to open a gate, condition 5 of BR-05 fails for every supplier and no invoice can join a batch. The second move, US-22 as a Should (D-32), no longer applies: the user removed foreign invoices and the cash flag from the MVP (D-33), so US-11 and US-22 are Advanced items W-19 and W-20. The MVP has 26 stories: 20 Must and 6 Should. No Must story has a Should part inside it.
 
 ## Must stories that depend on a Should story
 
@@ -31,13 +32,12 @@ Cut Should stories in this order, from the first to be cut. The consequence is w
 | 2 | US-27 View dashboard | G-01 and G-02 are read from the labelled data set instead of a screen. |
 | 3 | US-20 Re-check follow-up invoice | The AP Accountant links a follow-up invoice by hand. |
 | 4 | US-19 Correction requests | The AP Accountant writes requests by hand; no AI draft. |
-| 5 | US-11 Foreign PDF invoices and US-22 Foreign tax duties, cut together | Foreign invoices and their tax duties (foreign contractor tax, import documents) are not demonstrated. They stay designed in BR-21 and are not built, because foreign suppliers do not issue Vietnamese XML and there is no other way into the flow. |
-| 6 | US-09 Recurring profiles | Every recurring invoice, including electricity, becomes an exception. |
-| 7 | US-03 Entities and group limits | The three entities, the group limits, and the sector list are fixed in the seed data. |
+| 5 | US-09 Recurring profiles | Every recurring invoice, including electricity, becomes an exception. |
+| 6 | US-03 Entities and group limits | The three entities, the group limits, and the sector list are fixed in the seed data. |
 
 ## Won't (this release)
 
-These are the Advanced items of the brief and of the Step 1 decisions. They are designed and documented as a roadmap in [Future work](../01-research/09-future-work.md), and no use case or story is written for them. A rule that is entirely Advanced (BR-22) is carried by its item here instead of by a story.
+These are the Advanced items of the brief and of the Step 1 decisions. They are designed and documented as a roadmap in [Future work](../01-research/09-future-work.md), and no use case or story is written for them. A rule that is entirely Advanced (BR-22, BR-21, BR-32) is carried by its item here instead of by a story. BR-18 and the PDF part of BR-17 are Advanced too, carried by W-19, W-09, and W-03.
 
 | ID | Item | Related rules and decisions |
 |---|---|---|
@@ -48,16 +48,19 @@ These are the Advanced items of the brief and of the Step 1 decisions. They are 
 | W-05 | Invoice mailbox that fetches XML, and a supplier portal | O-10 |
 | W-06 | Real ERP connection for each entity | A-03 |
 | W-07 | Anomaly detection and comparison across entities (aggregates only, hidden under 3 entities) | BR-09, D-09 |
-| W-08 | Suggested foreign contractor tax type | BR-21, O-07 |
-| W-09 | Finding the original XML from a PDF | BR-18 |
+| W-08 | Suggested foreign contractor tax type (builds on W-20) | BR-21, O-07 |
+| W-09 | Finding the original XML from a PDF (builds on W-19) | BR-18 |
 | W-10 | Periodic retraining of the signal-fusion model | BR-28 |
 | W-11 | Approval on mobile | A-08 |
 | W-12 | Mid-period batches by contract deadline | D-10 |
 | W-13 | Invoice status lookup through a connection point | O-10 |
-| W-14 | Cross-check of customs declarations | BR-21 |
+| W-14 | Cross-check of customs declarations (builds on W-20) | BR-21 |
 | W-15 | Manual entry of other documents and self-made purchase lists | BR-23 |
 | W-16 | Travel and hotel bookings through agents | — |
 | W-17 | One person working across entities | D-13, R-16 |
 | W-18 | Comparison between entities in reports | BR-09 |
+| W-19 | Foreign invoices from PDF with field confirmation and multimodal reading (UC-11/US-11 as first designed) | BR-17 (PDF part), BR-18, DF-04, D-33 |
+| W-20 | Foreign tax duties: foreign contractor tax outcome, customs declaration, and import-stage VAT documents (UC-22/US-22 as first designed) | BR-21, D-32, O-07, D-33 |
+| W-21 | Cash payment flag and payment-method recording | BR-32, D-25, DF-26, O-12, D-33 |
 
 **Related:** [Step index](README.md)

@@ -57,7 +57,7 @@ This page does not claim that 2026 "made" invoices structured; they already were
 
 ## Product vision
 
-MatchPay turns every incoming invoice into a checked document with evidence. AI helps at nine points: it classifies the flow, reads the document, identifies the entity and the order, matches lines, detects anomalies, explains and drafts exception handling, flags foreign tax duties, selects the sample for the sample check, and summarises the batch for the signer (see [AI vs rule-based](07-ai-vs-rule-based.md)).
+MatchPay turns every incoming invoice into a checked document with evidence. AI helps at eight points: it classifies the flow, reads the document, identifies the entity and the order, matches lines, detects anomalies, explains and drafts exception handling, selects the sample for the sample check, and summarises the batch for the signer (see [AI vs rule-based](07-ai-vs-rule-based.md)).
 
 **The AI provides evidence, the Rule Engine decides, and a person signs and is accountable.** The AI never signs, never decides whether an invoice joins a batch, and never sends anything outside the system by itself.
 
@@ -77,7 +77,7 @@ flowchart LR
 |---|---|---|---|---|
 | Pay the right amount | P-01 | Automatic comparison of invoice, order, and receipt, with each invoice classified into the right flow | M-03, M-04, M-05, M-06, M-07 | G-01, G-02, G-05 |
 | Pay the right amount | P-02 | Meaning-based line matching that learns from confirmations (mapping table, embedding, signal-fusion model, LLM only for the rest) | M-06, M-08 | G-02, G-07 |
-| Pay the right entity and keep deductions | P-03 | Buyer check against the ordering entity; hold on risky sellers; duplicate and split-order detection; foreign tax duties flagged and blocking | M-05, M-06, M-07, M-08 | G-02, G-03, G-04 |
+| Pay the right entity and keep deductions | P-03 | Buyer check against the ordering entity; hold on risky sellers; duplicate and split-order detection | M-05, M-06, M-07, M-08 | G-02, G-03, G-04 |
 | Pay on time, under control | P-04 | Approval matrix per entity; batch of consolidated requests per supplier; sample check; separation of duties; audit log | M-01, M-02, M-09, M-10 | G-01, G-02, G-06 |
 
 The same chain, from problem to goal to module, is kept in the [problem traceability](../traceability/master-traceability.md) table that Step 2 completes down to use cases, stories, acceptance criteria, and business rules.

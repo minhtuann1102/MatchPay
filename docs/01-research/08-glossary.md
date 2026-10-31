@@ -9,7 +9,7 @@
 | Group | The set of companies served by one MatchPay installation. The sample group is the fictional Calderwood Group (D-05). |
 | Legal entity / Entity | One company in the group that is a separate legal person. Every document belongs to exactly one entity (BR-01). |
 | AP Accountant | The accounts payable accountant of one entity; the main user (D-03). |
-| Chief Accountant | The accountant who decides tax-risk holds and foreign tax duties and co-signs payment requests. |
+| Chief Accountant | The accountant who decides tax-risk holds and co-signs payment requests. |
 | Payment Approver | A department head or CFO with authority to approve payment; signs consolidated requests and approves single exceptions. |
 | Administrator | A user who configures the system. **Group Admin** works across the group (adds entities, sets group limits, manages AI and automation gates). **Entity Admin** works in one entity (approval matrix, tolerance, batch threshold, users) inside the group limits. |
 | AI Agent | The AI components that classify, read, match, and detect anomalies. It provides evidence and never decides or signs. |
@@ -24,7 +24,7 @@
 | Payment batch | The set of invoices an entity has admitted for payment in a period, awaiting signature. In the MVP there is one open batch per entity per period (D-10). |
 | Consolidated payment request | One payment request for one supplier that lists every invoice of that supplier in the batch. It is the platform's own document, not the paper form 05-TT (D-19). The grouping mode (by supplier, or per invoice) is set per entity (BR-20). |
 | Common document model | The shared structure for every document: entity code, supplier code, internal item code, converted unit, currency and rate, source and trust level. |
-| Source trust | How far a document source is trusted (High, Signed non-coded XML, Medium, Low) and therefore how far an invoice can go without a person (see [Invoice flows and data](11-invoice-flows-and-data.md)). |
+| Source trust | How far a document source is trusted (High and Signed non-coded XML in the MVP; Medium and Low apply to PDF and paper and are Advanced) and therefore how far an invoice can go without a person (see [Invoice flows and data](11-invoice-flows-and-data.md)). |
 | Coded e-invoice | An e-invoice that carries a code issued by the tax authority. Under the rules in force since 2026-07-01 it is the general rule (L-03). |
 | Non-coded e-invoice | An e-invoice without such a code, allowed for listed sectors that sell directly to consumers (L-03). |
 | Signed non-coded XML | The trust level of a non-coded XML invoice that carries the seller's digital signature, from a sector listed in configuration. It needs a matching recurring profile; for a usage-based price the profile gives only a plausibility check (D-24, BR-17). |
@@ -33,7 +33,7 @@
 | Mapping table | Confirmed pairs of a supplier's item name and the entity's internal item, used for an instant match with no AI call. |
 | Embedding | A numeric vector of a text's meaning, used to find the closest candidate items. |
 | Signal-fusion model | A trained model (logistic regression) that combines embedding similarity, price match, quantity match, matching history, and the LLM result into one calibrated probability (BR-28). |
-| LLM | Large language model. Used for line matching and, as a multimodal model, for reading PDFs. Its output is evidence and must match a fixed schema (BR-27). |
+| LLM | Large language model. Used for line matching and the other language tasks; reading PDFs with a multimodal model is Advanced (W-19). Its output is evidence and must match a fixed schema (BR-27). |
 | Exception | An invoice that failed at least one of the six batch conditions and is handled by a person one by one. |
 | Waiting for goods | The state of an invoice for which no matching goods receipt exists yet; it cannot be paid (BR-14). |
 | Automation gate | A switch per supplier and entity pair. When open, that supplier's invoices may join a batch without a person viewing each one. In the MVP the Group Admin switches it by hand (D-06, BR-06). |
@@ -44,10 +44,10 @@
 | Tolerance | The allowed difference in price and quantity per entity, inside group limits (BR-04, BR-16). |
 | Group policy limits | The maximum tolerance and batch threshold set by the group; an entity cannot exceed them (BR-16). |
 | Approval matrix | The rule that maps an amount to the person who may approve it, per entity (BR-03). |
-| Foreign contractor tax, FCT | Tax that the buyer withholds and pays for a foreign supplier of services, unless the supplier handled it itself. In the MVP the system only flags it and blocks payment (BR-21, O-07). |
+| Foreign contractor tax, FCT | Tax that the buyer withholds and pays for a foreign supplier of services, unless the supplier handled it itself. Not handled in the MVP (D-33); the Advanced item W-20 would flag it and block payment (BR-21, O-07). |
 | Tax-risk list | A list of sellers with tax risk. Simulated in the MVP; each entry carries a source and a date (D-21). |
 | Employee-expense invoice | An invoice for hotel, restaurant, or taxi with no booking request. It is separated into a list waiting for a reimbursement file and is not an exception (BR-23). |
-| Level A (foreign invoices) | The MVP depth for foreign invoices: a person confirms every field, and the system flags foreign tax duties and import documents and blocks payment until the accountant confirms. |
+| Level A (foreign invoices) | The brief's depth for foreign invoices: a person confirms every field, and the system flags foreign tax duties and import documents and blocks payment until the accountant confirms. The user moved it out of the MVP (D-33); it is Advanced (W-19, W-20). |
 | Audit log | The record of every AI decision with its reason, confidence, and model version; it cannot be edited through the application (BR-12). |
 | Entity isolation | Data of one entity is never shown to another; cross-entity comparisons show aggregates only (BR-09). |
 
