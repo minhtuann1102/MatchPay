@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-20 Recurring Profiles — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="ap" data-nav="recurring">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-20 Recurring Profiles + SCR-21</strong>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="20-recurring-profiles.html">default</a></li>
+    <li><a href="20-recurring-profiles.html?state=loading">loading</a></li>
+    <li><a href="20-recurring-profiles.html?state=empty">empty</a></li>
+    <li><a href="20-recurring-profiles.html?state=server-error">server-error</a></li>
+    <li><a href="20-recurring-profiles.html?state=deactivate">deactivate</a></li>
+    <li><a href="20-recurring-profiles.html?state=form">SCR-21 form</a></li>
+    <li><a href="20-recurring-profiles.html?state=form-error">form-error</a></li>
+    <li><a href="20-recurring-profiles.html?state=form-duplicate">form-duplicate</a></li>
+    <li><a href="20-recurring-profiles.html?state=form-saving">form-saving</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+      <div class="page-head"><div><h1>Recurring profiles</h1><p class="sub">Contracts that repeat each period, for example electricity. A matching profile is the independent source for a recurring invoice.</p></div>
+        <div class="actions"><button class="btn btn-primary" type="button"><svg class="i"><use href="#i-plus"></use></svg>Add profile</button><span class="callout" aria-hidden="true">1</span></div></div>
+
+      <div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The profiles could not be loaded.</b><span>Try again.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+      <div class="notice n-warn" data-show="deactivate"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>Deactivate the profile of Sunrise Electric Utility, Foods Plant 2?</b><span>Later invoices for this supplier, location, and period become exceptions "No matching profile". Earlier invoices are not changed.</span><div class="actions" style="margin-top:6px"><button class="btn btn-sm btn-danger-solid" type="button">Deactivate</button><button class="btn btn-sm btn-quiet" type="button">Cancel</button></div></div><span class="callout" aria-hidden="true">3</span></div>
+
+      <section class="card">
+        <div class="card-b" data-show="loading"><div class="stack"><span class="sk" style="width:100%"></span><span class="sk" style="width:90%"></span><span class="sk" style="width:95%"></span></div><p class="xs muted" style="margin-top:12px">Loading profiles…</p></div>
+        <div class="empty" data-show="empty"><span class="empty-icon"><svg class="i"><use href="#i-repeat"></use></svg></span><h2>No recurring profiles yet</h2><p>Without a profile, every recurring invoice becomes an exception. Add a profile for each contract that repeats.</p><button class="btn btn-primary" type="button"><svg class="i"><use href="#i-plus"></use></svg>Add profile</button></div>
+        <div class="tbl-wrap" data-hide="loading empty server-error">
+          <table class="tbl">
+            <thead><tr><th>Supplier</th><th>Location</th><th>Contract</th><th>Period</th><th>Price</th><th>Deviation threshold</th><th>Earlier periods<span class="callout" aria-hidden="true">2</span></th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td>Sunrise Electric Utility</td><td>Foods Plant 1</td><td class="mono">EL-2026-014</td><td>Monthly</td><td>Usage-based</td><td>30%</td><td><span class="sub" style="font-size:12.5px">Aug VND 4,050,000 · Sep VND 4,250,000 · Oct VND 4,150,000</span><b class="small">Average VND 4,150,000</b></td><td><span class="chip c-ok">Active</span></td><td class="nowrap"><button class="btn btn-sm" type="button">Edit</button> <button class="btn btn-sm btn-quiet" type="button">Deactivate</button></td></tr>
+              <tr><td>Sunrise Electric Utility</td><td>Foods Plant 2</td><td class="mono">EL-2026-015</td><td>Monthly</td><td>Fixed: VND 4,400,000</td><td>—</td><td><span class="sub" style="font-size:12.5px">Aug VND 4,400,000 · Sep VND 4,400,000 · Oct VND 4,400,000</span><b class="small">Average VND 4,400,000</b></td><td><span class="chip c-ok">Active</span></td><td class="nowrap"><button class="btn btn-sm" type="button">Edit</button> <button class="btn btn-sm btn-quiet" type="button">Deactivate</button></td></tr>
+              <tr><td>CloudDesk Software Ltd</td><td>Head office</td><td class="mono">CD-2026-003</td><td>Monthly</td><td>Fixed: VND 3,080,000</td><td>—</td><td><span class="sub" style="font-size:12.5px">Aug VND 3,080,000 · Sep VND 3,080,000</span><b class="small">Average VND 3,080,000</b></td><td><span class="chip c-ok">Active</span></td><td class="nowrap"><button class="btn btn-sm" type="button">Edit</button> <button class="btn btn-sm btn-quiet" type="button">Deactivate</button></td></tr>
+              <tr><td>Sunrise Electric Utility</td><td>Retail annex</td><td class="mono">EL-2025-091</td><td>Monthly</td><td>Usage-based</td><td>30%</td><td><span class="muted small">No periods recorded</span></td><td><span class="chip c-end">Inactive</span></td><td><button class="btn btn-sm" type="button">Edit</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- SCR-21 Recurring Profile Form -->
+  <div class="modal-back" data-show="form form-error form-duplicate form-saving" role="dialog" aria-modal="true" aria-labelledby="m21">
+    <div class="modal">
+      <div class="modal-h"><h2 id="m21">Add recurring profile<span class="callout" aria-hidden="true">4</span></h2></div>
+      <div class="modal-b">
+        <div class="notice n-err" data-show="form-duplicate" role="alert"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><span>An active profile already exists for this supplier, location, and period.</span></div></div>
+        <div class="grid-2">
+          <div class="field"><label for="p-sup">Supplier</label><select class="select" id="p-sup"><option>Sunrise Electric Utility</option><option>CloudDesk Software Ltd</option></select></div>
+          <div class="field"><label for="p-loc">Location</label><input class="input" id="p-loc" value="Foods Plant 1"></div>
+          <div class="field"><label for="p-con">Contract</label><input class="input" id="p-con" value="EL-2026-014"></div>
+          <div class="field"><label for="p-per">Period</label><select class="select" id="p-per"><option>Monthly</option></select></div>
+          <div class="field"><label for="p-type">Price type</label><select class="select" id="p-type"><option>Fixed price</option><option>Usage-based</option></select></div>
+          <div class="field"><label for="p-price">Contract price (VND)</label><input class="input invalid" id="p-price" data-show="form-error" aria-describedby="p-err"><input class="input" id="p-price2" value="4,400,000" data-hide="form-error">
+            <div class="err-msg" id="p-err" data-show="form-error"><svg class="i i-sm"><use href="#i-alert"></use></svg>A contract price is required for a fixed price.</div></div>
+          <div class="field"><label for="p-dev">Deviation threshold (usage-based)</label><input class="input" id="p-dev" value="30%"></div>
+        </div>
+      </div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-primary" type="button" data-hide="form-saving">Save profile</button><button class="btn btn-primary" type="button" aria-disabled="true" data-show="form-saving"><span class="spin" style="border-color:#8a90a0;border-top-color:#fff"></span>Saving…</button></div>
+    </div>
+  </div>
+</div>
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

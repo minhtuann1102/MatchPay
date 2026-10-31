@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-76 Entities and Group Limits — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="group-admin" data-nav="entities">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-76 Entities and Group Limits + SCR-77</strong>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="76-entities.html">default</a></li>
+    <li><a href="76-entities.html?state=loading">loading</a></li>
+    <li><a href="76-entities.html?state=lower-warning">lower-warning</a></li>
+    <li><a href="76-entities.html?state=saved">saved</a></li>
+    <li><a href="76-entities.html?state=server-error">server-error</a></li>
+    <li><a href="76-entities.html?state=conflict">conflict</a></li>
+    <li><a href="76-entities.html?state=add">SCR-77 add</a></li>
+    <li><a href="76-entities.html?state=add-duplicate">add-duplicate</a></li>
+    <li><a href="76-entities.html?state=add-invalid">add-invalid</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+      <div class="page-head"><div><h1>Entities and group limits</h1></div><div class="actions"><button class="btn btn-primary" type="button"><svg class="i"><use href="#i-plus"></use></svg>Add entity</button><span class="callout" aria-hidden="true">1</span></div></div>
+      <div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The entities could not be loaded or saved.</b><span>Try again.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+      <div class="notice n-warn" role="alert" data-show="conflict"><svg class="i"><use href="#i-refresh"></use></svg><div class="grow"><b>This item was changed by someone else. Reload to see the change.</b><span>Nothing was saved.</span></div><button class="btn btn-sm" type="button">Reload</button></div>
+      <div class="card" data-show="loading"><div class="card-b stack"><span class="sk" style="width:100%"></span><span class="sk" style="width:90%"></span><span class="sk" style="width:95%"></span></div><p class="xs muted card-b">Loading entities…</p></div>
+      <div class="grid-2" data-hide="loading">
+        <section class="card">
+          <div class="card-h"><h2>Entities</h2></div>
+          <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Tax code</th><th class="money">Price tolerance</th><th class="money">Batch threshold</th></tr></thead>
+            <tbody>
+              <tr><td>Calderwood Foods Co.</td><td class="mono">0100000011</td><td class="money">2%</td><td class="money">VND 200,000,000</td></tr>
+              <tr><td>Calderwood Packaging Co.</td><td class="mono">0100000022</td><td class="money">4%</td><td class="money">VND 250,000,000</td></tr>
+              <tr><td>Calderwood Retail Co.</td><td class="mono">0100000033</td><td class="money">2%</td><td class="money">VND 150,000,000</td></tr>
+            </tbody></table></div>
+        </section>
+        <form class="card" onsubmit="return false">
+          <div class="card-h"><h2>Group limits</h2></div>
+          <div class="card-b stack-lg">
+            <div class="field"><label for="gt">Maximum price tolerance</label><div class="row"><input class="input" id="gt" style="width:120px" value="5%" data-hide="lower-warning"><input class="input" id="gt2" style="width:120px" value="3%" data-show="lower-warning"><span class="callout" aria-hidden="true">2</span></div></div>
+            <div class="notice n-warn" data-show="lower-warning"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>Calderwood Packaging Co. has a tolerance of 4%.</b><span>It will be lowered to 3% when you save. Other entities are not affected.</span><span class="callout" aria-hidden="true">3</span></div></div>
+            <div class="field"><label for="gb">Maximum batch threshold</label><input class="input" id="gb" style="width:200px" value="VND 300,000,000"></div>
+            <div class="field"><label>Sectors allowed to issue non-coded invoices</label><div class="row"><span class="chip c-ok">Electricity</span><button class="btn btn-sm btn-quiet" type="button"><svg class="i i-sm"><use href="#i-plus"></use></svg>Add sector</button></div><span class="hint">A signed XML invoice without a tax-authority code is accepted only from these sectors, and needs a matching recurring profile.</span></div>
+          </div>
+          <div class="modal-f" style="border-radius:0 0 8px 8px"><button class="btn btn-primary" type="submit">Save limits</button></div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-back" data-show="add add-duplicate add-invalid" role="dialog" aria-modal="true" aria-labelledby="m77">
+    <div class="modal"><div class="modal-h"><h2 id="m77">Add entity<span class="callout" aria-hidden="true">4</span></h2></div>
+      <div class="modal-b">
+        <div class="field"><label for="en">Entity name</label><input class="input" id="en" value="Calderwood Logistics Co."></div>
+        <div class="field"><label for="tc">Tax code (10 digits, unique)</label>
+          <input class="input" id="tc" value="0100000044" data-show="add"><input class="input invalid" id="tc2" value="0100000022" data-show="add-duplicate" aria-describedby="tc-err"><input class="input invalid" id="tc3" value="01000044" data-show="add-invalid" aria-describedby="tc-err">
+          <div class="err-msg" id="tc-err" data-show="add-duplicate add-invalid"><svg class="i i-sm"><use href="#i-alert"></use></svg><span data-show="add-duplicate">An entity with this tax code already exists.</span><span data-show="add-invalid">The tax code must have exactly 10 digits.</span></div></div>
+      </div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-primary" type="button">Add entity</button></div></div>
+  </div>
+  <div class="toast" role="status" data-show="saved"><svg class="i"><use href="#i-check"></use></svg>Group limits saved. Calderwood Packaging Co. was lowered to 3%.</div>
+</div>
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

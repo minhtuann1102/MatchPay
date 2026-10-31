@@ -52,8 +52,8 @@ US_REMOVED = [u for u in US_ALL if u not in US]
 N_ACTIVE = len(US)
 N_MUST, N_SHOULD = 20, 6
 W_MAX = 21
-D_MAX = 41  # D-33 is the scope decision; Step 3 calls are D-34..D-41
-DF_MAX = 44  # DF-34..DF-44 are the Step 3 defaults
+D_MAX = 46  # D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46
+DF_MAX = 52  # DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
 BR = ['BR-%02d' % n for n in range(1, 38)]
@@ -379,7 +379,7 @@ for f, t in text.items():
         tg = m.group(1).strip('<>')
         if re.match(r'^(https?:|mailto:)', tg): continue
         path, _, anchor = tg.partition('#')
-        path = urllib.parse.unquote(path)
+        path = urllib.parse.unquote(path.split('?')[0])  # a query such as ?state=x belongs to a wireframe URL, not to the file name
         full = os.path.normpath(os.path.join(ROOT, os.path.dirname(f), path)) if path else os.path.join(ROOT, f)
         checked += 1
         if not os.path.exists(full): missing.append((f, tg, 'FILE'))
@@ -866,5 +866,145 @@ fl_blocks = re.findall(r'```mermaid\n(.*?)```', text['docs/03-information-archit
 fl_bad = [i_ for i_, b_ in enumerate(fl_blocks) if not re.search(r"<span style='font-size:40px'>👤</span><br/><b>[^<]+</b>\"\]:::actor", b_) or 'classDef actor' not in b_]
 print('  user flows: %d; flows without an actor node with the person icon: %s' % (len(fl_blocks), fl_bad or 'none'))
 if fl_bad or len(fl_blocks) != 4: fail('user flow actor nodes')
+print('\n== CHECK 7: Step 4 wireframes (HTML, CSS, JS, PNG) ==')
+UX = 'docs/04-uiux/'
+WF = ROOT + '/' + UX + 'wireframes/'
+web = {}
+for dp, dn, fn in os.walk(ROOT + '/docs'):
+    for f_ in fn:
+        if f_.endswith(('.html', '.css', '.js')):
+            fp = os.path.join(dp, f_)
+            web[rel(fp)] = open(fp, encoding='utf-8').read()
+print('  web files under docs/ (html, css, js): %d' % len(web))
+# (a) Vietnamese letters and gendered pronouns in web files
+hits7 = [(f_, i_) for f_, t_ in web.items() for i_, l_ in enumerate(t_.split('\n'), 1) if pat.search(l_)]
+pron7 = [(f_, i_, m_.group(0)) for f_, t_ in web.items() for i_, l_ in enumerate(t_.split('\n'), 1)
+         for m_ in re.finditer(r'\b(he|she|his|him|her|hers|himself|herself)\b', l_, re.I)]
+print('  Vietnamese letters in web files: %s; gendered pronouns in web files: %s' % (hits7 or 'none', pron7 or 'none'))
+if hits7: fail('Vietnamese letters in web files')
+if pron7: fail('gendered pronouns in web files')
+pages = {f_: t_ for f_, t_ in web.items() if f_.startswith(UX + 'wireframes/') and f_.endswith('.html') and '/assets/' not in f_ and not f_.endswith('index.html')}
+page_scr = {}
+modal_scr = {}
+for f_, t_ in pages.items():
+    m_ = re.search(r'<title>(SCR-\d\d) ', t_)
+    if not m_: fail('page %s has no "SCR-nn" title' % f_); continue
+    page_scr[m_.group(1)] = f_
+    st_ = re.search(r'<ul class="wf-states".*?</ul>', t_, re.S)
+    for sid in re.findall(r'>(SCR-\d\d) [^<]*</a>', st_.group(0) if st_ else ''):
+        modal_scr.setdefault(sid, set()).add(f_)
+# (b) every active screen has a wireframe, removed screens have none
+no_wf = []
+for sid, v in scr.items():
+    if v['page']:
+        if sid not in page_scr: no_wf.append(sid)
+    else:
+        parents = [x.strip() for x in v['from']]
+        if sid not in modal_scr or not any(page_scr.get(pp) in modal_scr[sid] for pp in parents): no_wf.append(sid)
+removed_wf = [sid for sid in scr_removed if sid in page_scr or sid in modal_scr or any(sid in t_ for t_ in pages.values())]
+print('  active screens: %d, with a wireframe (page file or modal state in the parent page): %d; missing: %s' % (len(scr), len(scr) - len(no_wf), no_wf or 'none'))
+print('  removed screens (SCR-13, SCR-17) with a wireframe: %s' % (removed_wf or 'none'))
+if no_wf: fail('screens without a wireframe: %s' % no_wf)
+if removed_wf: fail('removed screens have a wireframe')
+# (c) screen notes sections, links to HTML and PNG
+notes = text[UX + '02-screen-notes.md'] if UX + '02-screen-notes.md' in text else ''
+no_sec = [f_ for sid, f_ in page_scr.items() if not re.search(r'^### ' + sid + r'\b', notes, re.M)]
+print('  page files without a "### SCR-nn" section in 02-screen-notes.md: %s' % (no_sec or 'none'))
+if no_sec: fail('page without a screen-notes section')
+no_modal_sec = [sid for sid in modal_scr if not re.search(r'^#{3,4} .*\b' + sid + r'\b', notes, re.M)]
+print('  modal screens without a heading in 02-screen-notes.md: %s' % (no_modal_sec or 'none'))
+if no_modal_sec: fail('modal without a screen-notes heading')
+broken = []
+n_links = 0
+for f_, t_ in text.items():
+    base = os.path.dirname(ROOT + '/' + f_)
+    for m_ in re.finditer(r'!?\[[^\]]*\]\(([^)\s]+)\)', t_):
+        tgt = m_.group(1)
+        if re.match(r'^(https?:|mailto:|#)', tgt): continue
+        tgt = re.split(r'[?#]', tgt)[0]
+        if not tgt.endswith(('.png', '.html')): continue
+        n_links += 1
+        if not os.path.exists(os.path.normpath(os.path.join(base, tgt))): broken.append((f_, tgt))
+print('  PNG and HTML links in Markdown checked: %d; broken: %s' % (n_links, broken or 'none'))
+if broken: fail('broken PNG or HTML link')
+imgs = sorted(rel(os.path.join(dp, f_)) for dp, dn, fn in os.walk(ROOT + '/docs/images') for f_ in fn if f_.endswith('.png')) if os.path.isdir(ROOT + '/docs/images') else []
+role_dirs = {'common', 'ap-accountant', 'chief-accountant', 'payment-approver', 'entity-admin', 'group-admin', 'demo-operator'}
+bad_dirs = [i_ for i_ in imgs if i_.split('/')[2] not in role_dirs]
+big = sum(os.path.getsize(ROOT + '/' + i_) for i_ in imgs)
+print('  PNG exports: %d, %.1f MB; outside the role folders: %s' % (len(imgs), big / 1e6, bad_dirs or 'none'))
+if bad_dirs or big > 15e6: fail('PNG folders or size')
+# (d) local assets only
+remote = []
+missing_asset = []
+for f_, t_ in web.items():
+    if f_.endswith('.html'):
+        for m_ in re.finditer(r'<(?:script|img|link|source)\b[^>]*?\b(?:src|href)="([^"]+)"', t_):
+            u_ = m_.group(1)
+            if re.match(r'^(https?:)?//', u_): remote.append((f_, u_))
+            elif not u_.startswith(('#', 'data:')):
+                if not os.path.exists(os.path.normpath(os.path.join(os.path.dirname(ROOT + '/' + f_), re.split(r'[?#]', u_)[0]))): missing_asset.append((f_, u_))
+    if f_.endswith('.css') and re.search(r'url\(\s*["\']?(https?:)?//|@import', t_): remote.append((f_, 'css url or import'))
+    if f_.endswith('.js') and re.search(r'https?://', t_): remote.append((f_, 'js url'))
+print('  remote script, stylesheet, image, font, or import: %s; local asset references that do not exist: %s' % (remote or 'none', missing_asset or 'none'))
+if remote: fail('remote assets in wireframes')
+if missing_asset: fail('missing local asset')
+css_ = web.get(UX + 'wireframes/assets/wireframe.css', '')
+fonts_missing = [u_ for u_ in re.findall(r'url\("([^"]+)"\)', css_) if not os.path.exists(WF + 'assets/' + u_)]
+print('  font files named in wireframe.css that do not exist: %s; OFL.txt present: %s' % (fonts_missing or 'none', os.path.exists(WF + 'assets/fonts/OFL.txt')))
+if fonts_missing or not os.path.exists(WF + 'assets/fonts/OFL.txt'): fail('fonts')
+# (e) Step 4 headers
+UX_FILES = ['README.md', '00-decisions.md', '01-design-system.md', '02-screen-notes.md']
+h7 = []
+for f_ in UX_FILES:
+    t_ = text.get(UX + f_, '')
+    if '> Design status: MVP — Step 4 of 9, draft for review\n>\n> Implementation status: NOT STARTED' not in t_: h7.append((f_, 'header'))
+    if not re.search(r'^\*\*Related:\*\*', t_, re.M): h7.append((f_, 'Related line'))
+print('  Step 4 files with the "draft for review" header and a Related line: %s' % ('all 4' if not h7 else h7))
+if h7: fail('Step 4 headers')
+# (f) Step 4 decisions: D-42..D-46 and DF-45..DF-52 exist and all await review
+dec4 = text.get(UX + '00-decisions.md', '')
+st7 = []
+for i_ in ['D-%d' % n_ for n_ in range(42, 47)] + ['DF-%d' % n_ for n_ in range(45, 53)]:
+    r_ = row(dec4, i_)
+    if not r_: st7.append((i_, 'missing')); continue
+    if r_.strip().strip('|').split('|')[-1].strip() != 'Awaiting user review': st7.append((i_, 'status'))
+    if re.search(r"user'?s? (own )?decision|decided by the user|Approved", r_, re.I): st7.append((i_, 'presented as the user decision'))
+print('  Step 4 decisions D-42..D-46 and defaults DF-45..DF-52 present and awaiting user review: %s' % ('yes' if not st7 else st7))
+if st7: fail('Step 4 decision rows')
+# (g) states: links in the screen notes exist in the wf-bar; data-show names exist in the wf-bar; every wf-bar state has an effect
+bad_state_link = []
+for m_ in re.finditer(r'\]\(wireframes/([\w-]+\.html)\?([^)\s]*)\)', notes):
+    f_, q_ = m_.group(1), m_.group(2)
+    t_ = pages.get(UX + 'wireframes/' + f_, '')
+    bar_ = re.search(r'<ul class="wf-states".*?</ul>', t_, re.S)
+    bar_states = set()
+    for h_ in re.findall(r'href="[^"]*\?([^"]*)"', bar_.group(0) if bar_ else ''):
+        for kv_ in h_.replace('&amp;', '&').split('&'):
+            if kv_.startswith('state='): bar_states.add(kv_[6:])
+    roles_ = set()
+    rb_ = re.search(r'<ul class="wf-roles".*?</ul>', t_, re.S)
+    for h_ in re.findall(r'href="[^"]*\?([^"]*)"', rb_.group(0) if rb_ else ''):
+        for kv_ in h_.replace('&amp;', '&').split('&'):
+            if kv_.startswith('role='): roles_.add(kv_[5:])
+    for kv_ in q_.split('&'):
+        if kv_.startswith('state=') and kv_[6:] not in bar_states: bad_state_link.append((f_, kv_))
+        if kv_.startswith('role=') and kv_[5:] not in roles_: bad_state_link.append((f_, kv_))
+print('  ?state= and ?role= links in the screen notes that are missing from the wf-bar of the page: %s' % (bad_state_link or 'none'))
+if bad_state_link: fail('state link not in wf-bar')
+unknown_state, dead_state = [], []
+for f_, t_ in pages.items():
+    bar_ = re.search(r'<ul class="wf-states".*?</ul>', t_, re.S)
+    bar_states = set()
+    for h_ in re.findall(r'href="[^"]*\?([^"]*)"', bar_.group(0) if bar_ else ''):
+        for kv_ in h_.replace('&amp;', '&').split('&'):
+            if kv_.startswith('state='): bar_states.add(kv_[6:])
+    bar_states.add('default')
+    used = set()
+    for a_ in re.findall(r'data-(?:show|hide)="([^"]*)"', t_): used.update(a_.split())
+    unknown_state += [(f_.split('/')[-1], u_) for u_ in used if u_ not in bar_states]
+    dead_state += [(f_.split('/')[-1], u_) for u_ in bar_states if u_ not in used and u_ != 'default']
+print('  data-show or data-hide names not in the wf-bar: %s; wf-bar states with no effect on the page: %s' % (unknown_state or 'none', dead_state or 'none'))
+if unknown_state: fail('state name used in the page but not in the wf-bar')
+if dead_state: fail('wf-bar state with no effect')
 
 print('\nRESULT:', 'ALL CHECKS PASSED' if not failures else '%d FAILURE(S): %s' % (len(failures), failures))

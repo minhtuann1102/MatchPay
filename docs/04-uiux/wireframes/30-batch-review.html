@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-30 Batch Review — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="ap" data-nav="batch">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-30 Batch Review + SCR-31, SCR-32</strong>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="30-batch-review.html">default (Open)</a></li>
+    <li><a href="30-batch-review.html?state=loading">loading</a></li>
+    <li><a href="30-batch-review.html?state=empty">empty</a></li>
+    <li><a href="30-batch-review.html?state=close">SCR-31 close</a></li>
+    <li><a href="30-batch-review.html?state=in-review">in-review</a></li>
+    <li><a href="30-batch-review.html?state=sample-no-ai">sample-no-ai</a></li>
+    <li><a href="30-batch-review.html?state=mark-error">mark-error</a></li>
+    <li><a href="30-batch-review.html?state=ready">ready</a></li>
+    <li><a href="30-batch-review.html?state=release">SCR-32 release</a></li>
+    <li><a href="30-batch-review.html?state=conflict">conflict</a></li>
+    <li><a href="30-batch-review.html?state=released">released</a></li>
+    <li><a href="30-batch-review.html?state=sending">sending</a></li>
+    <li><a href="30-batch-review.html?state=send-failed">send-failed</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+      <div class="page-head">
+        <div><h1>Batch: October 2026</h1>
+          <p class="sub row"><span data-show="default close empty loading conflict"><span class="chip c-open">Open</span></span>
+            <span data-show="in-review sample-no-ai mark-error ready release"><span class="chip c-work">In Review</span></span>
+            <span data-show="released"><span class="chip c-wait">In Signing</span></span>
+            <span data-show="sending"><span class="chip c-work">Sent</span></span>
+            <span data-show="send-failed"><span class="chip c-ok">Signed</span></span>
+            <span data-hide="empty">5 invoices · VND 70,050,000</span><span data-show="empty">0 invoices</span><span class="callout" aria-hidden="true">1</span></p></div>
+        <div class="actions">
+          <button class="btn btn-primary" type="button" data-show="default close conflict">Close for review<span class="callout" aria-hidden="true">2</span></button>
+          <button class="btn btn-primary" type="button" aria-disabled="true" data-show="empty">Release for signing</button>
+          <button class="btn btn-primary" type="button" aria-disabled="true" data-show="in-review sample-no-ai mark-error">Release for signing<span class="callout" aria-hidden="true">5</span></button>
+          <button class="btn btn-primary" type="button" data-show="ready release">Release for signing</button>
+        </div>
+      </div>
+      <p class="hint hint-err" data-show="in-review sample-no-ai mark-error" style="margin-top:-12px">1 sample item still to mark. Release needs every sample item marked.</p>
+      <p class="hint hint-err" data-show="empty" style="margin-top:-12px">No invoices in this batch</p>
+
+      <div class="notice n-warn" role="alert" data-show="conflict"><svg class="i"><use href="#i-refresh"></use></svg><div class="grow"><b>This item was changed by someone else. Reload to see the change.</b><span>Nothing was saved.</span></div><button class="btn btn-sm" type="button">Reload</button></div>
+      <div class="notice n-err" role="alert" data-show="send-failed"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>Sending to the ERP failed after 3 attempts.</b><span>PR-0043 stays Signed. A repeated send with the same request number never creates a second payment.</span></div><span class="callout" aria-hidden="true">8</span></div>
+
+      <div class="card" data-show="loading"><div class="card-b stack"><span class="sk" style="width:100%"></span><span class="sk" style="width:90%"></span><span class="sk" style="width:95%"></span></div><p class="xs muted card-b">Loading the batch…</p></div>
+
+      <section class="card" data-show="in-review sample-no-ai mark-error ready release">
+        <div class="card-h"><h2>Sample check</h2><span class="row">
+          <span class="au au-ai" data-hide="sample-no-ai"><svg class="i"><use href="#i-ai"></use></svg>AI proposed sample</span>
+          <span class="au au-rule" data-show="sample-no-ai"><svg class="i"><use href="#i-rule"></use></svg>Selected without AI</span><span class="callout" aria-hidden="true">3</span></span></div>
+        <div class="blk" data-hide="sample-no-ai"><p class="small">5 invoices at a sample rate of 10% is 0.5, rounded up to <b>1 invoice</b>. The AI picked the highest-value invoice first.</p></div>
+        <div class="notice n-rule" data-show="sample-no-ai" style="margin:12px 16px"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><b>selected without AI</b><span>The AI could not select the sample. The highest-value invoice was taken first.</span></div></div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Invoice</th><th>Why selected</th><th class="money">Total</th><th>Your check<span class="callout" aria-hidden="true">4</span></th></tr></thead>
+          <tbody><tr>
+            <td><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000098</a><span class="sub">Harbor Cartons Ltd</span></td>
+            <td data-hide="sample-no-ai">High value: the largest invoice of the batch. Gate of Harbor Cartons Ltd opened 12/10/2026, in the last 30 days.</td><td data-show="sample-no-ai">Highest value first</td>
+            <td class="money">VND 26,400,000</td>
+            <td data-hide="ready release"><div class="row"><button class="btn btn-sm" type="button">OK</button><button class="btn btn-sm btn-danger" type="button">Error</button><span class="tagx tagx-warn">Not marked</span></div>
+              <div class="field" data-show="mark-error" style="margin-top:8px"><label for="er">Reason for the error (required)</label><textarea class="textarea invalid" id="er" style="min-height:54px"></textarea><div class="err-msg"><svg class="i i-sm"><use href="#i-alert"></use></svg>A reason is required. The invoice is withdrawn into exceptions.</div></div></td>
+            <td data-show="ready release"><span class="chip c-ok">OK</span> <span class="xs muted">Marked by Alice, 31/10/2026 10:12</span></td>
+          </tr></tbody></table></div>
+        <div class="pager"><span>Still to mark: <b data-hide="ready release">1</b><b data-show="ready release">0</b></span><span class="muted">Marking Error withdraws the invoice and counts toward the misplacement rate and the gate alert.</span></div>
+      </section>
+
+      <section class="card" data-hide="loading released sending send-failed">
+        <div class="card-h"><h2>Invoices admitted by the Rule Engine</h2><span class="au au-rule"><svg class="i"><use href="#i-rule"></use></svg>Rule Engine</span></div>
+        <div class="empty" data-show="empty"><span class="empty-icon"><svg class="i"><use href="#i-stack"></use></svg></span><h2>No invoices in this batch</h2><p>Invoices that pass all six conditions, and exceptions approved individually, appear here.</p></div>
+        <div class="tbl-wrap" data-hide="empty"><table class="tbl cards">
+          <thead><tr><th>Invoice</th><th>Supplier</th><th class="money">Total</th><th>Due date</th><th>State</th><th></th></tr></thead>
+          <tbody>
+            <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000098</a></td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 26,400,000</td><td data-l="Due date">12/11/2026</td><td data-l="State"><span class="chip c-ok">In Batch</span></td><td><a href="12-invoice-detail.html?state=in-batch">Withdraw</a></td></tr>
+            <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000099</a></td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 13,100,000</td><td data-l="Due date">12/11/2026</td><td data-l="State"><span class="chip c-ok">In Batch</span></td><td><a href="12-invoice-detail.html?state=in-batch">Withdraw</a></td></tr>
+            <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000102</a></td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 13,500,000</td><td data-l="Due date">15/11/2026</td><td data-l="State"><span class="chip c-ok">In Batch</span></td><td><a href="12-invoice-detail.html?state=in-batch">Withdraw</a></td></tr>
+            <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000110</a></td><td data-l="Supplier">CloudDesk Software Ltd</td><td class="money" data-l="Total">VND 12,650,000</td><td data-l="Due date">14/11/2026</td><td data-l="State"><span class="chip c-ok">In Batch</span></td><td><a href="12-invoice-detail.html?state=in-batch">Withdraw</a></td></tr>
+            <tr><td data-l="Invoice"><a href="12-invoice-detail.html?state=in-batch">C26TAA-0000096</a></td><td data-l="Supplier">Sunrise Electric Utility</td><td class="money" data-l="Total">VND 4,400,000</td><td data-l="Due date"><span class="due">10/11/2026</span></td><td data-l="State"><span class="chip c-ok">In Batch</span></td><td><a href="12-invoice-detail.html?state=in-batch">Withdraw</a></td></tr>
+          </tbody>
+          <tfoot><tr><td colspan="2">Total, 5 invoices</td><td class="money">VND 70,050,000</td><td colspan="3"></td></tr></tfoot></table></div>
+      </section>
+
+      <section class="card" data-show="released sending send-failed">
+        <div class="card-h"><h2>Payment requests<span class="callout" aria-hidden="true">6</span></h2><span class="xs muted">One per supplier. Total VND 70,050,000</span></div>
+        <div class="tbl-wrap"><table class="tbl cards">
+          <thead><tr><th>Request</th><th>Supplier</th><th class="money">Total</th><th>Level</th><th>State</th><th>ERP send status<span class="callout" aria-hidden="true">7</span></th></tr></thead>
+          <tbody data-show="released">
+            <tr><td data-l="Request"><a href="51-payment-request.html?role=ap">PR-0042</a></td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 53,000,000</td><td data-l="Level">CFO</td><td data-l="State"><span class="chip c-wait">Awaiting Chief Accountant</span></td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+            <tr><td data-l="Request">PR-0043</td><td data-l="Supplier">Sunrise Electric Utility</td><td class="money" data-l="Total">VND 4,400,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-wait">Awaiting Chief Accountant</span></td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+            <tr><td data-l="Request">PR-0044</td><td data-l="Supplier">CloudDesk Software Ltd</td><td class="money" data-l="Total">VND 12,650,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-wait">Awaiting Chief Accountant</span></td><td data-l="ERP"><span class="muted">Not yet sent</span></td></tr>
+          </tbody>
+          <tbody data-show="sending">
+            <tr><td data-l="Request">PR-0042</td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 53,000,000</td><td data-l="Level">CFO</td><td data-l="State"><span class="chip c-ok">Paid</span></td><td data-l="ERP"><span class="mono">PAY-CF-2026-0044</span></td></tr>
+            <tr><td data-l="Request">PR-0043</td><td data-l="Supplier">Sunrise Electric Utility</td><td class="money" data-l="Total">VND 4,400,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-ok">Signed</span></td><td data-l="ERP"><span class="tagx tagx-warn">Retry 2 of 3, next attempt in 5 minutes</span></td></tr>
+            <tr><td data-l="Request">PR-0044</td><td data-l="Supplier">CloudDesk Software Ltd</td><td class="money" data-l="Total">VND 12,650,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-work">Sent</span></td><td data-l="ERP"><span class="muted">In the ERP, waiting for the paid status</span></td></tr>
+          </tbody>
+          <tbody data-show="send-failed">
+            <tr><td data-l="Request">PR-0042</td><td data-l="Supplier">Harbor Cartons Ltd</td><td class="money" data-l="Total">VND 53,000,000</td><td data-l="Level">CFO</td><td data-l="State"><span class="chip c-ok">Paid</span></td><td data-l="ERP"><span class="mono">PAY-CF-2026-0044</span></td></tr>
+            <tr class="attn"><td data-l="Request">PR-0043</td><td data-l="Supplier">Sunrise Electric Utility</td><td class="money" data-l="Total">VND 4,400,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-ok">Signed</span></td><td data-l="ERP"><span class="tagx tagx-err">Failed after 3 attempts</span></td></tr>
+            <tr><td data-l="Request">PR-0044</td><td data-l="Supplier">CloudDesk Software Ltd</td><td class="money" data-l="Total">VND 12,650,000</td><td data-l="Level">Department Head</td><td data-l="State"><span class="chip c-work">Sent</span></td><td data-l="ERP"><span class="muted">In the ERP, waiting for the paid status</span></td></tr>
+          </tbody></table></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- SCR-31 Close Batch -->
+  <div class="modal-back" data-show="close" role="dialog" aria-modal="true" aria-labelledby="m31">
+    <div class="modal"><div class="modal-h"><h2 id="m31">Close the batch for review</h2></div>
+      <div class="modal-b"><dl class="dl"><dt>Period</dt><dd>October 2026</dd><dt>Invoices</dt><dd>5, total VND 70,050,000</dd><dt>Sample size</dt><dd>1 invoice (10% of 5, rounded up)</dd></dl>
+        <div class="notice n-info"><svg class="i"><use href="#i-info"></use></svg><div class="grow"><span>Invoices admitted after you close the batch go to the next period (November 2026).</span></div></div></div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-primary" type="button">Close for review</button></div></div>
+  </div>
+  <!-- SCR-32 Release Batch -->
+  <div class="modal-back" data-show="release" role="dialog" aria-modal="true" aria-labelledby="m32">
+    <div class="modal"><div class="modal-h"><h2 id="m32">Release the batch for signing</h2></div>
+      <div class="modal-b"><dl class="dl"><dt>Invoices</dt><dd>5, total VND 70,050,000</dd><dt>Sample check</dt><dd><span class="chip c-ok">Every sample item is marked</span></dd><dt>Payment requests</dt><dd>3, one per supplier (entity policy: by supplier)</dd></dl>
+        <p class="small">After release the Chief Accountant signs first, then the Payment Approver at the level each total needs.</p></div>
+      <div class="modal-f"><button class="btn" type="button">Cancel</button><button class="btn btn-primary" type="button">Release for signing</button></div></div>
+  </div>
+</div>
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>
