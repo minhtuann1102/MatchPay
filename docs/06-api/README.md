@@ -1,14 +1,14 @@
 # 06 — API
 
-> Design status: MVP — Step 6 of 9, draft for review
+> Design status: MVP — draft for review
 >
 > Implementation status: NOT STARTED
 
-Step 6 turns the [user stories and acceptance criteria](../02-usecases-userstories/README.md), the [screens](../03-information-architecture/README.md), and the [database schema](../05-database/README.md) into one HTTP contract for the web application. The OpenAPI 3.0.4 document has 121 operations on 104 paths in 24 tags, and it is the source of truth for paths, bodies, roles, and errors (D-130). Every operation names the stories, business rules, screens, and tables it serves (`x-stories`, `x-rules`, `x-screens`, `x-tables`), so the cross-check in [API traceability](01-api-traceability.md) can show that every active user story has an operation and every operation uses tables of the schema. Work that is not HTTP (the AI checks, the ERP sync, the mailbox fetch, the status lookups, the ERP send, the reminders) is described as jobs there. This step also fills the API operationId column of the [master traceability matrix](../traceability/master-traceability.md) and the Related API lines of the [business rules](../requirements/business-rules.md). Every decision of this step is a call that awaits the user's review.
+The API turns the [user stories and acceptance criteria](../02-usecases-userstories/README.md), the [screens](../03-information-architecture/README.md), and the [database schema](../05-database/README.md) into one HTTP contract for the web application. The OpenAPI 3.0.4 document has 121 operations on 104 paths in 24 tags, and it is the source of truth for paths, bodies, roles, and errors (D-130). Every operation names the stories, business rules, screens, and tables it serves (`x-stories`, `x-rules`, `x-screens`, `x-tables`), so the cross-check in [API traceability](01-api-traceability.md) can show that every active user story has an operation and every operation uses tables of the schema. Work that is not HTTP (the AI checks, the ERP sync, the mailbox fetch, the status lookups, the ERP send, the reminders) is described as jobs there. This document set also fills the API operationId column of the [master traceability matrix](../traceability/master-traceability.md) and the Related API lines of the [business rules](../requirements/business-rules.md). Every decision of this document set is a call that awaits the user's review.
 
 | File | Content |
 |---|---|
-| [00-decisions.md](00-decisions.md) | Decisions D-130..D-164 and defaults DF-83..DF-88, all awaiting review; differences from Steps 1 to 5; gaps found in approved steps; doubts for the user |
+| [00-decisions.md](00-decisions.md) | Decisions D-130..D-164 and defaults DF-83..DF-88, all awaiting review; differences from the research, requirements, information architecture, UI/UX, and database documents; gaps found in approved documents; doubts for the user |
 | [openapi.yaml](openapi.yaml) | The OpenAPI 3.0.4 contract: 24 tags, 121 operations, shared error responses, and the schemas, with sample data of the fictional Calderwood Group |
 | [01-api-traceability.md](01-api-traceability.md) | The cross-check: stories and operations, the operations table, tables and operations, background jobs, business rules, screens, and acceptance criteria |
 
@@ -29,7 +29,7 @@ These conventions apply to every operation. The reasons are in the [decisions](0
 - The server refuses the next request of a deactivated user, so open sessions end at once (AC-02.5).
 - A session ends after 30 minutes without a request, or 12 hours after login (DF-84). An ended session gives 401 `AUTH_SESSION_EXPIRED`, and the client goes to the login page (AC-01.4).
 - A wrong password when signing gives 401 `AUTH_INVALID_CREDENTIALS` and signs nothing (D-153). The client tells it apart from an ended session by `errorCode`.
-- Where the session is stored and how the cookie is configured in a deployment is decided in Step 7. The browser behaviour of the cookie flags is Unverified here; a reading of the cookie specification (RFC 6265bis) would confirm it.
+- Where the session is stored and how the cookie is configured in a deployment is decided in the architecture. The browser behaviour of the cookie flags is Unverified here; a reading of the cookie specification (RFC 6265bis) would confirm it.
 
 ### Content types
 
@@ -167,10 +167,10 @@ The lint reports no errors and no warnings. The repository root `redocly.yaml` e
 python -X utf8 tools/check_docs.py
 ```
 
-Its Step 6 section parses the YAML, checks the extensions of every operation against the DBML, the user stories, the business rules, and the screen inventory, resolves every `$ref`, compares the enums marked `x-dbml-enum` with the DBML, and compares the matrix, the business rules, and [API traceability](01-api-traceability.md) with the contract.
+Its API section parses the YAML, checks the extensions of every operation against the DBML, the user stories, the business rules, and the screen inventory, resolves every `$ref`, compares the enums marked `x-dbml-enum` with the DBML, and compares the matrix, the business rules, and [API traceability](01-api-traceability.md) with the contract.
 
 ## What the contract does not cover
 
-- Where sessions, idempotency keys, and the XML bytes are stored, and the server configuration (intervals, retry counts, timeouts): answered in Step 7 (draft for review), see the [deferred items](../07-architecture/00-decisions.md#items-deferred-to-step-7-and-their-answers).
+- Where sessions, idempotency keys, and the XML bytes are stored, and the server configuration (intervals, retry counts, timeouts): answered in the architecture (draft for review), see the [deferred items](../07-architecture/00-decisions.md#items-deferred-to-the-architecture-and-their-answers).
 - The link from MatchPay to an ERP, the mailbox, the status feed, the Email Service, and the LLM. These are server-side ports, not operations of this contract (D-143).
 - A public or partner API, a webhook, a bank connection, password reset, and any PDF or foreign-invoice intake: not in the MVP (D-130, D-33, W-19).

@@ -1,6 +1,6 @@
 # Design System
 
-> Design status: MVP — Step 4 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 >
@@ -8,7 +8,7 @@
 >
 > Mind map sync (D-88): components added, approved
 
-Source of truth: [`wireframes/assets/wireframe.css`](wireframes/assets/wireframe.css). Step 9 reuses these tokens. The concept is a call approved by the user (2026-11-01) (D-44).
+Source of truth: [`wireframes/assets/wireframe.css`](wireframes/assets/wireframe.css). The implementation reuses these tokens. The concept is a call approved by the user (2026-11-01) (D-44).
 
 ## Concept: three hands
 
@@ -127,7 +127,7 @@ Revision R1 (approved, D-73..D-81) changes how the pages are laid out, not what 
 | Sticky action bar | At the foot of the signing queue: "N selected, VND x" and **Sign selected**. It stays at the foot of the view while the table scrolls. |
 | Attention card | A left-ruled card (amber for a blocking exception, green for a clean item) with one line per blocker, in plain words, and a link to the tab with the evidence. It holds no action. |
 | Settings layout | `.settings`: a sub-navigation of sections on the left, sections on the right, and a sticky save bar ("Unsaved changes", Discard, Save). |
-| Tooltip mark | A small "i" mark with a `title` for text that is not needed to act. The text is the Step 4 text. It does not show in a PNG or on a touch screen (D-85). |
+| Tooltip mark | A small "i" mark with a `title` for text that is not needed to act. The text is the UI/UX text. It does not show in a PNG or on a touch screen (D-85). |
 | Notification bell (mind map sync) | `.bell` in the top bar of the AP Accountant, Chief Accountant, and Payment Approver: a bell icon, the word "Notifications", and an unread badge. It opens SCR-62. The page it opens carries `aria-current`. The Requesting Department, Entity Admin, Group Admin, and Demo Operator have no bell (D-111). |
 | Unread badge | `.unread-badge`: a dark pill with the count. It is left out when the count is zero (states `empty` and `all-read` of SCR-62). The count in the wireframes is 3 (DF-74). |
 | Notification list item | `.notif`: a round mark (filled when unread), a kind tag, one bold line, one line of detail, the time, and a link to the object. Unread rows have a light wash; read rows use regular weight. No colour judges a person (D-109). |
@@ -157,6 +157,6 @@ Revision R1 (approved, D-73..D-81) changes how the pages are laid out, not what 
 - A state, a flag, an AI label, and a result always pair colour with text or shape (WCAG 1.4.1).
 - Live regions: upload results, signing results, conflict and error notices.
 - Breakpoints: 1180 px (two-column layouts stack; on SCR-12 the order is header, action panel, evidence, history), 900 px (sidebar becomes a "Menu" button), 760 px (list tables become cards; the signing bar sticks to the bottom).
-- Colour contrast: body text and tag text are at least 4.5:1 on their background. Not measured with a tool in Step 4: **Unverified**; a contrast audit of the final colours would confirm it.
+- Colour contrast: body text and tag text are at least 4.5:1 on their background. Not measured with a tool in the UI/UX: **Unverified**; a contrast audit of the final colours would confirm it.
 
-**Related:** [Step index](README.md)
+**Related:** [UI/UX index](README.md)

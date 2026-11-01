@@ -1,10 +1,10 @@
 # Data Model
 
-> Design status: MVP — Step 5 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
-The schema for **MatchPay** on PostgreSQL (D-47): 74 tables in twelve groups. It stores what the [business rules](../requirements/business-rules.md) and the [screens](../04-uiux/02-screen-notes.md) need, plus who created each record and when, and nothing that can be computed (D-63). Everything that comes from the Entity ERP is a read-only copy, and everything that a person decided is a row with its author. The sync to the feature mind map (D-88, [Step 5 decisions](00-decisions.md#mind-map-sync-d-88-approved)) added eleven tables, twelve enums, and the columns named in the tables below; all of it is approved.
+The schema for **MatchPay** on PostgreSQL (D-47): 74 tables in twelve groups. It stores what the [business rules](../requirements/business-rules.md) and the [screens](../04-uiux/02-screen-notes.md) need, plus who created each record and when, and nothing that can be computed (D-63). Everything that comes from the Entity ERP is a read-only copy, and everything that a person decided is a row with its author. The sync to the feature mind map (D-88, [Database decisions](00-decisions.md#mind-map-sync-d-88-approved)) added eleven tables, twelve enums, and the columns named in the tables below; all of it is approved.
 
 Related sources of truth: [matchpay.dbml](matchpay.dbml), [ER diagram](02-er-diagram.md), [decisions](00-decisions.md).
 
@@ -151,7 +151,7 @@ BR-09 and G-06 ask that a user never sees another entity's data and that the ser
 1. **`entity_id` on every business row.** Every table has it except `corporate_groups`, `group_sectors`, and `entities` (group-level), and `users` and `audit_log` may have a NULL one: `users` for the Group Admin and the Demo Operator, who belong to the group; `audit_log` for an event outside any entity such as a failed login with an unknown email.
 2. **The entity comes from the session.** The server reads `users.entity_id` of the logged-in user and adds it to every query. No request carries an entity. A record of another entity is answered exactly like a record that does not exist ("Access denied", AC-01.5), so a repository method is always `find(entity_id, id)`, never `find(id)`.
 3. **Parent and child in the same entity.** SQL turns each parent reference into a composite foreign key `(entity_id, parent_id)` that points to a unique `(entity_id, id)` of the parent (D-48). A purchase order of another entity cannot be stored as the order of an invoice, even by a bug.
-4. **Row-level security** on `entity_id` against a session setting is recommended as a second layer, so that a query without the filter returns nothing. It is decided in Step 7 with the database roles.
+4. **Row-level security** on `entity_id` against a session setting is recommended as a second layer, so that a query without the filter returns nothing. It is decided in the architecture with the database roles.
 5. **The Group Admin has no read path to business rows.** Gates, counts, and rates for each entity come from aggregate queries that return numbers and never rows of `invoices`, `payment_requests`, or `audit_log` entries of an invoice (DF-23, AC-06.9, AC-27.7). `audit_log.is_group_event` marks the events that the Group Admin may list.
 
 **Is a cross-entity unique index needed?** One, and only one: `invoices (seller_tax_code, series, number) WHERE holds_key` (D-51). The exact-duplicate check runs across the whole group (D-09, BR-11), and the database is the one place that can see every entity at once. The index is used only by the insert. The application never lists, counts, or reads rows through it, so the answer to a duplicate is only "an invoice with this seller, series, and number already exists" (AC-10.7), with no entity name, amount, or content. Everything else that looks across entities (near-duplicates, price history, the mapping table, supplier statistics) is per entity (D-09, AC-15.12).
@@ -348,7 +348,7 @@ A model call never runs inside a database transaction, so no lock is held while 
 
 ## Concurrency
 
-- **Versions** (BR-37, DF-27, D-56): a checked action runs `UPDATE ... SET version = version + 1 WHERE id = :id AND version = :seen`. Zero rows means the object changed, nothing is saved, and the user is asked to reload (the conflict state). Invoices, exceptions, batches, and payment requests carry it for the actions named by D-30; the configuration objects carry it for the conflict states of the Step 4 screens.
+- **Versions** (BR-37, DF-27, D-56): a checked action runs `UPDATE ... SET version = version + 1 WHERE id = :id AND version = :seen`. Zero rows means the object changed, nothing is saved, and the user is asked to reload (the conflict state). Invoices, exceptions, batches, and payment requests carry it for the actions named by D-30; the configuration objects carry it for the conflict states of the UI/UX screens.
 - **Signing** is bound to the version and the content hash of the request. The signature insert and the state change happen in the transaction that holds the checked `UPDATE` of the request, so a line removed a moment earlier makes the update fail and nothing is signed (AC-25.10).
 - **One open exception per invoice**, **one active batch item per invoice**, and **one active request line per invoice** are partial unique indexes, so two users cannot admit or approve the same invoice twice.
 - **One batch per entity per month** is a unique index on `(entity_id, period_start)`; "admit an invoice" uses `INSERT ... ON CONFLICT DO NOTHING` and then reads the row, so two admissions at the same time create one batch (D-10, AC-16.14).
@@ -356,7 +356,7 @@ A model call never runs inside a database transaction, so no lock is held while 
 - **One decision per service acceptance**, **one mailbox message per entity and identifier**, and **one reminder per recipient, work item, and day** are unique indexes.
 - **No overlapping delegations per delegator** is an exclusion constraint on the date range of unrevoked rows (SQL; the DBML records it in a note).
 - **A reopening and a signature cannot both succeed.** The reopening checks the batch version and the absence of `VALID` signatures in one transaction, and a signature updates the request under the version check, so one of them fails and is asked to reload (BR-37, AC-24.17).
-- **Sync** upserts by `(entity_id, erp_ref)`, so two overlapping runs do not duplicate records. A second run for the same entity waits for the first (advisory lock, Step 7).
+- **Sync** upserts by `(entity_id, erp_ref)`, so two overlapping runs do not duplicate records. A second run for the same entity waits for the first (advisory lock, architecture).
 
 ## Duplicate checks
 
@@ -405,7 +405,7 @@ The seed is described in DF-56 and uses the sample data of DF-12, DF-33, DF-42, 
 
 ## Where the screens get their data
 
-A spot check of the Step 4 screens. Every displayed field has a source.
+A spot check of the UI/UX screens. Every displayed field has a source.
 
 | Screen | Field | Column or query |
 |---|---|---|
@@ -490,7 +490,7 @@ Every active story has data in at least one table. The same lists fill the Datab
 | US-31 | `mailbox_fetch_runs`, `mailbox_messages`, `mailbox_attachments`, `invoices`, `invoice_documents`, `audit_log` |
 | US-32 | `notifications`, `users`, `exceptions`, `payment_batches`, `payment_requests`, `correction_requests` |
 
-## Not modelled in Step 5
+## Not modelled in the database
 
 | Item | Why | Where it is decided |
 |---|---|---|
@@ -502,14 +502,14 @@ Every active story has data in at least one table. The same lists fill the Datab
 | Automatic opening and closing of a gate | Advanced (W-01); `supplier_gates` is changed by a person only | W-01 |
 | Comparison across entities, group median price | Advanced (W-07); every table is per entity | W-07 |
 | Policy delegation instead of per-request signing | Open (O-05, O-15); one signature record per request | O-05, O-15 |
-| Login sessions, tokens, password reset | Depends on the authentication design. A deactivated user's session must end on the next request (AC-02.5) whatever the design | Step 7 |
-| File storage for the XML bytes | `invoice_documents.xml_content` holds them in the MVP; object storage is an option | Step 7 |
-| Server configuration (thresholds, intervals, retry counts, timeouts) | DF-55; kept out of tables so that the Group Admin has no screen that is not in Step 3 | Step 7 |
-| Master data of the ERP simulator (suppliers, items, unit conversions, risk feed) | Seed files (D-49) | Step 9 |
-| Alerts as rows | The failed-send alert and the stale warning are computed from the rows above (DF-69, supersedes DF-40). In-app notifications and reminders are rows since the sync to the mind map (`notifications`, D-126) | Step 6 |
+| Login sessions, tokens, password reset | Depends on the authentication design. A deactivated user's session must end on the next request (AC-02.5) whatever the design | Architecture |
+| File storage for the XML bytes | `invoice_documents.xml_content` holds them in the MVP; object storage is an option | Architecture |
+| Server configuration (thresholds, intervals, retry counts, timeouts) | DF-55; kept out of tables so that the Group Admin has no screen that is not in the information architecture | Architecture |
+| Master data of the ERP simulator (suppliers, items, unit conversions, risk feed) | Seed files (D-49) | Implementation |
+| Alerts as rows | The failed-send alert and the stale warning are computed from the rows above (DF-69, supersedes DF-40). In-app notifications and reminders are rows since the sync to the mind map (`notifications`, D-126) | API |
 | Supplier portal and the real connection to the tax authority | Advanced (W-05, W-13). The MVP has the simulated mailbox and the simulated status feed only | W-05, W-13 |
-| The mailbox address of each entity, the fetch interval, and the 10-second lookup timeout | Server configuration (DF-55); the address is copied onto each message as read | Step 7 |
+| The mailbox address of each entity, the fetch interval, and the 10-second lookup timeout | Server configuration (DF-55); the address is copied onto each message as read | Architecture |
 | Delegation of individual approvals | No acceptance criterion names it; UC-30 delegates signing only (D-119). A delegate signs requests, and an exception still waits for its Payment Approver | UC-30 |
-| SQL migrations, composite foreign keys, partial indexes, exclusion constraint, trigger, row-level security | Written with the code; the DBML records the intent | Step 9 |
+| SQL migrations, composite foreign keys, partial indexes, exclusion constraint, trigger, row-level security | Written with the code; the DBML records the intent | Implementation |
 
-**Related:** [Step index](README.md) · [Decisions](00-decisions.md) · [ER diagram](02-er-diagram.md)
+**Related:** [Database index](README.md) · [Decisions](00-decisions.md) · [ER diagram](02-er-diagram.md)

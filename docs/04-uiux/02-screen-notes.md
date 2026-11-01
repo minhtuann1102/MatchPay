@@ -1,12 +1,12 @@
 # Screen Notes and States
 
-> Design status: MVP — Step 4 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 >
 > Revision R1 (UX redesign, 2026-11-01): approved
 
-Each page lists its purpose, the yellow annotation numbers shown in the HTML, and its states. The **Source** column names the row of the [UI/UX state contract](../03-information-architecture/06-ui-states-and-accessibility.md) (Step 3) that each state implements, or the rule or acceptance criterion behind it. Open a state with `?state=<name>` and a role with `?role=<name>` (roles: `ap`, `chief`, `approver`, `dept`, `entity-admin`, `group-admin`, `demo`). Modals are states of their parent page and have their own `####` heading. Sample data is the Calderwood Group (DF-12, DF-46). The design language is in the [design system](01-design-system.md).
+Each page lists its purpose, the yellow annotation numbers shown in the HTML, and its states. The **Source** column names the row of the [UI/UX state contract](../03-information-architecture/06-ui-states-and-accessibility.md) (Information architecture) that each state implements, or the rule or acceptance criterion behind it. Open a state with `?state=<name>` and a role with `?role=<name>` (roles: `ap`, `chief`, `approver`, `dept`, `entity-admin`, `group-admin`, `demo`). Modals are states of their parent page and have their own `####` heading. Sample data is the Calderwood Group (DF-12, DF-46). The design language is in the [design system](01-design-system.md).
 
 **Mind map sync (D-88, approved).** Four pages (SCR-22, SCR-24, SCR-55, SCR-62) and six modals or drawers (SCR-19, SCR-23, SCR-33, SCR-34, SCR-56, SCR-57) were added, the seventh role `dept` (Requesting Department, home page SCR-22) joined the control bar and the sidebar, the top bar of the three finance roles shows **Notifications** with the number of unread items, and SCR-10, SCR-12, SCR-30, SCR-50, SCR-51, and SCR-90 gained the states listed under them. The new calls are D-108..D-117 and DF-73..DF-76 in [the decisions](00-decisions.md#mind-map-sync-d-88-approved). Every PNG was exported again because the top bar changed.
 
@@ -20,10 +20,10 @@ Purpose: sign in with email and password, then go to the home page of the role (
 
 | # | Note |
 |---|---|
-| 1 | One **Log in** button; after login the user goes to the role home page, never back to the old URL (Step 3 routes). |
+| 1 | One **Log in** button; after login the user goes to the role home page, never back to the old URL (Information architecture routes). |
 | 2 | One message for a wrong email or a wrong password, without saying which (AC-01.2). |
 | 3 | A deactivated account sees "Your account is deactivated. Please contact your administrator." and is not logged in (AC-01.3). |
-| 4 | After a session ends the page shows a short message (Step 3, SCR-01). Copy is proposed. |
+| 4 | After a session ends the page shows a short message (Information architecture, SCR-01). Copy is proposed. |
 
 | State | Source | Behavior |
 |---|---|---|
@@ -104,7 +104,7 @@ Purpose: the core screen. The evidence of one invoice, with the three hands visi
 |---|---|
 | 1 | Exception reasons with their numbers, for example "Price +2.5%, tolerance 2%" (AC-16.2). In the header. |
 | 2 | Flow with the AI tag; the flow, its reason, and its confidence are stored (AC-12.1). In the key facts of the header. |
-| 3 | The order and the receipt each show the time of the sync they came from (US-07, Step 3 sync-time state). On the `documents` tab. |
+| 3 | The order and the receipt each show the time of the sync they came from (US-07, information architecture sync-time state). On the `documents` tab. |
 | 4 | Flow and identification: AI reason, confidence 0.97, model and prompt versions (BR-12). On the `overview` tab; the long reasoning folds under "Why the AI proposed this". |
 | 5 | Line matches with the method (mapping table, embedding with signal fusion, LLM) and the probability against the 0.90 threshold; a doubtful line says why (AC-14.1, AC-14.5, DF-15). On the `lines` tab. |
 | 6 | Anomaly numbers: price against the 6-month median, near-duplicate, supplier history, period (AC-15.1, AC-15.3, AC-15.7). On the `overview` tab and in full on the `anomalies` tab. |
@@ -228,7 +228,7 @@ Purpose: the one page of the Requesting Department (Rowan, D-90, D-101). It list
 | 1 | Only service invoices that are Waiting for Goods because the ERP holds no acceptance for the order are listed; an invoice leaves the list when the ERP records an acceptance (AC-29.1, AC-29.4). |
 | 2 | **Review** opens SCR-23 for the row. |
 | 3 | The "Due soon" mark for a due date within 7 days (AC-29.1, AC-17.8). |
-| 4 | The page shows no other invoice data and has no link to SCR-12 (Step 3, SCR-22). |
+| 4 | The page shows no other invoice data and has no link to SCR-12 (Information architecture, SCR-22). |
 | 5 | SCR-23: a note, required to reject, optional to confirm. It is saved with the name and the time (AC-29.2, AC-29.9). |
 | 6 | "A note is required to reject." The copy is proposed (AC-29.3). |
 | 7 | "You created the order for this invoice."; both actions are disabled (AC-29.6, BR-02). |
@@ -265,7 +265,7 @@ Purpose: the log of the simulated mailbox of the entity (invoices-foods@calderwo
 | 2 | **Fetch now** starts a fetch at once. |
 | 3 | One row for each attachment. Accepted rows link to the invoice on SCR-10; a rejected row names its reason, for example "Only XML e-invoices are accepted in the MVP" or "An invoice with this seller, series, and number already exists"; a message with no attachment reads "No attachment" (AC-31.2 to AC-31.6). |
 | 4 | The saved-view tabs filter by result; they are views and not states (`?tab=accepted`, `rejected`, `none`, `all`). |
-| 5 | While a fetch runs, **Fetch now** is disabled and shows progress (Step 3, UI states). |
+| 5 | While a fetch runs, **Fetch now** is disabled and shows progress (Information architecture, UI states). |
 | 6 | A failed fetch shows the failure and the last successful time; earlier data stays and the next scheduled fetch tries again (AC-31.7). |
 
 | State | Source | Behavior |
@@ -371,7 +371,7 @@ Purpose: payment requests of the entity; several can be signed in one action (AC
 | 2 | Required level, state chip, flags (New supplier, Bank account changed), and signatures so far (BR-30, AC-25.1). |
 | 3 | The Payment Approver's action is disabled until the Chief Accountant has signed, and each row says why (AC-25.2, DF-01). |
 | 4 | ERP status per request: "Retry 2 of 3, next attempt in 5 minutes" (DF-24). |
-| 5 | After signing, the page stays and gives one result per request, including the refused ones (Step 3). |
+| 5 | After signing, the page stays and gives one result per request, including the refused ones (Information architecture). |
 | 6 | The sticky bar shows how many requests are selected and their total; it stays visible on a phone. |
 | 7 | During an active delegation the delegate also sees the requests that wait for the delegator's level, marked **On behalf of Carol**; the delegate signs with their own password (AC-30.2, D-117). |
 | 8 | The delegator's own signing action is disabled with "You delegated signing until 14/11/2026" and a link to the delegations page (AC-30.8, D-112). |
@@ -563,8 +563,8 @@ Purpose: the events and reminders addressed to the user, newest first (D-97, D-1
 | # | Note |
 |---|---|
 | 1 | Price tolerance 2% with the group maximum of 5% next to it (AC-04.2, DF-13). |
-| 2 | Sample rate between 1% and 100% (Step 3). |
-| 3 | New values apply to invoices checked afterwards (Step 3). |
+| 2 | Sample rate between 1% and 100% (Information architecture). |
+| 3 | New values apply to invoices checked afterwards (Information architecture). |
 
 | State | Source | Behavior |
 |---|---|---|
@@ -632,7 +632,7 @@ Purpose: the Group Admin's home page, built from US-06 and US-07 (D-39). Counts 
 |---|---|
 | 1 | **Add entity** opens SCR-77. |
 | 2 | Group maximums: price tolerance 5% and batch threshold VND 300,000,000 (DF-13); the sector list (DF-25). |
-| 3 | Lowering a maximum below an entity value says that the value will be lowered (Step 3). |
+| 3 | Lowering a maximum below an entity value says that the value will be lowered (Information architecture). |
 | 4 | SCR-77: entity name and a unique 10-digit tax code (US-03). SCR-77 opens as a right drawer. |
 
 | State | Source | Behavior |
@@ -705,4 +705,4 @@ Purpose: the Demo Operator plays the buyer, the warehouse keeper, and the accept
 | [`receipt-no-order`](wireframes/80-erp-simulator.html?state=receipt-no-order) | Validation error | A receipt needs an order reference (BR-13). Copy proposed. |
 | [`receipt-same-persona`](wireframes/80-erp-simulator.html?state=receipt-same-persona) | Validation error | "The receipt must be confirmed by a different person than the order creator" (AC-08.3) ([PNG](../images/demo-operator/80d-erp-simulator-receipt-same-persona.png)). |
 
-**Related:** [Step index](README.md) · [Design system](01-design-system.md) · [Screen inventory](../03-information-architecture/04-screen-inventory.md)
+**Related:** [UI/UX index](README.md) · [Design system](01-design-system.md) · [Screen inventory](../03-information-architecture/04-screen-inventory.md)

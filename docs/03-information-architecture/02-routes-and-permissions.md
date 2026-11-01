@@ -1,12 +1,12 @@
 # Routes and Page Permissions
 
-> Design status: MVP — Step 3 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
 ## Routes
 
-Routes are logical paths. The router mode (history or hash) is chosen in Step 7 (DF-34). Modals have no route of their own: they open on top of their parent page and close back to it (D-36).
+Routes are logical paths. The router mode (history or hash) is chosen in the architecture (DF-34). Modals have no route of their own: they open on top of their parent page and close back to it (D-36).
 
 | Route | Screen | Notes |
 |---|---|---|
@@ -93,4 +93,4 @@ The numbers SCR-13 and SCR-17 were removed by D-33 (foreign invoices moved to Ad
 | Record of another entity requested by identifier | SCR-90, with no hint whether the record exists (BR-09, G-06). |
 | Direct request without permission (bypassing the interface) | Rejected by the server and written to the audit log (AC-01.8). |
 
-**Related:** [Step index](README.md) · [Sitemap](01-sitemap.md) · [Navigation](03-navigation.md) · [Screen inventory](04-screen-inventory.md)
+**Related:** [Information architecture index](README.md) · [Sitemap](01-sitemap.md) · [Navigation](03-navigation.md) · [Screen inventory](04-screen-inventory.md)

@@ -1,6 +1,6 @@
 # Goals and Success Metrics
 
-> Design status: MVP — Step 1 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -37,4 +37,4 @@ None of the published figures can be compared directly with the demo. The brief'
 
 The brief proposed a target of at least 50% for G-01 against "about one third on average, about 49% for the best group". That target is kept as a proposal for the demo, with the caveat that a simulated data set built for the demo is not comparable with any of these figures.
 
-**Related:** [Step index](README.md)
+**Related:** [Research index](README.md)

@@ -1,6 +1,6 @@
 # Acceptance Criteria
 
-> Design status: MVP — Step 2 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -482,4 +482,4 @@ UC-32 · BR-09, BR-12, BR-26, BR-34, BR-35
 - **AC-32.9** *Given* a notification cannot be saved, *when* the batch is released, *then* the release still completes and the failure is logged; the fail-closed rule of DF-30 applies to audit entries and not to notifications (BR-12).
 - **AC-32.10** *Given* I am an Entity Admin, a Group Admin, a Demo Operator, or a Requesting Department user, *when* I open the notification list, *then* I get "Access denied" (BR-09).
 
-**Related:** [Step index](README.md)
+**Related:** [Requirements index](README.md)

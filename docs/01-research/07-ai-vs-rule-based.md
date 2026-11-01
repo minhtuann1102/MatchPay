@@ -1,6 +1,6 @@
 # Why AI Instead of Rule-based
 
-> Design status: MVP — Step 1 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -79,4 +79,4 @@ Comparing across entities is an advantage of a shared platform: one entity payin
 
 AI brings a cost per call and latency (R-10), wrong answers (R-01), injection through document content (R-09), and data-privacy duties (R-11). The hybrid design keeps these bounded: an AI failure or a schema mismatch sends the invoice to an exception and never blocks intake (BR-27), the mapping table removes repeated LLM calls (G-07), and the misplacement rate (G-02) makes AI quality visible so that the group can decide with data how far to automate.
 
-**Related:** [Step index](README.md)
+**Related:** [Research index](README.md)

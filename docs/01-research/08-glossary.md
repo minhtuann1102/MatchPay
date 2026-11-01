@@ -1,6 +1,6 @@
 # Glossary
 
-> Design status: MVP — Step 1 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -54,4 +54,4 @@
 | Audit log | The record of every AI decision with its reason, confidence, and model version; it cannot be edited through the application (BR-12). |
 | Entity isolation | Data of one entity is never shown to another; cross-entity comparisons show aggregates only (BR-09). |
 
-**Related:** [Step index](README.md)
+**Related:** [Research index](README.md)

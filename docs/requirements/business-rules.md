@@ -1,10 +1,10 @@
 # Business Rules — MatchPay MVP
 
-> Design status: MVP — Step 2 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
-BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where this page words a rule differently, the change comes from a decision and is named in the rule (D-08, D-24, D-26, D-33, D-89..D-96). BR-32..BR-39 are new (BR-38 and BR-39 came from the sync to the feature mind map, D-88). The user's scope change D-33 removed foreign invoices and the cash payment flag from the MVP: BR-21 and BR-32 read "Removed (D-33)" and are carried by the Advanced items W-20 and W-21, and BR-18 is entirely Advanced (W-19, W-09); they keep their number and have no user story. Values marked DF-xx are defaults pending confirmation; see [Step 2 defaults](../02-usecases-userstories/00-decisions.md#defaults-pending-confirmation). The brief's example numbers are the demo configuration of each entity (DF-11); thresholds are parameters set per entity inside the group limits (BR-16). The Related API lines are filled in by Step 6. A rule that spans the MVP and Advanced says which part is which.
+BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where this page words a rule differently, the change comes from a decision and is named in the rule (D-08, D-24, D-26, D-33, D-89..D-96). BR-32..BR-39 are new (BR-38 and BR-39 came from the sync to the feature mind map, D-88). The user's scope change D-33 removed foreign invoices and the cash payment flag from the MVP: BR-21 and BR-32 read "Removed (D-33)" and are carried by the Advanced items W-20 and W-21, and BR-18 is entirely Advanced (W-19, W-09); they keep their number and have no user story. Values marked DF-xx are defaults pending confirmation; see [Requirements defaults](../02-usecases-userstories/00-decisions.md#defaults-pending-confirmation). The brief's example numbers are the demo configuration of each entity (DF-11); thresholds are parameters set per entity inside the group limits (BR-16). The Related API lines are filled in by the API. A rule that spans the MVP and Advanced says which part is which.
 
 ## BR-01 — One entity per document
 
@@ -356,7 +356,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 ## BR-33 — Invoice lifecycle
 
-- **Source:** Step 2 (new rule)
+- **Source:** requirements (new rule)
 - **Related US:** US-10, US-12, US-13, US-16, US-18, US-26, US-29, US-31
 - **Related API:** `uploadInvoices`, `getInvoice`, `rerunChecks`, `startMailboxFetch`, `rejectInvoice`, `confirmFollowUp`, `recordCancellationNotice`, `decideServiceAcceptance`, `withdrawInvoiceFromBatch`, `resendToErp`
 - **Rule:** An invoice is always in exactly one state, and only the transitions below are allowed. `Rejected`, `Separated`, `Superseded`, and `Paid` are final.
@@ -428,7 +428,7 @@ V2 and V3 were removed by D-33 together with the state `Awaiting Field Confirmat
 
 ## BR-34 — Exception lifecycle
 
-- **Source:** Step 2 (new rule)
+- **Source:** requirements (new rule)
 - **Related US:** US-18, US-20, US-21, US-23, US-32
 - **Related API:** `listExceptions`, `getException`, `getDecisionQueue`, `takeException`, `confirmLineMatch`, `correctFlow`, `confirmEntity`, `reportWrongEntity`, `confirmAiResults`, `rejectInvoice`, `sendForDecision`, `confirmFollowUp`, `recordCorrectionReply`, `decideTaxRiskHold`, `decideIndividualApproval`, `listNotifications`
 - **Rule:** An exception holds one or more reasons and is always in one state. `Closed` is final and carries an outcome. A new problem with the same invoice creates a new exception.
@@ -473,7 +473,7 @@ stateDiagram-v2
 
 ## BR-35 — Batch and payment request lifecycle
 
-- **Source:** Step 2 (new rule), D-10, D-11, DF-01..DF-03
+- **Source:** requirements (new rule), D-10, D-11, DF-01..DF-03
 - **Related US:** US-18, US-23, US-24, US-25, US-26, US-32
 - **Related API:** `recordCancellationNotice`, `decideIndividualApproval`, `getCurrentBatch`, `listBatches`, `getBatch`, `listBatchItems`, `closeBatchForReview`, `expandSample`, `releaseBatch`, `reopenBatch`, `withdrawInvoiceFromBatch`, `listBatchRequests`, `signPaymentRequests`, `removeRequestLine`, `declineRequest`, `resendToErp`, `listNotifications`
 - **Rule:** There is one open batch per entity per period (DF-18). A batch and each of its payment requests are always in one state, and only these transitions are allowed. `Completed`, `Cancelled`, and `Paid` are final.
@@ -543,7 +543,7 @@ Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In 
 
 ## BR-36 — Signer separation
 
-- **Source:** Step 2 (new rule), DF-01, BR-02, D-89
+- **Source:** requirements (new rule), DF-01, BR-02, D-89
 - **Related US:** US-02, US-23, US-25, US-30
 - **Related API:** `createUser`, `updateUser`, `createDelegation`, `getException`, `decideIndividualApproval`, `markSampleItem`, `listPaymentRequests`, `getPaymentRequest`, `signPaymentRequests`
 - **Rule:**
@@ -556,7 +556,7 @@ Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In 
 
 ## BR-37 — Concurrent-change detection
 
-- **Source:** Step 2 (new rule), D-30, DF-27
+- **Source:** requirements (new rule), D-30, DF-27
 - **Related US:** US-18, US-21, US-23, US-24, US-25, US-26, US-29, US-30
 - **Related API:** `takeException`, `confirmLineMatch`, `correctFlow`, `confirmEntity`, `reportWrongEntity`, `confirmAiResults`, `rejectInvoice`, `sendForDecision`, `confirmFollowUp`, `recordCancellationNotice`, `decideTaxRiskHold`, `decideIndividualApproval`, `decideServiceAcceptance`, `closeBatchForReview`, `markSampleItem`, `expandSample`, `releaseBatch`, `reopenBatch`, `withdrawInvoiceFromBatch`, `signPaymentRequests`, `removeRequestLine`, `declineRequest`, `listErpSendAttempts`, `resendToErp`
 - **Rule:**
@@ -566,7 +566,7 @@ Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In 
 
 ## BR-38 — Signing delegation
 
-- **Source:** Step 2 (new rule), D-91, DF-62, O-17
+- **Source:** requirements (new rule), D-91, DF-62, O-17
 - **Related US:** US-30
 - **Related API:** `listDelegations`, `createDelegation`, `listDelegateCandidates`, `getDelegation`, `revokeDelegation`, `getInvoiceEvidence`, `listPaymentRequests`, `getPaymentRequest`, `signPaymentRequests`
 - **Rule:** *(a call approved by the user (2026-11-01); its legal validity is Unverified, O-17)*
@@ -579,7 +579,7 @@ Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In 
 
 ## BR-39 — Invoice status at the tax authority
 
-- **Source:** Step 2 (new rule), D-93, DF-64, L-18, O-10
+- **Source:** requirements (new rule), D-93, DF-64, L-18, O-10
 - **Related US:** US-07, US-10
 - **Advanced part:** W-13, the real connection point
 - **Related API:** `startErpSync`, `listErpSyncRejections`, `uploadInvoices`, `runAuthorityLookup`, `listAuthorityStatusLookups`
@@ -590,4 +590,4 @@ Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In 
   - The status of an invoice that is not yet sent is refreshed at every ERP sync (DF-31). A change to Cancelled or Replaced is handled as a cancellation notice (BR-31, D-94).
   - **Advanced part (W-13).** A real connection to the tax authority's invoice portal. No official API was found (O-10); the MVP does not claim that one exists.
 
-**Related:** [Use cases and user stories](../02-usecases-userstories/README.md) · [Master traceability](../traceability/master-traceability.md) · [Step 1 decisions](../01-research/00-decisions.md)
+**Related:** [Use cases and user stories](../02-usecases-userstories/README.md) · [Master traceability](../traceability/master-traceability.md) · [Research decisions](../01-research/00-decisions.md)

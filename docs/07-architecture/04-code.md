@@ -1,10 +1,10 @@
 # C4 — Code — Two Core Features
 
-> Design status: MVP — Step 7 of 9, draft for review
+> Design status: MVP — draft for review
 >
 > Implementation status: NOT STARTED
 
-**Purpose:** show the code level of the two features where a mistake costs the most: the Rule Engine's evaluation of the six batch conditions (US-16), and signing many payment requests in one action (US-25). The class names are the intended Python classes and protocols. They define responsibilities and dependency directions; the folder layout is Step 8 and the code is Step 9. Everything here is a call awaiting review.
+**Purpose:** show the code level of the two features where a mistake costs the most: the Rule Engine's evaluation of the six batch conditions (US-16), and signing many payment requests in one action (US-25). The class names are the intended Python classes and protocols. They define responsibilities and dependency directions; the folder layout is code structure and the code is implementation. Everything here is a call awaiting review.
 
 ## L4.1 Rule Engine — the six conditions (US-16)
 

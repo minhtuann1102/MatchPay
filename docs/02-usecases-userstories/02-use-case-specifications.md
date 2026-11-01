@@ -1,6 +1,6 @@
 # Use Case Specifications
 
-> Design status: MVP — Step 2 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -258,6 +258,6 @@ Removed (D-33). Moved to Advanced as W-20 (foreign tax duties: foreign contracto
 - **Main flow:** the System creates an in-app notification when a batch is released for signing (to the signers who must sign), when a new exception is created or a request is returned or declined (to the AP Accountant), and as a daily reminder when a correction request has waited more than 5 working days or a request waits for a signature past its due date (DF-21, DF-67) → the user sees an unread count and a list → opening an item goes to its object and marks it read → a reminder stops when its work is done
 - **Alternative:** no email is sent to staff (D-97); an item that cannot be saved does not stop the action that caused it; an object of another entity never creates an item for this user (BR-09)
 - **Permission:** own entity; each user sees only their own notifications
-- **Result:** work waiting for a person is visible without searching; this reverses the Step 3 decision D-41 (no notification centre), which Step 3 must follow (D-97) · **Stories:** US-32
+- **Result:** work waiting for a person is visible without searching; this reverses the information architecture decision D-41 (no notification centre), which the information architecture must follow (D-97) · **Stories:** US-32
 
-**Related:** [Step index](README.md)
+**Related:** [Requirements index](README.md)

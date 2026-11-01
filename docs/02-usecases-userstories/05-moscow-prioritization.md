@@ -1,6 +1,6 @@
 # MoSCoW Prioritization
 
-> Design status: MVP — Step 2 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -41,7 +41,7 @@ Cut Should stories in this order, from the first to be cut. The consequence is w
 
 ## Won't (this release)
 
-These are the Advanced items of the brief and of the Step 1 decisions. W-05 and W-13 were reworded by the sync to the feature mind map: their MVP parts (the simulated mailbox and the simulated status lookup) moved into the MVP, and their numbers stay. They are designed and documented as a roadmap in [Future work](../01-research/09-future-work.md), and no use case or story is written for them. A rule that is entirely Advanced (BR-22, BR-21, BR-32) is carried by its item here instead of by a story. BR-18 and the PDF part of BR-17 are Advanced too, carried by W-19, W-09, and W-03.
+These are the Advanced items of the brief and of the research decisions. W-05 and W-13 were reworded by the sync to the feature mind map: their MVP parts (the simulated mailbox and the simulated status lookup) moved into the MVP, and their numbers stay. They are designed and documented as a roadmap in [Future work](../01-research/09-future-work.md), and no use case or story is written for them. A rule that is entirely Advanced (BR-22, BR-21, BR-32) is carried by its item here instead of by a story. BR-18 and the PDF part of BR-17 are Advanced too, carried by W-19, W-09, and W-03.
 
 | ID | Item | Related rules and decisions |
 |---|---|---|
@@ -67,4 +67,4 @@ These are the Advanced items of the brief and of the Step 1 decisions. W-05 and 
 | W-20 | Foreign tax duties: foreign contractor tax outcome, customs declaration, and import-stage VAT documents (UC-22/US-22 as first designed) | BR-21, D-32, O-07, D-33 |
 | W-21 | Cash payment flag and payment-method recording | BR-32, D-25, DF-26, O-12, D-33 |
 
-**Related:** [Step index](README.md)
+**Related:** [Requirements index](README.md)

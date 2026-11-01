@@ -1,10 +1,10 @@
 # Invoice Flows and Data
 
-> Design status: MVP — Step 1 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
-This page describes what arrives, what it is compared with, how far it is trusted, and the path one invoice takes. It states the brief's design and marks where a Step 1 decision (D-xx) or an open item (O-xx) changes it. The real source documents are Vietnamese; every sample value in these documents is an English equivalent.
+This page describes what arrives, what it is compared with, how far it is trusted, and the path one invoice takes. It states the brief's design and marks where a research decision (D-xx) or an open item (O-xx) changes it. The real source documents are Vietnamese; every sample value in these documents is an English equivalent.
 
 ## Invoice types and the documents they are matched against
 
@@ -98,4 +98,4 @@ The AI does not sign, does not decide admission, and does not send anything outs
 
 The demo uses the fictional Calderwood Group and its three fictional entities (D-05). Item names come from public procurement sources and a second person writes the hard variants, so that the data is not graded by its own author (R-07). Example of a line to match: the supplier writes "Brand-X 70gsm copy paper, carton of 5 reams", and the entity's item is "A4 copy paper, grade 1" with 1 carton = 5 reams.
 
-**Related:** [Step index](README.md) · [Scope](05-scope.md) · [Regulatory context](10-regulatory-context.md)
+**Related:** [Research index](README.md) · [Scope](05-scope.md) · [Regulatory context](10-regulatory-context.md)
