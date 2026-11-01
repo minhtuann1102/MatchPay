@@ -1,0 +1,40 @@
+type: object
+description: Per-file results of an upload or a fetch.
+required:
+  - items
+  - acceptedCount
+  - rejectedCount
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./UploadItemResult.yaml
+  acceptedCount:
+    type: integer
+  rejectedCount:
+    type: integer
+example:
+  acceptedCount: 1
+  rejectedCount: 2
+  items:
+    - fileName: C26TAA-0000123.xml
+      outcome: ACCEPTED
+      invoiceId: 1042
+      invoiceNumber: C26TAA-0000123
+      state: RECEIVED
+      message: Accepted
+      warnings: []
+      checkRunId: 7301
+    - fileName: scan.pdf
+      outcome: REJECTED_FILE
+      fileRejectionReason: NOT_XML
+      message: Only XML e-invoices are accepted in the MVP
+      warnings: []
+    - fileName: C26TAA-0000140.xml
+      outcome: REJECTED_INVOICE
+      invoiceId: 1043
+      invoiceNumber: C26TAA-0000140
+      state: REJECTED
+      rejectionReason: CANCELLED_AT_AUTHORITY
+      message: Cancelled at the tax authority on 2026-11-03
+      warnings: []

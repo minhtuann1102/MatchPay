@@ -1,0 +1,6 @@
+name: exceptionId
+in: path
+required: true
+description: Identifier of an exception of the caller's entity.
+schema:
+  $ref: ../schemas/Id.yaml

@@ -1,0 +1,21 @@
+type: object
+description: Pagination metadata (D-140).
+required:
+  - page
+  - pageSize
+  - totalItems
+  - totalPages
+properties:
+  page:
+    type: integer
+  pageSize:
+    type: integer
+  totalItems:
+    type: integer
+  totalPages:
+    type: integer
+example:
+  page: 1
+  pageSize: 25
+  totalItems: 92
+  totalPages: 4

@@ -1,0 +1,15 @@
+type: object
+description: A calendar month in the server time zone Asia/Ho_Chi_Minh (D-138).
+required:
+  - start
+  - end
+  - label
+properties:
+  start:
+    type: string
+    format: date
+  end:
+    type: string
+    format: date
+  label:
+    type: string

@@ -1,0 +1,52 @@
+type: object
+description: A user account. The password hash is never returned.
+required:
+  - id
+  - groupId
+  - email
+  - fullName
+  - role
+  - status
+  - createdAt
+  - version
+properties:
+  id:
+    $ref: ./Id.yaml
+  groupId:
+    $ref: ./Id.yaml
+  entityId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  entityName:
+    type: string
+    nullable: true
+  email:
+    type: string
+    format: email
+  fullName:
+    type: string
+  role:
+    $ref: ./UserRole.yaml
+  status:
+    $ref: ./UserStatus.yaml
+  erpUser:
+    type: object
+    allOf:
+      - $ref: ./ErpUserRef.yaml
+    nullable: true
+  deactivatedAt:
+    type: string
+    format: date-time
+    nullable: true
+  deactivatedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  createdAt:
+    type: string
+    format: date-time
+  version:
+    $ref: ./Version.yaml

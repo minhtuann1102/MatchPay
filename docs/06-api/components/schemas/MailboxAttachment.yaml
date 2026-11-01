@@ -1,0 +1,44 @@
+type: object
+description: One attachment with its result (AC-31.1..AC-31.6).
+required:
+  - id
+  - attachmentNo
+  - fileName
+  - byteSize
+  - outcome
+properties:
+  id:
+    $ref: ./Id.yaml
+  attachmentNo:
+    type: integer
+  fileName:
+    type: string
+  contentType:
+    type: string
+    nullable: true
+  byteSize:
+    type: integer
+  outcome:
+    $ref: ./AttachmentOutcome.yaml
+  rejectReason:
+    type: string
+    nullable: true
+  invoiceId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  invoiceState:
+    type: string
+    allOf:
+      - $ref: ./InvoiceState.yaml
+    nullable: true
+  invoiceRejectionReason:
+    type: string
+    allOf:
+      - $ref: ./RejectionReason.yaml
+    nullable: true
+  processedAt:
+    type: string
+    format: date-time
+    nullable: true

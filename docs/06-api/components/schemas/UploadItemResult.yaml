@@ -1,0 +1,37 @@
+type: object
+description: >-
+  The result of one file of an upload (SCR-11). A failing file never stops the
+  others (AC-10.10).
+required:
+  - fileName
+  - outcome
+  - message
+  - warnings
+properties:
+  fileName:
+    type: string
+  outcome:
+    $ref: ./UploadFileOutcome.yaml
+  invoiceId:
+    $ref: ./Id.yaml
+  invoiceNumber:
+    type: string
+  state:
+    $ref: ./InvoiceState.yaml
+  rejectionReason:
+    $ref: ./RejectionReason.yaml
+  fileRejectionReason:
+    $ref: ./FileRejectionReason.yaml
+  message:
+    type: string
+    description: >-
+      Text for the result list, for example "Cancelled at the tax authority on
+      2026-11-03".
+  warnings:
+    type: array
+    items:
+      $ref: ./Warning.yaml
+  checkRunId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: Check run started for an accepted invoice (D-135).

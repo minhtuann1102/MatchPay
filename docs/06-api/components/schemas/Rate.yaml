@@ -1,0 +1,19 @@
+type: object
+description: A rate with the counts behind it (AC-27.1).
+required:
+  - numerator
+  - denominator
+  - formula
+properties:
+  rate:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+    description: Percent with one decimal; NULL when the denominator is 0.
+  numerator:
+    type: integer
+  denominator:
+    type: integer
+  formula:
+    type: string

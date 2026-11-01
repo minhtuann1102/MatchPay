@@ -1,0 +1,6 @@
+name: userId
+in: path
+required: true
+description: Identifier of a user in the caller's scope.
+schema:
+  $ref: ../schemas/Id.yaml

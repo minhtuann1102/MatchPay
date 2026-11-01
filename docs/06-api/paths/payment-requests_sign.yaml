@@ -1,0 +1,108 @@
+post:
+  tags:
+    - Signing
+  summary: Sign payment requests
+  description: >-
+    Signs one or many requests in one action after the signer enters their own
+    password again and the platform e-signature with the simulated certificate
+    is applied (AC-25.3, AC-25.4, DF-10). Each request is its own transaction,
+    so a refused request never blocks the others, and the response lists every
+    request as SIGNED or REFUSED with the reason (D-137, AC-25.11). Refusals:
+    outdated version (BR-37, AC-25.10); the level the total requires (BR-03,
+    AC-25.5); the Chief Accountant signs first (DF-01, AC-25.2); the same person
+    twice (AC-25.8, AC-30.3); the preparer of the batch; a link to the ERP user
+    of the order or receipt, or an invoice the signer processed, naming it
+    (BR-02, BR-36, AC-25.16, AC-30.5). A signature binds to the request version
+    and content hash (BR-20, BR-37). A delegate signs at the delegator's level
+    only inside the range, and the record names both people (BR-38, AC-30.2);
+    the server decides this, the client sends no delegation (D-150). The second
+    signature sets the request and its invoices to Signed and queues the ERP
+    send (AC-25.11, UC-26). A wrong password gives 401 AUTH_INVALID_CREDENTIALS
+    and signs nothing (D-153). Requires `Idempotency-Key`; it becomes the
+    signing action id (D-61). Notifies the Payment Approver after the first
+    signature (AC-32.1).
+  operationId: signPaymentRequests
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-25
+    - US-30
+  x-rules:
+    - BR-02
+    - BR-03
+    - BR-09
+    - BR-20
+    - BR-35
+    - BR-36
+    - BR-37
+    - BR-38
+  x-screens:
+    - SCR-52
+    - SCR-50
+    - SCR-51
+  x-tables:
+    - request_signatures
+    - payment_requests
+    - payment_request_lines
+    - invoices
+    - signing_delegations
+    - approval_tiers
+    - approval_tier_approvers
+    - users
+    - erp_users
+    - erp_purchase_orders
+    - erp_receipts
+    - exceptions
+    - batch_sample_items
+    - service_acceptances
+    - erp_send_attempts
+    - payment_batches
+    - notifications
+    - audit_log
+  x-criteria:
+    - AC-25.2
+    - AC-25.3
+    - AC-25.4
+    - AC-25.8
+    - AC-25.10
+    - AC-25.11
+    - AC-25.12
+    - AC-25.14
+    - AC-25.16
+    - AC-30.2
+    - AC-30.3
+    - AC-30.5
+    - AC-30.8
+    - AC-32.1
+    - AC-23.10
+  parameters:
+    - $ref: ../components/parameters/IdempotencyKey.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/SignRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/SignResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/ForbiddenSod.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '429':
+      $ref: ../components/responses/TooManyRequests.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

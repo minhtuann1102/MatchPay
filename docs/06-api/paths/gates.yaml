@@ -1,0 +1,72 @@
+get:
+  tags:
+    - Automation gates
+  summary: List automation gates
+  description: >-
+    Lists each supplier and entity pair with its state, compared invoices, and
+    accuracy next to the 98% threshold. The Group Admin sees counts and accuracy
+    and no invoice content of any entity (BR-09, AC-06.9). A pair with seeded
+    history carries `hasSimulatedHistory` (AC-06.10). Figures are computed from
+    gate_comparisons (D-142).
+  operationId: listGates
+  security:
+    - sessionCookie: []
+  x-roles:
+    - GROUP_ADMIN
+  x-stories:
+    - US-06
+  x-rules:
+    - BR-06
+    - BR-09
+  x-screens:
+    - SCR-78
+    - SCR-75
+  x-tables:
+    - supplier_gates
+    - gate_comparisons
+    - gate_alerts
+    - erp_suppliers
+    - entities
+  x-criteria:
+    - AC-06.1
+    - AC-06.2
+    - AC-06.3
+    - AC-06.7
+    - AC-06.9
+    - AC-06.10
+  parameters:
+    - name: entityId
+      in: query
+      required: false
+      description: Narrow to one entity.
+      schema:
+        $ref: ../components/schemas/Id.yaml
+    - name: state
+      in: query
+      required: false
+      description: Filter by gate state.
+      schema:
+        $ref: ../components/schemas/GateState.yaml
+    - name: hasAlert
+      in: query
+      required: false
+      description: Only pairs with an open alert.
+      schema:
+        type: boolean
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/GatePage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

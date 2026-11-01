@@ -1,0 +1,41 @@
+get:
+  tags:
+    - Delegations
+  summary: Get a delegation
+  description: >-
+    Returns one delegation. A Group Admin, an AP Accountant, or a user of
+    another entity gets 403 ACCESS_DENIED (AC-30.11, BR-09).
+  operationId: getDelegation
+  security:
+    - sessionCookie: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+    - ENTITY_ADMIN
+  x-stories:
+    - US-30
+  x-rules:
+    - BR-09
+    - BR-38
+  x-screens:
+    - SCR-55
+  x-tables:
+    - signing_delegations
+    - users
+  x-criteria:
+    - AC-30.11
+  parameters:
+    - $ref: ../components/parameters/delegationId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Delegation.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

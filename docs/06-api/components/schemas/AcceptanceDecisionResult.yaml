@@ -1,0 +1,15 @@
+type: object
+description: The saved acceptance and the re-check that started.
+required:
+  - acceptance
+  - invoice
+  - checkRunId
+properties:
+  acceptance:
+    $ref: ./ServiceAcceptanceRecord.yaml
+  invoice:
+    $ref: ./InvoiceBrief.yaml
+  checkRunId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: UC-16 runs again in the same action (AC-29.2).

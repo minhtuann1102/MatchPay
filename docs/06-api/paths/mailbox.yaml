@@ -1,0 +1,41 @@
+get:
+  tags:
+    - Mailbox
+  summary: Get the mailbox status
+  description: >-
+    The simulated mailbox of the own entity (for example
+    invoices-foods@calderwood.example) with the time of the last successful
+    fetch and the failure when a fetch failed; earlier data stays (AC-31.7).
+    Computed from mailbox_fetch_runs (D-142). Chief Accountant, Payment
+    Approver, administrators, and an AP Accountant of another entity get 403
+    (AC-31.8).
+  operationId: getMailboxStatus
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-31
+  x-rules:
+    - BR-09
+  x-screens:
+    - SCR-24
+  x-tables:
+    - mailbox_fetch_runs
+    - mailbox_messages
+  x-criteria:
+    - AC-31.7
+    - AC-31.8
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/MailboxStatus.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

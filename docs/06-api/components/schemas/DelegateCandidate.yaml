@@ -1,0 +1,13 @@
+type: object
+description: An active Chief Accountant or Payment Approver of the same entity (AC-30.6).
+required:
+  - userId
+  - fullName
+  - role
+properties:
+  userId:
+    $ref: ./Id.yaml
+  fullName:
+    type: string
+  role:
+    $ref: ./UserRole.yaml

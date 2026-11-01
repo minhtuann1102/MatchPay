@@ -1,0 +1,109 @@
+get:
+  tags:
+    - Audit log
+  summary: List audit log entries
+  description: >-
+    Read-only (BR-12, D-55). Chief Accountant and Entity Admin: entries of the
+    own entity. Group Admin: group events only (entities, limits, gates, users)
+    and no invoice-level entries (AC-28.5, BR-09). AP Accountant, Payment
+    Approver, Requesting Department, and Demo Operator get 403 (AC-28.6). Shows
+    AI decisions with time, document, task, method, result, reason, confidence,
+    model and prompt version (AC-28.1), Rule Engine decisions with conditions,
+    decisions by people, signatures, configuration and gate changes (AC-28.2).
+    There is no operation that edits or deletes an entry; a direct request to do
+    so gets 405 (AC-28.4).
+  operationId: listAuditEntries
+  security:
+    - sessionCookie: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - ENTITY_ADMIN
+    - GROUP_ADMIN
+  x-stories:
+    - US-28
+  x-rules:
+    - BR-06
+    - BR-09
+    - BR-12
+  x-screens:
+    - SCR-61
+  x-tables:
+    - audit_log
+    - users
+  x-criteria:
+    - AC-28.1
+    - AC-28.2
+    - AC-28.3
+    - AC-28.4
+    - AC-28.5
+    - AC-28.6
+  parameters:
+    - name: dateFrom
+      in: query
+      required: false
+      description: From this time, inclusive.
+      schema:
+        type: string
+        format: date-time
+    - name: dateTo
+      in: query
+      required: false
+      description: To this time, exclusive.
+      schema:
+        type: string
+        format: date-time
+    - name: invoiceId
+      in: query
+      required: false
+      description: 'Document: one invoice.'
+      schema:
+        $ref: ../components/schemas/Id.yaml
+    - name: eventType
+      in: query
+      required: false
+      description: Event types.
+      schema:
+        type: array
+        items:
+          $ref: ../components/schemas/AuditEvent.yaml
+      style: form
+      explode: true
+    - name: actorType
+      in: query
+      required: false
+      description: Who or what acted.
+      schema:
+        type: array
+        items:
+          $ref: ../components/schemas/AuditActor.yaml
+      style: form
+      explode: true
+    - name: userId
+      in: query
+      required: false
+      description: One acting user.
+      schema:
+        $ref: ../components/schemas/Id.yaml
+    - name: task
+      in: query
+      required: false
+      description: One AI task.
+      schema:
+        $ref: ../components/schemas/AiTask.yaml
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/AuditEntryPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

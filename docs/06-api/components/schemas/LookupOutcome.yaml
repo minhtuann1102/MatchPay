@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `lookup_outcome`.
+enum:
+  - ANSWERED
+  - UNAVAILABLE
+x-dbml-enum: lookup_outcome

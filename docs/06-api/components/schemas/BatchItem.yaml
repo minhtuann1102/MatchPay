@@ -1,0 +1,53 @@
+type: object
+description: An invoice in a batch, active or withdrawn (AC-18.9).
+required:
+  - invoiceId
+  - invoiceNumber
+  - totalAmount
+  - dueSoon
+  - invoiceState
+  - admittedVia
+  - admittedAt
+  - invoiceVersion
+properties:
+  invoiceId:
+    $ref: ./Id.yaml
+  invoiceNumber:
+    type: string
+  supplierName:
+    type: string
+    nullable: true
+  totalAmount:
+    $ref: ./Money.yaml
+  dueDate:
+    type: string
+    format: date
+    nullable: true
+  dueSoon:
+    type: boolean
+  invoiceState:
+    $ref: ./InvoiceState.yaml
+  admittedVia:
+    $ref: ./AdmittedVia.yaml
+  admittedAt:
+    type: string
+    format: date-time
+  withdrawnAt:
+    type: string
+    format: date-time
+    nullable: true
+  withdrawReason:
+    type: string
+    allOf:
+      - $ref: ./WithdrawReason.yaml
+    nullable: true
+  withdrawNote:
+    type: string
+    nullable: true
+  withdrawnBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  invoiceVersion:
+    $ref: ./Version.yaml

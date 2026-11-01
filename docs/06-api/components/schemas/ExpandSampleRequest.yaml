@@ -1,0 +1,13 @@
+type: object
+description: Expand the sample (AC-24.12).
+required:
+  - reason
+  - version
+properties:
+  reason:
+    type: string
+  version:
+    $ref: ./Version.yaml
+example:
+  reason: One error found in the first sample
+  version: 3

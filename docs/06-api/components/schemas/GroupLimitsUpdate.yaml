@@ -1,0 +1,15 @@
+type: object
+description: Set the group maximums (AC-03.3).
+required:
+  - version
+properties:
+  version:
+    $ref: ./Version.yaml
+  maxPriceTolerancePct:
+    $ref: ./Decimal.yaml
+  maxBatchThresholdVnd:
+    $ref: ./Money.yaml
+example:
+  version: 2
+  maxPriceTolerancePct: '5.00'
+  maxBatchThresholdVnd: '300000000.00'

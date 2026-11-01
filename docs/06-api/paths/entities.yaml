@@ -1,0 +1,92 @@
+get:
+  tags:
+    - Group and entities
+  summary: List the entities of the group
+  description: >-
+    Lists entities with name and tax code (SCR-76). Group Admin only; an Entity
+    Admin reads only the own entity through the policy and matrix operations
+    (AC-03.5).
+  operationId: listEntities
+  security:
+    - sessionCookie: []
+  x-roles:
+    - GROUP_ADMIN
+  x-stories:
+    - US-03
+  x-rules:
+    - BR-01
+  x-screens:
+    - SCR-76
+  x-tables:
+    - entities
+    - corporate_groups
+  x-criteria:
+    - AC-03.5
+  parameters:
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/EntityPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+post:
+  tags:
+    - Group and entities
+  summary: Add an entity
+  description: >-
+    Creates an entity with a unique 10-digit tax code (BR-01) and default policy
+    values inside the group limits (AC-03.1). A duplicate tax code gives 422
+    VALIDATION_FAILED on `taxCode` (AC-03.2). Appends to audit_log.
+  operationId: createEntity
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - GROUP_ADMIN
+  x-stories:
+    - US-03
+  x-rules:
+    - BR-01
+    - BR-16
+  x-screens:
+    - SCR-77
+  x-tables:
+    - entities
+    - entity_policies
+    - corporate_groups
+    - audit_log
+  x-criteria:
+    - AC-03.1
+    - AC-03.2
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/EntityCreate.yaml
+  responses:
+    '201':
+      description: Entity created with its default policy
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Entity.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

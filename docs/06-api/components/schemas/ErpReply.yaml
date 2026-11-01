@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `erp_reply`.
+enum:
+  - NONE
+  - PAID
+  - FAILED
+x-dbml-enum: erp_reply

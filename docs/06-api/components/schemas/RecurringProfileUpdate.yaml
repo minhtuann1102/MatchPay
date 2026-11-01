@@ -1,0 +1,21 @@
+type: object
+description: >-
+  Change a profile. A second active profile of the same supplier, location, and
+  period is refused (AC-09.3).
+required:
+  - version
+properties:
+  version:
+    $ref: ./Version.yaml
+  location:
+    type: string
+  contractRef:
+    type: string
+  periodUnit:
+    $ref: ./PeriodUnit.yaml
+  priceType:
+    $ref: ./PriceType.yaml
+  contractPrice:
+    $ref: ./Money.yaml
+  deviationThresholdPct:
+    $ref: ./Decimal.yaml

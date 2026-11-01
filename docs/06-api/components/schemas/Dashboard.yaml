@@ -1,0 +1,70 @@
+type: object
+description: >-
+  Figures of SCR-60, computed from invoices, exceptions, batch items, and sample
+  marks (D-142). The simulated gate history is excluded (AC-06.10).
+required:
+  - period
+  - touchless
+  - touchlessValid
+  - misplacement
+  - receivedCount
+  - separatedCount
+  - rejectedCount
+  - backlog
+  - openExceptionCount
+  - waitingForGoodsCount
+  - isEmpty
+properties:
+  period:
+    $ref: ./Period.yaml
+  touchless:
+    $ref: ./Rate.yaml
+  touchlessValid:
+    type: boolean
+    description: False when the misplacement rate is above 1% (AC-27.2).
+  misplacement:
+    $ref: ./MisplacementRate.yaml
+  receivedCount:
+    type: integer
+  separatedCount:
+    type: integer
+  rejectedCount:
+    type: integer
+  backlog:
+    type: array
+    items:
+      $ref: ./BacklogCount.yaml
+  openExceptionCount:
+    type: integer
+  waitingForGoodsCount:
+    type: integer
+    description: Shown apart; not an exception (AC-27.5).
+  isEmpty:
+    type: boolean
+example:
+  period:
+    start: '2026-10-01'
+    end: '2026-10-31'
+    label: October 2026
+  touchless:
+    rate: '67.4'
+    numerator: 62
+    denominator: 92
+    formula: 62 admitted without a person / (100 received - 8 separated)
+  touchlessValid: false
+  misplacement:
+    rate: '5.0'
+    withdrawnAfterSampleError: 1
+    sampledCount: 20
+    note: Estimated from a sample weighted by risk, not a random sample
+    aboveLimit: true
+  receivedCount: 100
+  separatedCount: 8
+  rejectedCount: 4
+  backlog:
+    - state: OPEN
+      bucket: DAYS_0_2
+      count: 5
+  openExceptionCount: 7
+  waitingForGoodsCount: 2
+  isEmpty: false

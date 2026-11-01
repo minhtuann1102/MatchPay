@@ -1,0 +1,34 @@
+type: object
+description: A line of a payment request (one invoice).
+required:
+  - id
+  - lineNo
+  - invoiceId
+  - invoiceNumber
+  - amount
+  - flags
+properties:
+  id:
+    $ref: ./Id.yaml
+  lineNo:
+    type: integer
+  invoiceId:
+    $ref: ./Id.yaml
+  invoiceNumber:
+    type: string
+  amount:
+    $ref: ./Money.yaml
+  flags:
+    $ref: ./RequestFlags.yaml
+  endedAt:
+    type: string
+    format: date-time
+    nullable: true
+  endReason:
+    type: string
+    allOf:
+      - $ref: ./WithdrawReason.yaml
+    nullable: true
+  endNote:
+    type: string
+    nullable: true

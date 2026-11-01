@@ -1,0 +1,27 @@
+type: object
+description: One of the six BR-05 conditions with its value.
+required:
+  - conditionNo
+  - result
+properties:
+  conditionNo:
+    type: integer
+    description: One to six, as in BR-05.
+  result:
+    $ref: ./ConditionResult.yaml
+  measuredValue:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  limitValue:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  valueText:
+    type: string
+    nullable: true
+  note:
+    type: string
+    nullable: true

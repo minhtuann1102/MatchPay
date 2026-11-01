@@ -1,0 +1,52 @@
+post:
+  tags:
+    - Users
+  summary: Deactivate a user
+  description: >-
+    The user cannot log in, their open sessions end on the next request, and
+    earlier decisions and signatures stay unchanged (AC-02.5). An administrator
+    cannot deactivate their own account (AC-02.8). Carries `version`. Appends to
+    audit_log.
+  operationId: deactivateUser
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - ENTITY_ADMIN
+    - GROUP_ADMIN
+  x-stories:
+    - US-02
+  x-rules: []
+  x-screens:
+    - SCR-72
+  x-tables:
+    - users
+    - audit_log
+  x-criteria:
+    - AC-02.5
+    - AC-02.8
+  parameters:
+    - $ref: ../components/parameters/userId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/VersionOnly.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/User.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

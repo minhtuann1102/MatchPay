@@ -1,0 +1,36 @@
+delete:
+  tags:
+    - Group and entities
+  summary: Remove a sector
+  description: >-
+    Marks the entry removed (nothing is deleted, D-65). Invoices of that sector
+    without a tax-authority code become exceptions from the next check
+    (AC-03.6). Appends to audit_log.
+  operationId: removeSector
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - GROUP_ADMIN
+  x-stories:
+    - US-03
+  x-rules:
+    - BR-17
+  x-screens:
+    - SCR-76
+  x-tables:
+    - group_sectors
+    - audit_log
+  x-criteria:
+    - AC-03.6
+  parameters:
+    - $ref: ../components/parameters/sectorId.yaml
+  responses:
+    '204':
+      description: Removed; no body
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

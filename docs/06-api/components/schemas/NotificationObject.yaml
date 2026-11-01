@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `notification_object`.
+enum:
+  - INVOICE
+  - BATCH
+  - PAYMENT_REQUEST
+x-dbml-enum: notification_object

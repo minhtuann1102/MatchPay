@@ -1,0 +1,9 @@
+name: pageSize
+in: query
+required: false
+description: Items per page (D-140, DF-83). The worklist client sends 50 (DF-68).
+schema:
+  type: integer
+  minimum: 1
+  maximum: 100
+  default: 25

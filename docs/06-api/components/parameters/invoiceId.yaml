@@ -1,0 +1,8 @@
+name: invoiceId
+in: path
+required: true
+description: >-
+  Identifier of an invoice. An id outside the caller's entity scope gives 403
+  ACCESS_DENIED (D-132).
+schema:
+  $ref: ../schemas/Id.yaml

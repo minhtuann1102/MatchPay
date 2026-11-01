@@ -1,0 +1,15 @@
+type: object
+description: The batch back In Review and the requests that were Cancelled (AC-24.15).
+required:
+  - batch
+  - cancelledRequestIds
+  - reopeningId
+properties:
+  batch:
+    $ref: ./Batch.yaml
+  cancelledRequestIds:
+    type: array
+    items:
+      $ref: ./Id.yaml
+  reopeningId:
+    $ref: ./Id.yaml

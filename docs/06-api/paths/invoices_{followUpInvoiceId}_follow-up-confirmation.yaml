@@ -1,0 +1,64 @@
+post:
+  tags:
+    - Corrections and follow-ups
+  summary: Confirm a follow-up invoice
+  description: >-
+    The AP Accountant confirms a legal adjustment or replacement invoice linked
+    to one or many exceptions (AC-20.3). One confirmation supersedes every
+    original it corrects (AC-20.4, V14, E12); each exception history shows the
+    link. Until confirmed it is never admitted automatically (AC-18.5, D-07). A
+    superseded original cannot be admitted or paid (AC-20.7). Carries one
+    `version` per linked exception. Appends to audit_log (AC-20.9).
+  operationId: confirmFollowUp
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-20
+    - US-18
+  x-rules:
+    - BR-12
+    - BR-26
+    - BR-31
+    - BR-33
+    - BR-34
+    - BR-37
+  x-screens:
+    - SCR-12
+  x-tables:
+    - exception_follow_up_links
+    - exceptions
+    - invoices
+    - audit_log
+  x-criteria:
+    - AC-18.5
+    - AC-20.3
+    - AC-20.4
+    - AC-20.9
+  parameters:
+    - $ref: ../components/parameters/followUpInvoiceId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/FollowUpConfirmRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/FollowUpConfirmResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

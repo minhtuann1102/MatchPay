@@ -1,0 +1,25 @@
+type: object
+description: >-
+  A decision in the history of an invoice, tagged by who or what made it
+  (AC-17.2).
+required:
+  - occurredAt
+  - actorType
+  - eventType
+  - summary
+properties:
+  occurredAt:
+    type: string
+    format: date-time
+  actorType:
+    $ref: ./AuditActor.yaml
+  actorName:
+    type: string
+    nullable: true
+  eventType:
+    $ref: ./AuditEvent.yaml
+  summary:
+    type: string
+  reason:
+    type: string
+    nullable: true

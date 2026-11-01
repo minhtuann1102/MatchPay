@@ -1,0 +1,30 @@
+type: object
+description: >-
+  A Rule Engine decision with its six conditions (BR-05). Earlier decisions are
+  kept (AC-16.13).
+required:
+  - id
+  - decision
+  - decidedAt
+  - tolerancePct
+  - batchThresholdVnd
+  - engineVersion
+  - conditions
+properties:
+  id:
+    $ref: ./Id.yaml
+  decision:
+    $ref: ./RuleDecision.yaml
+  decidedAt:
+    type: string
+    format: date-time
+  tolerancePct:
+    $ref: ./Decimal.yaml
+  batchThresholdVnd:
+    $ref: ./Money.yaml
+  engineVersion:
+    type: string
+  conditions:
+    type: array
+    items:
+      $ref: ./RuleCondition.yaml

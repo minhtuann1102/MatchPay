@@ -153,9 +153,27 @@ curl --request POST \
   }'
 ```
 
+## File layout
+
+The contract is split into several files (D-187). `openapi.yaml` is the root entry file: it holds the general information, the servers, the tags, and the security schemes, and points to every path file.
+
+| Location | Content |
+|---|---|
+| `openapi.yaml` | Root file: `info`, `servers`, `tags`, `securitySchemes`, and one `$ref` for each path |
+| `paths/` | One file for each path (104 files); the file name is the path without its leading `/` and with `/` replaced by `_` |
+| `components/schemas/` | One file for each schema |
+| `components/responses/` | One file for each reusable response |
+| `components/parameters/` | One file for each reusable parameter |
+
+The files were made with the Redocly CLI `split` command and keep its names. To get one file for a tool that needs a single document, bundle it:
+
+```bash
+npx @redocly/cli bundle docs/06-api/openapi.yaml -o openapi.bundled.yaml
+```
+
 ## View and validate
 
-Paste `openapi.yaml` into Swagger Editor, or serve it with Swagger UI or ReDoc. Validate it locally (needs Node.js):
+Paste the bundled file into Swagger Editor, or serve `openapi.yaml` with Swagger UI or ReDoc. Validate it locally (needs Node.js):
 
 ```bash
 npx @redocly/cli lint docs/06-api/openapi.yaml
@@ -167,7 +185,7 @@ The lint reports no errors and no warnings. The repository root `redocly.yaml` e
 python -X utf8 tools/check_docs.py
 ```
 
-Its API section parses the YAML, checks the extensions of every operation against the DBML, the user stories, the business rules, and the screen inventory, resolves every `$ref`, compares the enums marked `x-dbml-enum` with the DBML, and compares the matrix, the business rules, and [API traceability](01-api-traceability.md) with the contract.
+Its API section rebuilds the single document from the split files (a small `$ref` resolver in the script, with no network or Node.js), parses it, checks the extensions of every operation against the DBML, the user stories, the business rules, and the screen inventory, resolves every `$ref`, compares the enums marked `x-dbml-enum` with the DBML, and compares the matrix, the business rules, and [API traceability](01-api-traceability.md) with the contract.
 
 ## What the contract does not cover
 

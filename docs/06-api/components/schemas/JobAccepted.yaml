@@ -1,0 +1,25 @@
+type: object
+description: Returned with 202 when an operation starts background work.
+required:
+  - jobKind
+  - runId
+  - status
+  - statusPath
+properties:
+  jobKind:
+    $ref: ./JobKind.yaml
+  runId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: Identifier to poll with the matching read operation.
+  status:
+    type: string
+    description: 'Always ACCEPTED: the job runs on the server after the response (D-135).'
+  statusPath:
+    type: string
+    description: Relative path that reads the run.
+example:
+  jobKind: ERP_SEND
+  runId: 5521
+  status: ACCEPTED
+  statusPath: /api/v1/payment-requests/311/erp-send-attempts

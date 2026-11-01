@@ -1,0 +1,79 @@
+type: object
+description: >-
+  A recurring profile for utilities, rent, and fixed-price subscriptions
+  (US-09).
+required:
+  - id
+  - supplierId
+  - supplierName
+  - location
+  - periodUnit
+  - priceType
+  - isActive
+  - periods
+  - version
+  - createdAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  supplierId:
+    $ref: ./Id.yaml
+  supplierName:
+    type: string
+  location:
+    type: string
+  contractRef:
+    type: string
+    nullable: true
+  periodUnit:
+    $ref: ./PeriodUnit.yaml
+  priceType:
+    $ref: ./PriceType.yaml
+  contractPrice:
+    type: string
+    allOf:
+      - $ref: ./Money.yaml
+    nullable: true
+  deviationThresholdPct:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  isActive:
+    type: boolean
+  periods:
+    type: array
+    items:
+      $ref: ./RecurringPeriod.yaml
+  averageAmount:
+    type: string
+    allOf:
+      - $ref: ./Money.yaml
+    nullable: true
+    description: Average of the earlier periods; NULL with fewer than 3 (BR-24). Computed.
+  version:
+    $ref: ./Version.yaml
+  createdAt:
+    type: string
+    format: date-time
+  deactivatedAt:
+    type: string
+    format: date-time
+    nullable: true
+example:
+  id: 6
+  supplierId: 55
+  supplierName: Sunrise Electric Utility
+  location: Foods Plant 1
+  periodUnit: MONTHLY
+  priceType: USAGE_BASED
+  deviationThresholdPct: '30.00'
+  isActive: true
+  averageAmount: '40000000.00'
+  version: 1
+  createdAt: '2026-10-01T08:00:00+07:00'
+  periods:
+    - id: 1
+      periodStart: '2026-09-01'
+      amount: '39500000.00'
+      origin: SEED

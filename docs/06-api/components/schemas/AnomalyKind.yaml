@@ -1,0 +1,12 @@
+type: string
+description: Same values as the DBML enum `anomaly_kind`.
+enum:
+  - UNUSUAL_PRICE
+  - EXACT_DUPLICATE
+  - POSSIBLE_DUPLICATE
+  - SPLIT_ORDERS
+  - RECURRING_JUMP
+  - PERIOD_ALREADY_INVOICED
+  - NEW_SUPPLIER
+  - BANK_ACCOUNT_CHANGED
+x-dbml-enum: anomaly_kind

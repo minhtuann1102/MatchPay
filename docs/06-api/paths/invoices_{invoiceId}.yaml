@@ -1,0 +1,60 @@
+get:
+  tags:
+    - Invoices
+  summary: Get an invoice
+  description: >-
+    Returns the header, state, version, trust level, warnings (a buyer name that
+    differs, an Adjusted authority status, a stored cancellation notice on a
+    Sent or Paid invoice), the document hash, and the actions open to the
+    caller's role now. An id outside the entity gives 403 ACCESS_DENIED with no
+    data whether or not it exists (AC-01.5, AC-17.5). Chief Accountant and
+    Payment Approver get the read-only view (AC-17.4).
+  operationId: getInvoice
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-10
+    - US-17
+    - US-01
+  x-rules:
+    - BR-01
+    - BR-09
+    - BR-33
+  x-screens:
+    - SCR-12
+    - SCR-10
+    - SCR-30
+    - SCR-40
+    - SCR-51
+  x-tables:
+    - invoices
+    - invoice_documents
+    - invoice_corrections
+    - payment_request_lines
+    - payment_requests
+  x-criteria:
+    - AC-01.5
+    - AC-10.16
+    - AC-17.2
+    - AC-17.4
+    - AC-17.5
+    - AC-17.12
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/InvoiceDetail.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

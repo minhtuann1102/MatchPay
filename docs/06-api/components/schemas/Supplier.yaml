@@ -1,0 +1,29 @@
+type: object
+description: A supplier copied from the ERP (read-only, BR-25).
+required:
+  - id
+  - erpRef
+  - name
+  - taxCode
+  - isActive
+  - syncedAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  erpRef:
+    type: string
+  name:
+    type: string
+  taxCode:
+    type: string
+  sector:
+    type: string
+    nullable: true
+  contactEmail:
+    type: string
+    nullable: true
+  isActive:
+    type: boolean
+  syncedAt:
+    type: string
+    format: date-time

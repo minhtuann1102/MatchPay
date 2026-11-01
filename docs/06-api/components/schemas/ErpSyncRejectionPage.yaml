@@ -1,0 +1,12 @@
+type: object
+description: One page of ErpSyncRejection records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./ErpSyncRejection.yaml
+  meta:
+    $ref: ./PageMeta.yaml

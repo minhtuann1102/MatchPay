@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `persona_kind`.
+enum:
+  - BUYER
+  - WAREHOUSE_KEEPER
+  - ACCEPTOR
+x-dbml-enum: persona_kind

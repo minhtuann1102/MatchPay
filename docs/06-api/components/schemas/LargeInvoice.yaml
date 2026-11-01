@@ -1,0 +1,13 @@
+type: object
+description: An invoice of VND 50,000,000 or more in the request (AC-25.1).
+required:
+  - invoiceId
+  - invoiceNumber
+  - amount
+properties:
+  invoiceId:
+    $ref: ./Id.yaml
+  invoiceNumber:
+    type: string
+  amount:
+    $ref: ./Money.yaml

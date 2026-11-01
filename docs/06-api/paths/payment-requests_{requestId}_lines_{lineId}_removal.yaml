@@ -1,0 +1,67 @@
+post:
+  tags:
+    - Signing
+  summary: Remove a line from a request
+  description: >-
+    A signer removes a line with a required reason before signing; the invoice
+    returns to exceptions, the total, level, hash, and version are recomputed,
+    and every earlier signature on the request is voided (R5, AC-25.5, AC-25.6).
+    Removing the last line cancels the request. The AP Accountant sees the
+    reason as a notification (AC-32.3). Carries `version` (AC-25.10).
+  operationId: removeRequestLine
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-25
+  x-rules:
+    - BR-03
+    - BR-35
+    - BR-37
+  x-screens:
+    - SCR-53
+    - SCR-51
+  x-tables:
+    - payment_request_lines
+    - payment_requests
+    - request_signatures
+    - invoices
+    - exceptions
+    - exception_reasons
+    - batch_items
+    - notifications
+    - audit_log
+  x-criteria:
+    - AC-25.5
+    - AC-25.6
+    - AC-25.10
+    - AC-32.3
+  parameters:
+    - $ref: ../components/parameters/requestId.yaml
+    - $ref: ../components/parameters/lineId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/RemoveLineRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/RequestChangeResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

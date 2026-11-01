@@ -1,0 +1,32 @@
+type: object
+description: Create a profile (AC-09.1, AC-09.2).
+required:
+  - supplierId
+  - location
+  - periodUnit
+  - priceType
+properties:
+  supplierId:
+    $ref: ./Id.yaml
+  location:
+    type: string
+  contractRef:
+    type: string
+  periodUnit:
+    $ref: ./PeriodUnit.yaml
+  priceType:
+    $ref: ./PriceType.yaml
+  contractPrice:
+    allOf:
+      - $ref: ./Money.yaml
+    description: Required for FIXED (AC-09.2).
+  deviationThresholdPct:
+    allOf:
+      - $ref: ./Decimal.yaml
+    description: For example 30.00 (usage-based).
+example:
+  supplierId: 56
+  location: Head office
+  periodUnit: MONTHLY
+  priceType: FIXED
+  contractPrice: '4400000.00'

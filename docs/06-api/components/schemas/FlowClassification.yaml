@@ -1,0 +1,26 @@
+type: object
+description: AI flow classification of one run (BR-12).
+required:
+  - flow
+  - confidence
+  - reason
+  - modelVersion
+  - promptVersion
+  - createdAt
+  - aiGenerated
+properties:
+  flow:
+    $ref: ./InvoiceFlow.yaml
+  confidence:
+    $ref: ./Decimal.yaml
+  reason:
+    type: string
+  modelVersion:
+    type: string
+  promptVersion:
+    type: string
+  createdAt:
+    type: string
+    format: date-time
+  aiGenerated:
+    type: boolean

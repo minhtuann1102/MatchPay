@@ -1,0 +1,12 @@
+type: string
+description: Same values as the DBML enum `rejection_reason`.
+enum:
+  - SIGNATURE_FAILED
+  - XML_NOT_SUPPORTED
+  - BUYER_TAX_CODE_MISMATCH
+  - EXACT_DUPLICATE
+  - REJECTED_BY_PERSON
+  - CANCELLED_AT_AUTHORITY
+  - REPLACED_AT_AUTHORITY
+  - CANCELLED_BY_SELLER
+x-dbml-enum: rejection_reason

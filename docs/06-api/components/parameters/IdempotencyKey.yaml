@@ -1,0 +1,9 @@
+name: Idempotency-Key
+in: header
+required: true
+description: >-
+  A UUID chosen by the client for this action. A repeat with the same key
+  returns the first result and does nothing twice (D-137, DF-87).
+schema:
+  type: string
+  format: uuid

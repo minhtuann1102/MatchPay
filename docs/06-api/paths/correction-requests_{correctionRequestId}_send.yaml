@@ -1,0 +1,57 @@
+post:
+  tags:
+    - Corrections and follow-ups
+  summary: Send a correction request
+  description: >-
+    Only this action sends anything; the sender and the time go to audit_log
+    (AC-19.2, BR-26). When the Email Service fails the request is saved as
+    NOT_SENT with the error, the exception does not change state, and the call
+    can be repeated (AC-19.6): this is returned as 200 with `sendStatus`
+    NOT_SENT, not as an error (D-158). On success the exception moves to Waiting
+    for Supplier or Waiting for Data Fix (E3, E4) and the reply deadline starts
+    (AC-19.4). Nothing is ever sent to a supplier automatically. Only an AP
+    Accountant of the entity may send (AC-19.10). The delivery runs as a
+    background job that the server waits for, up to 25 seconds (a call-and-wait
+    job); when the wait ends first, the answer is 200 with NOT_SENT and the call
+    can be repeated (AC-19.6).
+  operationId: sendCorrectionRequest
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-19
+  x-rules:
+    - BR-26
+  x-screens:
+    - SCR-14
+  x-tables:
+    - correction_requests
+    - exceptions
+    - notifications
+    - audit_log
+  x-criteria:
+    - AC-19.2
+    - AC-19.4
+    - AC-19.6
+    - AC-19.10
+  parameters:
+    - $ref: ../components/parameters/correctionRequestId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/CorrectionRequest.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+    '503':
+      $ref: ../components/responses/Unavailable.yaml

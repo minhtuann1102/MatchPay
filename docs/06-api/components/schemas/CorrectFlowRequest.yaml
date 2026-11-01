@@ -1,0 +1,13 @@
+type: object
+description: Choose the flow when the AI was unsure (AC-12.4).
+required:
+  - version
+  - flow
+properties:
+  version:
+    $ref: ./Version.yaml
+  flow:
+    $ref: ./InvoiceFlow.yaml
+example:
+  version: 2
+  flow: GOODS_WITH_ORDER

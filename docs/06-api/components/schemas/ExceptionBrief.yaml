@@ -1,0 +1,18 @@
+type: object
+description: The open exception of an invoice.
+required:
+  - id
+  - state
+  - version
+  - reasonCodes
+properties:
+  id:
+    $ref: ./Id.yaml
+  state:
+    $ref: ./ExceptionState.yaml
+  version:
+    $ref: ./Version.yaml
+  reasonCodes:
+    type: array
+    items:
+      $ref: ./ReasonCode.yaml

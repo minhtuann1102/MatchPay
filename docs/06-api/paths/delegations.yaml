@@ -1,0 +1,116 @@
+get:
+  tags:
+    - Delegations
+  summary: List signing delegations
+  description: >-
+    Chief Accountant and Payment Approver: the delegations they gave or
+    received. Entity Admin: every delegation of the entity (AC-30.9). The state
+    (Scheduled, Active, Ended, Revoked) is computed from the dates and the
+    revocation (D-142).
+  operationId: listDelegations
+  security:
+    - sessionCookie: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+    - ENTITY_ADMIN
+  x-stories:
+    - US-30
+  x-rules:
+    - BR-09
+    - BR-38
+  x-screens:
+    - SCR-55
+  x-tables:
+    - signing_delegations
+    - users
+  x-criteria:
+    - AC-30.8
+    - AC-30.9
+    - AC-30.11
+  parameters:
+    - name: state
+      in: query
+      required: false
+      description: Filter by computed state.
+      schema:
+        type: array
+        items:
+          $ref: ../components/schemas/DelegationState.yaml
+      style: form
+      explode: true
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/DelegationPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+post:
+  tags:
+    - Delegations
+  summary: Name a delegate
+  description: >-
+    The caller (Chief Accountant or Payment Approver) names an active Chief
+    Accountant or Payment Approver of the same entity as delegate for a date
+    range (BR-38). Refused: another entity or another role (AC-30.6); a range
+    over 30 days, an end before the start, a start in the past, or an overlap
+    with another delegation of the caller (AC-30.7, DF-62, DF-77). The
+    delegation gives the delegate signing at the delegator's level only inside
+    the range; the delegator cannot sign while it is active (AC-30.8). Appends
+    to audit_log (AC-30.1). The Entity Admin cannot create one (AC-30.9).
+  operationId: createDelegation
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-30
+  x-rules:
+    - BR-02
+    - BR-12
+    - BR-36
+    - BR-38
+  x-screens:
+    - SCR-56
+  x-tables:
+    - signing_delegations
+    - users
+    - audit_log
+  x-criteria:
+    - AC-30.1
+    - AC-30.6
+    - AC-30.7
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/DelegationCreate.yaml
+  responses:
+    '201':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Delegation.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

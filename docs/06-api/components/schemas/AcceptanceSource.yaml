@@ -1,0 +1,5 @@
+type: string
+description: Where an independent service acceptance came from (BR-19, D-90).
+enum:
+  - ERP
+  - REQUESTING_DEPARTMENT

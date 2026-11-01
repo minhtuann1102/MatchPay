@@ -1,0 +1,6 @@
+type: string
+description: Age of an open exception (AC-27.3).
+enum:
+  - DAYS_0_2
+  - DAYS_3_7
+  - OVER_7

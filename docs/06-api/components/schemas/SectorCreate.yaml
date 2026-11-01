@@ -1,0 +1,9 @@
+type: object
+description: Add a sector (AC-03.6).
+required:
+  - sectorName
+properties:
+  sectorName:
+    type: string
+example:
+  sectorName: water supply

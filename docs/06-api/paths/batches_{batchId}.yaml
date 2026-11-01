@@ -1,0 +1,40 @@
+get:
+  tags:
+    - Batch
+  summary: Get a batch
+  description: >-
+    One batch with its counts and the flags that tell which actions are open. A
+    batch of another entity gives 403 ACCESS_DENIED (AC-24.11).
+  operationId: getBatch
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-24
+  x-rules:
+    - BR-09
+    - BR-35
+  x-screens:
+    - SCR-30
+  x-tables:
+    - payment_batches
+    - batch_items
+  x-criteria:
+    - AC-24.9
+    - AC-24.11
+  parameters:
+    - $ref: ../components/parameters/batchId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Batch.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

@@ -1,0 +1,16 @@
+type: object
+description: Every exception decided by the one action (AC-23.11).
+required:
+  - decisionActionId
+  - decision
+  - exceptions
+properties:
+  decisionActionId:
+    type: string
+    format: uuid
+  decision:
+    $ref: ./ApprovalDecision.yaml
+  exceptions:
+    type: array
+    items:
+      $ref: ./Exception.yaml

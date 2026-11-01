@@ -1,0 +1,35 @@
+type: object
+description: Create an order in the simulated ERP (AC-08.1).
+required:
+  - entityId
+  - personaId
+  - supplierErpRef
+  - kind
+  - lines
+properties:
+  entityId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: The entity the Demo Operator works in (SCR-80).
+  personaId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: The buyer persona who creates the order.
+  supplierErpRef:
+    type: string
+  kind:
+    $ref: ./OrderKind.yaml
+  lines:
+    type: array
+    items:
+      $ref: ./SimPoLineInput.yaml
+example:
+  entityId: 1
+  personaId: 1
+  supplierErpRef: SUP-0051
+  kind: GOODS
+  lines:
+    - itemErpRef: ITM-A4
+      quantity: '100.000'
+      unit: ream
+      unitPrice: '60000.00'

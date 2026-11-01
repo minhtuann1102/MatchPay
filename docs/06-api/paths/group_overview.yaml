@@ -1,0 +1,43 @@
+get:
+  tags:
+    - Dashboard and group overview
+  summary: Get the group overview
+  description: >-
+    Entities with their numbers of open and closed gates, gate alerts, and the
+    last ERP sync with a failure marker; counts only, no invoice data (SCR-75,
+    BR-09).
+  operationId: getGroupOverview
+  security:
+    - sessionCookie: []
+  x-roles:
+    - GROUP_ADMIN
+  x-stories:
+    - US-06
+    - US-07
+  x-rules:
+    - BR-06
+    - BR-09
+  x-screens:
+    - SCR-75
+  x-tables:
+    - entities
+    - supplier_gates
+    - gate_alerts
+    - erp_sync_runs
+  x-criteria:
+    - AC-06.1
+    - AC-07.7
+    - AC-06.9
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/GroupOverview.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

@@ -1,0 +1,10 @@
+type: object
+description: Confirm an adjustment or replacement invoice.
+required:
+  - links
+properties:
+  links:
+    type: array
+    items:
+      $ref: ./LinkVersion.yaml
+    description: One entry per linked exception; one confirmation covers all (AC-20.4).

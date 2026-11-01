@@ -1,0 +1,21 @@
+type: object
+description: Multipart form of a cancellation notice.
+required:
+  - noticeReference
+  - noticeDate
+  - version
+  - file
+properties:
+  noticeReference:
+    type: string
+  noticeDate:
+    type: string
+    format: date
+  version:
+    allOf:
+      - $ref: ./Version.yaml
+    description: Version of the invoice last read (BR-37).
+  file:
+    type: string
+    format: binary
+    description: The notice as a file, up to 10 MB (DF-81).

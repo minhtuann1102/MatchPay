@@ -1,0 +1,32 @@
+type: object
+description: One lookup of the simulated tax-authority status (BR-39, AC-10.16).
+required:
+  - outcome
+  - lookedUpAt
+  - feedEntryFound
+  - trigger
+properties:
+  status:
+    type: string
+    allOf:
+      - $ref: ./AuthorityStatus.yaml
+    nullable: true
+  statusDate:
+    type: string
+    format: date
+    nullable: true
+  outcome:
+    $ref: ./LookupOutcome.yaml
+  lookedUpAt:
+    type: string
+    format: date-time
+  replacedBySeries:
+    type: string
+    nullable: true
+  replacedByNumber:
+    type: string
+    nullable: true
+  feedEntryFound:
+    type: boolean
+  trigger:
+    $ref: ./LookupTrigger.yaml

@@ -1,0 +1,100 @@
+get:
+  tags:
+    - Checks and evidence
+  summary: List the check runs of an invoice
+  description: >-
+    Every check run of the invoice with its trigger, outcome, and decision. A
+    re-check adds a run and keeps the earlier ones (AC-16.13, D-58).
+  operationId: listCheckRuns
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-16
+    - US-17
+  x-rules:
+    - BR-12
+  x-screens:
+    - SCR-12
+  x-tables:
+    - invoice_check_runs
+    - rule_evaluations
+  x-criteria:
+    - AC-16.13
+    - AC-17.2
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/CheckRunSummaryList.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+post:
+  tags:
+    - Checks and evidence
+  summary: Run the checks again
+  description: >-
+    The AP Accountant re-runs the checks, for example after an AI failure
+    (DF-08, AC-12.5). Queues a new run (trigger RE_RUN) and returns 202 with the
+    run id (D-135). Allowed only for an invoice in an exception, Waiting for
+    Goods, or In Check; an invoice that is In Batch, Signed, Sent, Paid,
+    Rejected, Separated, or Superseded gives 409 STATE_CONFLICT (BR-33). Carries
+    `version`. Appends to audit_log.
+  operationId: rerunChecks
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-12
+    - US-16
+  x-rules:
+    - BR-12
+    - BR-33
+  x-screens:
+    - SCR-10
+    - SCR-12
+  x-tables:
+    - invoice_check_runs
+    - invoices
+    - audit_log
+  x-criteria:
+    - AC-12.5
+    - AC-16.13
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/VersionOnly.yaml
+  responses:
+    '202':
+      description: Run queued
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/JobAccepted.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

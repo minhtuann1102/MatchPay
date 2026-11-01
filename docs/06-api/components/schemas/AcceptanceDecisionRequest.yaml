@@ -1,0 +1,19 @@
+type: object
+description: Confirm or reject the acceptance of a service.
+required:
+  - decision
+  - version
+properties:
+  decision:
+    $ref: ./AcceptanceDecision.yaml
+  note:
+    type: string
+    description: Required to reject (AC-29.3).
+  version:
+    allOf:
+      - $ref: ./Version.yaml
+    description: Version of the invoice last read (BR-37).
+example:
+  decision: CONFIRMED
+  note: Cleaning done 3 to 7 Nov, signed off on site
+  version: 2

@@ -1,0 +1,89 @@
+get:
+  tags:
+    - Signing
+  summary: List the signing queue
+  description: >-
+    Payment requests of the own entity: number, supplier, total, required level,
+    state, flags, signatures so far, ERP status (SCR-50). During an active
+    delegation the delegate also sees the requests that wait for the delegator's
+    level, marked `onBehalfOfName` (AC-30.2); the delegator's own signing is
+    blocked (AC-30.8). Outside the date range the delegate sees none on behalf
+    (AC-30.4). An AP Accountant or an administrator gets 403 (AC-25.14); a
+    Payment Approver of another entity sees none of these requests (BR-09).
+  operationId: listPaymentRequests
+  security:
+    - sessionCookie: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-25
+    - US-30
+    - US-26
+  x-rules:
+    - BR-03
+    - BR-09
+    - BR-20
+    - BR-30
+    - BR-36
+    - BR-38
+  x-screens:
+    - SCR-50
+  x-tables:
+    - payment_requests
+    - payment_request_lines
+    - request_signatures
+    - signing_delegations
+    - approval_tiers
+    - approval_tier_approvers
+    - anomaly_findings
+    - supplier_entity_stats
+    - erp_supplier_bank_accounts
+    - erp_send_attempts
+    - erp_suppliers
+  x-criteria:
+    - AC-25.2
+    - AC-25.14
+    - AC-30.2
+    - AC-30.4
+    - AC-30.8
+  parameters:
+    - name: state
+      in: query
+      required: false
+      description: One or more states.
+      schema:
+        type: array
+        items:
+          $ref: ../components/schemas/RequestState.yaml
+      style: form
+      explode: true
+    - name: batchId
+      in: query
+      required: false
+      description: One batch.
+      schema:
+        $ref: ../components/schemas/Id.yaml
+    - name: awaitingMe
+      in: query
+      required: false
+      description: Only requests that wait for the caller's signature, including on behalf.
+      schema:
+        type: boolean
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/PaymentRequestSummaryPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

@@ -1,0 +1,11 @@
+type: string
+description: Same values as the DBML enum `run_trigger`.
+enum:
+  - UPLOAD
+  - RE_RUN
+  - RESOLUTION
+  - ERP_SYNC
+  - FOLLOW_UP
+  - RISK_LIST_CHANGE
+  - ACCEPTANCE
+x-dbml-enum: run_trigger

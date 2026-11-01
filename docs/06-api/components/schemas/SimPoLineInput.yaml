@@ -1,0 +1,16 @@
+type: object
+description: A line of a new simulator order.
+required:
+  - itemErpRef
+  - quantity
+  - unit
+  - unitPrice
+properties:
+  itemErpRef:
+    type: string
+  quantity:
+    $ref: ./Decimal.yaml
+  unit:
+    type: string
+  unitPrice:
+    $ref: ./Money.yaml

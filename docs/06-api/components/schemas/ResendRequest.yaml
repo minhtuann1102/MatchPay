@@ -1,0 +1,11 @@
+type: object
+description: Resend a Signed request after the 3 automatic attempts failed (D-96).
+required:
+  - version
+properties:
+  version:
+    allOf:
+      - $ref: ./Version.yaml
+    description: Version of the request last read.
+example:
+  version: 3

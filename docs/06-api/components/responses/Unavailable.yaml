@@ -1,0 +1,16 @@
+description: >-
+  A dependency does not answer: the ERP, the mailbox, the status lookup, the
+  Email Service, or the LLM. Earlier data stays (D-139).
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    examples:
+      dependency:
+        value:
+          type: https://matchpay.example/problems/dependency-unavailable
+          title: Dependency unavailable
+          status: 503
+          detail: The tax-authority status lookup did not answer within 10 seconds
+          errorCode: DEPENDENCY_UNAVAILABLE
+          traceId: 4f1c9a6e8b2d47a0

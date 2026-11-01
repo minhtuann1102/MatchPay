@@ -1,0 +1,13 @@
+type: string
+description: Reasons that block signing or approving (D-89, D-91).
+enum:
+  - CREATED_ORDER
+  - CONFIRMED_RECEIPT
+  - PROCESSED_INVOICE
+  - PREPARED_BATCH
+  - SAME_SIGNER
+  - DELEGATED_AWAY
+  - LEVEL_REQUIRED
+  - WAIT_FOR_CHIEF_ACCOUNTANT
+  - NOT_ACTIVE_DELEGATE
+  - ALREADY_SIGNED

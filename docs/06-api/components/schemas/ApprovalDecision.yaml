@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `approval_decision`.
+enum:
+  - APPROVED
+  - DECLINED
+x-dbml-enum: approval_decision

@@ -1,0 +1,32 @@
+type: object
+description: AI summary of a request. It is never a signature (BR-20, AC-25.9).
+required:
+  - available
+  - aiGenerated
+properties:
+  available:
+    type: boolean
+  summaryText:
+    type: string
+    nullable: true
+    description: AI text, to be labelled as AI. NULL when unavailable (AC-25.13).
+  outcome:
+    type: string
+    allOf:
+      - $ref: ./AiOutcome.yaml
+    nullable: true
+  requestVersion:
+    type: integer
+    nullable: true
+  generatedAt:
+    type: string
+    format: date-time
+    nullable: true
+  modelVersion:
+    type: string
+    nullable: true
+  promptVersion:
+    type: string
+    nullable: true
+  aiGenerated:
+    type: boolean

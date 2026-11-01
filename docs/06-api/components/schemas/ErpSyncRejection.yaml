@@ -1,0 +1,23 @@
+type: object
+description: A record the sync refused and logged (AC-07.4, AC-07.9, AC-07.12).
+required:
+  - id
+  - syncRunId
+  - recordType
+  - erpRef
+  - reason
+  - rejectedAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  syncRunId:
+    $ref: ./Id.yaml
+  recordType:
+    $ref: ./SyncRecordType.yaml
+  erpRef:
+    type: string
+  reason:
+    type: string
+  rejectedAt:
+    type: string
+    format: date-time

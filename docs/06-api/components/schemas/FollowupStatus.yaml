@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `followup_status`.
+enum:
+  - LINKED
+  - CONFIRMED
+  - CLOSED_AUTOMATICALLY
+x-dbml-enum: followup_status

@@ -1,0 +1,109 @@
+get:
+  tags:
+    - Demo
+  summary: List simulator purchase orders
+  description: >-
+    Disabled outside a demo deployment: the server answers 404
+    RESOURCE_NOT_FOUND when the demo flag is off (D-143). Demo Operator only
+    (AC-08.7); every other role gets 403. Orders with number, supplier, and
+    outstanding quantity (BR-15, AC-08.5).
+  operationId: listSimPurchaseOrders
+  security:
+    - sessionCookie: []
+  x-roles:
+    - DEMO_OPERATOR
+  x-stories:
+    - US-08
+  x-rules:
+    - BR-09
+    - BR-15
+  x-screens:
+    - SCR-80
+  x-tables:
+    - sim_purchase_orders
+    - sim_po_lines
+    - sim_receipt_lines
+    - sim_personas
+    - entities
+  x-criteria:
+    - AC-08.5
+    - AC-08.8
+  parameters:
+    - name: entityId
+      in: query
+      required: true
+      description: The entity the Demo Operator works in.
+      schema:
+        $ref: ../components/schemas/Id.yaml
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/SimPurchaseOrderPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '404':
+      $ref: ../components/responses/NotFound.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+post:
+  tags:
+    - Demo
+  summary: Create a simulator purchase order
+  description: >-
+    Disabled outside a demo deployment: the server answers 404
+    RESOURCE_NOT_FOUND when the demo flag is off (D-143). Demo Operator only
+    (AC-08.7); every other role gets 403. Stores the order in the simulated ERP
+    with the chosen buyer persona as creator (AC-08.1). The sync copies it into
+    MatchPay later (US-07).
+  operationId: createSimPurchaseOrder
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - DEMO_OPERATOR
+  x-stories:
+    - US-08
+  x-rules:
+    - BR-02
+  x-screens:
+    - SCR-81
+    - SCR-80
+  x-tables:
+    - sim_purchase_orders
+    - sim_po_lines
+    - sim_personas
+    - entities
+  x-criteria:
+    - AC-08.1
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/SimPurchaseOrderCreate.yaml
+  responses:
+    '201':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/SimPurchaseOrder.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '404':
+      $ref: ../components/responses/NotFound.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

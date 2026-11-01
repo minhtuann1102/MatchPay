@@ -1,0 +1,77 @@
+post:
+  tags:
+    - ERP send
+  summary: Resend a signed request to the ERP
+  description: >-
+    Offered after the 3 automatic attempts failed (D-96, AC-26.10). Allowed only
+    for a request that is Signed, with no attempt pending; otherwise 409
+    STATE_CONFLICT (while attempts run, after a payment failure, or for any
+    other state, AC-26.13). Uses the request number as the idempotency key, asks
+    for no new signature, checks the hash of the signed content first (AC-26.7),
+    and saves the attempt as manual with the name and the time (AC-26.11). A
+    repeat never creates a second payment (AC-26.12, BR-25). Returns 202 with
+    the queued attempt (D-135). Accepts `Idempotency-Key` (D-137). A Payment
+    Approver or a user of another entity gets 403 (AC-26.14). Appends to
+    audit_log.
+  operationId: resendToErp
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+  x-stories:
+    - US-26
+  x-rules:
+    - BR-09
+    - BR-20
+    - BR-25
+    - BR-33
+    - BR-35
+    - BR-37
+  x-screens:
+    - SCR-57
+    - SCR-30
+    - SCR-51
+  x-tables:
+    - erp_send_attempts
+    - payment_requests
+    - payment_request_lines
+    - invoices
+    - payment_batches
+    - audit_log
+  x-criteria:
+    - AC-26.5
+    - AC-26.10
+    - AC-26.11
+    - AC-26.12
+    - AC-26.13
+    - AC-26.14
+  parameters:
+    - $ref: ../components/parameters/requestId.yaml
+    - $ref: ../components/parameters/IdempotencyKey.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/ResendRequest.yaml
+  responses:
+    '202':
+      description: Manual attempt queued
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ResendAccepted.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+    '503':
+      $ref: ../components/responses/Unavailable.yaml

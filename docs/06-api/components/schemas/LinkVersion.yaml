@@ -1,0 +1,10 @@
+type: object
+description: An exception and the version last read.
+required:
+  - exceptionId
+  - version
+properties:
+  exceptionId:
+    $ref: ./Id.yaml
+  version:
+    $ref: ./Version.yaml

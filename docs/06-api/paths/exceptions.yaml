@@ -1,0 +1,72 @@
+get:
+  tags:
+    - Exceptions
+  summary: List exceptions
+  description: >-
+    Open and closed exceptions of the caller's entity for the AP Accountant,
+    with reason codes, age, and state. The Chief Accountant and the Payment
+    Approver use the decision queue instead (getDecisionQueue).
+  operationId: listExceptions
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-18
+  x-rules:
+    - BR-34
+  x-screens:
+    - SCR-10
+    - SCR-12
+  x-tables:
+    - exceptions
+    - exception_reasons
+    - invoices
+    - erp_suppliers
+  x-criteria:
+    - AC-18.1
+    - AC-18.10
+  parameters:
+    - name: state
+      in: query
+      required: false
+      description: One or more states.
+      schema:
+        type: array
+        items:
+          $ref: ../components/schemas/ExceptionState.yaml
+      style: form
+      explode: true
+    - name: reasonCode
+      in: query
+      required: false
+      description: Reason codes.
+      schema:
+        type: array
+        items:
+          $ref: ../components/schemas/ReasonCode.yaml
+      style: form
+      explode: true
+    - name: invoiceId
+      in: query
+      required: false
+      description: Exceptions of one invoice.
+      schema:
+        $ref: ../components/schemas/Id.yaml
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ExceptionSummaryPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

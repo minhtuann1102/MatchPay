@@ -1,0 +1,63 @@
+type: object
+description: One row of an exception list.
+required:
+  - id
+  - invoiceId
+  - invoiceNumber
+  - totalAmount
+  - state
+  - reasonCodes
+  - ageDays
+  - openedAt
+  - version
+properties:
+  id:
+    $ref: ./Id.yaml
+  invoiceId:
+    $ref: ./Id.yaml
+  invoiceNumber:
+    type: string
+  supplierName:
+    type: string
+    nullable: true
+  totalAmount:
+    $ref: ./Money.yaml
+  state:
+    $ref: ./ExceptionState.yaml
+  outcome:
+    type: string
+    allOf:
+      - $ref: ./ExceptionOutcome.yaml
+    nullable: true
+  reasonCodes:
+    type: array
+    items:
+      $ref: ./ReasonCode.yaml
+  firstReasonDetail:
+    type: string
+    nullable: true
+  ageDays:
+    type: integer
+  waitingRole:
+    type: string
+    allOf:
+      - $ref: ./DecisionRole.yaml
+    nullable: true
+  openedAt:
+    type: string
+    format: date-time
+  version:
+    $ref: ./Version.yaml
+example:
+  id: 2201
+  invoiceId: 1042
+  invoiceNumber: C26TAA-0000123
+  supplierName: Brightfield Paper Ltd
+  totalAmount: '6600000.00'
+  state: OPEN
+  reasonCodes:
+    - GATE_CLOSED
+  firstReasonDetail: 'Gate closed: 50 of 50 compared invoices needed'
+  ageDays: 1
+  openedAt: '2026-10-30T14:00:00+07:00'
+  version: 2

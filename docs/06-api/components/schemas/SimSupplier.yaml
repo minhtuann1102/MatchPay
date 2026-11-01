@@ -1,0 +1,10 @@
+type: object
+description: A supplier of the simulator seed data.
+required:
+  - erpRef
+  - name
+properties:
+  erpRef:
+    type: string
+  name:
+    type: string

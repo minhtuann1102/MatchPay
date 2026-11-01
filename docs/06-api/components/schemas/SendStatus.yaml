@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `send_status`.
+enum:
+  - DRAFT
+  - SENT
+  - NOT_SENT
+x-dbml-enum: send_status

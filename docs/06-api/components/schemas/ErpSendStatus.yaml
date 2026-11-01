@@ -1,0 +1,24 @@
+type: object
+description: Where the request is in the ERP send.
+required:
+  - phase
+  - canResend
+properties:
+  phase:
+    $ref: ./SendPhase.yaml
+  retryNumber:
+    type: integer
+    nullable: true
+    description: n of 3 while automatic attempts run.
+  nextAttemptAt:
+    type: string
+    format: date-time
+    nullable: true
+  canResend:
+    type: boolean
+    description: >-
+      True only when Signed, the 3 automatic attempts failed, and none is
+      pending (AC-26.10).
+  failureReason:
+    type: string
+    nullable: true

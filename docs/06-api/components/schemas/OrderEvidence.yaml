@@ -1,0 +1,39 @@
+type: object
+description: >-
+  The matched order with its sync time. Only an order of the caller's entity is
+  ever shown (BR-09).
+required:
+  - orderId
+  - erpRef
+  - kind
+  - supplierName
+  - orderDate
+  - syncedAt
+  - lines
+  - receipts
+properties:
+  orderId:
+    $ref: ./Id.yaml
+  erpRef:
+    type: string
+  kind:
+    $ref: ./OrderKind.yaml
+  supplierName:
+    type: string
+  orderDate:
+    type: string
+    format: date
+  createdBy:
+    type: string
+    nullable: true
+  syncedAt:
+    type: string
+    format: date-time
+  lines:
+    type: array
+    items:
+      $ref: ./OrderLineEvidence.yaml
+  receipts:
+    type: array
+    items:
+      $ref: ./ReceiptEvidence.yaml

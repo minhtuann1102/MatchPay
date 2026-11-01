@@ -1,0 +1,26 @@
+type: object
+description: A check run in the list of an invoice.
+required:
+  - id
+  - trigger
+  - startedAt
+  - outcome
+properties:
+  id:
+    $ref: ./Id.yaml
+  trigger:
+    $ref: ./RunTrigger.yaml
+  startedAt:
+    type: string
+    format: date-time
+  finishedAt:
+    type: string
+    format: date-time
+    nullable: true
+  outcome:
+    $ref: ./RunOutcome.yaml
+  decision:
+    type: string
+    allOf:
+      - $ref: ./RuleDecision.yaml
+    nullable: true

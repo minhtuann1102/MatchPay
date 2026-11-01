@@ -1,0 +1,6 @@
+name: followUpInvoiceId
+in: path
+required: true
+description: Identifier of the follow-up invoice.
+schema:
+  $ref: ../schemas/Id.yaml

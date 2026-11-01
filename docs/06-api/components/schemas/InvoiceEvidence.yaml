@@ -1,0 +1,88 @@
+type: object
+description: >-
+  Everything SCR-12 shows about the checks of an invoice, from the latest run.
+  AI-written text carries aiGenerated=true so it can be labelled (AC-17.3).
+required:
+  - invoiceId
+  - invoice
+  - lines
+  - anomalyFindings
+  - cancellationNotices
+  - paymentRequests
+  - duplicateExistsElsewhere
+  - warnings
+properties:
+  invoiceId:
+    $ref: ./Id.yaml
+  invoice:
+    $ref: ./InvoiceDetail.yaml
+  latestCheckRunId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  authorityStatus:
+    type: object
+    allOf:
+      - $ref: ./AuthorityLookup.yaml
+    nullable: true
+  order:
+    type: object
+    allOf:
+      - $ref: ./OrderEvidence.yaml
+    nullable: true
+  recurringProfileId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  flowClassification:
+    type: object
+    allOf:
+      - $ref: ./FlowClassification.yaml
+    nullable: true
+  identification:
+    type: object
+    allOf:
+      - $ref: ./Identification.yaml
+    nullable: true
+  lines:
+    type: array
+    items:
+      $ref: ./InvoiceLine.yaml
+  anomalyFindings:
+    type: array
+    items:
+      $ref: ./AnomalyFinding.yaml
+  ruleEvaluation:
+    type: object
+    allOf:
+      - $ref: ./RuleEvaluation.yaml
+    nullable: true
+  exception:
+    type: object
+    allOf:
+      - $ref: ./ExceptionBrief.yaml
+    nullable: true
+  serviceAcceptance:
+    type: object
+    allOf:
+      - $ref: ./ServiceAcceptanceRecord.yaml
+    nullable: true
+  cancellationNotices:
+    type: array
+    items:
+      $ref: ./CancellationNotice.yaml
+  paymentRequests:
+    type: array
+    items:
+      $ref: ./RequestRef.yaml
+  duplicateExistsElsewhere:
+    type: boolean
+    description: >-
+      True when the same seller, series, and number exists in another entity.
+      Nothing else is shown (BR-09, AC-17.6).
+  warnings:
+    type: array
+    items:
+      $ref: ./Warning.yaml

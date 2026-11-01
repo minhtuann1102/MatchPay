@@ -1,0 +1,42 @@
+get:
+  tags:
+    - Invoices
+  summary: Get the history of an invoice
+  description: >-
+    Every state the invoice has been in with the time, who or what changed it,
+    and the reason, plus the decisions tagged by who or what made them (AC-17.2,
+    AC-17.11). Read from audit_log.
+  operationId: getInvoiceHistory
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-17
+  x-rules:
+    - BR-12
+  x-screens:
+    - SCR-12
+  x-tables:
+    - audit_log
+    - invoices
+  x-criteria:
+    - AC-17.2
+    - AC-17.11
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/InvoiceHistory.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

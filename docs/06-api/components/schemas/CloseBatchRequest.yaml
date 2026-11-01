@@ -1,0 +1,9 @@
+type: object
+description: Close the batch for review (B2).
+required:
+  - version
+properties:
+  version:
+    $ref: ./Version.yaml
+example:
+  version: 2

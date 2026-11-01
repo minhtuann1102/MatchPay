@@ -1,0 +1,65 @@
+get:
+  tags:
+    - Exceptions
+  summary: Get the decision queue
+  description: >-
+    One list, different content by role (D-40). Chief Accountant: tax-risk holds
+    awaiting a decision. Payment Approver: exceptions awaiting individual
+    approval whose amount needs that approver's own level, so Department Head
+    Dan sees amounts under VND 50,000,000 and CFO Fiona from VND 50,000,000
+    (AC-23.1, BR-03). Split-order exceptions appear with their linked ids and
+    the combined amount (AC-23.3). Rows the caller cannot decide are not listed.
+    A tax-risk release by the Chief Accountant is not processing the invoice
+    (D-89).
+  operationId: getDecisionQueue
+  security:
+    - sessionCookie: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-21
+    - US-23
+  x-rules:
+    - BR-03
+    - BR-10
+    - BR-34
+  x-screens:
+    - SCR-40
+  x-tables:
+    - exceptions
+    - exception_reasons
+    - approval_tiers
+    - approval_tier_approvers
+    - invoices
+    - erp_suppliers
+    - erp_purchase_orders
+    - users
+  x-criteria:
+    - AC-23.1
+    - AC-23.3
+    - AC-21.1
+  parameters:
+    - name: kind
+      in: query
+      required: false
+      description: Filter by kind.
+      schema:
+        $ref: ../components/schemas/DecisionKind.yaml
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/DecisionQueueItemPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

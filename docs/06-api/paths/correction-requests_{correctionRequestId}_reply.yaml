@@ -1,0 +1,54 @@
+post:
+  tags:
+    - Corrections and follow-ups
+  summary: Record a reply
+  description: >-
+    Records that the supplier or the internal team replied; the exception
+    returns to In Review (E6) and the daily reminder stops (AC-32.4). Appends to
+    audit_log.
+  operationId: recordCorrectionReply
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-19
+    - US-32
+  x-rules:
+    - BR-26
+    - BR-34
+  x-screens:
+    - SCR-12
+  x-tables:
+    - correction_requests
+    - exceptions
+    - audit_log
+  x-criteria:
+    - AC-19.4
+    - AC-32.4
+  parameters:
+    - $ref: ../components/parameters/correctionRequestId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/ReplyRecordRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/CorrectionRequest.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

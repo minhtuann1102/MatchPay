@@ -1,0 +1,98 @@
+type: object
+description: A payment batch of one entity and period (BR-35). The can* flags are UI hints.
+required:
+  - id
+  - periodStart
+  - state
+  - sampleRatePct
+  - itemCount
+  - totalAmount
+  - version
+  - canClose
+  - canRelease
+  - canReopen
+  - canExpandSample
+  - warnings
+properties:
+  id:
+    $ref: ./Id.yaml
+  periodStart:
+    type: string
+    format: date
+    description: First day of the calendar month (DF-18).
+  state:
+    $ref: ./BatchState.yaml
+  sampleRatePct:
+    $ref: ./Decimal.yaml
+  sampleSize:
+    type: integer
+    nullable: true
+  sampleMethod:
+    type: string
+    allOf:
+      - $ref: ./SampleMethod.yaml
+    nullable: true
+  closedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  closedAt:
+    type: string
+    format: date-time
+    nullable: true
+  releasedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  releasedAt:
+    type: string
+    format: date-time
+    nullable: true
+  itemCount:
+    type: integer
+    description: Active invoices in the batch. Computed.
+  totalAmount:
+    $ref: ./Money.yaml
+  remainingToMark:
+    type: integer
+    nullable: true
+    description: Sample items still PENDING (AC-24.5). Computed.
+  notInSampleCount:
+    type: integer
+    nullable: true
+    description: Invoices not yet in the sample (AC-24.13). Computed.
+  version:
+    $ref: ./Version.yaml
+  canClose:
+    type: boolean
+  canRelease:
+    type: boolean
+  canReopen:
+    type: boolean
+  canExpandSample:
+    type: boolean
+  warnings:
+    type: array
+    items:
+      $ref: ./Warning.yaml
+example:
+  id: 41
+  periodStart: '2026-10-01'
+  state: IN_REVIEW
+  sampleRatePct: '10.00'
+  sampleSize: 1
+  sampleMethod: AI
+  closedBy: 11
+  closedAt: '2026-10-31T09:40:00+07:00'
+  itemCount: 5
+  totalAmount: '70050000.00'
+  remainingToMark: 1
+  notInSampleCount: 4
+  version: 3
+  canClose: false
+  canRelease: false
+  canReopen: false
+  canExpandSample: true
+  warnings: []

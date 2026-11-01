@@ -1,0 +1,12 @@
+type: object
+description: One page of Entity records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./Entity.yaml
+  meta:
+    $ref: ./PageMeta.yaml

@@ -1,0 +1,35 @@
+get:
+  tags:
+    - ERP sync
+  summary: Get an ERP sync run
+  description: Returns one run for polling after startErpSync.
+  operationId: getErpSyncRun
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-07
+  x-rules:
+    - BR-25
+  x-screens: []
+  x-tables:
+    - erp_sync_runs
+  x-criteria:
+    - AC-07.1
+    - AC-07.7
+  parameters:
+    - $ref: ../components/parameters/runId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErpSyncRun.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

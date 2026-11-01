@@ -1,0 +1,9 @@
+type: object
+description: Edit a draft that has not been sent.
+properties:
+  subject:
+    type: string
+  body:
+    type: string
+  recipientAddress:
+    type: string

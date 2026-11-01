@@ -1,0 +1,6 @@
+type: integer
+minimum: 1
+description: >-
+  Optimistic-concurrency version of a record (BR-37, D-136). Send the value last
+  read.
+example: 3

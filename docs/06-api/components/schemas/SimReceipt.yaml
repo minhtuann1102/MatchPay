@@ -1,0 +1,37 @@
+type: object
+description: A goods receipt or service acceptance in the simulated ERP.
+required:
+  - id
+  - entityId
+  - receiptNumber
+  - poId
+  - poNumber
+  - kind
+  - confirmedByPersona
+  - confirmedAt
+  - lines
+properties:
+  id:
+    $ref: ./Id.yaml
+  entityId:
+    $ref: ./Id.yaml
+  receiptNumber:
+    type: string
+  poId:
+    $ref: ./Id.yaml
+  poNumber:
+    type: string
+  kind:
+    $ref: ./ReceiptKind.yaml
+  deliveryNote:
+    type: string
+    nullable: true
+  confirmedByPersona:
+    $ref: ./SimPersona.yaml
+  confirmedAt:
+    type: string
+    format: date-time
+  lines:
+    type: array
+    items:
+      $ref: ./SimReceiptLine.yaml

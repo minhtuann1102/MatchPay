@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `identification_method`.
+enum:
+  - DETERMINISTIC
+  - LLM
+x-dbml-enum: identification_method

@@ -1,0 +1,6 @@
+name: entryId
+in: path
+required: true
+description: Identifier of an audit log entry.
+schema:
+  $ref: ../schemas/Id.yaml

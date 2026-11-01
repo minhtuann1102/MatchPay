@@ -1,0 +1,16 @@
+description: >-
+  Unexpected server error. If an audit entry cannot be written the action does
+  not complete and this is returned (DF-30, AC-28.7).
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    examples:
+      internal:
+        value:
+          type: https://matchpay.example/problems/internal-error
+          title: Internal error
+          status: 500
+          detail: Unexpected error
+          errorCode: INTERNAL_ERROR
+          traceId: 4f1c9a6e8b2d47a0

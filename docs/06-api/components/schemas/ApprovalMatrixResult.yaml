@@ -1,0 +1,13 @@
+type: object
+description: The saved matrix and the requests it changed.
+required:
+  - matrix
+  - recomputedRequestIds
+properties:
+  matrix:
+    $ref: ./ApprovalMatrix.yaml
+  recomputedRequestIds:
+    type: array
+    items:
+      $ref: ./Id.yaml
+    description: Unsigned payment requests whose required level was recomputed (AC-05.4).

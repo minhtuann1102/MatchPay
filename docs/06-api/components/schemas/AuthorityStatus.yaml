@@ -1,0 +1,8 @@
+type: string
+description: Same values as the DBML enum `authority_status`.
+enum:
+  - VALID
+  - ADJUSTED
+  - REPLACED
+  - CANCELLED
+x-dbml-enum: authority_status

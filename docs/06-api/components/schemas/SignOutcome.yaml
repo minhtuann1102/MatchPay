@@ -1,0 +1,5 @@
+type: string
+description: Result for one request of a signing action.
+enum:
+  - SIGNED
+  - REFUSED

@@ -1,0 +1,36 @@
+get:
+  tags:
+    - Mailbox
+  summary: Get a mailbox fetch run
+  description: Returns one fetch for polling after startMailboxFetch.
+  operationId: getMailboxFetchRun
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-31
+  x-rules:
+    - BR-09
+  x-screens:
+    - SCR-24
+  x-tables:
+    - mailbox_fetch_runs
+  x-criteria:
+    - AC-31.7
+    - AC-31.8
+  parameters:
+    - $ref: ../components/parameters/runId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/MailboxFetchRun.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

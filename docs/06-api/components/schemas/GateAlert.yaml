@@ -1,0 +1,32 @@
+type: object
+description: >-
+  An alert that recommends closing a gate (BR-06, AC-06.7). The gate stays open
+  until the Group Admin acts.
+required:
+  - id
+  - sampledCount
+  - errorCount
+  - errorRatePct
+  - limitPct
+  - windowDays
+  - raisedAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  sampledCount:
+    type: integer
+  errorCount:
+    type: integer
+  errorRatePct:
+    $ref: ./Decimal.yaml
+  limitPct:
+    $ref: ./Decimal.yaml
+  windowDays:
+    type: integer
+  raisedAt:
+    type: string
+    format: date-time
+  clearedAt:
+    type: string
+    format: date-time
+    nullable: true

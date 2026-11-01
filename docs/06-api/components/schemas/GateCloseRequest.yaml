@@ -1,0 +1,11 @@
+type: object
+description: Close a gate; the open alert, if any, is cleared (D-152).
+required:
+  - version
+properties:
+  version:
+    $ref: ./Version.yaml
+  reason:
+    type: string
+example:
+  version: 2

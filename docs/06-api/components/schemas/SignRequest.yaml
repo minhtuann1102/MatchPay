@@ -1,0 +1,25 @@
+type: object
+description: >-
+  Sign many requests in one action (AC-25.4). The server decides whether the
+  caller signs as themself or as an active delegate (D-150).
+required:
+  - requests
+  - password
+properties:
+  requests:
+    type: array
+    items:
+      $ref: ./SignRequestItem.yaml
+    description: One to 50 requests (DF-86).
+    minItems: 1
+    maxItems: 50
+  password:
+    type: string
+    description: The signer's own password again (AC-25.3, DF-10).
+example:
+  requests:
+    - requestId: 311
+      version: 1
+    - requestId: 312
+      version: 1
+  password: correct horse battery

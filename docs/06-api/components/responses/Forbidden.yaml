@@ -1,0 +1,18 @@
+description: >-
+  The role may not call this operation, the record is outside the caller's
+  entity scope, or the CSRF token is missing. No data is returned and nothing
+  shows whether the record exists (D-132, AC-01.5, AC-01.8). The refusal is
+  written to the audit log.
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    examples:
+      accessDenied:
+        value:
+          type: https://matchpay.example/problems/access-denied
+          title: Access denied
+          status: 403
+          detail: Access denied
+          errorCode: ACCESS_DENIED
+          traceId: 4f1c9a6e8b2d47a0

@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `period_unit`.
+enum:
+  - MONTHLY
+  - QUARTERLY
+  - YEARLY
+x-dbml-enum: period_unit

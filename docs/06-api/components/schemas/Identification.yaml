@@ -1,0 +1,41 @@
+type: object
+description: Entity, order, and profile identification of one run.
+required:
+  - method
+  - confidence
+  - reason
+  - createdAt
+  - aiGenerated
+properties:
+  method:
+    $ref: ./IdentificationMethod.yaml
+  proposedEntityId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  orderId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  recurringProfileId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  confidence:
+    $ref: ./Decimal.yaml
+  reason:
+    type: string
+  modelVersion:
+    type: string
+    nullable: true
+  promptVersion:
+    type: string
+    nullable: true
+  createdAt:
+    type: string
+    format: date-time
+  aiGenerated:
+    type: boolean

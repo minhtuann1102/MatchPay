@@ -1,0 +1,37 @@
+get:
+  tags:
+    - Delegations
+  summary: List possible delegates
+  description: >-
+    Lists active Chief Accountants and Payment Approvers of the caller's entity
+    other than the caller, for the delegate field (AC-30.6).
+  operationId: listDelegateCandidates
+  security:
+    - sessionCookie: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-30
+  x-rules:
+    - BR-38
+  x-screens:
+    - SCR-56
+  x-tables:
+    - users
+    - signing_delegations
+  x-criteria:
+    - AC-30.6
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/DelegateCandidateList.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

@@ -1,0 +1,39 @@
+post:
+  tags:
+    - Notifications
+  summary: Mark a notification read
+  description: >-
+    Opening an item marks it read (AC-32.6). An item whose work is done no
+    longer reminds. Only the recipient may mark it.
+  operationId: markNotificationRead
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-32
+  x-rules: []
+  x-screens:
+    - SCR-62
+  x-tables:
+    - notifications
+  x-criteria:
+    - AC-32.6
+  parameters:
+    - $ref: ../components/parameters/notificationId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Notification.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

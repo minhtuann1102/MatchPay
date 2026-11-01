@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `period_origin`.
+enum:
+  - INVOICE
+  - SEED
+x-dbml-enum: period_origin

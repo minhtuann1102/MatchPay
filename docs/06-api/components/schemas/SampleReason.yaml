@@ -1,0 +1,8 @@
+type: string
+description: Same values as the DBML enum `sample_reason`.
+enum:
+  - HIGH_VALUE
+  - GATE_RECENTLY_OPENED
+  - OFTEN_MATCHED_WRONG
+  - HIGHEST_VALUE_FALLBACK
+x-dbml-enum: sample_reason

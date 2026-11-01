@@ -1,0 +1,5 @@
+type: string
+description: Kind of item in the decision queue (SCR-40).
+enum:
+  - TAX_RISK_HOLD
+  - INDIVIDUAL_APPROVAL

@@ -1,0 +1,14 @@
+description: The account is deactivated (AC-01.3).
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    examples:
+      deactivated:
+        value:
+          type: https://matchpay.example/problems/auth-account-deactivated
+          title: Account deactivated
+          status: 403
+          detail: Your account is deactivated. Please contact your administrator.
+          errorCode: AUTH_ACCOUNT_DEACTIVATED
+          traceId: 4f1c9a6e8b2d47a0

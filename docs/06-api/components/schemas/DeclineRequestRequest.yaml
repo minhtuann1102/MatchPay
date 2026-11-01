@@ -1,0 +1,13 @@
+type: object
+description: Decline a whole request with a reason (AC-25.7).
+required:
+  - reason
+  - version
+properties:
+  reason:
+    type: string
+  version:
+    $ref: ./Version.yaml
+example:
+  reason: Price differs from the contract
+  version: 1

@@ -1,0 +1,85 @@
+type: object
+description: >-
+  One line match with its method, probability, and unit arithmetic
+  (AC-14.1..AC-14.3).
+required:
+  - invoiceLineId
+  - method
+  - isDoubtful
+  - createdAt
+properties:
+  invoiceLineId:
+    $ref: ./Id.yaml
+  itemId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  itemName:
+    type: string
+    nullable: true
+  method:
+    $ref: ./MatchMethod.yaml
+  embeddingSimilarity:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  priceMatch:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  quantityMatch:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  historyScore:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  fusionProbability:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+    description: Threshold 0.90 (DF-15).
+  llmConfidence:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+    description: Never the only basis (BR-28).
+  unitFactor:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  convertedQuantity:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  convertedUnitPrice:
+    type: string
+    allOf:
+      - $ref: ./Money.yaml
+    nullable: true
+  isDoubtful:
+    type: boolean
+  doubtfulReason:
+    type: string
+    nullable: true
+  reason:
+    type: string
+    nullable: true
+  decidedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  createdAt:
+    type: string
+    format: date-time

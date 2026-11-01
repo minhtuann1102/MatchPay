@@ -1,0 +1,42 @@
+get:
+  tags:
+    - Audit log
+  summary: Get an audit log entry
+  description: >-
+    One entry with its details (old and new values, conditions). Same visibility
+    as the list.
+  operationId: getAuditEntry
+  security:
+    - sessionCookie: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - ENTITY_ADMIN
+    - GROUP_ADMIN
+  x-stories:
+    - US-28
+  x-rules:
+    - BR-09
+    - BR-12
+  x-screens:
+    - SCR-61
+  x-tables:
+    - audit_log
+  x-criteria:
+    - AC-28.1
+    - AC-28.2
+    - AC-28.5
+  parameters:
+    - $ref: ../components/parameters/entryId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/AuditEntry.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
