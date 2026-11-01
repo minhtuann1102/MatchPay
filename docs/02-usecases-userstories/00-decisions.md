@@ -148,6 +148,8 @@ On 2026-11-01 the user attached a mind map of the product with twelve features, 
 |---|---|---|---|
 | D-88 | **Bring Steps 1 and 2 in line with the feature mind map F01..F12.** The mind map is read as a feature map. Where it adds or sharpens a feature, the documents follow (D-89..D-98); where it is silent about something the documents already hold, the documents keep it (D-99). Steps 3 to 5 are not changed in this pass; what they must add is listed in "Follow-up in Steps 3 to 5" below. | The request to sync with the mind map | User decision, 2026-11-01 |
 
+On 2026-11-01 (08:09 UTC) the user sent the mind map again, said it is the final one, and asked to add it to the repository. The image is byte-identical to the one this sync was based on, so no requirement changed. D-88 stays a user decision. The image is stored at `docs/images/source/feature-mind-map.png`.
+
 ### Calls made while applying D-88, awaiting user review
 
 | ID | Decision | Resolves | Source |
@@ -167,6 +169,8 @@ On 2026-11-01 the user attached a mind map of the product with twelve features, 
 ### What the brief says
 
 The brief is never edited. These are the places where the documents now differ from it (line numbers are those of the brief file; the Vietnamese text is paraphrased in English).
+
+- Language of the mind map image. The repository rule says all files are English and names only the brief as an exception. The final feature mind map image (`docs/images/source/feature-mind-map.png`) is in Vietnamese and is kept unchanged as a second source document, like the brief. Call, awaiting user review: this exception is a reading of that rule, which does not name the image. The English reading is the Mermaid map in [mindmap.md](../mindmap.md#feature-map-f01f12).
 
 - Scope table, row "Documents" (line 161): the Advanced column holds "an invoice mailbox that fetches XML by itself; a supplier portal; connection to each entity's real ERP". The MVP now holds the simulated mailbox (D-92); the supplier portal and the real ERP stay Advanced.
 - Scope table, row "Tax" (line 165), and the actor table (line 46): "lookup of the invoice status through a connection point" and the actor "Invoice status lookup service" are Advanced ("connection point designed in advance"). The MVP now holds a simulated lookup (D-93); the real connection point stays Advanced (W-13).

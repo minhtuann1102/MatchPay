@@ -28,7 +28,7 @@ Requirements define what MatchPay must do, who uses it, the value delivered, and
 
 ### 1.1 Product mind map
 
-See the [product mind map](docs/mindmap.md), which also holds the [feature map F01..F12](docs/mindmap.md#feature-map-f01f12) that mirrors the mind map the user attached on 2026-11-01 (D-88).
+See the [product mind map](docs/mindmap.md), which also holds the [feature map F01..F12](docs/mindmap.md#feature-map-f01f12) that mirrors the mind map the user attached on 2026-11-01 (D-88). The user's final mind map image (Vietnamese source document) is [feature-mind-map.png](docs/images/source/feature-mind-map.png).
 
 ### 1.2 Step 1 summary: research and problem analysis
 

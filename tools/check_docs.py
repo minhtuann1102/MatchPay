@@ -947,7 +947,7 @@ print('  PNG and HTML links in Markdown checked: %d; broken: %s' % (n_links, bro
 if broken: fail('broken PNG or HTML link')
 imgs = sorted(rel(os.path.join(dp, f_)) for dp, dn, fn in os.walk(ROOT + '/docs/images') for f_ in fn if f_.endswith('.png')) if os.path.isdir(ROOT + '/docs/images') else []
 role_dirs = {'common', 'ap-accountant', 'chief-accountant', 'payment-approver', 'entity-admin', 'group-admin', 'demo-operator', 'requesting-department'}
-bad_dirs = [i_ for i_ in imgs if i_.split('/')[2] not in role_dirs]
+bad_dirs = [i_ for i_ in imgs if i_.split('/')[2] not in role_dirs and not i_.startswith('docs/images/source/')]  # docs/images/source/ holds source images, not wireframe exports
 big = sum(os.path.getsize(ROOT + '/' + i_) for i_ in imgs)
 print('  PNG exports: %d, %.1f MB; outside the role folders: %s' % (len(imgs), big / 1e6, bad_dirs or 'none'))
 if bad_dirs or big > 15e6: fail('PNG folders or size')
