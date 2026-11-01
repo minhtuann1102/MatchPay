@@ -46,6 +46,10 @@ export const listPersonas = () =>
     })),
   );
 
+/** The group's entities with their MST, shown on the login page (no sign-in needed). */
+export const listPublicEntities = () =>
+  call<{ id: string; name: string; taxCode: string }[]>({ open: true, fast: true }, (d) => d.entities.map((e) => ({ id: e.id, name: e.name, taxCode: e.taxCode })));
+
 // ----- Notifications (SCR-62) -----
 const NOTIFY_ROLES = FINANCE_ROLES;
 

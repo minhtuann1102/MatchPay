@@ -5,7 +5,7 @@ import { decideIndividualApproval, decideTaxRiskHold } from '../api/decisions';
 import { useDecisionQueue, useInvoice } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { EmptyState, Field, Notice, PageHeader, Skeleton } from '../components/Bits';
+import { EmptyState, Field, Notice, PageHeader, Skeleton, InvNo } from '../components/Bits';
 import { Chip } from '../components/Chips';
 import { DataTable, type Col } from '../components/DataTable';
 import { Modal } from '../components/Modal';
@@ -29,7 +29,7 @@ export function Decisions() {
   const cols: Col<DecisionRow>[] = [
     {
       key: 'inv', label: t.decisions.colInvoice, header: t.decisions.colInvoice,
-      render: (r) => <><b className="mono">{r.invoice.invoiceNumber}</b><span className="sub">{r.invoice.sellerName}</span>{r.groupSize > 1 && <span className="sub">{interpolate(t.decisions.groupOf, { n: r.groupSize })}</span>}</>,
+      render: (r) => <><InvNo value={r.invoice.invoiceNumber} /><span className="sub">{r.invoice.sellerName}</span>{r.groupSize > 1 && <span className="sub">{interpolate(t.decisions.groupOf, { n: r.groupSize })}</span>}</>,
     },
     {
       key: 'why', label: t.decisions.colReasons, header: t.decisions.colReasons,
@@ -121,7 +121,7 @@ function DecideModal({ row, chief, onClose }: { row: DecisionRow; chief: boolean
         <>
           <section aria-label={t.decisions.evidence}>
             <dl className="dl">
-              <dt>{t.decisions.colInvoice}</dt><dd><b className="mono">{inv.invoiceNumber}</b></dd>
+              <dt>{t.decisions.colInvoice}</dt><dd><InvNo value={inv.invoiceNumber} /></dd>
               <dt>{t.decisions.supplier}</dt><dd>{inv.sellerName}</dd>
               <dt>{t.decisions.amount}</dt><dd>{fmtMoney(inv.totalAmount)}</dd>
               <dt>{t.decisions.due}</dt><dd>{fmtDate(inv.dueDate)}</dd>

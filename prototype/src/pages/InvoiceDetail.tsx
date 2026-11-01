@@ -7,7 +7,7 @@ import {
 import { useInvoice } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { DueSoon, Menu, Notice } from '../components/Bits';
+import { DueSoon, Menu, Notice, InvNo, ReqNo } from '../components/Bits';
 import { ExceptionBadge, HandTag, RequestBadge, StateBadge } from '../components/Chips';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icon } from '../components/Icon';
@@ -153,7 +153,7 @@ function Detail({ d }: { d: InvoiceDetail }) {
       <nav className="crumbs" aria-label={t.detail.breadcrumb}>
         <Link to="/invoices">{t.nav.invoices}</Link>
         <Icon name="chevronr" small />
-        <span aria-current="page">{inv.invoiceNumber}</span>
+        <span aria-current="page"><InvNo value={inv.invoiceNumber} /></span>
       </nav>
 
       {notice}
@@ -162,7 +162,7 @@ function Detail({ d }: { d: InvoiceDetail }) {
       <section className="ph obj-head" aria-label={t.detail.summary}>
         <div className="ph-top">
           <div className="ph-title">
-            <h1>{inv.invoiceNumber}</h1>
+            <h1><InvNo value={inv.invoiceNumber} /></h1>
             <StateBadge state={inv.state} />
             {exc && <ExceptionBadge state={exc.state} />}
             {exc?.route && <span className="muted small">{t.detail.waitingFor.replace('{who}', exc.route === 'CHIEF_ACCOUNTANT' ? t.roles.CHIEF_ACCOUNTANT : t.roles.PAYMENT_APPROVER)}</span>}
@@ -230,7 +230,6 @@ function Detail({ d }: { d: InvoiceDetail }) {
               <div className="ap-h"><h2>{t.detail.resolve}</h2><span className="au au-person"><Icon name="seal" />{t.hands.PERSON}</span></div>
               {primary ? (
                 <div className="nextstep">
-                  <span className="eyebrow">{t.detail.nextStep}</span>
                   <h3>{nextTitle}</h3>
                   <p>{nextText}</p>
                   <div className="actions">{primary}</div>
@@ -460,7 +459,7 @@ function Overview({ d, go }: { d: InvoiceDetail; go: (t: Tab) => void }) {
               <thead><tr><th>{t.invoices.colInvoice}</th><th>{t.detail.order}</th><th className="money">{t.invoices.colTotal}</th></tr></thead>
               <tbody>
                 {d.linkedGroup.map((l) => (
-                  <tr key={l.id}><td>{l.id === inv.id ? <>{l.invoiceNumber} <span className="muted">{t.detail.thisPage}</span></> : <Link to={`/invoices/${l.id}`}>{l.invoiceNumber}</Link>}</td><td className="mono">{l.poRef}</td><td className="money">{fmtMoney(l.totalAmount)}</td></tr>
+                  <tr key={l.id}><td>{l.id === inv.id ? <><InvNo value={l.invoiceNumber} /> <span className="muted">{t.detail.thisPage}</span></> : <Link to={`/invoices/${l.id}`}><InvNo value={l.invoiceNumber} /></Link>}</td><td className="mono">{l.poRef}</td><td className="money">{fmtMoney(l.totalAmount)}</td></tr>
                 ))}
               </tbody>
               <tfoot><tr><td colSpan={2}>{t.detail.combined}</td><td className="money">{fmtMoney(d.linkedGroup.reduce((s, l) => s + l.totalAmount, 0))}</td></tr></tfoot>
@@ -473,7 +472,7 @@ function Overview({ d, go }: { d: InvoiceDetail; go: (t: Tab) => void }) {
         <section className="card">
           <div className="sec-h"><h3>{t.detail.paymentRequest}</h3><RequestBadge state={d.request.state} /></div>
           <div style={{ padding: '8px 16px 16px', display: 'grid', gap: 8 }}>
-            <p className="small"><span className="mono">{d.request.id}</span>, {fmtMoney(d.request.total)}, {t.approvalLevel[d.request.level]}</p>
+            <p className="small"><ReqNo value={d.request.id} />, {fmtMoney(d.request.total)}, {t.approvalLevel[d.request.level]}</p>
             {d.request.signatures.length === 0 && <p className="small muted">{t.detail.noSignatures}</p>}
             {d.request.signatures.map((s) => (
               <div className="sig" key={s.userId + s.step}>

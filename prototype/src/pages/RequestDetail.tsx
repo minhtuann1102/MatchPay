@@ -4,7 +4,7 @@ import { resendToErp } from '../api/batch';
 import { declineRequest, removeRequestLine, type RequestDetail as Detail } from '../api/signing';
 import { useRequest } from '../api/hooks';
 import { Async, useForced } from '../components/Async';
-import { Notice, PageHeader } from '../components/Bits';
+import { Notice, InvNo, ReqNo, SealStamp } from '../components/Bits';
 import { Chip, HandTag, RequestBadge, StateBadge } from '../components/Chips';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Icon } from '../components/Icon';
@@ -43,17 +43,32 @@ function Body({ d }: { d: Detail }) {
 
   return (
     <>
-      <PageHeader
-        title={r.id}
-        meta={<><RequestBadge state={r.state} /> <span className="ph-amount">{fmtMoney(r.total)}</span></>}
-        actions={
-          <>
-            {awaiting && <button type="button" className="btn" onClick={() => setDlg('decline')}>{t.request.decline}</button>}
-            {d.canResend && <button type="button" className="btn" onClick={() => setDlg('resend')}>{t.request.resend}</button>}
-            {r.sign.canSign && <button type="button" className="btn btn-primary" onClick={() => setDlg('sign')}><Icon name="pen" />{t.request.signCta}</button>}
-          </>
-        }
-      />
+      <section className="ph obj-head" aria-label={t.request.titleFallback}>
+        <div className="ph-top">
+          <div className="ph-title">
+            <h1><ReqNo value={r.id} /></h1>
+            <RequestBadge state={r.state} />
+          </div>
+          <div className="ph-amount">{fmtMoney(r.total)}</div>
+        </div>
+        {(r.signatures.length > 0 && !cancelled) || awaiting || d.canResend || r.sign.canSign ? (
+          <div className="ph-reasons spread">
+            <div className="seals" aria-label={t.request.sigTitle}>
+              {!cancelled && r.signatures.map((s) => (
+                <div className="stamped" key={s.step}>
+                  <SealStamp role={s.role} at={s.at} small />
+                  <div><b>{s.name}</b><div className="small muted">{t.roles[s.role]}, {fmtDateTime(s.at)}</div></div>
+                </div>
+              ))}
+            </div>
+            <div className="ph-actions">
+              {awaiting && <button type="button" className="btn" onClick={() => setDlg('decline')}>{t.request.decline}</button>}
+              {d.canResend && <button type="button" className="btn" onClick={() => setDlg('resend')}>{t.request.resend}</button>}
+              {r.sign.canSign && <button type="button" className="btn btn-primary" onClick={() => setDlg('sign')}><Icon name="pen" />{t.request.signCta}</button>}
+            </div>
+          </div>
+        ) : null}
+      </section>
 
       {cancelled && r.declineReason && <Notice kind="err" icon="alert">{interpolate(t.request.cancelledNote, { r: r.declineReason, who: r.declinedByName ?? '' })}</Notice>}
       {d.canResend && <Notice kind="warn" title={interpolate(t.batch.sendFailed, { r: r.id })} action={<button type="button" className="btn btn-sm" onClick={() => setDlg('resend')}>{t.request.resend}</button>}>{t.batch.sendFailedText}</Notice>}
@@ -85,7 +100,7 @@ function Body({ d }: { d: Detail }) {
                 <tbody>
                   {d.invoices.map((i) => (
                     <tr key={i.id}>
-                      <td><Link to={`/invoices/${i.id}`}><b className="mono">{i.invoiceNumber}</b></Link><span className="sub">{i.sellerName}</span></td>
+                      <td><Link to={`/invoices/${i.id}`}><InvNo value={i.invoiceNumber} /></Link><span className="sub">{i.sellerName}</span></td>
                       <td>{fmtDate(i.dueDate)}</td>
                       <td className="money">{fmtMoney(i.totalAmount)}</td>
                       <td><StateBadge state={i.state} /></td>

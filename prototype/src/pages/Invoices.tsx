@@ -6,7 +6,7 @@ import { startErpSync } from '../api/admin';
 import { useInvoices, useSuppliers, useWorklistSummary, useErpSync } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async, useForced } from '../components/Async';
-import { DueSoon, EmptyState, Field, Menu, Notice, PageHeader, Tabs } from '../components/Bits';
+import { DueSoon, EmptyState, Field, Menu, Notice, PageHeader, Tabs, InvNo } from '../components/Bits';
 import { StateBadge, ExceptionBadge } from '../components/Chips';
 import { DataTable, Pager, type Col } from '../components/DataTable';
 import { Icon } from '../components/Icon';
@@ -74,7 +74,7 @@ export function Invoices() {
   const cols: Col<InvoiceRow>[] = [
     {
       key: 'inv', label: t.invoices.colInvoice, header: t.invoices.colInvoice, sort: (r) => r.invoiceNumber,
-      render: (r) => (<><Link to={`/invoices/${r.id}`}>{r.invoiceNumber}</Link><span className="sub">{r.sellerName}</span></>),
+      render: (r) => (<><Link to={`/invoices/${r.id}`}><InvNo value={r.invoiceNumber} /></Link><span className="sub">{r.sellerName}</span></>),
     },
     { key: 'flow', label: t.invoices.colFlow, header: t.invoices.colFlow, render: (r) => <span className="flow" title={t.flow[r.flow]}>{t.flow[r.flow]}</span> },
     { key: 'src', label: t.invoices.colSource, header: t.invoices.colSource, render: (r) => <span className="src-tag">{t.source[r.source]}</span> },

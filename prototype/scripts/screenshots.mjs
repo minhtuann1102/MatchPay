@@ -24,12 +24,11 @@ async function newRole(browser, persona) {
   await p.goto(`${BASE}/login`);
   await p.evaluate(() => localStorage.clear()); // reset demo data
   await p.reload();
-  await p.waitForSelector('.persona');
+  await p.waitForSelector('.register-row');
   // Screenshots should not show the floating demo button over the content.
   await p.addStyleTag({ content: '.demo-fab { display: none !important; } .sidebar { height: auto !important; position: static !important; align-self: stretch !important; } .shell { align-items: stretch; }' });
   if (persona) {
-    await p.locator('.persona', { hasText: persona }).first().click();
-    await p.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+    await p.locator('.register-row', { hasText: persona }).first().getByRole('button').click();
     await p.waitForSelector('nav a');
   }
   return { ctx, p };
@@ -117,7 +116,7 @@ const browser = await chromium.launch();
 
 // Chief Accountant
 {
-  const { ctx } = await run(
+  const { ctx, p } = await run(
     browser, 'Carol', 'chief-accountant',
     [
       ['10-invoice-worklist', '/invoices'],
@@ -140,6 +139,16 @@ const browser = await chromium.launch();
       ['55b-signing-delegations-new', '/delegations', async (p) => { await p.getByRole('button', { name: 'Ủy quyền mới' }).first().click(); }],
     ],
   );
+  // Sign for real and capture the seal stamped on the request (viewport-sized, after the stamp animation).
+  await p.goto(`${BASE}/signing`);
+  await settle(p);
+  await p.getByRole('checkbox', { name: /PR-0042/ }).check();
+  await p.getByRole('button', { name: /^Ký 1 đề nghị/ }).click();
+  await dlg(p).locator('input[type=password]').fill('246810');
+  await dlg(p).getByRole('button', { name: 'Ký', exact: true }).click();
+  await dlg(p).locator('.seal-stamp').waitFor();
+  await settle(p, 700);
+  await shot(p, 'chief-accountant', '50c-signing-queue-signed', { full: false });
   await ctx.close();
 }
 

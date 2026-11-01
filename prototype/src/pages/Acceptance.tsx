@@ -4,7 +4,7 @@ import { decideServiceAcceptance } from '../api/acceptance';
 import { useAcceptanceQueue, useSuppliers } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { DueSoon, EmptyState, Field, Notice, PageHeader } from '../components/Bits';
+import { DueSoon, EmptyState, Field, Notice, PageHeader, InvNo } from '../components/Bits';
 import { DataTable, type Col } from '../components/DataTable';
 import { Modal } from '../components/Modal';
 import { ActionError } from '../components/ReasonModal';
@@ -27,7 +27,7 @@ export function Acceptance() {
   const dueCount = items.filter((i) => i.dueSoon).length;
 
   const cols: Col<AcceptanceRow>[] = [
-    { key: 'inv', label: t.acceptance.colInvoice, header: t.acceptance.colInvoice, render: (r) => <><b className="mono">{r.invoice.invoiceNumber}</b><span className="sub">{r.invoice.sellerName}</span></> },
+    { key: 'inv', label: t.acceptance.colInvoice, header: t.acceptance.colInvoice, render: (r) => <><InvNo value={r.invoice.invoiceNumber} /><span className="sub">{r.invoice.sellerName}</span></> },
     { key: 'po', label: t.acceptance.colOrder, header: t.acceptance.colOrder, render: (r) => <span className="mono">{r.poRef}</span> },
     { key: 'lines', label: t.acceptance.colLines, header: t.acceptance.colLines, render: (r) => r.serviceLines },
     { key: 'amt', label: t.acceptance.colAmount, header: t.acceptance.colAmount, className: 'money', sort: (r) => r.invoice.totalAmount, render: (r) => fmtMoney(r.invoice.totalAmount) },
@@ -98,7 +98,7 @@ function DecideModal({ item, onClose }: { item: AcceptanceRow; onClose: () => vo
     >
       {creator && <Notice kind="warn" icon="lock">{t.acceptance.creatorBlocked}</Notice>}
       <dl className="dl">
-        <dt>{t.acceptance.invoice}</dt><dd><b className="mono">{item.invoice.invoiceNumber}</b>, {item.invoice.sellerName}</dd>
+        <dt>{t.acceptance.invoice}</dt><dd><InvNo value={item.invoice.invoiceNumber} />, {item.invoice.sellerName}</dd>
         <dt>{t.acceptance.order}</dt><dd className="mono">{item.poRef}</dd>
         <dt>{t.acceptance.lines}</dt><dd>{item.serviceLines}</dd>
         <dt>{t.acceptance.amount}</dt><dd>{fmtMoney(item.invoice.totalAmount)}</dd>

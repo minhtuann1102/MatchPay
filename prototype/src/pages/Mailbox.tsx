@@ -5,7 +5,7 @@ import type { MailboxAttachment, MailboxMessage } from '../api/types';
 import { getMailboxFetchRun, startMailboxFetch } from '../api/mailbox';
 import { useMailboxMessages, useMailboxStatus } from '../api/hooks';
 import { Async } from '../components/Async';
-import { EmptyState, Notice, PageHeader, Tabs } from '../components/Bits';
+import { EmptyState, InvNo, Notice, PageHeader, Tabs } from '../components/Bits';
 import { Chip } from '../components/Chips';
 import { DataTable, type Col } from '../components/DataTable';
 import { Icon } from '../components/Icon';
@@ -57,7 +57,7 @@ export function Mailbox() {
     {
       key: 'why', label: t.mailbox.colDetail, header: t.mailbox.colDetail,
       render: (r) =>
-        r.att.result === 'ACCEPTED' && r.att.invoiceId ? <><Link to={`/invoices/${r.att.invoiceId}`}>{r.att.invoiceNumber}</Link><span className="sub">{t.mailbox.sourceEmail}</span></>
+        r.att.result === 'ACCEPTED' && r.att.invoiceId ? <><Link to={`/invoices/${r.att.invoiceId}`}><InvNo value={r.att.invoiceNumber ?? ''} /></Link><span className="sub">{t.mailbox.sourceEmail}</span></>
         : r.att.result === 'REJECTED' && r.att.rejection ? <span>{t.mailbox.rejection[r.att.rejection]}</span>
         : <span className="muted">{t.mailbox.noAttachmentText}</span>,
     },

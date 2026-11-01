@@ -4,7 +4,7 @@ import { signPaymentRequests, type RequestRow, type SignOutcome } from '../api/s
 import { useDelegations, useRequests } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { EmptyState, Field, Notice, PageHeader, Tabs } from '../components/Bits';
+import { EmptyState, Field, Notice, PageHeader, Tabs, ReqNo, SealStamp } from '../components/Bits';
 import { Chip, RequestBadge } from '../components/Chips';
 import { DataTable, type Col } from '../components/DataTable';
 import { Modal } from '../components/Modal';
@@ -53,7 +53,7 @@ export function Signing() {
     },
     {
       key: 'id', label: t.signing.colRequest, header: t.signing.colRequest, sort: (r) => r.id,
-      render: (r) => <><b className="mono">{r.id}</b><span className="sub">{r.supplierName}</span>{r.sign.onBehalfOf && <span className="obo">{interpolate(t.signing.onBehalf, { who: r.sign.onBehalfOf })}</span>}</>,
+      render: (r) => <><ReqNo value={r.id} /><span className="sub">{r.supplierName}</span>{r.sign.onBehalfOf && <span className="obo">{interpolate(t.signing.onBehalf, { who: r.sign.onBehalfOf })}</span>}</>,
     },
     { key: 'total', label: t.signing.colTotal, header: t.signing.colTotal, className: 'money', sort: (r) => r.total, render: (r) => fmtMoney(r.total) },
     { key: 'level', label: t.signing.colLevel, header: t.signing.colLevel, render: (r) => t.approvalLevel[r.level] },
@@ -124,7 +124,7 @@ export function SignModal({ items, onClose }: { items: RequestRow[]; onClose: ()
       {!results ? (
         <>
           <p className="small">{t.signing.modalIntro}</p>
-          <ul className="reason-list">{items.map((r) => <li key={r.id}><b className="mono">{r.id}</b> {r.supplierName}, {fmtMoney(r.total)}{r.sign.onBehalfOf ? ` (${interpolate(t.signing.onBehalf, { who: r.sign.onBehalfOf })})` : ''}</li>)}</ul>
+          <ul className="reason-list">{items.map((r) => <li key={r.id}><ReqNo value={r.id} /> {r.supplierName}, {fmtMoney(r.total)}{r.sign.onBehalfOf ? ` (${interpolate(t.signing.onBehalf, { who: r.sign.onBehalfOf })})` : ''}</li>)}</ul>
           <Field label={`${t.signing.code} ${t.common.required}`} htmlFor="sign-code" hint={t.signing.codeHint} error={bad ? t.signing.codeRequired : null}>
             <input id="sign-code" className={`input${bad ? ' invalid' : ''}`} type="password" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} data-autofocus />
           </Field>
@@ -133,9 +133,12 @@ export function SignModal({ items, onClose }: { items: RequestRow[]; onClose: ()
       ) : (
         <div role="status" className="stack">
           <Notice kind={signed === results.length ? 'ok' : 'warn'} title={t.signing.results}>{interpolate(t.signing.summary, { a: signed, b: results.length - signed })}</Notice>
+          <div className="seals">
+            {results.filter((r) => r.result === 'SIGNED' && r.signedAt && r.signerRole).map((r) => <SealStamp key={r.requestId} role={r.signerRole!} at={r.signedAt!} fresh large />)}
+          </div>
           <ul className="reason-list">
             {results.map((r) => (
-              <li key={r.requestId}><b className="mono">{r.requestId}</b>: {r.result === 'SIGNED' ? interpolate(t.signing.resultSigned, { s: r.newState ? t.requestState[r.newState] : '' }) : interpolate(t.signing.resultRefused, { r: signReasonText(r.reason) })}</li>
+              <li key={r.requestId}><ReqNo value={r.requestId} />: {r.result === 'SIGNED' ? interpolate(t.signing.resultSigned, { s: r.newState ? t.requestState[r.newState] : '' }) : interpolate(t.signing.resultRefused, { r: signReasonText(r.reason) })}</li>
             ))}
           </ul>
         </div>

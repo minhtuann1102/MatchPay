@@ -3,9 +3,8 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../auth/AuthContext';
 import { homeOf } from '../auth/nav';
-import { listPersonas, loginWithPassword } from '../api/reporting';
+import { listPersonas, listPublicEntities, loginWithPassword } from '../api/reporting';
 import { Field, Notice } from '../components/Bits';
-import { Icon } from '../components/Icon';
 import { errorText } from '../lib/errors';
 import { t } from '../i18n/vi';
 import { ApiError } from '../api/client';
@@ -16,6 +15,7 @@ export function Login() {
   const nav = useNavigate();
   const loc = useLocation();
   const personas = useQuery({ queryKey: ['personas'], queryFn: listPersonas });
+  const entities = useQuery({ queryKey: ['publicEntities'], queryFn: listPublicEntities });
   const [picked, setPicked] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +30,8 @@ export function Login() {
 
   if (ready && session) return <Navigate to={homeOf(session.role)} replace />;
 
-  const submit = async () => {
+  const submit = async (personaId?: string) => {
+    if (personaId) setPicked(personaId);
     setBusy(true);
     setError(null);
     try {
@@ -39,7 +40,7 @@ export function Login() {
         await signIn(s.userId);
         nav(homeOf(s.role), { replace: true });
       } else {
-        const s = await signIn(picked!);
+        const s = await signIn(personaId ?? picked!);
         nav(homeOf(s.role), { replace: true });
       }
     } catch (e) {
@@ -50,55 +51,67 @@ export function Login() {
   };
 
   return (
-    <div className="center-page">
-      <div className="card login-card wide">
-        <div className="brand" style={{ color: 'var(--ink)', padding: 0 }}>
-          <span className="brand-mark" style={{ background: 'var(--nav)', color: '#fff' }}><Icon name="stack" /></span>
-          <span className="brand-name">MatchPay</span>
-        </div>
+    <div className="login-page">
+      <section className="login-intro" aria-label={t.login.title}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600 }}>{t.login.title}</h1>
-          <p className="muted small">{t.login.subtitle}</p>
+          <h1>{t.login.title}</h1>
+          <p className="lead">{t.login.subtitle}</p>
         </div>
+        <div className="stack">
+          <p className="small muted">{t.login.entities}</p>
+          <ul className="entity-list">
+            {entities.data?.map((e) => (
+              <li key={e.id}><span>{e.name}</span><span>{t.shell.mst} {e.taxCode}</span></li>
+            ))}
+          </ul>
+        </div>
+      </section>
+      <main className="login-register">
         {endedState && <Notice kind="info" title={t.login.ended}>{t.login.endedHint}</Notice>}
         {error && <Notice kind="err" icon="lock">{error}</Notice>}
-        <form
-          className="stack"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void submit();
-          }}
-          noValidate
-        >
-          {!showForm ? (
-            <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-              <legend className="lbl" style={{ marginBottom: 6 }}>{t.login.pickPersona}</legend>
-              <div className="persona-grid">
-                {personas.data?.map((p) => (
-                  <button key={p.id} type="button" className="persona" aria-pressed={picked === p.id} onClick={() => setPicked(p.id)}>
+        {!showForm ? (
+          <>
+            <h2 id="register-h">{t.login.pickPersona}</h2>
+            <ul className="register" aria-labelledby="register-h">
+              {personas.data?.map((p) => (
+                <li key={p.id} className="register-row" data-picked={picked === p.id}>
+                  <div>
                     <b>{p.fullName}</b>
-                    <span>{t.roles[p.role]}{p.approvalLevel ? ` (${t.approvalLevel[p.approvalLevel]})` : ''}</span>
-                    <span>{p.entityName}</span>
+                    <span>{t.roles[p.role]}{p.approvalLevel ? ` (${t.approvalLevel[p.approvalLevel]})` : ''}, {p.entityName}</span>
+                  </div>
+                  <button type="button" className="btn btn-primary btn-sm" disabled={busy} aria-label={`${t.login.signIn}: ${p.fullName}`} onClick={() => void submit(p.id)}>
+                    {busy && picked === p.id && <span className="spin" />}
+                    {t.login.signIn}
                   </button>
-                ))}
-              </div>
-            </fieldset>
-          ) : (
-            <>
-              <Field label={t.login.email} htmlFor="email"><input className="input" id="email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="alice@calderwood-foods.example" /></Field>
-              <Field label={t.login.password} htmlFor="pw" hint={t.login.passwordHint}><input className="input" id="pw" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
-            </>
-          )}
-          <button className="btn btn-primary" type="submit" disabled={busy || (!showForm && !picked)}>
-            {busy && <span className="spin" />}
-            {busy ? t.login.signingIn : t.login.signIn}
-          </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <form
+            className="stack"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submit();
+            }}
+            noValidate
+          >
+            <h2>{t.login.useEmail}</h2>
+            <Field label={t.login.email} htmlFor="email"><input className="input" id="email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="alice@calderwood-foods.example" /></Field>
+            <Field label={t.login.password} htmlFor="pw" hint={t.login.passwordHint}><input className="input" id="pw" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
+            <button className="btn btn-primary" type="submit" disabled={busy}>
+              {busy && <span className="spin" />}
+              {busy ? t.login.signingIn : t.login.signIn}
+            </button>
+          </form>
+        )}
+        <div>
           <button type="button" className="btn btn-quiet btn-sm" onClick={() => { setShowForm((v) => !v); setError(null); }}>
             {showForm ? t.login.usePersona : t.login.useEmail}
           </button>
-        </form>
-        <p className="xs muted">{t.login.footer}</p>
-      </div>
+        </div>
+        <p className="foot">{t.login.footer}</p>
+      </main>
     </div>
   );
 }

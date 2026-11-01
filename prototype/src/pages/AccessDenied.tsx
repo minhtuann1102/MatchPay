@@ -10,7 +10,7 @@ export function AccessDeniedBody({ record }: { record?: boolean }) {
   return (
     <div className="empty" role="alert">
       <span className="empty-icon"><Icon name="lock" /></span>
-      <h1 style={{ fontSize: 20 }}>{t.denied.title}</h1>
+      <h1>{t.denied.title}</h1>
       <p>{record ? t.denied.record : t.denied.text}</p>
       {session && <Link className="btn btn-primary" to={homeOf(session.role)}>{t.denied.home}</Link>}
     </div>

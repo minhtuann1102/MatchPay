@@ -57,6 +57,7 @@ export const toSession = (d: Db, u: User): Session => ({
   role: u.role,
   entityId: u.entityId,
   entityName: u.entityId ? d.entities.find((e) => e.id === u.entityId)?.name ?? '' : d.group.name,
+  entityTaxCode: u.entityId ? d.entities.find((e) => e.id === u.entityId)?.taxCode ?? null : null,
   approvalLevel: u.approvalLevel,
 });
 

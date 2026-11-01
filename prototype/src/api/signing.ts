@@ -1,4 +1,4 @@
-import type { Delegation, Id, Invoice, PaymentRequest, Signature, User } from './types';
+import type { Delegation, Id, Invoice, PaymentRequest, Role, Signature, User } from './types';
 import { ApiError, call, inScope } from './client';
 import { apOf, bump, checkVersion, levelFor, notify, recomputeBatchState, removeFromRequest, requestTotal, ruleEvent, supplierName, userName, newException, entityOf, personEvent } from './domain';
 import { logAudit } from '../mock/db';
@@ -117,6 +117,9 @@ export interface SignOutcome {
   result: 'SIGNED' | 'REFUSED';
   reason: string | null;
   newState: PaymentRequest['state'] | null;
+  /** Set when the signature was recorded: shown on the seal. */
+  signedAt?: string;
+  signerRole?: Role;
 }
 
 const hashOf = (r: PaymentRequest): string => `${(0x31c0de47 + r.version * 2654435 + r.total).toString(16).slice(-8)}...9b05`;
@@ -163,7 +166,7 @@ export const signPaymentRequests = (body: { items: { id: Id; version: number }[]
       bump(r);
       logAudit(d, { entityId: r.entityId, hand: 'PERSON', actorName: u.fullName, actorId: u.id, eventType: 'SIGNATURE', objectType: 'REQUEST', objectId: r.id, objectLabel: r.id, event: { code: chk.onBehalfOf ? 'EV_SIGNED_ON_BEHALF' : 'EV_SIGNED', params: { version: r.version, hash: sig.contentHash, for: chk.onBehalfOf ?? '' } } });
       recomputeBatchState(d, r.batchId);
-      return { requestId: r.id, result: 'SIGNED', reason: null, newState: r.state };
+      return { requestId: r.id, result: 'SIGNED', reason: null, newState: r.state, signedAt: sig.at, signerRole: sig.role };
     });
   });
 

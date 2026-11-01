@@ -567,6 +567,8 @@ export interface Session {
   role: Role;
   entityId: Id | null;
   entityName: string;
+  /** MST of the user's entity, null for group-level users. */
+  entityTaxCode: string | null;
   approvalLevel: ApprovalLevel | null;
 }
 

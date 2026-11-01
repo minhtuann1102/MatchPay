@@ -39,7 +39,7 @@ function Bell() {
   return (
     <NavLink className="bell" to="/notifications" aria-label={n ? t.shell.bellUnread.replace('{n}', String(n)) : t.shell.bell}>
       <Icon name="bell" />
-      <span>{t.nav.notifications}</span>
+      <span className="btn-label">{t.nav.notifications}</span>
       {n > 0 && <span className="unread-badge" aria-hidden="true">{n}</span>}
     </NavLink>
   );
@@ -57,15 +57,15 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="shell">
       <a className="skip-link" href="#main">{t.shell.skip}</a>
-      <aside className={`sidebar${open ? ' open' : ''}`}>
+      {open && <button type="button" className="scrim" aria-label={t.shell.closeMenu} tabIndex={-1} onClick={() => setOpen(false)} />}
+      <aside className={`sidebar${open ? ' open' : ''}`} id="side-nav">
         <div className="brand">
-          <span className="brand-mark"><Icon name="stack" /></span>
           <span className="brand-name">MatchPay</span>
         </div>
-        <button className="menu-btn" type="button" aria-label={t.shell.menu} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-          <Icon name="menu" />
-          <span>{t.shell.menu}</span>
-        </button>
+        <div className="side-entity">
+          <b>{session.entityName}</b>
+          {session.entityTaxCode && <span>{t.shell.mst} {session.entityTaxCode}</span>}
+        </div>
         <nav aria-label={t.shell.mainNav}>
           <ul className="nav">
             {items.map((it) => {
@@ -85,17 +85,24 @@ export function Shell({ children }: { children: ReactNode }) {
       </aside>
       <div className="main">
         <header className="topbar">
+          <div className="top-left">
+          <button className="menu-btn" type="button" aria-label={t.shell.menu} aria-expanded={open} aria-controls="side-nav" onClick={() => setOpen((o) => !o)}>
+            <Icon name="menu" />
+            <span>{t.shell.menu}</span>
+          </button>
           <div className="top-entity">
             <span className="entity-name">{session.entityName}</span>
+            {session.entityTaxCode && <span className="entity-mst">{t.shell.mst} {session.entityTaxCode}</span>}
             {demo && <span className="demo-mark">{t.shell.demoOnly}</span>}
+          </div>
           </div>
           <div className="top-user">
             {finance && <Bell />}
-            <span className="avatar" aria-hidden="true">{session.fullName.slice(0, 1)}</span>
+            <span className="avatar" aria-hidden="true" title={session.fullName}>{session.fullName.slice(0, 1)}</span>
             <span className="who"><b>{session.fullName}</b>, {t.roles[session.role]}{session.approvalLevel ? ` (${t.approvalLevel[session.approvalLevel]})` : ''}</span>
             <button type="button" className="btn btn-quiet btn-sm" onClick={() => { void signOut().then(() => navigate('/login')); }}>
               <Icon name="logout" small />
-              {t.shell.logout}
+              <span className="btn-label">{t.shell.logout}</span>
             </button>
           </div>
         </header>

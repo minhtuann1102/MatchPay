@@ -4,7 +4,7 @@ import type { UploadItemResult } from '../api/types';
 import { uploadInvoices } from '../api/invoices';
 import { Drawer } from '../components/Modal';
 import { Icon } from '../components/Icon';
-import { Notice } from '../components/Bits';
+import { InvNo, Notice } from '../components/Bits';
 import { StateBadge } from '../components/Chips';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
@@ -89,7 +89,7 @@ export function UploadDrawer({ onClose }: { onClose: () => void }) {
                 <span>
                   <span className="mono">{r.fileName}</span>
                   {r.result === 'REJECTED' && r.reason && <span className="hint hint-err">{t.upload.reason(r.reason.code, r.reason.params)}</span>}
-                  {r.result === 'ACCEPTED' && r.invoiceId && <span className="hint"><Link to={`/invoices/${r.invoiceId}`} onClick={onClose}>{r.invoiceNumber}</Link></span>}
+                  {r.result === 'ACCEPTED' && r.invoiceId && <span className="hint"><Link to={`/invoices/${r.invoiceId}`} onClick={onClose}><InvNo value={r.invoiceNumber ?? ''} /></Link></span>}
                 </span>
                 <span className="row">
                   {r.result === 'ACCEPTED' ? <span className="chip c-ok">{t.upload.accepted}</span> : <span className="chip c-bad">{t.upload.rejected}</span>}

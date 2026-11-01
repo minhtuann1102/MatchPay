@@ -4,7 +4,7 @@ import type { BatchOverview, Invoice, PaymentRequest, SampleItem } from '../api/
 import { closeBatchForReview, expandSample, markSampleItem, releaseBatch, reopenBatch, resendToErp } from '../api/batch';
 import { useBatch, useBatchList } from '../api/hooks';
 import { Async } from '../components/Async';
-import { EmptyState, Menu, Notice, PageHeader } from '../components/Bits';
+import { EmptyState, Menu, Notice, PageHeader, InvNo, ReqNo } from '../components/Bits';
 import { BatchBadge, HandTag, RequestBadge, StateBadge } from '../components/Chips';
 import { Icon } from '../components/Icon';
 import { Modal } from '../components/Modal';
@@ -103,9 +103,9 @@ function BatchView({ o, options, selected, onSelect, dlg, setDlg, close }: { o: 
 
       <div className="kpis">
         <div className="tile"><span className="t-lbl">{t.batch.kInvoices}</span><span className="t-val">{o.invoices.length}</span><span className="t-sub">{t.batch.kInvoicesSub}</span></div>
-        <div className="tile"><span className="t-lbl">{t.batch.kTotal}</span><span className="t-val" style={{ fontSize: 20 }}>{fmtMoney(o.total)}</span><span className="t-sub">{t.batch.kTotalSub.replace('{n}', String(o.invoices.length))}</span></div>
+        <div className="tile"><span className="t-lbl">{t.batch.kTotal}</span><span className="t-val">{fmtMoney(o.total)}</span><span className="t-sub">{t.batch.kTotalSub.replace('{n}', String(o.invoices.length))}</span></div>
         <div className="tile"><span className="t-lbl">{t.batch.kRequests}</span><span className="t-val">{requestsRows.filter((r) => r.state !== 'CANCELLED').length || o.requestCountOnRelease}</span><span className="t-sub">{requestsRows.length ? t.batch.kRequestsReleased : t.batch.kRequestsPlanned}</span></div>
-        <div className="tile"><span className="t-lbl">{t.batch.kDue}</span><span className="t-val" style={{ fontSize: 20 }}>{dueSoonest ? fmtDate(dueSoonest.dueDate) : '-'}</span><span className="t-sub">{dueSoonest ? `${dueSoonest.invoiceNumber}, ${dueSoonest.sellerName}` : t.invoices.kpiNone}</span></div>
+        <div className="tile"><span className="t-lbl">{t.batch.kDue}</span><span className="t-val">{dueSoonest ? fmtDate(dueSoonest.dueDate) : '-'}</span><span className="t-sub">{dueSoonest ? `${dueSoonest.invoiceNumber}, ${dueSoonest.sellerName}` : t.invoices.kpiNone}</span></div>
       </div>
 
       {(b.sample.length > 0 || b.state === 'IN_REVIEW') && (
@@ -149,7 +149,7 @@ function BatchView({ o, options, selected, onSelect, dlg, setDlg, close }: { o: 
                     <tr className="group-row"><td colSpan={5}>{t.batch.supplierGroup.replace('{s}', name).replace('{n}', String(list.length))}</td></tr>
                     {list.map((i) => (
                       <tr key={i.id}>
-                        <td><Link to={`/invoices/${i.id}`}>{i.invoiceNumber}</Link></td>
+                        <td><Link to={`/invoices/${i.id}`}><InvNo value={i.invoiceNumber} /></Link></td>
                         <td>{fmtDate(i.dueDate)}</td>
                         <td><StateBadge state={i.state} /></td>
                         <td className="money">{fmtMoney(i.totalAmount)}</td>
@@ -176,7 +176,7 @@ function BatchView({ o, options, selected, onSelect, dlg, setDlg, close }: { o: 
               <tbody>
                 {requestsRows.map((r) => (
                   <tr key={r.id}>
-                    <td className="mono">{r.id}</td>
+                    <td><ReqNo value={r.id} /></td>
                     <td>{o.invoices.find((i) => r.invoiceIds.includes(i.id))?.sellerName ?? '-'}</td>
                     <td className="money">{fmtMoney(r.total)}</td>
                     <td>{t.approvalLevel[r.level]}</td>
@@ -212,7 +212,7 @@ function SampleRow({ item, invoice, editable, pending, onMark }: { item: SampleI
     <div className="sample-item">
       <div className="spread">
         <div>
-          {invoice ? <Link to={`/invoices/${invoice.id}`}><b>{invoice.invoiceNumber}</b></Link> : <b>{item.invoiceId}</b>} <span className="muted small">{invoice?.sellerName}</span>
+          {invoice ? <Link to={`/invoices/${invoice.id}`}><InvNo value={invoice.invoiceNumber} /></Link> : <b>{item.invoiceId}</b>} <span className="muted small">{invoice?.sellerName}</span>
           <div className="small">{t.why(item.why.code, item.why.params)}{item.expansionNo > 0 && <span className="tagx">{t.batch.expansionTag.replace('{n}', String(item.expansionNo))}</span>}</div>
         </div>
         <div className="row">
@@ -356,7 +356,7 @@ function ResendModal({ r, onClose }: { r: PaymentRequest; onClose: () => void })
   return (
     <Modal title={t.batch.resendTitle} onClose={onClose} dismissable={!act.pending} onSubmit={() => void act.run(undefined)} footer={<Footer pending={act.pending} onClose={onClose} confirm={t.batch.resend} />}>
       <dl className="dl">
-        <dt>{t.batch.colRequest}</dt><dd><span className="mono">{r.id}</span>, {fmtMoney(r.total)}</dd>
+        <dt>{t.batch.colRequest}</dt><dd><ReqNo value={r.id} />, {fmtMoney(r.total)}</dd>
         <dt>{t.batch.autoAttempts}</dt><dd>{t.batch.attemptsFailed.replace('{n}', String(r.attempts.filter((a) => !a.manual).length)).replace('{time}', fmtDateTime(r.attempts[r.attempts.length - 1]?.at))}</dd>
       </dl>
       <Notice kind="rule" icon="rule">{t.batch.resendNote.replace('{r}', r.id)}</Notice>

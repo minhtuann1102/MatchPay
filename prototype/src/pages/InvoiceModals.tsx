@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { CorrectionRequest, InvoiceDetail, MessageTemplate } from '../api/types';
 import { draftCorrectionRequest, recordCancellationNotice, sendCorrectionRequest, type CancellationResult } from '../api/invoices';
-import { Field, Notice } from '../components/Bits';
+import { Field, Notice, InvNo } from '../components/Bits';
 import { HandTag } from '../components/Chips';
 import { Modal } from '../components/Modal';
 import { ActionError } from '../components/ReasonModal';
@@ -135,7 +135,7 @@ export function CancellationModal({ detail, onClose, onDone }: { detail: Invoice
     >
       <dl className="dl">
         <dt>{t.detail.seller}</dt><dd>{detail.supplierName}</dd>
-        <dt>{t.invoices.colInvoice}</dt><dd className="mono">{inv.invoiceNumber}</dd>
+        <dt>{t.invoices.colInvoice}</dt><dd><InvNo value={inv.invoiceNumber} /></dd>
       </dl>
       <Notice kind="info" title={t.cancel.whatHappens}>{effect}</Notice>
       <Field label={`${t.cancel.reference} ${t.common.required}`} htmlFor="cn-ref" error={touched && bad.reference ? t.cancel.referenceRequired : null}>

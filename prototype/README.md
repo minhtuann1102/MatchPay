@@ -5,6 +5,7 @@ A clickable front-end prototype of MatchPay with an in-browser mock API. It is n
 - Stack: Vite, React 18, TypeScript (strict), react-router-dom (HashRouter), TanStack Query.
 - All UI copy is Vietnamese and lives in `src/i18n/vi.ts`. Seed free text (notes, mail subjects) lives in `src/mock/`.
 - Data is seeded from the fictional Calderwood Group, kept in `localStorage` (key `matchpay-proto-v1`) and reset from the demo toolbar.
+- Look: "ledger and seal". One typeface (Be Vietnam Pro, `@fontsource/be-vietnam-pro`, licence in `src/styles/fonts/`), purple ink for actions, a red seal reserved for signed and binding states, ledger tables, invoice numbers printed as series plus number. Tokens are at the top of `src/styles/matchpay.css`. The prototype differs from the design system and the wireframes in color, type, and some layout, not in content or states (see decisions D-197..D-204 in `docs/04-uiux/00-decisions.md`).
 - Source of truth for layout and behaviour: `docs/04-uiux/` and `docs/03-information-architecture/`; operation names follow `docs/06-api/openapi.yaml`.
 
 ```bash
@@ -18,7 +19,7 @@ Demo time is fixed at 31/10/2026 10:30 and advances one minute for each change. 
 
 ## Screenshots
 
-`scripts/screenshots.mjs` takes the PNGs in `docs/images/prototype/<role folder>/` (1440x900, full page, fresh seed data for each role). It needs a global Playwright and a running preview:
+`scripts/screenshots.mjs` takes the PNGs in `docs/images/prototype/<role folder>/` (1440x900, full page, fresh seed data for each role; `50c-signing-queue-signed` is a viewport shot of the seal after signing). It needs a global Playwright and a running preview:
 
 ```bash
 npm run build
