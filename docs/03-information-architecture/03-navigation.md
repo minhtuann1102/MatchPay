@@ -1,6 +1,6 @@
 # Navigation
 
-> Design status: MVP — Step 3 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -72,6 +72,6 @@ Other rules:
 - A notification that cannot be saved never stops the action that caused it; the failure is logged (AC-32.9, DF-67).
 - The Entity Admin, the Group Admin, the Demo Operator, and the Requesting Department get no notification list and no top-bar count (AC-32.10). The Requesting Department sees new work as the badge on the acceptance queue.
 - Sidebar badges stay as they were (open exceptions, tax-risk holds, requests waiting, gate alerts); they show counts of work, while SCR-62 shows events and reminders.
-- Besides the notifications, Step 2 states the same on-screen alerts as before: the AP Accountant's email to a supplier or an internal team, written in SCR-14 and sent only by the AP Accountant (BR-26); the internal reminder after 5 working days, also shown as the "Reminder due" filter and a mark on SCR-10 (DF-21); the alert for a failed ERP send (DF-24) and the gate alert (BR-06), shown on screen (DF-40, DF-69).
+- Besides the notifications, requirements states the same on-screen alerts as before: the AP Accountant's email to a supplier or an internal team, written in SCR-14 and sent only by the AP Accountant (BR-26); the internal reminder after 5 working days, also shown as the "Reminder due" filter and a mark on SCR-10 (DF-21); the alert for a failed ERP send (DF-24) and the gate alert (BR-06), shown on screen (DF-40, DF-69).
 
-**Related:** [Step index](README.md) · [Routes and permissions](02-routes-and-permissions.md) · [User flows](05-user-flows.md)
+**Related:** [Information architecture index](README.md) · [Routes and permissions](02-routes-and-permissions.md) · [User flows](05-user-flows.md)

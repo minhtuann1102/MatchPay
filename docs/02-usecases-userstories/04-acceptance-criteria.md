@@ -1,10 +1,10 @@
 # Acceptance Criteria
 
-> Design status: MVP — Step 2 of 9, draft for review
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
-Format: *Given* (context) · *When* (action) · *Then* (observable result). Each story covers one use case and has its number: US-01 is UC-01. A bold line groups the criteria of one part of a story. The values are the demo configuration of the fictional Calderwood Group (DF-11, DF-12, DF-13): price tolerance ±2%, approval threshold VND 50,000,000, batch threshold VND 200,000,000, gate accuracy 98%, sample rate 10%. The real source documents are Vietnamese; the sample documents here are English equivalents. US-11 and US-22 were removed by D-33 and have no live criteria; a criterion that tested only removed behaviour reads "Removed (D-33)." and keeps its number. US-29..US-32 and the criteria added at the end of existing stories come from the sync to the feature mind map (D-88, D-89..D-99); they are calls awaiting user review.
+Format: *Given* (context) · *When* (action) · *Then* (observable result). Each story covers one use case and has its number: US-01 is UC-01. A bold line groups the criteria of one part of a story. The values are the demo configuration of the fictional Calderwood Group (DF-11, DF-12, DF-13): price tolerance ±2%, approval threshold VND 50,000,000, batch threshold VND 200,000,000, gate accuracy 98%, sample rate 10%. The real source documents are Vietnamese; the sample documents here are English equivalents. US-11 and US-22 were removed by D-33 and have no live criteria; a criterion that tested only removed behaviour reads "Removed (D-33)." and keeps its number. US-29..US-32 and the criteria added at the end of existing stories come from the sync to the feature mind map (D-88, D-89..D-99); they are calls approved by the user (2026-11-01).
 
 ## Evaluation sets and test suites
 
@@ -482,4 +482,4 @@ UC-32 · BR-09, BR-12, BR-26, BR-34, BR-35
 - **AC-32.9** *Given* a notification cannot be saved, *when* the batch is released, *then* the release still completes and the failure is logged; the fail-closed rule of DF-30 applies to audit entries and not to notifications (BR-12).
 - **AC-32.10** *Given* I am an Entity Admin, a Group Admin, a Demo Operator, or a Requesting Department user, *when* I open the notification list, *then* I get "Access denied" (BR-09).
 
-**Related:** [Step index](README.md)
+**Related:** [Requirements index](README.md)

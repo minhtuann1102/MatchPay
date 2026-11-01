@@ -1,6 +1,6 @@
 # User Stories (INVEST)
 
-> Design status: MVP — Step 2 of 9, draft for review
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -85,13 +85,13 @@ Each requirement is small enough to implement and test on its own, or says why i
 | US-23 | PASS | PASS | PASS | PASS | PASS | PASS | The approvable categories are fixed by D-31. |
 | US-24 | PASS | PASS | PASS | PASS | PARTIAL | PASS | Small: batch period, sample, and release in one story (L). |
 | US-25 | PASS | PARTIAL | PASS | PARTIAL | PARTIAL | PASS | Negotiable and Estimable: the signing model (one record per request, no policy delegation) awaits legal confirmation (O-05, O-15). Small: multi-sign, order, removal, and decline in one story (L). |
-| US-26 | PARTIAL | PASS | PASS | PARTIAL | PASS | PASS | Independent and Estimable: the data the ERP returns (the paid status and the payment reference) is defined in Steps 5 and 6; the criteria assume a simulated reply. |
+| US-26 | PARTIAL | PASS | PASS | PARTIAL | PASS | PASS | Independent and Estimable: the data the ERP returns (the paid status and the payment reference) is defined in the database and API documents; the criteria assume a simulated reply. |
 | US-27 | PASS | PASS | PASS | PASS | PASS | PASS | G-01 and G-02 are shown together; the limit of the risk-weighted sample is displayed (AC-27.4). |
 | US-28 | PASS | PASS | PASS | PASS | PASS | PASS | Fail-closed logging (DF-30) is tested with a forced write failure. |
 | US-29 | PARTIAL | PASS | PASS | PASS | PASS | PASS | Independent: it needs synced orders (US-07) and an invoice that waits for goods (US-13); the story is demonstrable with seeded data. Should: if it is cut, a service acceptance comes from the ERP only, as before (D-90). |
 | US-30 | PARTIAL | PASS | PASS | PARTIAL | PASS | PASS | Independent: it needs the signing flow of US-25. Estimable: the legal validity of a delegated e-signature is Unverified (O-17), and the range limit of 30 days is a default (DF-62). |
 | US-31 | PASS | PASS | PASS | PASS | PASS | PASS | The mailbox is simulated and the Email Service is mocked; every attachment follows the checks of US-10 (D-92). |
-| US-32 | PARTIAL | PASS | PASS | PASS | PARTIAL | PASS | Independent: it needs the batch, signing, and correction-request flows (US-19, US-24, US-25). Small: four kinds of notice in one story, tested one by one (AC-32.1..AC-32.5). It reverses the Step 3 decision D-41 (D-97). |
+| US-32 | PARTIAL | PASS | PASS | PASS | PARTIAL | PASS | Independent: it needs the batch, signing, and correction-request flows (US-19, US-24, US-25). Small: four kinds of notice in one story, tested one by one (AC-32.1..AC-32.5). It reverses the information architecture decision D-41 (D-97). |
 
 ## Cross-cutting acceptance constraints
 
@@ -106,4 +106,4 @@ Each requirement is small enough to implement and test on its own, or says why i
 - The platform reads the Entity ERP and never edits it (BR-25).
 - All figures use the brief's example values as demo configuration (DF-11), and all sample data is fictional (DF-12).
 
-**Related:** [Step index](README.md)
+**Related:** [Requirements index](README.md)

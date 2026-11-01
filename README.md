@@ -31,7 +31,7 @@ Start with the [Research and Problem Analysis](docs/01-research/README.md).
 
 #### 1.3.1 INVEST requirements
 
-The MVP backlog includes 30 user stories, one per use case and numbered like it (US-01 is UC-01). The user removed foreign invoices and the cash payment flag from the MVP (D-33), so UC-11, UC-22, US-11, and US-22 are removed and their numbers are not reused. On 2026-11-01 the user attached a feature mind map and asked to sync the documents to it (D-88), which added four Should stories, UC-29..UC-32 (service acceptance by the Requesting Department, signing delegation while absent, invoices by email, and notifications and reminders), and extended some existing ones; the readings behind them are calls awaiting user review (D-89..D-99). They cover access and configuration, source data, intake and AI understanding, exceptions, the batch with its sample check and signing, and oversight. Before a user story is ready for development, it is checked using the INVEST criteria.
+The MVP backlog includes 30 user stories, one per use case and numbered like it (US-01 is UC-01). The user removed foreign invoices and the cash payment flag from the MVP (D-33), so UC-11, UC-22, US-11, and US-22 are removed and their numbers are not reused. On 2026-11-01 the user attached a feature mind map and asked to sync the documents to it (D-88), which added four Should stories, UC-29..UC-32 (service acceptance by the Requesting Department, signing delegation while absent, invoices by email, and notifications and reminders), and extended some existing ones; the readings behind them are calls approved by the user (2026-11-01) (D-89..D-99). They cover access and configuration, source data, intake and AI understanding, exceptions, the batch with its sample check and signing, and oversight. Before a user story is ready for development, it is checked using the INVEST criteria.
 
 | Criterion | Meaning in MatchPay |
 |---|---|
@@ -330,7 +330,7 @@ The Demo Operator, who plays the buyer and the warehouse keeper in the ERP simul
 
 ## 2. Information Architecture, Screen Hierarchy, and UI/UX
 
-Step 3 (approved by the user, then synced to the feature mind map as a draft for review) places the 30 stories on 45 screens: 22 pages and 23 modals. The sync (D-88) added the seventh role, the Requesting Department, ten screens (the acceptance queue, the mailbox log, signing delegations, the notification list, and six modals), three flows, and a notification centre that reverses D-41. SCR-13 and SCR-17 were removed by D-33 and their numbers are not reused. Each role has a left sidebar with only the pages it may open, and a top bar with the entity name, the user, and Log out. Pages are grouped into areas by the roles that use them, and decisions, confirmations, and forms are modals on their parent page. The Rule Engine's work and the other system behaviour has no screen of its own; its results appear on the invoice worklist, the invoice evidence, the batch review, the payment request, and the group overview.
+The information architecture (approved by the user, then synced to the feature mind map as approved) places the 30 stories on 45 screens: 22 pages and 23 modals. The sync (D-88) added the seventh role, the Requesting Department, ten screens (the acceptance queue, the mailbox log, signing delegations, the notification list, and six modals), three flows, and a notification centre that reverses D-41. SCR-13 and SCR-17 were removed by D-33 and their numbers are not reused. Each role has a left sidebar with only the pages it may open, and a top bar with the entity name, the user, and Log out. Pages are grouped into areas by the roles that use them, and decisions, confirmations, and forms are modals on their parent page. The Rule Engine's work and the other system behaviour has no screen of its own; its results appear on the invoice worklist, the invoice evidence, the batch review, the payment request, and the group overview.
 
 ### 2.1 Information architecture
 
@@ -517,11 +517,11 @@ Login takes each role to its home page (DF-28, D-39, DF-44), as the table below 
 | Group Admin | Group Overview | Group overview, Automation gates, Entities and limits, Users, Dashboard, Audit log |
 | Demo Operator | ERP Simulator (demo only) | ERP simulator |
 
-Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with the diagram of areas and page cards. Routes and the page-permission table are in [Routes and Permissions](docs/03-information-architecture/02-routes-and-permissions.md), navigation in [Navigation](docs/03-information-architecture/03-navigation.md), screen IDs and the requirement-to-screen mapping in [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), flows in [Primary User Flows](docs/03-information-architecture/05-user-flows.md), and states in [UI/UX States and Accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md). The D-33 adjustments, the diagram presentation, and the mind map sync (D-100..D-107, DF-69..DF-72) await review in [Decisions and Defaults](docs/03-information-architecture/00-decisions.md).
+Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with the diagram of areas and page cards. Routes and the page-permission table are in [Routes and Permissions](docs/03-information-architecture/02-routes-and-permissions.md), navigation in [Navigation](docs/03-information-architecture/03-navigation.md), screen IDs and the requirement-to-screen mapping in [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), flows in [Primary User Flows](docs/03-information-architecture/05-user-flows.md), and states in [UI/UX States and Accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md). The D-33 adjustments, the diagram presentation, and the mind map sync (D-100..D-107, DF-69..DF-72) are approved by the user (2026-11-01) in [Decisions and Defaults](docs/03-information-architecture/00-decisions.md).
 
 ### 2.3 UI wireframes
 
-Step 4 (approved by the user) draws the 45 active screens as 22 high-fidelity page files; modals are states of their parent page. The design concept is "three hands": what the **AI proposed** (dotted rail, round dashed tag), what the **Rule Engine decided** (double rail, square tag, six conditions with their values), and what a **person decided or signed** (solid rail, filled tag, signature record) are always distinguishable, in text and in shape. Only four core screens are shown here. Every screen and state, in every role, is in the wireframe gallery: open `docs/04-uiux/wireframes/index.html` in a browser from a local clone (GitHub shows `.html` files as source code). Revision R1 (2026-11-01) redesigned the layout of these screens (object pages with a stepper and tabs, lists with tiles and saved views, drawers for forms) and is a draft for review; the images below are the R1 exports and keep their paths. The mind map sync (D-88, 2026-11-01, draft for review) added four pages and six modals or drawers for the Requesting Department, the signing delegations, the mailbox log, and the notifications, and states on six existing pages; the new calls are D-108..D-117 and DF-73..DF-76.
+The UI/UX (approved by the user) draws the 45 active screens as 22 high-fidelity page files; modals are states of their parent page. The design concept is "three hands": what the **AI proposed** (dotted rail, round dashed tag), what the **Rule Engine decided** (double rail, square tag, six conditions with their values), and what a **person decided or signed** (solid rail, filled tag, signature record) are always distinguishable, in text and in shape. Only four core screens are shown here. Every screen and state, in every role, is in the wireframe gallery: open `docs/04-uiux/wireframes/index.html` in a browser from a local clone (GitHub shows `.html` files as source code). Revision R1 (2026-11-01) redesigned the layout of these screens (object pages with a stepper and tabs, lists with tiles and saved views, drawers for forms) and is approved; the images below are the R1 exports and keep their paths. The mind map sync (D-88, 2026-11-01, approved) added four pages and six modals or drawers for the Requesting Department, the signing delegations, the mailbox log, and the notifications, and states on six existing pages; the new calls are D-108..D-117 and DF-73..DF-76.
 
 **Invoice worklist (AP Accountant, SCR-10):** every state chip, reasons with numbers, "Due soon", and the sync time.
 
@@ -543,15 +543,71 @@ Sources: [Design system](docs/04-uiux/01-design-system.md), [Screen notes and st
 
 ## 3. C4 Architecture
 
-Designed in Step 7, together with the tech stack and the LLM provider.
+The architecture (draft for review) documents MatchPay at four levels, from outside in: the [system context](docs/07-architecture/01-system-context.md) (seven roles, the outside systems), the [containers](docs/07-architecture/02-container.md), the [components](docs/07-architecture/03-component.md) of the backend, and the [code](docs/07-architecture/04-code.md) of the Rule Engine's six conditions and of signing many requests at once. MatchPay is a modular monolith (D-165): one Python codebase run as an `api` process for the 121 operations and a `worker` process for the ten background jobs, in front of one PostgreSQL 16 database with pgvector. The web application is React with TypeScript, built with Vite. Entity isolation has two layers, the server filter and PostgreSQL row-level security. Item embeddings run locally inside the worker, and the hosted LLM sits behind a port; the recommendation is Anthropic `claude-sonnet-5-5` with OpenAI `gpt-6.1-terra` as the switch-over, based on vendor pages opened on 2026-11-01, with the Vietnamese quality, rate limits, and availability still Unverified ([the record](docs/07-architecture/06-llm-provider.md)). Every decision is a call awaiting the user's review.
+
+The container diagram (C2):
+
+```mermaid
+flowchart TB
+    users(["👤 Seven roles<br/>AP Accountant, Chief Accountant, Payment Approver,<br/>Requesting Department, Entity Admin, Group Admin,<br/>Demo Operator"])
+
+    subgraph platform["MatchPay [Software System Boundary]"]
+        direction TB
+        subgraph edge["Edge"]
+            proxy["Reverse Proxy and Web<br/><i>[Container: Caddy, static files of React + TypeScript + Vite]</i><br/>TLS, the web application as static files,<br/>and /api forwarded to the API"]
+        end
+        subgraph app["Application: one codebase, two processes"]
+            direction LR
+            api["API<br/><i>[Container: Python 3.12, FastAPI]</i><br/>The OpenAPI contract: sessions, roles,<br/>entity scope, validation, state changes,<br/>and the audit entry in the same transaction"]
+            worker["Worker<br/><i>[Container: Python 3.12, same codebase]</i><br/>Job runner, AI checks, Rule Engine, ERP sync,<br/>mailbox fetch, ERP send, reminders;<br/>holds the LLM key"]
+            embed["Embedding Model<br/><i>[Library inside the Worker: open multilingual model]</i><br/>Runs locally; no call leaves the deployment"]
+        end
+        subgraph data["Data"]
+            database[("PostgreSQL 16 with pgvector<br/><i>[Container: Database]</i><br/>schema public: business tables of matchpay.dbml<br/>schema sim: ERP simulator tables<br/>schema platform: sessions, idempotency keys,<br/>rate limits, job queue")]
+        end
+    end
+
+    erp[("Entity ERP<br/><i>[External System: simulated in the demo]</i>")]
+    authority(["Invoice Status Lookup Service<br/><i>[External System: simulated in the demo]</i>"])
+    mailbox(["Entity Invoice Mailbox<br/><i>[External System: simulated in the demo]</i>"])
+    email(["Email Service<br/><i>[External System: simulated in the demo]</i>"])
+    llm(["LLM Provider<br/><i>[External System]</i>"])
+
+    users -- "HTTPS" --> proxy
+    proxy -- "HTTP, /api/v1" --> api
+    api -- "SQL, row-level security on app.entity_id" --> database
+    worker -- "SQL, same role and policies" --> database
+    api -- "enqueue a job in the same transaction" --> database
+    worker -- "claim a job with SKIP LOCKED" --> database
+    worker -- "in-process call" --> embed
+    worker -- "ErpPort" --> erp
+    worker -- "AuthorityStatusPort" --> authority
+    worker -- "MailboxPort" --> mailbox
+    worker -- "MailerPort" --> email
+    worker -- "LlmPort, HTTPS, JSON schema" --> llm
+
+    style proxy fill:#3a7bd5,color:#fff
+    style api fill:#1168bd,color:#fff
+    style worker fill:#1168bd,color:#fff
+    style embed fill:#7b3fbf,color:#fff
+    style database fill:#1168bd,color:#fff
+    style erp fill:#999,color:#fff
+    style authority fill:#999,color:#fff
+    style mailbox fill:#999,color:#fff
+    style email fill:#999,color:#fff
+    style llm fill:#7b3fbf,color:#fff
+    style platform fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
+```
+
+Sources: [Architecture index](docs/07-architecture/README.md), [Decisions and defaults](docs/07-architecture/00-decisions.md), [Tech stack](docs/07-architecture/05-tech-stack.md), [LLM provider](docs/07-architecture/06-llm-provider.md), [Runtime and deployment](docs/07-architecture/07-runtime-and-deployment.md).
 
 ## 4. Database Diagrams and OpenAPI 3.0 Contract
 
-Step 5 defines the persistence contract. The HTTP contract (4.2) follows in Step 6.
+The database defines the persistence contract. The API defines the HTTP contract (4.2).
 
 ### 4.1 Database diagrams
 
-The PostgreSQL model (assumed here, confirmed in Step 7) has 74 tables in twelve groups, including the tables added by the sync to the feature mind map (delegations, service acceptances, mailbox, authority status lookups, cancellation notices, sample expansions, batch reopenings, notifications; draft for review). Every business row carries its entity and the server enforces the scope; the only structure that sees the whole group is the unique index behind the exact-duplicate check. An invoice is stored with its original XML and hash, and every AI output (flow, identification, line match, anomaly finding) and every Rule Engine condition is a row with its numbers and its model and prompt version, so that a decision can be explained later. Exceptions, batches, payment requests, and signatures follow the lifecycles of BR-33, BR-34, and BR-35, a signature is bound to the version and the content hash of its request, and the audit log is append-only. Values that can be computed, such as the touchless rate and the badges, are not stored. The diagram below shows the tables that carry an invoice from upload to payment; the other groups are in the [ER diagram](docs/05-database/02-er-diagram.md), and the schema source is [matchpay.dbml](docs/05-database/matchpay.dbml).
+The PostgreSQL model (assumed here, confirmed in the architecture as PostgreSQL 16 with pgvector) has 74 tables in twelve groups, including the tables added by the sync to the feature mind map (delegations, service acceptances, mailbox, authority status lookups, cancellation notices, sample expansions, batch reopenings, notifications; approved). Every business row carries its entity and the server enforces the scope; the only structure that sees the whole group is the unique index behind the exact-duplicate check. An invoice is stored with its original XML and hash, and every AI output (flow, identification, line match, anomaly finding) and every Rule Engine condition is a row with its numbers and its model and prompt version, so that a decision can be explained later. Exceptions, batches, payment requests, and signatures follow the lifecycles of BR-33, BR-34, and BR-35, a signature is bound to the version and the content hash of its request, and the audit log is append-only. Values that can be computed, such as the touchless rate and the badges, are not stored. The diagram below shows the tables that carry an invoice from upload to payment; the other groups are in the [ER diagram](docs/05-database/02-er-diagram.md), and the schema source is [matchpay.dbml](docs/05-database/matchpay.dbml).
 
 ```mermaid
 erDiagram
@@ -622,31 +678,33 @@ erDiagram
 
 ### 4.2 OpenAPI 3.0 contract
 
-Written in Step 6. Every story needs an API, and every API must use an entity from the database model above.
+The API (draft for review) writes one HTTP contract for the web application in [`openapi.yaml`](docs/06-api/openapi.yaml): OpenAPI 3.0.4, 121 operations on 104 paths in 24 tags, and it is the source of truth for paths, bodies, roles, and errors (D-130). Every operation names its user stories, business rules, screens, and database tables (`x-stories`, `x-rules`, `x-screens`, `x-tables`), so the [API cross-check](docs/06-api/01-api-traceability.md) shows that every active story has an operation and every operation uses tables of the schema above. The conventions: a server-side session in an HttpOnly cookie with a CSRF header, the entity taken from the session and never from a path, errors as Problem Details with a stable `errorCode`, money as decimal strings, optimistic concurrency with `version`, an `Idempotency-Key` on signing, release, and resend, and 202 with a run id for work that continues in the background. The AI checks, the ERP sync, the mailbox fetch, the status lookups, the ERP send, and the reminders are jobs, not operations. The contract lints clean with Redocly. Every decision of the API contract awaits the user's review. Read the [API index](docs/06-api/README.md) and the [decisions](docs/06-api/00-decisions.md).
 
 ## Documentation
 
 - Research: [Context and problem](docs/01-research/01-context-and-problem.md), [Goals and metrics](docs/01-research/02-goals-and-metrics.md), [Stakeholders](docs/01-research/03-stakeholders.md), [Similar products](docs/01-research/04-similar-products.md), [MVP scope](docs/01-research/05-scope.md), [Risks](docs/01-research/06-risks.md), [AI vs rule-based](docs/01-research/07-ai-vs-rule-based.md), [Glossary](docs/01-research/08-glossary.md), [Decisions](docs/01-research/00-decisions.md), [Future work](docs/01-research/09-future-work.md), [Regulatory context](docs/01-research/10-regulatory-context.md), [Invoice flows and data](docs/01-research/11-invoice-flows-and-data.md).
 - Requirements: [Actors and use cases](docs/02-usecases-userstories/01-use-cases.md), [Use case specifications](docs/02-usecases-userstories/02-use-case-specifications.md), [User stories (INVEST)](docs/02-usecases-userstories/03-user-stories-invest.md), [Acceptance criteria](docs/02-usecases-userstories/04-acceptance-criteria.md), [MoSCoW](docs/02-usecases-userstories/05-moscow-prioritization.md), [Decisions and defaults](docs/02-usecases-userstories/00-decisions.md).
 - Requirements catalogs: [Business rules](docs/requirements/business-rules.md).
-- Information architecture: [Step 3 index](docs/03-information-architecture/README.md), [Decisions and defaults](docs/03-information-architecture/00-decisions.md), [Sitemap](docs/03-information-architecture/01-sitemap.md), [Routes and permissions](docs/03-information-architecture/02-routes-and-permissions.md), [Navigation](docs/03-information-architecture/03-navigation.md), [Screen inventory](docs/03-information-architecture/04-screen-inventory.md), [User flows](docs/03-information-architecture/05-user-flows.md), [UI states and accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md).
-- Wireframes: [Wireframe gallery](docs/04-uiux/wireframes/index.html), [Step 4 index](docs/04-uiux/README.md), [Decisions and defaults](docs/04-uiux/00-decisions.md), [Design system](docs/04-uiux/01-design-system.md), [Screen notes and states](docs/04-uiux/02-screen-notes.md).
-- Database: [Step 5 index](docs/05-database/README.md), [Decisions and defaults](docs/05-database/00-decisions.md), [Data model](docs/05-database/01-data-model.md), [ER diagram](docs/05-database/02-er-diagram.md), [DBML schema](docs/05-database/matchpay.dbml).
+- Information architecture: [Information architecture index](docs/03-information-architecture/README.md), [Decisions and defaults](docs/03-information-architecture/00-decisions.md), [Sitemap](docs/03-information-architecture/01-sitemap.md), [Routes and permissions](docs/03-information-architecture/02-routes-and-permissions.md), [Navigation](docs/03-information-architecture/03-navigation.md), [Screen inventory](docs/03-information-architecture/04-screen-inventory.md), [User flows](docs/03-information-architecture/05-user-flows.md), [UI states and accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md).
+- Wireframes: [Wireframe gallery](docs/04-uiux/wireframes/index.html), [UI/UX index](docs/04-uiux/README.md), [Decisions and defaults](docs/04-uiux/00-decisions.md), [Design system](docs/04-uiux/01-design-system.md), [Screen notes and states](docs/04-uiux/02-screen-notes.md).
+- Database: [Database index](docs/05-database/README.md), [Decisions and defaults](docs/05-database/00-decisions.md), [Data model](docs/05-database/01-data-model.md), [ER diagram](docs/05-database/02-er-diagram.md), [DBML schema](docs/05-database/matchpay.dbml).
+- API: [API index](docs/06-api/README.md), [Decisions and defaults](docs/06-api/00-decisions.md), [OpenAPI contract](docs/06-api/openapi.yaml), [API traceability](docs/06-api/01-api-traceability.md).
+- Architecture: [Architecture index](docs/07-architecture/README.md), [Decisions and defaults](docs/07-architecture/00-decisions.md), [System context](docs/07-architecture/01-system-context.md), [Container](docs/07-architecture/02-container.md), [Component](docs/07-architecture/03-component.md), [Code](docs/07-architecture/04-code.md), [Tech stack](docs/07-architecture/05-tech-stack.md), [LLM provider](docs/07-architecture/06-llm-provider.md), [Runtime and deployment](docs/07-architecture/07-runtime-and-deployment.md).
 - Traceability: [Master traceability matrix](docs/traceability/master-traceability.md).
 
 ## Project Progress
 
-- [x] Define the problem, measurable goals, stakeholders, and user roles (draft for review)
-- [x] Compare similar products, define the MVP scope, risks, and AI vs rule-based reasoning (draft for review)
-- [x] Draw the product mind map (draft for review)
-- [x] Write the use cases and the use case diagram (draft for review)
-- [x] Write user stories following INVEST (draft for review)
-- [x] Write acceptance criteria (Given/When/Then) and business rules (draft for review)
-- [x] Prioritize the backlog with MoSCoW (draft for review)
+- [x] Define the problem, measurable goals, stakeholders, and user roles (approved)
+- [x] Compare similar products, define the MVP scope, risks, and AI vs rule-based reasoning (approved)
+- [x] Draw the product mind map (approved)
+- [x] Write the use cases and the use case diagram (approved)
+- [x] Write user stories following INVEST (approved)
+- [x] Write acceptance criteria (Given/When/Then) and business rules (approved)
+- [x] Prioritize the backlog with MoSCoW (approved)
 - [x] Design the information architecture, sitemap per role, and user flows (approved)
 - [x] Design the UI/UX wireframes, including AI states and a design system (approved)
-- [x] Design the database (draft for review)
-- [ ] Write the API documentation in OpenAPI 3.0
-- [ ] Design the C4 model and choose the tech stack and LLM provider
+- [x] Design the database (approved)
+- [x] Write the API documentation in OpenAPI 3.0 (draft for review)
+- [x] Design the C4 model and choose the tech stack and LLM provider (draft for review)
 - [ ] Design the code structure
 - [ ] Implement the modules

@@ -3,8 +3,8 @@ Project matchpay {
   Note: '''
     MatchPay: a shared platform for a group of legal entities. The AI reads and matches incoming
     XML e-invoices, the Rule Engine admits clean ones to a payment batch, and authorised people
-    sign consolidated payment requests. Step 5 of 9, logical schema, draft for review.
-    PostgreSQL is assumed here and confirmed in Step 7 (D-47).
+    sign consolidated payment requests. Logical schema, approved.
+    PostgreSQL is assumed here and confirmed in the architecture (D-47).
 
     Every business table carries entity_id (BR-09, G-06). Group-level tables (corporate_groups,
     group_sectors, entities) and the audit log (entity_id is NULL for group events) are the only
@@ -20,7 +20,7 @@ Project matchpay {
     Not modelled here: login sessions and tokens, file storage beyond the XML original, the master
     data of the ERP simulator (seed files), server configuration (sync interval, retry counts,
     thresholds such as 0.90 and 98%), foreign invoices, PDF intake, foreign tax duties, payment
-    method, and the cash flag (all removed by D-33, Advanced W-19..W-21), and SQL migrations (Step 9).
+    method, and the cash flag (all removed by D-33, Advanced W-19..W-21), and SQL migrations (Implementation).
   '''
 }
 
@@ -1547,7 +1547,7 @@ Table mailbox_messages {
   id bigint [pk, increment]
   entity_id bigint [not null]
   fetch_run_id bigint [not null, note: 'The fetch that stored it']
-  mailbox_address varchar(255) [not null, note: 'The simulated mailbox of the entity, for example invoices-foods@calderwood.example. The address is configuration decided in Step 7 (DF-55) and is copied here as read']
+  mailbox_address varchar(255) [not null, note: 'The simulated mailbox of the entity, for example invoices-foods@calderwood.example. The address is configuration decided in the architecture (DF-55) and is copied here as read']
   message_identifier varchar(255) [not null, note: 'The message identifier of the mail (Message-ID header); a message is processed once (DF-63, AC-31.4)']
   sender_address varchar(255) [not null, note: 'Not trusted: the seller signature and the checks of US-10 decide (DF-63)']
   subject varchar(300)
@@ -1639,7 +1639,7 @@ Table cancellation_notices {
   notice_reference varchar(100) [note: 'The reference on the seller notice; required for source SELLER']
   notice_date date [not null, note: 'The date of the notice, or the status date for source AUTHORITY']
   file_name varchar(255) [note: 'The seller notice as a file, kept as evidence (AC-18.13)']
-  file_content bytea [note: 'Whether the bytes stay in PostgreSQL or move to file storage is decided in Step 7, as for invoice_documents']
+  file_content bytea [note: 'Whether the bytes stay in PostgreSQL or move to file storage is decided in the architecture, as for invoice_documents']
   file_sha256 char(64)
   authority_status_lookup_id bigint [note: 'The lookup that read Cancelled, for source AUTHORITY']
   recorded_by bigint [note: 'The AP Accountant, for source SELLER; NULL when the status feed caused it']

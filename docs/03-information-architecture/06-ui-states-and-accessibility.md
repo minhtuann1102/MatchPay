@@ -1,10 +1,10 @@
 # UI/UX States and Accessibility
 
-> Design status: MVP — Step 3 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
-All interface copy is English. A message quoted from a Step 2 acceptance criterion is used word for word. Copy that Step 2 does not quote is marked *(proposed)* and can change in Step 4.
+All interface copy is English. A message quoted from a requirements acceptance criterion is used word for word. Copy that the requirements does not quote is marked *(proposed)* and can change in the UI/UX.
 
 ## UI/UX state contract
 
@@ -56,7 +56,7 @@ A chip always carries its text. Colour supports the text and never replaces it. 
 | Waiting for Decision | Routed to the Chief Accountant or the Payment Approver; the role is named. |
 | Closed | With one outcome: Admitted, Approved individually, Rejected, Superseded, or Auto-closed. |
 
-An exception also shows its reasons as plain text with their numbers, for example "Price +2.5%, tolerance 2%" (AC-16.2). The reasons Step 2 names include: Gate closed, Tax-risk hold, AI unavailable, Flow unclear, Entity unconfirmed, No matching profile, Line not matched, Unusual price, Possible duplicate, Period already invoiced, New supplier, Bank account changed, Anomaly check unavailable, No tax-authority code, Unsupported: foreign invoice (resolved only by Reject with a reason, AC-12.9), Wrong buyer tax code and Wrong entity reported (a reported wrong entity, resolved by a correction or reissue request or by Reject, AC-18.12), Advanced flow, Payment failed, Service acceptance rejected (a rejection by the Requesting Department, which cannot be approved individually, AC-29.3), Authority status unavailable (AC-10.15), Cancelled after signing, and Request cancelled: another invoice was cancelled (AC-18.14). A rejection that closes an invoice reads "Cancelled by the seller" (AC-18.13) or "Cancelled at the tax authority on 2026-11-03" (AC-10.12).
+An exception also shows its reasons as plain text with their numbers, for example "Price +2.5%, tolerance 2%" (AC-16.2). The reasons requirements names include: Gate closed, Tax-risk hold, AI unavailable, Flow unclear, Entity unconfirmed, No matching profile, Line not matched, Unusual price, Possible duplicate, Period already invoiced, New supplier, Bank account changed, Anomaly check unavailable, No tax-authority code, Unsupported: foreign invoice (resolved only by Reject with a reason, AC-12.9), Wrong buyer tax code and Wrong entity reported (a reported wrong entity, resolved by a correction or reissue request or by Reject, AC-18.12), Advanced flow, Payment failed, Service acceptance rejected (a rejection by the Requesting Department, which cannot be approved individually, AC-29.3), Authority status unavailable (AC-10.15), Cancelled after signing, and Request cancelled: another invoice was cancelled (AC-18.14). A rejection that closes an invoice reads "Cancelled by the seller" (AC-18.13) or "Cancelled at the tax authority on 2026-11-03" (AC-10.12).
 
 **Batch state (BR-35).** `Completed` is final.
 
@@ -111,7 +111,7 @@ An exception also shows its reasons as plain text with their numbers, for exampl
 
 ### Acceptance, mailbox, delegation, notification, and batch-action states
 
-Added by the mind map sync (D-88). Copy marked *(proposed)* is not quoted from Step 2.
+Added by the mind map sync (D-88). Copy marked *(proposed)* is not quoted from the requirements.
 
 | State | Where | Required behavior |
 |---|---|---|
@@ -196,4 +196,4 @@ An AI result is always labelled as AI and always sits beside the human-readable 
 - **Demo-only marking:** SCR-80, SCR-81, SCR-82, and the top bar of the Demo Operator show "Demo only" in text, in a place that cannot be scrolled out of view.
 - **Language:** all copy is English. Names of fictional people use they/them when a pronoun is needed.
 
-**Related:** [Step index](README.md) · [Screen inventory](04-screen-inventory.md) · [User flows](05-user-flows.md) · [Business rules](../requirements/business-rules.md)
+**Related:** [Information architecture index](README.md) · [Screen inventory](04-screen-inventory.md) · [User flows](05-user-flows.md) · [Business rules](../requirements/business-rules.md)

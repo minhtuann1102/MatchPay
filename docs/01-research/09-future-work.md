@@ -1,10 +1,10 @@
 # Future Work (after the MVP)
 
-> Design status: MVP — Step 1 of 9, draft for review; nothing here is in the MVP scope
+> Design status: MVP — approved; nothing here is in the MVP scope
 >
 > Implementation status: NOT PLANNED for the MVP
 
-Everything on this page is **outside the MVP**. It is the brief's "Advanced" column, plus the places where a decision (D-xx) moved something out of the MVP. It is recorded so that a later release starts from this analysis and so the reasons for leaving things out are visible. Each item has a `W-xx` number; Step 2 reuses these numbers for the "Won't (now)" items in the MoSCoW prioritisation. No use case, user story, or business rule numbers are reserved for them, except that W-05 (portal part) and W-13 (real connection point) stay Advanced after the MVP took over their mailbox and simulated lookup parts (D-92, D-93, BR-39), and that W-19, W-20, and W-21 take over the designs of UC-11, US-11, UC-22, US-22, BR-18, BR-21, and BR-32, which the user's decision D-33 moved out of the MVP.
+Everything on this page is **outside the MVP**. It is the brief's "Advanced" column, plus the places where a decision (D-xx) moved something out of the MVP. It is recorded so that a later release starts from this analysis and so the reasons for leaving things out are visible. Each item has a `W-xx` number; the requirements reuses these numbers for the "Won't (now)" items in the MoSCoW prioritisation. No use case, user story, or business rule numbers are reserved for them, except that W-05 (portal part) and W-13 (real connection point) stay Advanced after the MVP took over their mailbox and simulated lookup parts (D-92, D-93, BR-39), and that W-19, W-20, and W-21 take over the designs of UC-11, US-11, UC-22, US-22, BR-18, BR-21, and BR-32, which the user's decision D-33 moved out of the MVP.
 
 ## Automation roadmap
 
@@ -46,4 +46,4 @@ Automation grows one level at a time. Each level keeps the guardrails of the one
 
 Procurement itself and employee travel reimbursement; replacing the ERP's purchasing or warehouse functions; direct connection to the tax authority's systems; real bank payment; tax filing; the AI signing a voucher; the AI negotiating prices.
 
-**Related:** [Step index](README.md) · [MVP scope](05-scope.md)
+**Related:** [Research index](README.md) · [MVP scope](05-scope.md)

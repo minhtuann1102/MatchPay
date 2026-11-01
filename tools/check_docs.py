@@ -50,16 +50,16 @@ US = [u for u in US_ALL if int(u[3:]) not in REMOVED_N]
 UC_REMOVED = [u for u in UC_ALL if u not in UC]
 US_REMOVED = [u for u in US_ALL if u not in US]
 N_ACTIVE = len(US)
-# D-88 (sync to the feature mind map) added UC-29..UC-32 and US-29..US-32, all Should. Steps 3, 4, and 5 are synced, so their Screen and Database cells are filled like those of every other story.
+# D-88 (sync to the feature mind map) added UC-29..UC-32 and US-29..US-32, all Should. The information architecture, UI/UX, and database documents are synced, so their Screen and Database cells are filled like those of every other story.
 NEW_STORIES = ['US-29', 'US-30', 'US-31', 'US-32']
-US_S3 = list(US)  # the stories Step 3 covers: every active story
+US_S3 = list(US)  # the stories information architecture covers: every active story
 N_S3 = len(US_S3)
-US_DB = list(US)  # the stories Step 5 covers: every active story
+US_DB = list(US)  # the stories database covers: every active story
 N_DB = len(US_DB)
 N_MUST, N_SHOULD = 20, 10
 W_MAX = 21
-D_MAX = 129  # D-118..D-129 are the Step 5 calls of the mind map sync; D-108..D-117 are the Step 4 calls of the mind map sync; D-100..D-107 are the Step 3 calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the Step 4 R1 redesign; D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
-DF_MAX = 82  # DF-77..DF-82 are the Step 5 defaults of the mind map sync; DF-73..DF-76 are the Step 4 defaults of the mind map sync; DF-69..DF-72 are the Step 3 defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
+D_MAX = 186  # D-165..D-186 are the architecture calls (architecture);  D-130..D-164 are the API calls (API contract);  D-118..D-129 are the database calls of the mind map sync; D-108..D-117 are the UI/UX calls of the mind map sync; D-100..D-107 are the information architecture calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the UI/UX R1 redesign; D-33 is the scope decision; information architecture calls are D-34..D-41; UI/UX calls are D-42..D-46; database calls are D-47..D-66; D-67..D-72 are user decisions on the database gaps
+DF_MAX = 93  # DF-89..DF-93 are the architecture defaults;  DF-83..DF-88 are the API defaults;  DF-77..DF-82 are the database defaults of the mind map sync; DF-73..DF-76 are the UI/UX defaults of the mind map sync; DF-69..DF-72 are the information architecture defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the information architecture defaults; DF-45..DF-52 are the UI/UX defaults; DF-53..DF-60 are the database defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
 BR = ['BR-%02d' % n for n in range(1, 40)]
@@ -184,9 +184,9 @@ parts = re.split(r'^## (BR-\d\d) — .+$', brf, flags=re.M)
 blocks = {parts[i]: parts[i + 1] for i in range(1, len(parts), 2)}
 bad_fields = []
 for b, body in blocks.items():
-    for fld in ['- **Source:**', '- **Related US:**', '- **Related API:** TBD (Step 6)', '- **Rule:**']:
+    for fld in ['- **Source:**', '- **Related US:**', '- **Related API:**', '- **Rule:**']:
         if fld not in body: bad_fields.append((b, fld))
-print('  each BR has Source, Related US, Related API TBD (Step 6), Rule: %s' % ('yes' if not bad_fields else bad_fields))
+print('  each BR has Source, Related US, Related API, Rule: %s' % ('yes' if not bad_fields else bad_fields))
 if bad_fields: fail('BR fields missing')
 hdr_brs = set(b for d in stories.values() for b in d['hdr'][1])
 wsection = mos[mos.index('## Won'):]
@@ -566,8 +566,8 @@ def row(txt, rid):
 d33 = row(dec2, 'D-33')
 print('  D-33 defined as a row with "User decision":', 'User decision' in d33, '; DF range extends to DF-33:', 'DF-33' in defs)
 if 'User decision' not in d33 or 'DF-33' not in defs: fail('D-33 or DF-33')
-# D-33: the user's own decision must not be labelled as a review call, and the interpretation must be marked as awaiting review
-if 'awaiting user review' not in dec2[dec2.index('### Calls made while applying D-33'):]: fail('D-33 interpretation not marked awaiting review')
+# D-33: the user's own decision must not be labelled as a review call, and the interpretation must be marked as a call approved by the user (2026-11-01), not as the user's decision
+if 'a call approved by the user (2026-11-01)' not in dec2[dec2.index('### Calls made while applying D-33'):] and 'Call, approved by the user (2026-11-01)' not in dec2[dec2.index('### Calls made while applying D-33'):]: fail('D-33 interpretation not marked as a call approved by the user')
 # D-33: removed or changed items keep their entry and say so
 mark_checks = [
     ('D-25', row(dec1, 'D-25'), RM),
@@ -586,7 +586,7 @@ if bad_mark: fail('removed row not marked')
 removed_other = ['UC-11', 'UC-22', 'US-11', 'US-22', 'DF-04', 'DF-26', 'D-25', 'D-32', 'BR-21', 'BR-32']
 ok_words = ('Removed', 'removed', 'D-33', 'W-19', 'W-20', 'W-21', 'Advanced', 'Unsupported')
 live_mention = []
-d33_sec = dec2[dec2.index('## Scope change decided by the user'):dec2.index('## How the Step 1 decisions appear in Step 2')]
+d33_sec = dec2[dec2.index('## Scope change decided by the user'):dec2.index('## How the research decisions appear in the requirements')]
 exempt = set(d33_sec.split('\n')) | set(blocks['BR-21'].split('\n')) | set(blocks['BR-32'].split('\n'))
 for f, t_ in text.items():
     if f.endswith('research-log.md'): continue
@@ -610,13 +610,13 @@ d28 = [l for l in open(ROOT + '/docs/02-usecases-userstories/00-decisions.md', e
 print('  D-28 source and resolves cells:', [c.strip() for c in d28.strip('|').split('|')[-2:]])
 if 'User ruling' in ''.join(text.values()): fail('User ruling still present')
 
-print('\n== CHECK 6: Step 3 screens (SCR family) ==')
+print('\n== CHECK 6: Information architecture screens (SCR family) ==')
 IA = 'docs/03-information-architecture/'
 IA_FILES = ['README.md', '00-decisions.md', '01-sitemap.md', '02-routes-and-permissions.md', '03-navigation.md',
             '04-screen-inventory.md', '05-user-flows.md', '06-ui-states-and-accessibility.md']
 missing_ia = [f for f in IA_FILES if IA + f not in text]
-print('  Step 3 files present (8 expected):', 'yes' if not missing_ia else 'MISSING ' + str(missing_ia))
-if missing_ia: fail('Step 3 files missing')
+print('  information architecture files present (8 expected):', 'yes' if not missing_ia else 'MISSING ' + str(missing_ia))
+if missing_ia: fail('Information architecture files missing')
 else:
     inv3 = text[IA + '04-screen-inventory.md']
     routes3 = text[IA + '02-routes-and-permissions.md']
@@ -704,7 +704,7 @@ else:
     tr_bad = [u for u in US_S3 if u in tr_screen and tr_screen[u][0] != mapping.get(u)]
     tr_bad += [u for u in US_REMOVED if tr_screen.get(u, (None, ''))[1] != RM]
     print('  traceability rows with a TBD Screen cell: %s; rows whose SCR set differs from the mapping: %s' % (tbd3 or 'none', tr_bad or 'none'))
-    if tbd3 or tr_bad or len(tr_screen) != len(US_ALL) or 'TBD (Step 3)' in trace: fail('traceability Screen column')
+    if tbd3 or tr_bad or len(tr_screen) != len(US_ALL) or 'TBD (Information architecture)' in trace: fail('traceability Screen column')
     # (d) opened-from
     d_bad = []
     for k, v in scr.items():
@@ -837,11 +837,11 @@ else:
     h_bad = []
     for f_ in IA_FILES:
         t_ = text[IA + f_]
-        if '> Design status: MVP — Step 3 of 9, approved\n>\n> Implementation status: NOT STARTED' not in t_: h_bad.append((f_, 'header'))
+        if '> Design status: MVP — approved\n>\n> Implementation status: NOT STARTED' not in t_: h_bad.append((f_, 'header'))
         if not re.search(r'^\*\*Related:\*\*', t_, re.M): h_bad.append((f_, 'Related line'))
-    print('  Step 3 files with the "approved" header and a Related line: %s' % ('all 8' if not h_bad else h_bad))
-    if h_bad: fail('Step 3 headers')
-    # (i) Step 3 decisions: D-34..D-41 and DF-34..DF-44, approved by the user, except rows changed for D-33
+    print('  information architecture files with the "approved" header and a Related line: %s' % ('all 8' if not h_bad else h_bad))
+    if h_bad: fail('Information architecture headers')
+    # (i) information architecture decisions: D-34..D-41 and DF-34..DF-44, approved by the user, except rows changed for D-33
     dec3 = text[IA + '00-decisions.md']
     step3_ids = ['D-%d' % n for n in range(34, 42)] + ['DF-%d' % n for n in range(34, 45)]
     st_bad = []
@@ -849,23 +849,23 @@ else:
         r_ = row(dec3, i_)
         if not r_: st_bad.append((i_, 'missing')); continue
         st = r_.strip().strip('|').split('|')[-1].strip()
-        if not (st == 'Approved with Step 3 (user, 2026-10-31)' or st.startswith('Awaiting user review') or st.startswith('Superseded by ')): st_bad.append((i_, st))
+        if not (st == 'Approved with the information architecture (user, 2026-10-31)' or st.startswith('Approved by the user (2026-11-01)') or st.startswith('Superseded by ')): st_bad.append((i_, st))
     # D-88 sync: D-41 and DF-40 are superseded, not deleted; D-100..D-107 and DF-69..DF-72 are calls awaiting review
     for old_, new_ in (('D-41', 'D-100'), ('DF-40', 'DF-69')):
         if ('Superseded by %s (mind map sync)' % new_) not in row(dec3, old_): st_bad.append((old_, 'not marked superseded by ' + new_))
     for i_ in ['D-%d' % n for n in range(100, 108)] + ['DF-%d' % n for n in range(69, 73)]:
         r_ = row(dec3, i_)
-        if not r_ or r_.strip().strip('|').split('|')[-1].strip() != 'Call, awaiting user review': st_bad.append((i_, 'missing or not "Call, awaiting user review"'))
-    if 'Changes made to Step 3 for the mind map sync (D-88)' not in dec3: st_bad.append(('section', 'Changes made to Step 3 for the mind map sync (D-88) missing'))
+        if not r_ or r_.strip().strip('|').split('|')[-1].strip() != 'Call, approved by the user (2026-11-01)': st_bad.append((i_, 'missing or not "Call, approved by the user (2026-11-01)"'))
+    if 'Changes made to the information architecture for the mind map sync (D-88)' not in dec3: st_bad.append(('section', 'Changes made to the information architecture for the mind map sync (D-88) missing'))
     nav3 = text[IA + '03-navigation.md']
     if 'There are no notification centre' in nav3 or 'SCR-62' not in nav3 or 'reverses D-41' not in nav3: st_bad.append(('03-navigation.md', 'notification section not reversed'))
     stale3 = [(f_, w_) for f_ in IA_FILES for w_ in ('six roles', 'Six actors', 'six actors', '35 active', '18 pages', '17 modals', 'Four flows', 'four primary user flows') if w_ in text[IA + f_] and not re.search(w_ + r'[^\n]*(D-33|become|was|were|earlier)', text[IA + f_])]
     if stale3: st_bad.append(('stale counts after the sync', stale3))
     d33_in_ia = row(dec3, 'D-33')
-    print('  Step 3 decisions D-34..D-41 and defaults DF-34..DF-44 present with a valid status; D-33 not redefined in Step 3: %s' % (
+    print('  information architecture decisions D-34..D-41 and defaults DF-34..DF-44 present with a valid status; D-33 not redefined in the information architecture: %s' % (
         'yes' if not st_bad and not d33_in_ia else str((st_bad, d33_in_ia))))
-    if st_bad or d33_in_ia: fail('Step 3 decision rows')
-    # (j) nothing live in Step 3 depends on a removed item
+    if st_bad or d33_in_ia: fail('Information architecture decision rows')
+    # (j) nothing live in the information architecture depends on a removed item
     rm_ids = r'\b(BR-21|BR-32|DF-04|DF-26|D-25|D-32|UC-11|UC-22|US-11|US-22|AC-11\.\d+|AC-22\.\d+)\b'
     words = r'\b(foreign|PDF|contractor|customs|imports?|imported|cash|multimodal|payment method)\b'
     marks = re.compile(r'Removed|removed|D-33|Unsupported|Advanced|Only XML|non-cash|moved')
@@ -873,18 +873,18 @@ else:
     for f_ in IA_FILES:
         for n_, l in enumerate(text[IA + f_].split('\n'), 1):
             if (re.search(rm_ids, l) or re.search(words, l, re.I)) and not marks.search(l): live.append((f_, n_, l[:90]))
-    print('  Step 3 lines naming a removed ID or a foreign, PDF, customs, import, cash, or payment-method topic without a removal marker:', live or 'none')
-    if live: fail('Step 3 text depends on a removed item')
+    print('  information architecture lines naming a removed ID or a foreign, PDF, customs, import, cash, or payment-method topic without a removal marker:', live or 'none')
+    if live: fail('Information architecture text depends on a removed item')
     ia_old = [(f_, n_) for f_ in IA_FILES for n_, l in enumerate(text[IA + f_].split('\n'), 1) if re.search(r'confirm-fields|Awaiting Field Confirmation|Upload foreign PDF', l) and not marks.search(l)]
-    print('  Step 3 lines with the removed route, state, or button and no removal marker:', ia_old or 'none')
-    if ia_old: fail('Step 3 removed route or state live')
+    print('  information architecture lines with the removed route, state, or button and no removal marker:', ia_old or 'none')
+    if ia_old: fail('Information architecture removed route or state live')
 
 # user flows: each flow starts from at least one actor node with the person icon and the actor class
 fl_blocks = re.findall(r'```mermaid\n(.*?)```', text['docs/03-information-architecture/05-user-flows.md'], re.S)
 fl_bad = [i_ for i_, b_ in enumerate(fl_blocks) if not re.search(r"<span style='font-size:40px'>👤</span><br/><b>[^<]+</b>\"\]:::actor", b_) or 'classDef actor' not in b_]
 print('  user flows: %d; flows without an actor node with the person icon: %s' % (len(fl_blocks), fl_bad or 'none'))
 if fl_bad or len(fl_blocks) != 7: fail('user flow actor nodes (7 flows expected)')
-print('\n== CHECK 7: Step 4 wireframes (HTML, CSS, JS, PNG) ==')
+print('\n== CHECK 7: UI/UX wireframes (HTML, CSS, JS, PNG) ==')
 UX = 'docs/04-uiux/'
 WF = ROOT + '/' + UX + 'wireframes/'
 web = {}
@@ -970,24 +970,24 @@ css_ = web.get(UX + 'wireframes/assets/wireframe.css', '')
 fonts_missing = [u_ for u_ in re.findall(r'url\("([^"]+)"\)', css_) if not os.path.exists(WF + 'assets/' + u_)]
 print('  font files named in wireframe.css that do not exist: %s; OFL.txt present: %s' % (fonts_missing or 'none', os.path.exists(WF + 'assets/fonts/OFL.txt')))
 if fonts_missing or not os.path.exists(WF + 'assets/fonts/OFL.txt'): fail('fonts')
-# (e) Step 4 headers
+# (e) UI/UX headers
 UX_FILES = ['README.md', '00-decisions.md', '01-design-system.md', '02-screen-notes.md']
 h7 = []
 for f_ in UX_FILES:
     t_ = text.get(UX + f_, '')
-    if '> Design status: MVP — Step 4 of 9, approved\n>\n> Implementation status: NOT STARTED' not in t_: h7.append((f_, 'header'))
+    if '> Design status: MVP — approved\n>\n> Implementation status: NOT STARTED' not in t_: h7.append((f_, 'header'))
     if not re.search(r'^\*\*Related:\*\*', t_, re.M): h7.append((f_, 'Related line'))
-print('  Step 4 files with the "approved" header and a Related line: %s' % ('all 4' if not h7 else h7))
-if h7: fail('Step 4 headers')
-# (f) Step 4 decisions: D-42..D-46 and DF-45..DF-52 exist and are approved
+print('  UI/UX files with the "approved" header and a Related line: %s' % ('all 4' if not h7 else h7))
+if h7: fail('UI/UX headers')
+# (f) UI/UX decisions: D-42..D-46 and DF-45..DF-52 exist and are approved
 dec4 = text.get(UX + '00-decisions.md', '')
 st7 = []
 for i_ in ['D-%d' % n_ for n_ in range(42, 47)] + ['DF-%d' % n_ for n_ in range(45, 53)]:
     r_ = row(dec4, i_)
     if not r_: st7.append((i_, 'missing')); continue
-    if r_.strip().strip('|').split('|')[-1].strip() != 'Approved with Step 4 (user, 2026-10-31)': st7.append((i_, 'status'))
-print('  Step 4 decisions D-42..D-46 and defaults DF-45..DF-52 present and approved with Step 4: %s' % ('yes' if not st7 else st7))
-if st7: fail('Step 4 decision rows')
+    if r_.strip().strip('|').split('|')[-1].strip() != 'Approved with the UI/UX (user, 2026-10-31)': st7.append((i_, 'status'))
+print('  UI/UX decisions D-42..D-46 and defaults DF-45..DF-52 present and approved with the UI/UX: %s' % ('yes' if not st7 else st7))
+if st7: fail('UI/UX decision rows')
 # (g) states: links in the screen notes exist in the wf-bar; data-show names exist in the wf-bar; every wf-bar state has an effect
 bad_state_link = []
 for m_ in re.finditer(r'\]\(wireframes/([\w-]+\.html)\?([^)\s]*)\)', notes):
@@ -1024,14 +1024,14 @@ print('  data-show or data-hide names not in the wf-bar: %s; wf-bar states with 
 if unknown_state: fail('state name used in the page but not in the wf-bar')
 if dead_state: fail('wf-bar state with no effect')
 
-print('\n== CHECK 8: Step 5 database (DBML, ER diagrams, traceability) ==')
+print('\n== CHECK 8: Database database (DBML, ER diagrams, traceability) ==')
 DB = 'docs/05-database/'
 DB_FILES = ['README.md', '00-decisions.md', '01-data-model.md', '02-er-diagram.md']
 DBML_PATH = ROOT + '/' + DB + 'matchpay.dbml'
 GROUP_LEVEL = {'corporate_groups', 'group_sectors', 'entities'}  # no entity_id: the group and its entities (see 01-data-model.md, Entity isolation)
 missing_db = [f_ for f_ in DB_FILES if DB + f_ not in text] + ([] if os.path.exists(DBML_PATH) else ['matchpay.dbml'])
-print('  Step 5 files present (4 markdown files and matchpay.dbml): %s' % ('yes' if not missing_db else 'MISSING ' + str(missing_db)))
-if missing_db: fail('Step 5 files missing')
+print('  database files present (4 markdown files and matchpay.dbml): %s' % ('yes' if not missing_db else 'MISSING ' + str(missing_db)))
+if missing_db: fail('Database files missing')
 else:
     dbml = open(DBML_PATH, encoding='utf-8').read()
     pg_ = bool(re.search(r"database_type:\s*'PostgreSQL'", dbml))
@@ -1178,23 +1178,23 @@ else:
     h8 = []
     for f_ in DB_FILES:
         t_ = text.get(DB + f_, '')
-        if '> Design status: MVP — Step 5 of 9, draft for review\n>\n> Implementation status: NOT STARTED' not in t_: h8.append((f_, 'header'))
+        if '> Design status: MVP — approved\n>\n> Implementation status: NOT STARTED' not in t_: h8.append((f_, 'header'))
         if not re.search(r'^\*\*Related:\*\*', t_, re.M): h8.append((f_, 'Related line'))
-    print('  Step 5 files with the "draft for review" header and a Related line: %s' % ('all 4' if not h8 else h8))
-    if h8: fail('Step 5 headers')
+    print('  database files with the "approved" header and a Related line: %s' % ('all 4' if not h8 else h8))
+    if h8: fail('Database headers')
     # (l) decisions D-47..D-66 and DF-53..DF-60 exist and await review
     dec5 = text[DB + '00-decisions.md']
     st8 = []
     for i_ in ['D-%d' % n_ for n_ in range(47, 67)] + ['DF-%d' % n_ for n_ in range(53, 61)]:
         r_ = row(dec5, i_)
         if not r_: st8.append((i_, 'missing')); continue
-        want_ = {'DF-60': 'Approved by the user, 2026-10-31', 'D-53': 'Decided by the user, D-70', 'D-54': 'Decided by the user, D-69', 'D-64': 'Decided by the user, D-72', 'DF-58': 'Decided by the user, D-71'}.get(i_, 'Awaiting user review')
+        want_ = {'DF-60': 'Approved by the user, 2026-10-31', 'D-53': 'Decided by the user, D-70', 'D-54': 'Decided by the user, D-69', 'D-64': 'Decided by the user, D-72', 'DF-58': 'Decided by the user, D-71'}.get(i_, 'Approved by the user (2026-11-01)')
         if r_.strip().strip('|').split('|')[-1].strip() != want_: st8.append((i_, 'status'))
     for i_ in ('D-67', 'D-68', 'D-69', 'D-70', 'D-71', 'D-72'):
         r_ = row(dec5, i_)
         if not r_ or r_.strip().strip('|').split('|')[-1].strip() != 'User decision, 2026-10-31': st8.append((i_, 'user decision source'))
-        elif i_ in ('D-67', 'D-68', 'D-70') and 'Call, awaiting user review' not in r_: st8.append((i_, 'call not separated'))
-    # D-69, D-70: the changed Steps 2-4 record the user decision, and gaps 3 and 5 are resolved
+        elif i_ in ('D-67', 'D-68', 'D-70') and 'Call, approved by the user (2026-11-01)' not in r_: st8.append((i_, 'call not separated'))
+    # D-69, D-70: the changed the requirements, information architecture, and UI/UX documents record the user decision, and gaps 3 and 5 are resolved
     for f_, ids_ in (('docs/02-usecases-userstories/00-decisions.md', ('D-69', 'D-70', 'D-72')), ('docs/03-information-architecture/00-decisions.md', ('D-69', 'D-70')), ('docs/04-uiux/00-decisions.md', ('D-69', 'D-70'))):
         for i_ in ids_:
             if 'Changed by user decision' not in text.get(f_, '') or i_ not in text.get(f_, ''): st8.append((f_, 'no record of ' + i_))
@@ -1205,10 +1205,11 @@ else:
     for f_, t_ in text.items():
         if f_.startswith('docs/') and re.search(r'correct(s|ing)? the entity|Correct entity|change the entity|correct entity or flow', t_, re.I) and not f_.endswith('00-decisions.md') and 'handoff' not in f_:
             st8.append((f_, 'offers to correct or change the entity'))
-    if st8: print('   ', st8); fail('Step 5 decision rows')
-    approved_claim = [f_ for f_ in DB_FILES if re.search(r'Approved with Step 5|Step 5 of 9, approved', text.get(DB + f_, ''))]
-    print('  Step 5 text that calls itself approved: %s' % (approved_claim or 'none'))
-    if approved_claim: fail('Step 5 labelled approved')
+    if st8: print('   ', st8); fail('Database decision rows')
+    # The database was approved by the user on 2026-11-01: every database file must carry the approved header
+    not_approved = [f_ for f_ in DB_FILES if '> Design status: MVP — approved' not in text.get(DB + f_, '')]
+    print('  database files without the approved header: %s' % (not_approved or 'none'))
+    if not_approved: fail('Database not labelled approved')
     # (m) counts stated in the prose equal the DBML
     cnt_bad = []
     for f_, t_ in text.items():
@@ -1227,11 +1228,11 @@ d88 = row(dec2_, 'D-88')
 if 'User decision, 2026-11-01' not in d88: s9.append('D-88 must be a row with the source "User decision, 2026-11-01"')
 for i_ in ['D-%d' % n_ for n_ in range(89, 100)]:
     r_ = row(dec2_, i_)
-    if not r_ or not r_.strip().strip('|').split('|')[-1].strip() == 'Call, awaiting user review': s9.append('%s must be a row ending in "Call, awaiting user review"' % i_)
+    if not r_ or not r_.strip().strip('|').split('|')[-1].strip() == 'Call, approved by the user (2026-11-01)': s9.append('%s must be a row ending in "Call, approved by the user (2026-11-01)"' % i_)
 for i_ in ['DF-%d' % n_ for n_ in range(61, 69)]:
     if not row(dec2_, i_): s9.append(i_ + ' missing')
 if 'D-88' not in dec2_[dec2_.index('## Sync to the feature mind map'):]: s9.append('sync section missing')
-fu_ = dec2_[dec2_.index('### Follow-up in Steps 3 to 5'):]
+fu_ = dec2_[dec2_.index('### Follow-up in the information architecture, UI/UX, and database documents'):]
 for w_ in ('D-41', 'Requesting Department', 'REQUESTING_DEPARTMENT', 'Wireframes'):
     if w_ not in fu_: s9.append('follow-up table does not mention ' + w_)
 # the new stories are Should and no Must depends on them
@@ -1252,12 +1253,210 @@ for w_, kw_ in (('W-05', 'portal'), ('W-13', 'connection point')):
 # Requesting Department is a column of the matrix and an actor
 if 'Requesting Department' not in matrix.split('\n| UC-01')[0]: s9.append('matrix has no Requesting Department column')
 # no pending marker is left in the matrix: every sync step is done
-if re.search(r'Pending \(Step', trace): s9.append('a Pending (Step n sync) marker is still in the matrix')
+if re.search(r'Pending \(', trace): s9.append('a Pending (... sync) marker is still in the matrix')
 print('  D-88 user decision, D-89..D-99 calls, DF-61..DF-68, BR-38, BR-39, V20, V21, B7, R9, O-17, W-05 and W-13 reworded, no pending marker left in the matrix:', 'yes' if not s9 else s9)
 if s9: fail('mind map sync checks')
 
+print('\n== CHECK: API API contract ==')
+import yaml
+A6 = 'docs/06-api/'
+s6 = []
+for f_ in ['README.md', '00-decisions.md', '01-api-traceability.md']:
+    if A6 + f_ not in text: s6.append(f_ + ' missing')
+    elif '> Design status: MVP — draft for review' not in text[A6 + f_]: s6.append(f_ + ' lacks the API header')
+raw6 = open(ROOT + '/' + A6 + 'openapi.yaml', encoding='utf-8').read()
+for p_ in (A6 + 'openapi.yaml', 'redocly.yaml'):
+    if re.search('[À-ỹĐđ]', open(ROOT + '/' + p_, encoding='utf-8').read()): s6.append('Vietnamese letters in ' + p_)
+api = yaml.safe_load(raw6)
+if not str(api.get('openapi', '')).startswith('3.0'): s6.append('openapi version is not 3.0.x')
+ops6 = {}
+for path_, item_ in api['paths'].items():
+    for m_, o_ in item_.items():
+        if m_ in ('get', 'post', 'put', 'patch', 'delete'):
+            oid_ = o_.get('operationId')
+            if not oid_ or oid_ in ops6: s6.append('operationId missing or duplicate at %s %s' % (m_, path_))
+            ops6[oid_] = (m_, path_, o_)
+            for k_ in ('x-roles', 'x-stories'):
+                if k_ not in o_: s6.append('%s lacks %s' % (oid_, k_))
+            for st_ in o_.get('x-stories', []):
+                if st_ not in uc_file.replace('UC-', 'US-') and not re.search(r'\b%s\b' % st_, inv): s6.append('%s cites unknown %s' % (oid_, st_))
+ROLES6 = {'AP_ACCOUNTANT', 'CHIEF_ACCOUNTANT', 'PAYMENT_APPROVER', 'REQUESTING_DEPARTMENT', 'ENTITY_ADMIN', 'GROUP_ADMIN', 'DEMO_OPERATOR'}
+dbml6 = open(ROOT + '/docs/05-database/matchpay.dbml', encoding='utf-8').read()
+tables6 = set(re.findall(r'^Table (\w+)', dbml6, re.M))
+for oid_, (m_, p_, o_) in ops6.items():
+    for r_ in o_.get('x-roles', []):
+        if r_ not in ROLES6: s6.append('%s has unknown role %s' % (oid_, r_))
+    for t_ in o_.get('x-tables', []):
+        if t_ not in tables6: s6.append('%s cites unknown table %s' % (oid_, t_))
+# every active story is served by at least one operation
+active6 = set(re.findall(r'^\| (US-\d\d) \|', trace, re.M))
+cited6 = {s_ for _, _, o_ in ops6.values() for s_ in o_.get('x-stories', [])}
+missing6 = sorted(u_ for u_ in active6 if u_ not in cited6 and not re.search(r'^\| %s \|.*\bremoved\b' % u_, trace, re.M | re.I))
+if missing6: s6.append('stories with no operation: %s' % missing6)
+# schemas referenced exist
+refs6 = set(re.findall(r"#/components/schemas/(\w+)", raw6))
+miss_s6 = sorted(refs6 - set(api['components']['schemas']))
+if miss_s6: s6.append('unresolved schema refs: %s' % miss_s6)
+# business rules Related API lines name real operations
+for b_, body_ in blocks.items():
+    m_ = re.search(r'- \*\*Related API:\*\*(.*)', body_)
+    if not m_ or 'TBD' in m_.group(1): s6.append(b_ + ' Related API not filled'); continue
+    for oid_ in re.findall(r'`(\w+)`', m_.group(1)):
+        if oid_ not in ops6: s6.append('%s Related API names unknown %s' % (b_, oid_))
+# (a) the matrix API column equals the operations whose x-stories name the story
+cells6 = lambda l: [c.strip() for c in l.strip().strip('|').split('|')]
+hdr6 = [l for l in trace.split('\n') if l.startswith('| Requirement |')][0]
+api_col = cells6(hdr6).index('API operationId')
+for l_ in trace.split('\n'):
+    m_ = re.match(r'^\| (US-\d\d) \|', l_)
+    if not m_: continue
+    u_ = m_.group(1)
+    got_ = {x.strip() for x in cells6(l_)[api_col].split(',')} - {'', '—'}
+    want_ = {o for o, (_, _, x_) in ops6.items() if u_ in x_.get('x-stories', [])}
+    if got_ != want_: s6.append('matrix API cell of %s differs from the contract: %s' % (u_, sorted(got_ ^ want_)))
+# (b) each BR Related API line equals the operations whose x-rules include it
+for b_, body_ in blocks.items():
+    line_ = re.search(r'- \*\*Related API:\*\*(.*)', body_).group(1)
+    got_ = set(re.findall(r'`(\w+)`', line_))
+    want_ = {o for o, (_, _, x_) in ops6.items() if b_ in x_.get('x-rules', [])}
+    if got_ != want_: s6.append('%s Related API differs from x-rules: %s' % (b_, sorted(got_ ^ want_)))
+    if not got_ and not line_.strip().startswith('None ('): s6.append(b_ + ' has no operation and no None wording')
+# (c) the operations table of 01-api-traceability.md matches the contract
+tr6 = text[A6 + '01-api-traceability.md']
+sec2_ = tr6[tr6.index('## 2. Operations'):tr6.index('## 3. ')]
+rows2_ = {}
+for l_ in sec2_.split('\n'):
+    m_ = re.match(r'^\| `(\w+)` \|', l_)
+    if m_: rows2_[m_.group(1)] = cells6(l_)
+if set(rows2_) != set(ops6): s6.append('operations table ids differ from the contract: %s' % sorted(set(rows2_) ^ set(ops6)))
+sp_ = lambda c: {x.strip().strip('`') for x in c.split(',')} - {'', '—'}
+for oid_, (m_, p_, o_) in ops6.items():
+    c_ = rows2_.get(oid_)
+    if not c_: continue
+    roles_ = sp_(c_[2]) - {'public'}
+    if c_[1] != '%s `%s`' % (m_.upper(), p_) and c_[1] != '%s %s' % (m_.upper(), '`%s`' % p_): s6.append(oid_ + ' method or path differs in the operations table')
+    if roles_ != set(o_.get('x-roles', [])): s6.append(oid_ + ' roles differ in the operations table')
+    if sp_(c_[3]) != set(o_.get('x-stories', [])): s6.append(oid_ + ' stories differ in the operations table')
+    if sp_(c_[4]) != set(o_.get('x-tables', [])): s6.append(oid_ + ' tables differ in the operations table')
+    if sp_(c_[5]) != set(o_.get('x-screens', [])): s6.append(oid_ + ' screens differ in the operations table')
+# (d) every DBML table is in some x-tables or in the jobs table
+jobs_ = tr6[tr6.index('## 4. Background jobs'):tr6.index('## 5. ')]
+used_ = {t_ for _, _, o_ in ops6.values() for t_ in o_.get('x-tables', [])} | set(re.findall(r'`(\w+)`', jobs_))
+if tables6 - used_: s6.append('tables in no operation and no job: %s' % sorted(tables6 - used_))
+# the screen-to-API mapping of the screen inventory equals the x-screens of the contract
+inv6 = text['docs/03-information-architecture/04-screen-inventory.md']
+map6_ = inv6[inv6.index('## Screen-to-API mapping'):]
+got6_ = {}
+for l_ in map6_.split('\n'):
+    m_ = re.match(r'^\| (SCR-\d\d) [^|]*\| (.*) \|$', l_)
+    if m_: got6_[m_.group(1)] = set(re.findall(r'`(\w+)`', m_.group(2)))
+act6_ = set(re.findall(r'^\| `(SCR-\d\d)` \|(?![^\n]*Removed)', inv6, re.M))
+for sc_ in sorted(act6_):
+    want_ = {o for o, (_, _, x_) in ops6.items() if sc_ in x_.get('x-screens', [])}
+    if sc_ not in got6_: s6.append('inventory mapping lacks ' + sc_)
+    elif got6_[sc_] != want_: s6.append('inventory mapping of %s differs from x-screens' % sc_)
+if set(got6_) - act6_: s6.append('inventory mapping has unknown screens: %s' % sorted(set(got6_) - act6_))
+if 'TBD (API)' in ''.join(text.values()).replace('"TBD (API)"', ''): s6.append('a TBD (API) placeholder is left')
+print('  operations: %d; paths: %d; schemas: %d; tags: %d; API problems: %s' % (len(ops6), len(api['paths']), len(api['components']['schemas']), len(api.get('tags', [])), s6 or 'none'))
+if s6: fail('API API checks')
+
+print('\n== CHECK: Architecture architecture ==')
+A7 = 'docs/07-architecture/'
+s7 = []
+FILES7 = ['README.md', '00-decisions.md', '01-system-context.md', '02-container.md', '03-component.md', '04-code.md',
+          '05-tech-stack.md', '06-llm-provider.md', '07-runtime-and-deployment.md']
+for f_ in FILES7:
+    if A7 + f_ not in text: s7.append(f_ + ' missing'); continue
+    t_ = text[A7 + f_]
+    if '> Design status: MVP — draft for review\n>\n> Implementation status: NOT STARTED' not in t_: s7.append(f_ + ' lacks the architecture header block')
+    if re.search('[À-ỹĐđ]', t_): s7.append('Vietnamese letters in ' + f_)
+    for b_ in re.findall(r'```mermaid\n(.*?)```', t_, re.S):
+        if b_.split()[0] not in ('flowchart', 'classDiagram', 'sequenceDiagram'): s7.append('unknown Mermaid kind in ' + f_)
+        if re.search(r'^\s*(sequenceDiagram|participant|actor|Note|[A-Za-z]+-+>>?).*[;#]', b_, re.M) and b_.startswith('sequenceDiagram'): s7.append('semicolon or hash in a sequence diagram of ' + f_)
+dec7 = text.get(A7 + '00-decisions.md', '')
+for n_ in range(165, D_MAX + 1):
+    if not re.search(r'^\| D-%d \|.*\| Call, awaiting user review \|$' % n_, dec7, re.M): s7.append('D-%d row missing or not "Call, awaiting user review"' % n_)
+for n_ in range(89, DF_MAX + 1):
+    if not re.search(r'^\| DF-%02d \|.*\| Default, pending confirmation \|$' % n_, dec7, re.M): s7.append('DF-%02d row missing or not "Default, pending confirmation"' % n_)
+for h_ in ('## Items deferred to the architecture and their answers', '## Differences from the research, requirements, information architecture, UI/UX, database, and API documents', '## Gaps found in approved documents', '## Doubts for the user'):
+    if h_ not in dec7: s7.append('decisions lack the section ' + h_)
+# the component catalog
+cmp7 = text.get(A7 + '03-component.md', '')
+cat7 = {}
+if '## Component catalog' in cmp7:
+    sec7 = cmp7[cmp7.index('## Component catalog'):cmp7.index('## What each component does')]
+    for l_ in sec7.split('\n'):
+        c_ = [x_.strip() for x_ in l_.strip().strip('|').split('|')]
+        if l_.startswith('| ') and len(c_) == 6 and c_[0] not in ('Component',) and not c_[0].startswith('---'):
+            cat7[c_[0]] = c_
+else: s7.append('03-component.md lacks the component catalog')
+tag_of7 = {o_: ob_['tags'][0] for o_, (_, _, ob_) in ops6.items()}
+tag_count7 = {}
+for tg_ in tag_of7.values(): tag_count7[tg_] = tag_count7.get(tg_, 0) + 1
+owners7 = {}
+for nm_, c_ in cat7.items():
+    got_ = set()
+    for part_ in c_[2].split(';'):
+        part_ = part_.strip()
+        m_ = re.match(r'^([^`]+?) \((\d+)\)$', part_)
+        if m_:
+            if tag_count7.get(m_.group(1)) != int(m_.group(2)): s7.append('%s: tag %s count differs from the contract' % (nm_, m_.group(1)))
+            got_ |= {o_ for o_, tg_ in tag_of7.items() if tg_ == m_.group(1)}
+        for o_ in re.findall(r'`(\w+)`', part_):
+            if o_ not in ops6: s7.append('%s owns unknown operation %s' % (nm_, o_))
+            got_.add(o_)
+    for o_ in got_: owners7.setdefault(o_, []).append(nm_)
+bad_o7 = sorted(o_ for o_ in ops6 if len(owners7.get(o_, [])) != 1)
+if bad_o7: s7.append('operations without exactly one component: %s' % bad_o7)
+jobs_sec7 = text['docs/06-api/01-api-traceability.md']
+jobs_sec7 = jobs_sec7[jobs_sec7.index('## 4. Background jobs'):jobs_sec7.index('## 5. Business rules')]
+jobs7 = [m_.group(1) for m_ in re.finditer(r'^\| ([^|]+?) \| [^|]+ \| US-', jobs_sec7, re.M)]
+job_owner7 = {}
+for nm_, c_ in cat7.items():
+    for j_ in c_[3].split(';'):
+        j_ = j_.strip()
+        if j_ and j_ != '—': job_owner7.setdefault(j_, []).append(nm_)
+bad_j7 = sorted(j_ for j_ in set(jobs7) | set(job_owner7) if len(job_owner7.get(j_, [])) != 1 or j_ not in jobs7)
+if len(jobs7) != 10 or bad_j7: s7.append('jobs without exactly one component (or unknown): %s' % bad_j7)
+tab_owner7 = {}
+for nm_, c_ in cat7.items():
+    for tb_ in re.findall(r'`(\w+)`', c_[4]): tab_owner7.setdefault(tb_, []).append(nm_)
+bad_t7 = sorted((tb_ for tb_ in tables6 | set(tab_owner7) if len(tab_owner7.get(tb_, [])) != 1 or tb_ not in tables6), key=str)
+if bad_t7: s7.append('tables without exactly one owner (or unknown): %s' % bad_t7)
+# the C4 Component column of the matrix
+c4col7 = {}
+for l_ in trace.split('\n'):
+    m_ = re.match(r'^\| (US-\d\d) \|(.*)\|\s*$', l_)
+    if not m_: continue
+    cells_ = [x_.strip() for x_ in ('| ' + m_.group(1) + ' |' + m_.group(2)).strip().strip('|').split('|')]
+    if len(cells_) != 9: continue
+    if m_.group(1) in US_REMOVED:
+        if cells_[7] != '—': s7.append('%s removed row must keep a dash in the C4 Component column' % m_.group(1))
+        continue
+    names_ = [x_.strip() for x_ in cells_[7].split(',')]
+    c4col7[m_.group(1)] = names_
+    if 'TBD' in cells_[7] or not names_ or names_ == ['']: s7.append('%s has a TBD or empty C4 Component cell' % m_.group(1))
+    for n_ in names_:
+        if n_ not in cat7: s7.append('%s names an unknown component: %s' % (m_.group(1), n_))
+if len(c4col7) != N_ACTIVE: s7.append('C4 Component column has %d active rows, expected %d' % (len(c4col7), N_ACTIVE))
+for nm_, c_ in cat7.items():
+    if c_[5] in ('All', '—'): continue
+    want_ = sorted(s_ for s_, ns_ in c4col7.items() if nm_ in ns_)
+    have_ = [x_.strip() for x_ in c_[5].split(',')]
+    if want_ != have_: s7.append('stories of %s in the catalog differ from the matrix' % nm_)
+if 'last update: Architecture, draft for review' not in trace: s7.append('matrix header not updated to the architecture')
+llm7 = text.get(A7 + '06-llm-provider.md', '')
+if 'Unverified' not in llm7 or '2026-11-01' not in llm7: s7.append('LLM record lacks Unverified marks or the date opened')
+srcs7 = re.findall(r'^\| S\d+ \| (\S+) \|', llm7, re.M)
+if len(srcs7) < 10 or [u_ for u_ in srcs7 if not u_.startswith('https://')]: s7.append('LLM record sources table is short or has a non-https URL')
+for cand_ in ('Anthropic', 'OpenAI', 'Gemini', 'Self-hosted'):
+    if cand_ not in llm7: s7.append('LLM record lacks candidate ' + cand_)
+print('  components: %d; operations owned once: %d of %d; jobs: %d; tables owned once: %d of %d; stories with components: %d; architecture problems: %s' % (
+    len(cat7), len(ops6) - len(bad_o7), len(ops6), len(jobs7), len(tables6) - len(bad_t7), len(tables6), len(c4col7), s7 or 'none'))
+if s7: fail('Architecture architecture checks')
+
 print('\n== CHECK: README Mermaid blocks match their source documents ==')
-_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None, 'docs/05-database/02-er-diagram.md': None}
+_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None, 'docs/05-database/02-er-diagram.md': None, 'docs/07-architecture/02-container.md': None}
 _pool = []
 for _p in _src:
     _pool += re.findall(r'```mermaid\n(.*?)```', open(_p, encoding='utf-8').read(), re.S)

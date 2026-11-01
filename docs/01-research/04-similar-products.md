@@ -1,6 +1,6 @@
 # Similar Products
 
-> Design status: MVP — Step 1 of 9, draft for review
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -35,7 +35,7 @@ No survey of which ERP a Vietnamese group uses was found; the market-research su
 | BRAVO | Local | Purchasing, inventory, and accounting modules; no AP automation shown | Partly checked |
 | FAST | Local | Brochure unreadable | Unverified |
 
-Source for the segments: [Vietnam Briefing, 2025-07-30](https://www.vietnam-briefing.com/news/vietnam-erp-market-digital-transformation.html). The brief asks Step 1 to check the large ERPs that Vietnamese groups use. That check is only partly done and stays an open item (O-14).
+Source for the segments: [Vietnam Briefing, 2025-07-30](https://www.vietnam-briefing.com/news/vietnam-erp-market-digital-transformation.html). The brief asks research to check the large ERPs that Vietnamese groups use. That check is only partly done and stays an open item (O-14).
 
 ## Why not buy an international product?
 
@@ -69,4 +69,4 @@ MatchPay does not compete on breadth. It goes deep on one flow: invoice, AI read
 | 5 | **Entity isolation with group-level insight** | Comparisons across entities show aggregates only, and are hidden when fewer than 3 entities buy an item (BR-09). Cross-entity anomaly detection is Advanced. |
 | 6 | **Built for the signer** | The batch screen shows totals by entity and supplier, large invoices, sample-check results, and evidence for each invoice (BR-20). |
 
-**Related:** [Step index](README.md)
+**Related:** [Research index](README.md)

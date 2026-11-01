@@ -1,6 +1,6 @@
 # MatchPay Product Mind Map
 
-> Design status: MVP — Step 1 of 9, draft for review
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -173,6 +173,6 @@ mindmap
       Audit log UC-28
 ```
 
-Kept in the documents although the feature map does not show them: the ERP simulator and the Demo Operator (UC-08, demo only), the tax-risk hold (UC-21), split-order handling (BR-10), employee-expense invoices (BR-23), and group limits (UC-03). See D-99 in the [Step 2 decisions](02-usecases-userstories/00-decisions.md#sync-to-the-feature-mind-map-user-decision-d-88-2026-11-01).
+Kept in the documents although the feature map does not show them: the ERP simulator and the Demo Operator (UC-08, demo only), the tax-risk hold (UC-21), split-order handling (BR-10), employee-expense invoices (BR-23), and group limits (UC-03). See D-99 in the [Requirements decisions](02-usecases-userstories/00-decisions.md#sync-to-the-feature-mind-map-user-decision-d-88-2026-11-01).
 
-**Related:** [README](../README.md) · [Step 1 index](01-research/README.md)
+**Related:** [README](../README.md) · [Research index](01-research/README.md)

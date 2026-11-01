@@ -1,10 +1,10 @@
 # Screen Inventory
 
-> Design status: MVP — Step 3 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
-The inventory lists 47 screen numbers, of which SCR-13 and SCR-17 are removed (D-33) and not reused, so **45 screens are active: 22 pages (including the system page SCR-90) and 23 modals**. The mind map sync (D-88) added ten screens: four pages (SCR-22, SCR-24, SCR-55, SCR-62) and six modals (SCR-19, SCR-23, SCR-33, SCR-34, SCR-56, SCR-57); they are awaiting user review (D-102). Screen IDs are numbered by area (access 01 and 90, invoices 10s, recurring profiles and intake sources 20s, batch 30s, decisions 40, signing 50s, oversight 60s, entity administration 70 to 74, group administration 75 to 79, demo 80s). A new screen takes the next free number in its range (DF-38). "Opened from" says where a user gets in: `Navigation` means the sidebar or the login redirect, and `SCR-nn` means the parent page that has the button or link. A modal is always opened from a page, never from another modal. A removed screen keeps its row, reads "Removed (D-33)", and has no route, no card in the sitemap, no permission row, and no place in any flow.
+The inventory lists 47 screen numbers, of which SCR-13 and SCR-17 are removed (D-33) and not reused, so **45 screens are active: 22 pages (including the system page SCR-90) and 23 modals**. The mind map sync (D-88) added ten screens: four pages (SCR-22, SCR-24, SCR-55, SCR-62) and six modals (SCR-19, SCR-23, SCR-33, SCR-34, SCR-56, SCR-57); they are approved by the user (2026-11-01) (D-102). Screen IDs are numbered by area (access 01 and 90, invoices 10s, recurring profiles and intake sources 20s, batch 30s, decisions 40, signing 50s, oversight 60s, entity administration 70 to 74, group administration 75 to 79, demo 80s). A new screen takes the next free number in its range (DF-38). "Opened from" says where a user gets in: `Navigation` means the sidebar or the login redirect, and `SCR-nn` means the parent page that has the button or link. A modal is always opened from a page, never from another modal. A removed screen keeps its row, reads "Removed (D-33)", and has no route, no card in the sitemap, no permission row, and no place in any flow.
 
 ## Screen inventory
 
@@ -99,7 +99,7 @@ One row per story; US-11 and US-22 read "Removed (D-33)". US-29..US-32 were adde
 
 ## Reachability of Must stories
 
-Every Must story is reachable through at least one screen that a Must story also uses, so cutting a Should story never leaves a Must story without a way in (lesson from Step 2). The checker walks the "Opened from" chain of the screens of each Must story and fails when a chain passes only through screens used by Should stories alone. The Group Overview (SCR-75) is built from US-06 and US-07, both Must, so the Group Admin home page survives when US-03 is cut. The Dashboard (SCR-60) is US-27, a Should, so no home page and no Must screen depends on it. One home page does depend on a Should story: the Requesting Department (D-90) has the acceptance queue (SCR-22, US-29) as its only page, so that role exists only while US-29 is in the MVP. No Must story depends on it.
+Every Must story is reachable through at least one screen that a Must story also uses, so cutting a Should story never leaves a Must story without a way in (lesson from the requirements). The checker walks the "Opened from" chain of the screens of each Must story and fails when a chain passes only through screens used by Should stories alone. The Group Overview (SCR-75) is built from US-06 and US-07, both Must, so the Group Admin home page survives when US-03 is cut. The Dashboard (SCR-60) is US-27, a Should, so no home page and no Must screen depends on it. One home page does depend on a Should story: the Requesting Department (D-90) has the acceptance queue (SCR-22, US-29) as its only page, so that role exists only while US-29 is in the MVP. No Must story depends on it.
 
 The table lists the screens that disappear when one Should story is cut. US-11 and US-22 are no longer in it, because D-33 removed them from the MVP. US-29..US-32 were added to it by the mind map sync. A screen disappears only when no other story uses it.
 
@@ -118,22 +118,54 @@ The table lists the screens that disappear when one Should story is cut. US-11 a
 
 ## Screen-to-API mapping
 
-Filled in by Step 6 (OpenAPI).
+Filled in by the API (OpenAPI) from the `x-screens` of the [API contract](../06-api/openapi.yaml). The same list is in [API traceability](../06-api/01-api-traceability.md#6-screens-and-their-operations). SCR-90 needs no operation of its own: it is the client's reaction to 403 ACCESS_DENIED.
 
 | Screen | API operations |
 |---|---|
-| SCR-01, SCR-90 | TBD (Step 6) |
-| SCR-10, SCR-11, SCR-12 | TBD (Step 6) |
-| SCR-14, SCR-15, SCR-16, SCR-18, SCR-19 | TBD (Step 6) |
-| SCR-20, SCR-21 | TBD (Step 6) |
-| SCR-22, SCR-23, SCR-24 | TBD (Step 6) |
-| SCR-30, SCR-31, SCR-32, SCR-33, SCR-34 | TBD (Step 6) |
-| SCR-40 | TBD (Step 6) |
-| SCR-50, SCR-51, SCR-52, SCR-53, SCR-54, SCR-55, SCR-56, SCR-57 | TBD (Step 6) |
-| SCR-60, SCR-61, SCR-62 | TBD (Step 6) |
-| SCR-70, SCR-71, SCR-72 | TBD (Step 6) |
-| SCR-73, SCR-74 | TBD (Step 6) |
-| SCR-75, SCR-76, SCR-77, SCR-78, SCR-79 | TBD (Step 6) |
-| SCR-80, SCR-81, SCR-82 | TBD (Step 6) |
+| SCR-01 Login | `login`, `logout`, `getSession` |
+| SCR-90 Access denied | `getSession` |
+| SCR-10 Invoice Worklist | `getErpSyncStatus`, `listErpSyncRuns`, `listSuppliers`, `uploadInvoices`, `listInvoices`, `getWorklistSummary`, `getInvoice`, `rerunChecks`, `runAuthorityLookup`, `listExceptions`, `listDashboardFigureInvoices` |
+| SCR-11 Upload XML Invoices | `uploadInvoices` |
+| SCR-12 Invoice Detail and Evidence | `listErpItems`, `getInvoice`, `downloadInvoiceDocument`, `listInvoiceLines`, `getInvoiceHistory`, `getInvoiceEvidence`, `listCheckRuns`, `rerunChecks`, `getCheckRun`, `runAuthorityLookup`, `listAuthorityStatusLookups`, `listExceptions`, `getException`, `takeException`, `confirmLineMatch`, `correctFlow`, `confirmEntity`, `reportWrongEntity`, `confirmAiResults`, `rejectInvoice`, `sendForDecision`, `listFollowUps`, `confirmFollowUp`, `listCorrectionRequests`, `recordCorrectionReply`, `recordCancellationNotice`, `listCancellationNotices`, `downloadCancellationNotice`, `decideTaxRiskHold`, `decideIndividualApproval`, `withdrawInvoiceFromBatch`, `getPaymentRequest` |
+| SCR-14 Correction Request Draft | `listMessageTemplates`, `draftCorrectionRequest`, `listCorrectionRequests`, `getCorrectionRequest`, `updateCorrectionRequest`, `sendCorrectionRequest` |
+| SCR-15 Reject Invoice | `rejectInvoice` |
+| SCR-16 Tax-Risk Hold Decision | `getException`, `decideTaxRiskHold` |
+| SCR-18 Approve Exception Individually | `getException`, `decideIndividualApproval` |
+| SCR-19 Record Cancellation Notice | `recordCancellationNotice` |
+| SCR-20 Recurring Profiles | `listRecurringProfiles`, `getRecurringProfile`, `deactivateRecurringProfile` |
+| SCR-21 Recurring Profile Form | `listSuppliers`, `createRecurringProfile`, `getRecurringProfile`, `updateRecurringProfile` |
+| SCR-22 Acceptance Queue | `listAcceptanceQueue`, `decideServiceAcceptance` |
+| SCR-23 Confirm or Reject Acceptance | `getAcceptanceQueueItem`, `decideServiceAcceptance` |
+| SCR-24 Mailbox Log | `getMailboxStatus`, `listMailboxMessages`, `getMailboxMessage`, `startMailboxFetch`, `getMailboxFetchRun` |
+| SCR-30 Batch Review | `listInvoices`, `getInvoice`, `getCurrentBatch`, `listBatches`, `getBatch`, `listBatchItems`, `closeBatchForReview`, `getBatchSample`, `markSampleItem`, `expandSample`, `releaseBatch`, `reopenBatch`, `withdrawInvoiceFromBatch`, `listBatchRequests`, `listErpSendAttempts`, `resendToErp` |
+| SCR-31 Close Batch | `closeBatchForReview` |
+| SCR-32 Release Batch | `releaseBatch` |
+| SCR-33 Expand Sample | `getBatchSample`, `expandSample` |
+| SCR-34 Reopen for Review | `reopenBatch` |
+| SCR-40 Decision Queue | `getInvoice`, `getDecisionQueue`, `decideTaxRiskHold`, `decideIndividualApproval` |
+| SCR-50 Signing Queue | `listPaymentRequests`, `signPaymentRequests` |
+| SCR-51 Payment Request Detail | `listInvoices`, `getInvoice`, `getPaymentRequest`, `signPaymentRequests`, `removeRequestLine`, `declineRequest`, `listErpSendAttempts`, `resendToErp` |
+| SCR-52 Sign with Re-authentication | `getPaymentRequest`, `signPaymentRequests` |
+| SCR-53 Remove Line | `removeRequestLine` |
+| SCR-54 Decline Request | `declineRequest` |
+| SCR-55 Signing Delegations | `listDelegations`, `getDelegation`, `revokeDelegation` |
+| SCR-56 New Delegation | `createDelegation`, `listDelegateCandidates` |
+| SCR-57 Resend to ERP | `listErpSendAttempts`, `resendToErp` |
+| SCR-60 Dashboard | `listInvoices`, `getDashboard`, `listDashboardFigureInvoices`, `getGroupDashboard` |
+| SCR-61 Audit Log | `listAuditEntries`, `getAuditEntry` |
+| SCR-62 Notifications | `listNotifications`, `getUnreadNotificationCount`, `markNotificationRead` |
+| SCR-70 Users | `listUsers`, `getUser` |
+| SCR-71 User Form | `createUser`, `getUser`, `updateUser`, `listErpUsers` |
+| SCR-72 Deactivate User | `deactivateUser` |
+| SCR-73 Entity Policy | `getGroup`, `getEntityPolicy`, `updateEntityPolicy` |
+| SCR-74 Approval Matrix | `getApprovalMatrix`, `replaceApprovalMatrix` |
+| SCR-75 Group Overview | `listGates`, `getGroupOverview` |
+| SCR-76 Entities and Group Limits | `getGroup`, `updateGroupLimits`, `listSectors`, `addSector`, `removeSector`, `listEntities` |
+| SCR-77 Entity Form | `createEntity` |
+| SCR-78 Automation Gates | `listGates`, `getGate` |
+| SCR-79 Open or Close Gate | `getGate`, `openGate`, `closeGate` |
+| SCR-80 ERP Simulator | `getSimMasterData`, `listSimPurchaseOrders`, `createSimPurchaseOrder`, `getSimPurchaseOrder`, `listSimReceipts`, `confirmSimReceipt` |
+| SCR-81 Purchase Order Form | `getSimMasterData`, `createSimPurchaseOrder` |
+| SCR-82 Receipt or Acceptance Form | `getSimMasterData`, `getSimPurchaseOrder`, `confirmSimReceipt` |
 
-**Related:** [Step index](README.md) · [Sitemap](01-sitemap.md) · [Routes and permissions](02-routes-and-permissions.md) · [Master traceability](../traceability/master-traceability.md)
+**Related:** [Information architecture index](README.md) · [Sitemap](01-sitemap.md) · [Routes and permissions](02-routes-and-permissions.md) · [Master traceability](../traceability/master-traceability.md)

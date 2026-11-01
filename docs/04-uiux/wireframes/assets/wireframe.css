@@ -302,7 +302,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .center-page { display: grid; place-items: center; min-height: calc(100vh - 40px); padding: var(--s6); }
 .login-card { width: 100%; max-width: 400px; padding: var(--s6); display: grid; gap: var(--s4); }
 
-/* ---------- Responsive (Step 3: phone width works, approval on a phone is not a goal) ---------- */
+/* ---------- Responsive (Information architecture: phone width works, approval on a phone is not a goal) ---------- */
 @media (max-width: 1180px) {
   .split, .grid-2, .grid-3 { grid-template-columns: 1fr; }
 }
@@ -377,7 +377,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .modal, .modal-b > * { min-width: 0; } .modal-b div[aria-live] { min-width: 0; }
 
 /* =====================================================================
-   R1 layout patterns (UX redesign, draft for review). Old classes above stay working.
+   R1 layout patterns (UX redesign, approved). Old classes above stay working.
    P1 page header, P2 summary tiles, P3 view tabs, P4 toolbar, P5 compact table,
    P6 object page (stepper, attention card), P7 action panel, P8 disclosure,
    P9 drawer, P11 density.
@@ -635,7 +635,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .shot-card details.states .state-links { margin-top: var(--s2); max-height: 220px; overflow-y: auto; }
 
 /* =====================================================================
-   Mind map sync (D-88, Step 4 sync): notification bell and unread badge, notification list item,
+   Mind map sync (D-88, UI/UX sync): notification bell and unread badge, notification list item,
    "On behalf of" marker, authority-status tag, and source tag. Only existing tokens are used.
    ===================================================================== */
 .bell { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--line-2); border-radius: var(--r-control); background: var(--surface); color: var(--ink); font-size: var(--fs-sm); font-weight: 500; text-decoration: none; }

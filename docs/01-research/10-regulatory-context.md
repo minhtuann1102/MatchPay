@@ -1,6 +1,6 @@
 # Regulatory Context
 
-> Design status: MVP — Step 1 of 9, draft for review
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -56,4 +56,4 @@ The other pages the brief cites were opened and match the brief: the Ministry of
 | A public tax-portal API | Tax Department technical documentation |
 | A data-localisation rule for financial data | Official text of the relevant data laws and their implementing decrees |
 
-**Related:** [Step index](README.md) · [Decisions](00-decisions.md) · [Risks](06-risks.md)
+**Related:** [Research index](README.md) · [Decisions](00-decisions.md) · [Risks](06-risks.md)

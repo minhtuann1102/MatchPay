@@ -1,6 +1,6 @@
 # Actors and Use Cases
 
-> Design status: MVP — Step 2 of 9, draft for review
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -392,4 +392,4 @@ The MVP takes XML invoices only (BR-17). Foreign invoices, their tax duties, and
 | Rule Engine | UC-16 Evaluate batch conditions and route |
 | System | UC-07 Sync source data from ERP (with Entity ERP and the Invoice Status Lookup Service) · UC-20 Re-check follow-up invoice and close exception · UC-26 Send signed batch to ERP (with Entity ERP) · UC-31 Receive invoices by email (with Email Service) · UC-32 Create notifications and reminders |
 
-**Related:** [Step index](README.md)
+**Related:** [Requirements index](README.md)

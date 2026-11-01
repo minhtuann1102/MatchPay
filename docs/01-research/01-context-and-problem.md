@@ -1,6 +1,6 @@
 # Context and Problem
 
-> Design status: MVP — Step 1 of 9, draft for review
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -69,7 +69,7 @@ flowchart LR
     P["Problems P-01..P-04"]
     C["Capabilities"]
     M["Modules M-01..M-10"]
-    S2["Step 2: use cases, user stories, acceptance criteria, business rules"]
+    S2["Requirements: use cases, user stories, acceptance criteria, business rules"]
     BG --> P --> C --> M --> S2
 ```
 
@@ -80,6 +80,6 @@ flowchart LR
 | Pay the right entity and keep deductions | P-03 | Buyer check against the ordering entity; hold on risky sellers; duplicate and split-order detection | M-05, M-06, M-07, M-08 | G-02, G-03, G-04 |
 | Pay on time, under control | P-04 | Approval matrix per entity; batch of consolidated requests per supplier; sample check; separation of duties; audit log | M-01, M-02, M-09, M-10 | G-01, G-02, G-06 |
 
-The same chain, from problem to goal to module, is kept in the [problem traceability](../traceability/master-traceability.md) table that Step 2 completes down to use cases, stories, acceptance criteria, and business rules.
+The same chain, from problem to goal to module, is kept in the [problem traceability](../traceability/master-traceability.md) table that requirements completes down to use cases, stories, acceptance criteria, and business rules.
 
-**Related:** [Step index](README.md)
+**Related:** [Research index](README.md)

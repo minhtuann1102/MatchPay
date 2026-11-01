@@ -1,6 +1,6 @@
 # Primary User Flows
 
-> Design status: MVP — Step 3 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -334,4 +334,4 @@ flowchart TD
     classDef actor fill:none,stroke:none,color:#111
 ```
 
-**Related:** [Step index](README.md) · [Screen inventory](04-screen-inventory.md) · [UI states](06-ui-states-and-accessibility.md) · [Business rules](../requirements/business-rules.md)
+**Related:** [Information architecture index](README.md) · [Screen inventory](04-screen-inventory.md) · [UI states](06-ui-states-and-accessibility.md) · [Business rules](../requirements/business-rules.md)

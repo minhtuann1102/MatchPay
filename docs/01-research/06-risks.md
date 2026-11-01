@@ -1,10 +1,10 @@
 # Risks
 
-> Design status: MVP — Step 1 of 9, draft for review
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
-Likelihood (L) and impact (I) are rated High (H), Medium (M), or Low (L). Risks R-01..R-08 come from the brief; R-09..R-20 were added in this step from the business rules, the decisions for user review, and the research.
+Likelihood (L) and impact (I) are rated High (H), Medium (M), or Low (L). Risks R-01..R-08 come from the brief; R-09..R-20 were added in this document set from the business rules, the decisions for user review, and the research.
 
 | ID | Risk | L | I | Mitigation |
 |---|---|---|---|---|
@@ -18,10 +18,10 @@ Likelihood (L) and impact (I) are rated High (H), Medium (M), or Low (L). Risks 
 | R-08 | Many parts are simulated (ERP, digital certificates, risk list, card transactions). | M | M | The core is real; only the boundaries to outside systems are simulated, each with a connection point that can be replaced by a real one (A-07). |
 | R-09 | Prompt injection: text in an invoice (an item name, a note, any text inside the file) tries to steer the AI. | M | H | Document content is always data, never an instruction. LLM output must match a fixed schema or the invoice goes to an exception. An LLM result never admits an invoice by itself (BR-27). |
 | R-10 | The LLM is unavailable, slow, or costs more than planned. | M | M | An AI failure sends the invoice to an exception and never blocks intake. The mapping table and the signal-fusion model avoid LLM calls for known lines (G-07). Usage is logged per decision (BR-12). |
-| R-11 | Personal data reaches a foreign LLM provider. Supplier data includes sole traders and bank account holders. | M | H | The MVP uses synthetic data only (O-03). Law 91/2025/QH15 Art 20 requires a transfer impact assessment before real data goes to a foreign platform, and Art 37 requires a processor contract (L-17). The provider is chosen in Step 7. |
-| R-12 | The legal base moves: the e-invoice decree and circular were replaced on 2026-07-01, and the XML format version is uncertain. | H | M | The XML adapter reads the schema version from each file; accepted versions are configuration (D-18). Rules cite "the instrument in force" and keep the version in configuration. The official texts are to be read before Step 4 (O-09). |
-| R-13 | Invoice XML must be kept for 10 years, but the MVP only designs the policy. | L | M | Keep the original file unchanged with a hash and design the retention policy (D-22); implementation is a later step. |
-| R-14 | The signing model may not satisfy the law: a policy delegation may not replace signing each voucher, and one signature over a bundle may not satisfy the "approval of the data message" test. | M | H | Per-voucher signing stays (BR-20, O-05). One signature record per request, each over its own content (O-15). Legal sign-off is requested before Step 4. |
+| R-11 | Personal data reaches a foreign LLM provider. Supplier data includes sole traders and bank account holders. | M | H | The MVP uses synthetic data only (O-03). Law 91/2025/QH15 Art 20 requires a transfer impact assessment before real data goes to a foreign platform, and Art 37 requires a processor contract (L-17). The provider is chosen in the architecture. |
+| R-12 | The legal base moves: the e-invoice decree and circular were replaced on 2026-07-01, and the XML format version is uncertain. | H | M | The XML adapter reads the schema version from each file; accepted versions are configuration (D-18). Rules cite "the instrument in force" and keep the version in configuration. The official texts are to be read before the UI/UX (O-09). |
+| R-13 | Invoice XML must be kept for 10 years, but the MVP only designs the policy. | L | M | Keep the original file unchanged with a hash and design the retention policy (D-22); implementation comes later. |
+| R-14 | The signing model may not satisfy the law: a policy delegation may not replace signing each voucher, and one signature over a bundle may not satisfy the "approval of the data message" test. | M | H | Per-voucher signing stays (BR-20, O-05). One signature record per request, each over its own content (O-15). Legal sign-off is requested before the UI/UX. |
 | R-15 | Benchmarks are misread: the demo's touchless rate is compared with market figures built on other definitions. | M | M | Show a range with its source and definition and state that the demo is not comparable ([Goals and metrics](02-goals-and-metrics.md), D-20). |
 | R-16 | The "shared service" claim is weakened because every finance user belongs to one entity (D-13). | H | M | Say so plainly in the pitch. A person working across entities is Advanced. The shared part is the rules, the AI, and the group limits, not the people. |
 | R-17 | The tax-risk list is incomplete or stale, so a risky seller is missed. | M | H | The list is simulated and each entry carries a source and a date (D-21). A real list needs an official feed (O-10). The hold decision stays with the Chief Accountant (BR-08). |
@@ -29,4 +29,4 @@ Likelihood (L) and impact (I) are rated High (H), Medium (M), or Low (L). Risks 
 | R-19 | The market gap is only an assumption: an international or local product may already cover the flow. | M | H | The comparison is honest about the weak evidence ([Similar products](04-similar-products.md)). A written vendor questionnaire is the next step (O-14). |
 | R-20 | A payment is made in cash and the entity loses the VAT deduction (purchases of VND 5 million or more need a non-cash payment, L-12). | M | M | The signed batch is a non-cash transfer instruction by design (D-11, BR-35). The cash flag and the recording of the payment method (BR-32, D-25) were removed from the MVP by D-33 and are Advanced as W-21. **Residual risk in the MVP:** a payment made in cash outside the platform is neither detected nor flagged, and the platform cannot block it; the Chief Accountant stays responsible for the deduction. |
 
-**Related:** [Step index](README.md)
+**Related:** [Research index](README.md)
