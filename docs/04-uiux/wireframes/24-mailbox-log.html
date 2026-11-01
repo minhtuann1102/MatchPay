@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-24 Mailbox Log — MatchPay wireframe</title>
+  <link rel="stylesheet" href="assets/wireframe.css">
+</head>
+<body data-default-role="ap" data-nav="mailbox">
+
+<div class="wf-bar" role="note" aria-label="Wireframe controls">
+  <strong>Wireframe: SCR-24 Mailbox Log</strong>
+  <ul class="wf-roles" aria-label="Role">
+    <li><a href="24-mailbox-log.html?role=ap">AP Accountant: Mailbox</a></li>
+  </ul>
+  <ul class="wf-states" aria-label="State">
+    <li><a href="24-mailbox-log.html">default</a></li>
+    <li><a href="24-mailbox-log.html?state=loading">loading</a></li>
+    <li><a href="24-mailbox-log.html?state=empty">empty</a></li>
+    <li><a href="24-mailbox-log.html?state=fetching">fetching</a></li>
+    <li><a href="24-mailbox-log.html?state=fetch-failed">fetch-failed</a></li>
+    <li><a href="24-mailbox-log.html?state=server-error">server-error</a></li>
+  </ul>
+  <span>Sample data: fictional Calderwood Group</span>
+</div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="page">
+<header class="ph"><div class="ph-top"><div class="ph-title"><h1>Mailbox</h1></div><div class="ph-actions"><button class="btn btn-primary" type="button" data-hide="fetching"><svg class="i"><use href="#i-refresh"></use></svg>Fetch now</button><button class="btn btn-primary" type="button" aria-disabled="true" data-show="fetching"><span class="spin" style="border-color:#8a90a0;border-top-color:#fff"></span>Fetching...</button><span class="callout" aria-hidden="true">2</span></div></div><p class="ph-meta"><span class="mono">invoices-foods@calderwood.example</span><span class="sync" data-hide="empty"><svg class="i i-sm"><use href="#i-refresh"></use></svg>Last successful fetch: 31/10/2026 09:30</span><span class="callout" aria-hidden="true" data-hide="empty">1</span><span class="muted" data-hide="empty fetching">Read every 15 minutes</span></p></header>
+
+<div class="notice n-err" role="alert" data-show="server-error"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The log could not be loaded.</b><span>Try again.</span></div><button class="btn btn-sm" type="button">Retry</button></div>
+<div class="notice n-warn" role="alert" data-show="fetch-failed"><svg class="i"><use href="#i-alert"></use></svg><div class="grow"><b>The last fetch failed at 09:45: the mailbox did not answer.</b><span>The earlier messages stay below. The next scheduled fetch is at 10:00.</span></div><button class="btn btn-sm" type="button">Fetch now</button><span class="callout" aria-hidden="true">6</span></div>
+<div class="notice n-info" role="status" data-show="fetching"><svg class="i"><use href="#i-refresh"></use></svg><div class="grow"><b>Fetching new messages...</b><span>The log refreshes when the fetch ends. A message fetched before is not processed again.</span></div><span class="callout" aria-hidden="true">5</span></div>
+
+<div class="kpis" data-hide="loading empty server-error">
+  <div class="tile"><span class="t-lbl">Messages</span><span class="t-val">5</span><span class="t-sub">Last 48 hours</span></div>
+  <div class="tile"><span class="t-lbl">Invoices created</span><span class="t-val">3</span><span class="t-sub">Source: Email</span></div>
+  <div class="tile t-warn"><span class="t-lbl">Rejected attachments</span><span class="t-val">4</span><span class="t-sub">Each one names its reason</span></div>
+  <div class="tile"><span class="t-lbl">No attachment</span><span class="t-val">1</span><span class="t-sub">MSG-0416</span></div>
+</div>
+
+<section class="card tabgroup" aria-label="Mailbox log">
+  <div class="tabs in-card" role="tablist" aria-label="Saved views" data-filter data-hide="loading empty server-error">
+    <button class="tab" role="tab" type="button" data-tab="all" aria-selected="true">All <span class="pill">8</span></button>
+    <button class="tab" role="tab" type="button" data-tab="accepted" aria-selected="false">Accepted <span class="pill">3</span></button>
+    <button class="tab" role="tab" type="button" data-tab="rejected" aria-selected="false">Rejected <span class="pill p-warn">4</span></button>
+    <button class="tab" role="tab" type="button" data-tab="none" aria-selected="false">No attachment <span class="pill">1</span></button><span class="callout" aria-hidden="true" style="align-self:center">4</span>
+  </div>
+  <div class="toolbar" data-hide="loading empty server-error">
+    <div class="search"><svg class="i i-sm"><use href="#i-search"></use></svg><input class="input" type="search" placeholder="Search sender, message, or file" aria-label="Search"></div>
+    <span class="grow"></span>
+    <span class="muted small">Showing <span data-count>8</span> of <span data-total>8</span> attachments in 5 messages</span>
+  </div>
+  <div class="card-b" data-show="loading"><div class="stack"><span class="sk" style="width:100%"></span><span class="sk" style="width:92%"></span><span class="sk" style="width:96%"></span><span class="sk" style="width:88%"></span></div><p class="xs muted" style="margin-top:12px">Loading the log...</p></div>
+  <div class="empty" data-show="empty"><span class="empty-icon"><svg class="i"><use href="#i-mail"></use></svg></span><h2>No messages have been fetched yet</h2><p>Invoices sent to invoices-foods@calderwood.example appear here after a fetch.</p><button class="btn btn-primary" type="button"><svg class="i"><use href="#i-refresh"></use></svg>Fetch now</button></div>
+  <div data-hide="loading empty server-error">
+    <div class="tbl-wrap">
+      <table class="tbl compact">
+        <thead><tr><th>Message</th><th>Received</th><th>Attachment</th><th>Result<span class="callout" aria-hidden="true">3</span></th><th>Invoice or reason</th></tr></thead>
+        <tbody>
+          <tr data-view="accepted all"><td data-l="Message"><span class="mono">MSG-0418</span><span class="sub" title="billing@brightfield.example">Brightfield Paper Ltd</span></td><td data-l="Received">31/10/2026 09:30</td><td data-l="Attachment"><span class="mono">inv-C26TAA-0000174.xml</span></td><td data-l="Result"><span class="chip c-ok">Accepted</span></td><td class="wrap" data-l="Invoice or reason"><a href="10-invoice-worklist.html">C26TAA-0000174</a><span class="sub">Source: Email</span></td></tr>
+          <tr data-view="rejected all"><td data-l="Message"><span class="mono">MSG-0418</span><span class="sub" title="billing@brightfield.example">Brightfield Paper Ltd</span></td><td data-l="Received">31/10/2026 09:30</td><td data-l="Attachment"><span class="mono">statement-oct.pdf</span></td><td data-l="Result"><span class="chip c-bad">Rejected</span></td><td class="wrap" data-l="Invoice or reason"><span>Only XML e-invoices are accepted in the MVP</span></td></tr>
+          <tr data-view="rejected all"><td data-l="Message"><span class="mono">MSG-0417</span><span class="sub" title="accounts@harborcartons.example">Harbor Cartons Ltd</span></td><td data-l="Received">31/10/2026 09:15</td><td data-l="Attachment"><span class="mono">inv-C26TAA-0000098.xml</span></td><td data-l="Result"><span class="chip c-bad">Rejected</span></td><td class="wrap" data-l="Invoice or reason"><span>An invoice with this seller, series, and number already exists</span></td></tr>
+          <tr data-view="none all"><td data-l="Message"><span class="mono">MSG-0416</span><span class="sub" title="noreply@sunrise-utility.example">Sunrise Electric Utility</span></td><td data-l="Received">31/10/2026 09:00</td><td data-l="Attachment"><span class="muted">None</span></td><td data-l="Result"><span class="chip c-end">No attachment</span></td><td class="wrap" data-l="Invoice or reason"><span>The message has no attachment. No invoice is created.</span></td></tr>
+          <tr data-view="rejected all"><td data-l="Message"><span class="mono">MSG-0415</span><span class="sub" title="sales@eastbay.example">Eastbay Trading</span></td><td data-l="Received">30/10/2026 16:40</td><td data-l="Attachment"><span class="mono">inv-EB-2026-0311.xml</span></td><td data-l="Result"><span class="chip c-bad">Rejected</span></td><td class="wrap" data-l="Invoice or reason"><span>Buyer tax code does not match this entity</span></td></tr>
+          <tr data-view="accepted all"><td data-l="Message"><span class="mono">MSG-0414</span><span class="sub" title="billing@clouddesk.example">CloudDesk Software Ltd</span></td><td data-l="Received">30/10/2026 14:10</td><td data-l="Attachment"><span class="mono">inv-C26TAA-0000168.xml</span></td><td data-l="Result"><span class="chip c-ok">Accepted</span></td><td class="wrap" data-l="Invoice or reason"><a href="10-invoice-worklist.html">C26TAA-0000168</a><span class="sub">Source: Email</span></td></tr>
+          <tr data-view="accepted all"><td data-l="Message"><span class="mono">MSG-0414</span><span class="sub" title="billing@clouddesk.example">CloudDesk Software Ltd</span></td><td data-l="Received">30/10/2026 14:10</td><td data-l="Attachment"><span class="mono">inv-C26TAA-0000169.xml</span></td><td data-l="Result"><span class="chip c-ok">Accepted</span></td><td class="wrap" data-l="Invoice or reason"><a href="10-invoice-worklist.html">C26TAA-0000169</a><span class="sub">Source: Email</span></td></tr>
+          <tr data-view="rejected all"><td data-l="Message"><span class="mono">MSG-0414</span><span class="sub" title="billing@clouddesk.example">CloudDesk Software Ltd</span></td><td data-l="Received">30/10/2026 14:10</td><td data-l="Attachment"><span class="mono">inv-C26TAA-0000170.xml</span></td><td data-l="Result"><span class="chip c-bad">Rejected</span></td><td class="wrap" data-l="Invoice or reason"><span>The file is not a readable XML invoice</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tbl-foot"><span>Newest first. A message fetched before is not processed again.</span><span class="pagin" aria-label="Pagination"><button class="btn btn-sm" type="button" aria-disabled="true" aria-label="Previous page"><svg class="i i-sm" style="transform:rotate(180deg)"><use href="#i-chevronr"></use></svg></button><button class="btn btn-sm cur" type="button" aria-current="page">1</button><button class="btn btn-sm" type="button" aria-disabled="true" aria-label="Next page"><svg class="i i-sm"><use href="#i-chevronr"></use></svg></button></span></div>
+  </div>
+</section>
+    </main>
+  </div>
+</div>
+
+<script src="assets/icons.js"></script>
+<script src="assets/states.js"></script>
+</body>
+</html>

@@ -43,20 +43,26 @@ print('\n== CHECK 2: ID checks ==')
 # D-33 removed foreign invoices and the cash flag: UC/US 11 and 22 stay as "Removed (D-33)" entries and are never reused.
 REMOVED_N = (11, 22)
 RM = 'Removed (D-33)'
-UC_ALL = ['UC-%02d' % n for n in range(1, 29)]
-US_ALL = ['US-%02d' % n for n in range(1, 29)]
+UC_ALL = ['UC-%02d' % n for n in range(1, 33)]
+US_ALL = ['US-%02d' % n for n in range(1, 33)]
 UC = [u for u in UC_ALL if int(u[3:]) not in REMOVED_N]
 US = [u for u in US_ALL if int(u[3:]) not in REMOVED_N]
 UC_REMOVED = [u for u in UC_ALL if u not in UC]
 US_REMOVED = [u for u in US_ALL if u not in US]
 N_ACTIVE = len(US)
-N_MUST, N_SHOULD = 20, 6
+# D-88 (sync to the feature mind map) added UC-29..UC-32 and US-29..US-32, all Should. Steps 3, 4, and 5 are synced, so their Screen and Database cells are filled like those of every other story.
+NEW_STORIES = ['US-29', 'US-30', 'US-31', 'US-32']
+US_S3 = list(US)  # the stories Step 3 covers: every active story
+N_S3 = len(US_S3)
+US_DB = list(US)  # the stories Step 5 covers: every active story
+N_DB = len(US_DB)
+N_MUST, N_SHOULD = 20, 10
 W_MAX = 21
-D_MAX = 72  # D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
-DF_MAX = 60  # DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
+D_MAX = 129  # D-118..D-129 are the Step 5 calls of the mind map sync; D-108..D-117 are the Step 4 calls of the mind map sync; D-100..D-107 are the Step 3 calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the Step 4 R1 redesign; D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
+DF_MAX = 82  # DF-77..DF-82 are the Step 5 defaults of the mind map sync; DF-73..DF-76 are the Step 4 defaults of the mind map sync; DF-69..DF-72 are the Step 3 defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
-BR = ['BR-%02d' % n for n in range(1, 38)]
+BR = ['BR-%02d' % n for n in range(1, 40)]
 uc_file = text['docs/02-usecases-userstories/01-use-cases.md']
 spec = text['docs/02-usecases-userstories/02-use-case-specifications.md']
 inv = text['docs/02-usecases-userstories/03-user-stories-invest.md']
@@ -172,7 +178,7 @@ if uc_match: fail('UC mismatch')
 defined = {}
 for m in re.finditer(r'^## (BR-\d\d) — (.+)$', brf, re.M): defined[m.group(1)] = m.group(2)
 undefined = [b for b in BR if b not in defined]
-print('  BR-01..BR-37 defined in business-rules.md: %s' % ('all 37 defined' if not undefined else 'MISSING ' + str(undefined)))
+print('  BR-01..BR-39 defined in business-rules.md: %s' % ('all 39 defined' if not undefined else 'MISSING ' + str(undefined)))
 if undefined: fail('BR undefined')
 parts = re.split(r'^## (BR-\d\d) — .+$', brf, flags=re.M)
 blocks = {parts[i]: parts[i + 1] for i in range(1, len(parts), 2)}
@@ -355,12 +361,12 @@ defs, refs = {}, {}
 for f, t in text.items():
     t2 = re.sub(r'https?://\S+', '', t)
     t2 = re.sub(r'\bSCR-\d\d\b', 'SCR', t2)  # screen IDs have their own family and check (CHECK 6)
-    for m in re.finditer(r'^\|\s*\*{0,2}((?:D|O|R|L|A|M|W|F|G|P|DF|ES|TS)-\d\d)\*{0,2}\s*\|', t2, re.M): defs.setdefault(m.group(1), set()).add(f)
-    for m in re.finditer(r'\b((?:D|O|R|L|A|M|W|F|G|P|DF|ES|TS)-\d\d)\b', t2): refs.setdefault(m.group(1), set()).add(f)
+    for m in re.finditer(r'^\|\s*\*{0,2}((?:D|O|R|L|A|M|W|F|G|P|DF|ES|TS)-\d\d\d?)\*{0,2}\s*\|', t2, re.M): defs.setdefault(m.group(1), set()).add(f)
+    for m in re.finditer(r'\b((?:D|O|R|L|A|M|W|F|G|P|DF|ES|TS)-\d\d\d?)\b', t2): refs.setdefault(m.group(1), set()).add(f)
 undef = sorted(k for k in refs if k not in defs)
 print('  IDs defined as table rows: %d; IDs referenced: %d; referenced but not defined as a table row: %s' % (len(defs), len(refs), undef))
 if undef: fail('IDs referenced but undefined')
-for prefix, lo, hi in [('D', 1, D_MAX), ('O', 1, 16), ('DF', 1, DF_MAX)]:
+for prefix, lo, hi in [('D', 1, D_MAX), ('O', 1, 17), ('DF', 1, DF_MAX)]:
     miss = ['%s-%02d' % (prefix, n) for n in range(lo, hi + 1) if '%s-%02d' % (prefix, n) not in defs]
     print('  %s-%02d..%s-%02d all defined: %s' % (prefix, lo, prefix, hi, 'yes' if not miss else miss))
     if miss: fail(prefix + ' gap')
@@ -645,7 +651,8 @@ else:
     print('  active screens in the inventory: %d (%d pages, %d modals); removed rows: %s; duplicate rows: %s' % (
         len(scr), sum(1 for v in scr.values() if v['page']), sum(1 for v in scr.values() if v['modal']), sorted(scr_removed), dup_scr or 'none'))
     if dup_scr: fail('duplicate SCR rows')
-    if len(scr) != 35 or sorted(scr_removed) != ['SCR-13', 'SCR-17']: fail('expected 35 active screens and the removed rows SCR-13 and SCR-17')
+    n_pages_, n_modals_ = sum(1 for v in scr.values() if v['page']), sum(1 for v in scr.values() if v['modal'])
+    if (len(scr), n_pages_, n_modals_) != (45, 22, 23) or sorted(scr_removed) != ['SCR-13', 'SCR-17']: fail('expected 45 active screens (22 pages, 23 modals) and the removed rows SCR-13 and SCR-17')
     undefined_scr = sorted({(f, x) for f, t in text.items() for x in re.findall(r'\bSCR-\d\d\b', t) if x not in scr and x not in scr_removed})
     # a removed screen may be named only on a line that says it is removed (D-33), never live
     live_removed = sorted({(f, x) for f, t in text.items() for l in t.split('\n') for x in re.findall(r'\bSCR-\d\d\b', l)
@@ -672,12 +679,12 @@ else:
             if m.group(2).strip() != RM: fail('mapping row of removed %s must read exactly "%s"' % (key, RM))
             map_removed.append(key); continue
         mapping[key] = sorted(set(re.findall(r'SCR-\d\d', m.group(2))))
-    miss_map = [u for u in US if u not in mapping]
+    miss_map = [u for u in US_S3 if u not in mapping]
     empty_map = [u for u, v in mapping.items() if not v]
     unknown_map = sorted({x for v in mapping.values() for x in v if x not in scr})
     print('  active stories with exactly one mapping row: %d of %d (removed rows %s); duplicates %s; missing %s; rows with no screen %s; unknown screens %s' % (
-        len(mapping), N_ACTIVE, map_removed, dup_map or 'none', miss_map or 'none', empty_map or 'none', unknown_map or 'none'))
-    if dup_map or miss_map or empty_map or unknown_map or len(mapping) != N_ACTIVE or sorted(map_removed) != US_REMOVED: fail('requirement-to-screen mapping')
+        len(mapping), N_S3, map_removed, dup_map or 'none', miss_map or 'none', empty_map or 'none', unknown_map or 'none'))
+    if dup_map or miss_map or empty_map or unknown_map or len(mapping) != N_S3 or sorted(map_removed) != US_REMOVED: fail('requirement-to-screen mapping')
     rev = {}
     for u, v in mapping.items():
         for x in v: rev.setdefault(x, set()).add(u)
@@ -694,7 +701,7 @@ else:
         m = re.match(r'^\| (US-\d\d) \| UC-\d\d \| [^|]+ \| [^|]+ \| ([^|]+) \|', l)
         if m: tr_screen[m.group(1)] = sorted(set(re.findall(r'SCR-\d\d', m.group(2)))), m.group(2).strip()
     tbd3 = [u for u, (_, raw) in tr_screen.items() if 'TBD' in raw]
-    tr_bad = [u for u in US if u in tr_screen and tr_screen[u][0] != mapping.get(u)]
+    tr_bad = [u for u in US_S3 if u in tr_screen and tr_screen[u][0] != mapping.get(u)]
     tr_bad += [u for u in US_REMOVED if tr_screen.get(u, (None, ''))[1] != RM]
     print('  traceability rows with a TBD Screen cell: %s; rows whose SCR set differs from the mapping: %s' % (tbd3 or 'none', tr_bad or 'none'))
     if tbd3 or tr_bad or len(tr_screen) != len(US_ALL) or 'TBD (Step 3)' in trace: fail('traceability Screen column')
@@ -718,20 +725,20 @@ else:
     for r_, sid in route_rows: route_of.setdefault(sid, []).append(r_)
     perm_sec = section(routes3, '## Page permissions', '\n## Behaviour when access is missing')
     perm = {}
-    roles6 = ['AP Accountant', 'Chief Accountant', 'Payment Approver', 'Entity Admin', 'Group Admin', 'Demo Operator']
+    roles7 = ['AP Accountant', 'Chief Accountant', 'Payment Approver', 'Requesting Department', 'Entity Admin', 'Group Admin', 'Demo Operator']
     for l in perm_sec.split('\n'):
         m = re.match(r'^\| (SCR-\d\d) [^|]*\|(.+)\|\s*$', l)
         if m:
             cells = [c.strip() for c in m.group(2).split('|')]
-            if len(cells) != 6: fail('permission row %s has %d role cells' % (m.group(1), len(cells))); continue
-            perm[m.group(1)] = dict(zip(roles6, cells))
+            if len(cells) != 7: fail('permission row %s has %d role cells' % (m.group(1), len(cells))); continue
+            perm[m.group(1)] = dict(zip(roles7, cells))
     pages = [k for k, v in scr.items() if v['page']]
     no_route = [k for k in pages if len(route_of.get(k, [])) != 1]
     modal_route = [k for k, v in scr.items() if v['modal'] and k in route_of]
     no_perm = [k for k in pages if k not in perm]
     extra_perm = [k for k in perm if k not in pages]
-    hdr_ok = all(('| ' + r_ + ' ') in perm_sec for r_ in roles6)
-    print('  pages without exactly one route: %s; modals with a route: %s; pages without a permission row: %s; permission rows for non-pages: %s; six role columns: %s' % (
+    hdr_ok = all(('| ' + r_ + ' ') in perm_sec for r_ in roles7)
+    print('  pages without exactly one route: %s; modals with a route: %s; pages without a permission row: %s; permission rows for non-pages: %s; seven role columns: %s' % (
         no_route or 'none', modal_route or 'none', no_perm or 'none', extra_perm or 'none', hdr_ok))
     if no_route or modal_route or no_perm or extra_perm or not hdr_ok: fail('routes or permission table')
     sm_blocks = re.findall(r'```mermaid\n(flowchart TB.*?)```', sitemap3, re.S)
@@ -739,7 +746,7 @@ else:
     if len(sm_blocks) != 2: fail('sitemap must have two diagrams (finance roles; administration and demo)')
     node_scr = {}; card_text = {}; dup_in_one = []; area_of_node = {}
     dashed = set(); solid = set()
-    role_node = {'ap': 'AP Accountant', 'ca': 'Chief Accountant', 'pa': 'Payment Approver', 'entityAdmin': 'Entity Admin', 'groupAdmin': 'Group Admin', 'demo': 'Demo Operator'}
+    role_node = {'ap': 'AP Accountant', 'ca': 'Chief Accountant', 'pa': 'Payment Approver', 'rd': 'Requesting Department', 'entityAdmin': 'Entity Admin', 'groupAdmin': 'Group Admin', 'demo': 'Demo Operator'}
     actors_seen = []
     for sm in sm_blocks:
         local = {}
@@ -767,13 +774,13 @@ else:
     n_actors = sorted(a_ for l_ in actors_seen for a_ in l_)
     print('  sitemap cards: %d; page screens missing as cards or cards that are not pages: %s; duplicate cards inside one diagram: %s; cards with different content in two diagrams: %s; actors per diagram: %s' % (
         len(cards), card_bad or 'none', dup_in_one or 'none', diff_content or 'none', [len(l_) for l_ in actors_seen]))
-    if card_bad or dup_in_one or diff_content or [len(l_) for l_ in actors_seen] != [3, 3] or sorted(role_node) != n_actors: fail('sitemap cards or actors')
+    if card_bad or dup_in_one or diff_content or [len(l_) for l_ in actors_seen] != [4, 3] or sorted(role_node) != n_actors: fail('sitemap cards or actors')
     areas = {a for a in area_of_node.values()}
     expected = set()
     for sid in cards:
         node = [n for n, x in node_scr.items() if x == sid][0]
         if node not in area_of_node: fail('card %s is in no area' % sid); continue
-        for r_ in roles6:
+        for r_ in roles7:
             if sid in perm and perm[sid][r_] != '—': expected.add((r_, area_of_node[node]))
     f_bad = sorted(dashed ^ expected)
     unknown_area = sorted({b for _, b in dashed if b not in areas})
@@ -786,7 +793,7 @@ else:
     spr = section(sitemap3, '## Screens per role', '\n**Related:**')
     spr_bad = []
     for l in spr.split('\n'):
-        m = re.match(r'^\| (AP Accountant|Chief Accountant|Payment Approver|Entity Admin|Group Admin|Demo Operator) \| ([^|]*)\| ([^|]*)\| ([^|]*)\|', l)
+        m = re.match(r'^\| (AP Accountant|Chief Accountant|Payment Approver|Requesting Department|Entity Admin|Group Admin|Demo Operator) \| ([^|]*)\| ([^|]*)\| ([^|]*)\|', l)
         if m:
             got = set(re.findall(r'SCR-\d\d', m.group(3)))
             want = {sid for sid in perm if sid != 'SCR-90' and perm[sid][m.group(1)] != '—'}
@@ -809,7 +816,7 @@ else:
                     ok = True; break
         memo[k] = ok
         return ok
-    g_bad = [u for u in US if prio[u] == 'Must' and not any(reach(k) for k in mapping[u])]
+    g_bad = [u for u in US_S3 if prio[u] == 'Must' and not any(reach(k) for k in mapping[u])]
     g_screens = sorted(k for k in scr if not reach(k))
     print('  Must stories with no screen reachable through Must-used screens only: %s' % (g_bad or 'none'))
     print('  screens used only by Should stories or reached only through them (informational):', g_screens or 'none')
@@ -842,10 +849,21 @@ else:
         r_ = row(dec3, i_)
         if not r_: st_bad.append((i_, 'missing')); continue
         st = r_.strip().strip('|').split('|')[-1].strip()
-        if not (st == 'Approved with Step 3 (user, 2026-10-31)' or st.startswith('Awaiting user review')): st_bad.append((i_, st))
+        if not (st == 'Approved with Step 3 (user, 2026-10-31)' or st.startswith('Awaiting user review') or st.startswith('Superseded by ')): st_bad.append((i_, st))
+    # D-88 sync: D-41 and DF-40 are superseded, not deleted; D-100..D-107 and DF-69..DF-72 are calls awaiting review
+    for old_, new_ in (('D-41', 'D-100'), ('DF-40', 'DF-69')):
+        if ('Superseded by %s (mind map sync)' % new_) not in row(dec3, old_): st_bad.append((old_, 'not marked superseded by ' + new_))
+    for i_ in ['D-%d' % n for n in range(100, 108)] + ['DF-%d' % n for n in range(69, 73)]:
+        r_ = row(dec3, i_)
+        if not r_ or r_.strip().strip('|').split('|')[-1].strip() != 'Call, awaiting user review': st_bad.append((i_, 'missing or not "Call, awaiting user review"'))
+    if 'Changes made to Step 3 for the mind map sync (D-88)' not in dec3: st_bad.append(('section', 'Changes made to Step 3 for the mind map sync (D-88) missing'))
+    nav3 = text[IA + '03-navigation.md']
+    if 'There are no notification centre' in nav3 or 'SCR-62' not in nav3 or 'reverses D-41' not in nav3: st_bad.append(('03-navigation.md', 'notification section not reversed'))
+    stale3 = [(f_, w_) for f_ in IA_FILES for w_ in ('six roles', 'Six actors', 'six actors', '35 active', '18 pages', '17 modals', 'Four flows', 'four primary user flows') if w_ in text[IA + f_] and not re.search(w_ + r'[^\n]*(D-33|become|was|were|earlier)', text[IA + f_])]
+    if stale3: st_bad.append(('stale counts after the sync', stale3))
     d33_in_ia = row(dec3, 'D-33')
     print('  Step 3 decisions D-34..D-41 and defaults DF-34..DF-44 present with a valid status; D-33 not redefined in Step 3: %s' % (
-        'yes' if not st_bad and not d33_in_ia else (st_bad, d33_in_ia)))
+        'yes' if not st_bad and not d33_in_ia else str((st_bad, d33_in_ia))))
     if st_bad or d33_in_ia: fail('Step 3 decision rows')
     # (j) nothing live in Step 3 depends on a removed item
     rm_ids = r'\b(BR-21|BR-32|DF-04|DF-26|D-25|D-32|UC-11|UC-22|US-11|US-22|AC-11\.\d+|AC-22\.\d+)\b'
@@ -865,7 +883,7 @@ else:
 fl_blocks = re.findall(r'```mermaid\n(.*?)```', text['docs/03-information-architecture/05-user-flows.md'], re.S)
 fl_bad = [i_ for i_, b_ in enumerate(fl_blocks) if not re.search(r"<span style='font-size:40px'>👤</span><br/><b>[^<]+</b>\"\]:::actor", b_) or 'classDef actor' not in b_]
 print('  user flows: %d; flows without an actor node with the person icon: %s' % (len(fl_blocks), fl_bad or 'none'))
-if fl_bad or len(fl_blocks) != 4: fail('user flow actor nodes')
+if fl_bad or len(fl_blocks) != 7: fail('user flow actor nodes (7 flows expected)')
 print('\n== CHECK 7: Step 4 wireframes (HTML, CSS, JS, PNG) ==')
 UX = 'docs/04-uiux/'
 WF = ROOT + '/' + UX + 'wireframes/'
@@ -928,8 +946,8 @@ for f_, t_ in text.items():
 print('  PNG and HTML links in Markdown checked: %d; broken: %s' % (n_links, broken or 'none'))
 if broken: fail('broken PNG or HTML link')
 imgs = sorted(rel(os.path.join(dp, f_)) for dp, dn, fn in os.walk(ROOT + '/docs/images') for f_ in fn if f_.endswith('.png')) if os.path.isdir(ROOT + '/docs/images') else []
-role_dirs = {'common', 'ap-accountant', 'chief-accountant', 'payment-approver', 'entity-admin', 'group-admin', 'demo-operator'}
-bad_dirs = [i_ for i_ in imgs if i_.split('/')[2] not in role_dirs]
+role_dirs = {'common', 'ap-accountant', 'chief-accountant', 'payment-approver', 'entity-admin', 'group-admin', 'demo-operator', 'requesting-department'}
+bad_dirs = [i_ for i_ in imgs if i_.split('/')[2] not in role_dirs and not i_.startswith('docs/images/source/')]  # docs/images/source/ holds source images, not wireframe exports
 big = sum(os.path.getsize(ROOT + '/' + i_) for i_ in imgs)
 print('  PNG exports: %d, %.1f MB; outside the role folders: %s' % (len(imgs), big / 1e6, bad_dirs or 'none'))
 if bad_dirs or big > 15e6: fail('PNG folders or size')
@@ -1071,7 +1089,7 @@ else:
     if no_ent or bad_grp or ent_ref: fail('entity_id coverage')
     # (f) every identifier column and every who-column has a ref
     ref_cols = {(r_[0], r_[1]) for r_ in db_refs}
-    SOFT = {('audit_log', 'subject_id'), ('request_signatures', 'signing_action_id'), ('audit_log', 'correlation_id'), ('individual_approvals', 'decision_action_id')}
+    SOFT = {('audit_log', 'subject_id'), ('request_signatures', 'signing_action_id'), ('audit_log', 'correlation_id'), ('individual_approvals', 'decision_action_id'), ('notifications', 'object_id')}
     no_fk = [(n_, c_) for n_, d_ in db_tables.items() for c_ in d_['cols'] if c_ != 'id' and (c_.endswith('_id') or c_.endswith('_by')) and (n_, c_) not in ref_cols and (n_, c_) not in SOFT]
     print('  columns that end in _id or _by without a ref (allowed: %s): %s' % (sorted(SOFT), no_fk or 'none'))
     if no_fk: fail('identifier column without ref')
@@ -1145,8 +1163,8 @@ else:
         if 'TBD' in dbc_ or not names_ or names_ == ['']: tr_bad.append((m_.group(1), 'TBD or empty'))
         unk_ = [x_ for x_ in names_ if x_ not in db_tables]
         if unk_: tr_bad.append((m_.group(1), 'unknown table ' + str(unk_)))
-    print('  active stories with a Database cell of existing tables (%d expected): %d; problems: %s' % (N_ACTIVE, tr_cnt, tr_bad or 'none'))
-    if tr_cnt != N_ACTIVE or tr_bad: fail('traceability Database column')
+    print('  active stories with a Database cell of existing tables (%d expected): %d; problems: %s' % (N_DB, tr_cnt, tr_bad or 'none'))
+    if tr_cnt != N_DB or tr_bad: fail('traceability Database column')
     dm_ = text[DB + '01-data-model.md']
     dm_sec = dm_[dm_.index('## Stories and their tables'):dm_.index('## Not modelled')]
     dm_rows = {m_.group(1): re.findall(r'`(\w+)`', m_.group(2)) for m_ in re.finditer(r'^\| (US-\d\d) \| (.*) \|$', dm_sec, re.M)}
@@ -1200,6 +1218,43 @@ else:
                     if int(m_.group(1)) != n_: cnt_bad.append((f_, m_.group(0)))
     print('  counts of tables, enums, and foreign keys in the prose that differ from the DBML: %s' % (cnt_bad or 'none'))
     if cnt_bad: fail('table count in prose')
+
+print('\n== CHECK 9: sync to the feature mind map (D-88) ==')
+dec2_ = text['docs/02-usecases-userstories/00-decisions.md']
+dec1_ = text['docs/01-research/00-decisions.md']
+s9 = []
+d88 = row(dec2_, 'D-88')
+if 'User decision, 2026-11-01' not in d88: s9.append('D-88 must be a row with the source "User decision, 2026-11-01"')
+for i_ in ['D-%d' % n_ for n_ in range(89, 100)]:
+    r_ = row(dec2_, i_)
+    if not r_ or not r_.strip().strip('|').split('|')[-1].strip() == 'Call, awaiting user review': s9.append('%s must be a row ending in "Call, awaiting user review"' % i_)
+for i_ in ['DF-%d' % n_ for n_ in range(61, 69)]:
+    if not row(dec2_, i_): s9.append(i_ + ' missing')
+if 'D-88' not in dec2_[dec2_.index('## Sync to the feature mind map'):]: s9.append('sync section missing')
+fu_ = dec2_[dec2_.index('### Follow-up in Steps 3 to 5'):]
+for w_ in ('D-41', 'Requesting Department', 'REQUESTING_DEPARTMENT', 'Wireframes'):
+    if w_ not in fu_: s9.append('follow-up table does not mention ' + w_)
+# the new stories are Should and no Must depends on them
+for u_ in NEW_STORIES:
+    if rows_b[u_][1] != 'Should': s9.append(u_ + ' is not Should')
+    if any(u_ in deps_ for s_, (deps_, p_) in rows_b.items() if p_ == 'Must'): s9.append('a Must story depends on ' + u_)
+# new rules, transitions, and open item
+for b_ in ('BR-38', 'BR-39'):
+    if b_ not in defined: s9.append(b_ + ' not defined')
+for tag_, blk_ in (('V20', 'BR-33'), ('V21', 'BR-33'), ('B7', 'BR-35'), ('R9', 'BR-35')):
+    if not re.search(r'^\| %s \|' % tag_, blocks[blk_], re.M): s9.append('%s missing in %s' % (tag_, blk_))
+if not row(dec1_, 'O-17'): s9.append('O-17 missing')
+# BR-36 carries the self-signing rule and the D-89 exception for the tax-risk decision
+if 'processed' not in blocks['BR-36'] or 'tax-risk' not in blocks['BR-36']: s9.append('BR-36 lacks the "processed" rule or the tax-risk exception')
+# W-05 and W-13 are reworded, not removed
+for w_, kw_ in (('W-05', 'portal'), ('W-13', 'connection point')):
+    if kw_ not in wrow[w_] or kw_ not in [l for l in fw.split('\n') if l.startswith('| %s |' % w_)][0]: s9.append(w_ + ' not reworded')
+# Requesting Department is a column of the matrix and an actor
+if 'Requesting Department' not in matrix.split('\n| UC-01')[0]: s9.append('matrix has no Requesting Department column')
+# no pending marker is left in the matrix: every sync step is done
+if re.search(r'Pending \(Step', trace): s9.append('a Pending (Step n sync) marker is still in the matrix')
+print('  D-88 user decision, D-89..D-99 calls, DF-61..DF-68, BR-38, BR-39, V20, V21, B7, R9, O-17, W-05 and W-13 reworded, no pending marker left in the matrix:', 'yes' if not s9 else s9)
+if s9: fail('mind map sync checks')
 
 print('\n== CHECK: README Mermaid blocks match their source documents ==')
 _src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None, 'docs/05-database/02-er-diagram.md': None}

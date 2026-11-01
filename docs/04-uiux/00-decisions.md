@@ -116,3 +116,52 @@ These are choices the worker made alone, not requests of the user. They await th
 | D-87 | **The PNGs show the default tab of their page.** All 81 PNGs are exported without `?tab=`: in each state the subject of the PNG is on the default tab (checked on `ai-failure`, `in-batch`, `paid`, and `foreign` of SCR-12: the Overview holds the attention card, the batch note, or the signature records). `?tab=<id>` is still available for a reviewer or a later export. The state with the most height is `conflict` of SCR-12 at 1093 px. | A PNG of the Overview shows what a reader sees first, and the folded content is named in its pills ("Checks 5 not evaluated"). | Call, awaiting user review |
 
 **Related:** [Step index](README.md)
+
+## Mind map sync (D-88, draft for review)
+
+The user asked for the project to follow the feature mind map (D-88, recorded in [Step 2](../02-usecases-userstories/00-decisions.md)). Step 3 added ten screens (SCR-19, SCR-22, SCR-23, SCR-24, SCR-33, SCR-34, SCR-55, SCR-56, SCR-57, SCR-62). This pass draws them and updates the six pages that gained states. The user's instruction was to finish the whole sync. Every row below is a call of the worker, not a decision of the user, and awaits review.
+
+The new numbers continue after D-107 and DF-72. Approved text above is unchanged.
+
+### Calls made while syncing
+
+| ID | Call | Why | Status |
+|---|---|---|---|
+| D-108 | **A seventh role key `dept` (Requesting Department).** Its home page is SCR-22 (the acceptance queue), its sidebar has one item ("Acceptance queue") with a count badge, and it has no notification bell. The persona is Rowan. PNGs go in a new folder `docs/images/requesting-department/`. SCR-90 also lists `dept`. | The role has one page (Step 3). D-46 names six folders, so a seventh folder keeps the rule "one folder per role". | Call, awaiting user review |
+| D-109 | **Notification list item** as a component (`.notif`): a mark, a kind tag, one bold line, one line of detail, the time, and a link. Unread rows are marked by a filled dot and a light wash. Read rows use regular weight. | One list item for the whole page keeps SCR-62 plain, and the unread state does not rely on colour alone (DF-51). | Call, awaiting user review |
+| D-110 | **SCR-56 (new delegation) is a right-side drawer**, not a centered modal. | The form has more than 3 fields (delegate, from, until, reason), which is the D-77 rule. SCR-52 stays a centered modal because it has one field. | Call, awaiting user review |
+| D-111 | **Notifications appear twice for the three finance roles:** as a bell with the unread count in the top bar, and as an ordinary sidebar item without a badge. The sidebar item has no badge so that the count is not shown twice. | The bell is the habit from other tools, and the sidebar item is the place the sitemap (Step 3 sitemap) already lists. Drop one if the user prefers. | Call, awaiting user review |
+| D-112 | **Dates are written dd/mm/yyyy**, as in DF-46, though the acceptance criteria quote ISO dates (for example 2026-11-14 in AC-30.8). | One date format across 80 wireframe states. The ACs say what is stored and checked, not how it is shown. | Call, awaiting user review |
+| D-113 | **SCR-19 (record a cancellation notice) is one modal.** It names the effect for the current invoice state, and folds the other cases (Received, Exception, In Batch, In Request, Sent, Paid) under "The effect for other states". | Seven modals for one action would multiply states. The AP Accountant needs to see the effect before confirming, and the folded list gives the reviewer all cases. | Call, awaiting user review |
+| D-114 | **SCR-12 shows the authority status as a key fact and the source as a tag in the title row.** Every invoice object carries both. A "Record cancellation notice" action is in the action panel (in-batch, paid), and in the More menu (exception). | The authority status (AC-10.16) is a fact to read at a glance, and the source (DF-72) is a label. A third fact would wrap the facts row to two lines. | Call, awaiting user review |
+| D-115 | **SCR-10 gets a Source column, a Source filter, a search state, and a lookup-unavailable state.** The unavailable state shows a notice, a **Run lookup again** control, and a sidebar badge of 7 (the extra exception). | The mind map lists these at the list, and one control per state keeps AC-10.16 testable. | Call, awaiting user review |
+| D-116 | **Resend (SCR-57) sits in the failure alert** of SCR-30 and SCR-51, after the 3 automatic attempts, and is offered to the Chief Accountant only. On SCR-30 the AP Accountant sees it too. | The alert is where the failure is read. Step 3 allows the Chief Accountant on SCR-51. | Call, awaiting user review |
+| D-117 | **The delegate in the wireframes is Fiona** (CFO, Payment Approver), who signs for Carol (Chief Accountant). The delegator sees their own signing disabled with the end date. | Fiona is already the Payment Approver persona (DF-47), so no new person is needed. | Call, awaiting user review |
+
+### Defaults of this sync
+
+| ID | Default | Status |
+|---|---|---|
+| DF-73 | **Sample data of the new pages.** Rowan is the Requesting Department user of Calderwood Foods Co. SCR-22 lists service invoices that wait for acceptance (for example C26TAA-0000150). SCR-24 lists 5 messages with 8 attachments, of which some were accepted and some rejected with a reason. SCR-55 lists four delegations: Carol to Fiona (30/10 to 14/11/2026, Active), Fiona to Dan (20/11 to 24/11, Scheduled), Carol to Dan (12/10 to 16/10, Ended), and Dan to Fiona (05/10 to 07/10, Revoked). Request numbers keep the form PR-00nn (DF-46). | Default, pending confirmation |
+| DF-74 | **The unread count is 3** for the three finance roles. It is omitted in the states `empty` and `all-read` of SCR-62. | Default, pending confirmation |
+| DF-75 | **Proposed copy** for the new screens: button names (Accept service, Reject, Record notice, Resend, Reopen for review, Expand sample, New delegation, Revoke), empty-state lines, and error lines are written by the worker from the acceptance criteria. Words that the criteria quote are kept. | Default, pending confirmation |
+| DF-76 | **Gallery and PNG naming.** The gallery has a new tab "Requesting Department", and the recurring section is renamed "Recurring profiles and intake" to hold SCR-24. New PNGs follow D-46 (`<nn><letter>-<slug>-<state>.png`). A page shared by several roles has one PNG per role folder. | Default, pending confirmation |
+
+### Effect on earlier decisions
+
+| Earlier decision | Effect | Status |
+|---|---|---|
+| D-42 | The script builds the top bar for the new role and adds the bell and the per-state sidebar badge (`data-badges-<state>`, `data-unread-zero`). | Draft for review |
+| D-45 | Now 22 page files and 45 active screens (22 pages, 23 modals and drawers). Modals and drawers stay states of the parent page. | Draft for review |
+| D-46 | A seventh folder `requesting-department/` (D-108). | Draft for review |
+| DF-52 | The sidebar highlights the page of the current screen; the new items follow the same rule. Control-bar roles of each new page list only the roles that may open it. | Draft for review |
+| D-81 | The gallery has a tab for the new role and four new cards. | Draft for review |
+
+### Differences from Steps 1 to 3
+
+| # | What the source says | What the wireframe does | Why |
+|---|---|---|---|
+| 1 | The ACs quote ISO dates (AC-30.8). | Draws dd/mm/yyyy. | D-112. |
+| 2 | Step 3 does not say where the bell is. | Draws a bell in the top bar and a sidebar item. | D-111. |
+| 3 | SCR-33 says the sample can run out of invoices to add, and SCR-18 has a variant for AC-23.13. | Not drawn. The default and error states of both are drawn. | The two variants add no new element. Record if the reviewer wants them. |
+| 4 | Step 3 lists six exception states. | The `authority-unavailable` state of SCR-10 shows the sidebar badge as 7, one more than the other states. | AC-10.16 creates a seventh exception reason. |

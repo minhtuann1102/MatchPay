@@ -4,7 +4,7 @@
 >
 > Implementation status: NOT STARTED
 
-Each requirement is small enough to implement and test on its own, or says why it is not. Cross-cutting authorization, entity isolation, and AI guardrails are acceptance constraints, not hidden features. Each story covers one use case and has its number, so US-01 is UC-01. US-11 and US-22 were removed by D-33 (foreign invoices and their tax duties are Advanced); their rows stay marked "Removed (D-33)" and their numbers are not reused. The backlog has 26 active stories.
+Each requirement is small enough to implement and test on its own, or says why it is not. Cross-cutting authorization, entity isolation, and AI guardrails are acceptance constraints, not hidden features. Each story covers one use case and has its number, so US-01 is UC-01. US-11 and US-22 were removed by D-33 (foreign invoices and their tax duties are Advanced); their rows stay marked "Removed (D-33)" and their numbers are not reused. UC-29 to UC-32 and their stories were added by the sync to the feature mind map (D-88); all four are Should. The backlog has 30 active stories.
 
 ## INVEST checklist
 
@@ -13,7 +13,7 @@ Each requirement is small enough to implement and test on its own, or says why i
 | Independent | Each story produces a demonstrable outcome and names its prerequisites (login, synced source data, the checks before the Rule Engine). Where a story depends on others to be meaningful, its review says `PARTIAL`. |
 | Negotiable | Screens and technical choices may change while the stated outcome, permissions, and AI guardrails stay fixed. |
 | Valuable | Every story names the benefit for a role. System behaviours (US-07, US-12, US-13, US-14, US-15, US-16, US-20, US-26) are written for the role that benefits from them. |
-| Estimable | Inputs, limits, roles, and failure cases (including AI failure) are explicit through DF-01..DF-33, and every story has a size. |
+| Estimable | Inputs, limits, roles, and failure cases (including AI failure) are explicit through DF-01..DF-33 and DF-61..DF-68, and every story has a size. |
 | Small | Each story targets one use case. Sizes: **S** = a simple screen or rule; **M** = a screen or flow with several rules; **L** = AI integration, several checks, or cross-cutting logic. |
 | Testable | Every story has Given/When/Then acceptance criteria with concrete values in [Acceptance criteria](04-acceptance-criteria.md). G-03, G-04, and G-06 are measured on named evaluation sets and a test suite. |
 
@@ -30,25 +30,29 @@ Each requirement is small enough to implement and test on its own, or says why i
 | US-07 | As an AP Accountant, I want the purchase orders, receipts, acceptances, suppliers, and master data of my entity synced from its ERP, and the simulated tax-risk list loaded, so that every invoice is compared with current source data. *(System behaviour)* | Current source data | US-01, US-08 | Must | M |
 | US-08 | As a Demo Operator, I want to create purchase orders and confirm receipts in the ERP simulator, so that the demo can run the whole loop from order to payment. | Complete demo | US-01 | Must | M |
 | US-09 | As an AP Accountant, I want to keep recurring profiles for electricity, water, rent, and fixed-price subscriptions, so that recurring invoices have a reference without a purchase order. | Recurring invoices handled | US-01 | Should | S |
-| US-10 | As an AP Accountant, I want to upload XML invoices that are checked for signature, buyer entity, duplicates, and trust level, so that a bad invoice is stopped at the door and a good one goes straight to the checks. | Safe intake | US-01, US-07 | Must | L |
+| US-10 | As an AP Accountant, I want to upload XML invoices that are checked for signature, buyer entity, duplicates, status at the tax authority, and trust level, so that a bad invoice is stopped at the door and a good one goes straight to the checks. | Safe intake | US-01, US-07 | Must | L |
 | US-11 | Removed (D-33). Foreign PDF upload with field confirmation moved to Advanced as W-19. | — | — | — | — |
 | US-12 | As an AP Accountant, I want every incoming invoice classified into its flow, with employee expenses separated, so that an invoice with no order goes to the right flow instead of being treated as an error. *(System behaviour)* | Right flow for every invoice | US-10 | Must | M |
 | US-13 | As an AP Accountant, I want the AI to identify the entity, the order or recurring profile, and the receipt of each invoice, so that I do not look them up by hand. *(System behaviour)* | No manual lookup | US-07, US-12 | Must | M |
 | US-14 | As an AP Accountant, I want invoice lines matched to internal items with unit conversion and evidence, so that I stop checking line by line and only doubtful lines reach me. *(System behaviour)* | Less manual matching | US-13 | Must | L |
 | US-15 | As the Chief Accountant, I want the AI to flag unusual prices, duplicates, split orders, recurring jumps, and new suppliers with the numbers behind them, so that the entity does not pay wrongly or lose a deduction. *(System behaviour)* | Fraud and error detection | US-13, US-14 | Must | L |
 | US-16 | As the Chief Accountant, I want the Rule Engine to admit an invoice to a batch only when all six conditions hold and to record why, so that no invoice reaches a signer on the AI's word alone. *(System behaviour)* | Explainable, auditable decision | US-04, US-06, US-12, US-13, US-14, US-15 | Must | L |
-| US-17 | As an AP Accountant, I want a worklist of my entity's invoices with the evidence behind every AI and rule decision, and as Chief Accountant or Payment Approver I want the same view read-only, so that every result can be understood before I act on it. | Transparency | US-16 | Must | M |
+| US-17 | As an AP Accountant, I want a worklist of my entity's invoices, a search over all of them, and the evidence behind every AI and rule decision, and as Chief Accountant or Payment Approver I want the same view read-only, so that every result can be understood before I act on it. | Transparency | US-16 | Must | M |
 | US-18 | As an AP Accountant, I want to resolve an exception by confirming a match, correcting the flow, reporting a wrong entity, asking for a correction, or rejecting the invoice, so that each exception ends with a clear decision and the system learns from my confirmations. | Exceptions end with a decision | US-16, US-17 | Must | L |
 | US-19 | As an AP Accountant, I want the AI to draft correction requests and data-fix notices that I review and send, so that I do not write the same emails again and nothing leaves the system without me. | Faster exception handling | US-18 | Should | M |
 | US-20 | As an AP Accountant, I want a follow-up invoice linked to its exception and checked again automatically, so that I do not search for it by hand and a fresh standard invoice closes the exception by itself. *(System behaviour)* | Exceptions close without a search | US-16, US-18, US-19 | Should | L |
 | US-21 | As the Chief Accountant, I want to decide on invoices from suppliers on the tax-risk list, so that the entity does not lose a tax deduction and no valid invoice is rejected by a machine. | No lost deduction | US-07, US-16 | Must | M |
 | US-22 | Removed (D-33). Foreign tax duties moved to Advanced as W-20. | — | — | — | — |
 | US-23 | As a Payment Approver, I want to approve a single exception at my level, so that a justified exception can be paid without waiting for the batch rules to change. | Exceptions can still be paid | US-16, US-18, US-05 | Must | M |
-| US-24 | As an AP Accountant, I want to close the period's batch, check the sample the AI selects by risk, and release the batch for signing, so that errors are caught before anyone signs. | Errors caught before signing | US-16, US-04 | Must | L |
+| US-24 | As an AP Accountant, I want to close the period's batch, check the sample the AI selects by risk, expand it or reopen the batch when it finds an error, and release the batch for signing, so that errors are caught before anyone signs. | Errors caught before signing | US-16, US-04 | Must | L |
 | US-25 | As a Chief Accountant or Payment Approver, I want to sign many consolidated payment requests in one action after seeing a summary and the evidence, and to remove lines I do not accept, so that I sign on grounds instead of blind or invoice by invoice. | Signing on grounds | US-24, US-05 | Must | L |
-| US-26 | As the Chief Accountant, I want the signed batch sent to the ERP as a non-cash transfer instruction and its paid status and payment reference recorded, so that every invoice shows when it was paid. *(System behaviour)* | Paid and traceable | US-25 | Must | M |
+| US-26 | As an AP Accountant or the Chief Accountant, I want the signed batch sent to the ERP as a non-cash transfer instruction, its paid status and payment reference recorded, and a manual resend when the automatic attempts fail, so that every invoice shows when it was paid. *(System behaviour)* | Paid and traceable | US-25 | Must | M |
 | US-27 | As a finance user or Administrator, I want a dashboard with the touchless rate, the AI misplacement rate beside it, and the exception backlog, so that I can judge whether the automation deserves trust. | Data-driven management | US-16, US-24 | Should | M |
 | US-28 | As an Administrator or Chief Accountant, I want an audit log of every AI decision, rule decision, human decision, and signature, so that any payment can be traced and justified to an auditor. | Accountability | US-01 | Should | M |
+| US-29 | As a Requesting Department user, I want to confirm or reject the acceptance of a service in MatchPay with a note, so that a service invoice with no acceptance in the ERP can still be checked against an independent source. | Services checked without ERP acceptance | US-01, US-07 | Should | M |
+| US-30 | As a Chief Accountant or Payment Approver, I want to name a delegate for a date range while I am absent, so that signing continues at my level without anyone sharing my account. | Signing continues while absent | US-01, US-02, US-25 | Should | M |
+| US-31 | As an AP Accountant, I want invoices sent to my entity's invoice mailbox fetched and checked like an upload, so that I do not download and upload each XML file by hand. | No manual upload | US-01, US-10 | Should | M |
+| US-32 | As an AP Accountant, Chief Accountant, or Payment Approver, I want in-app notifications and reminders for the work waiting for me, so that nothing waits unnoticed past its due date. | Work does not wait unseen | US-01, US-16, US-19, US-24, US-25 | Should | M |
 
 ## Per-story INVEST review
 
@@ -65,7 +69,7 @@ Each requirement is small enough to implement and test on its own, or says why i
 | US-07 | PASS | PASS | PASS | PASS | PARTIAL | PASS | Small: it covers the sync, the rejection of bad records, and the risk-list feed (D-28), which could be three stories; kept as one use case. |
 | US-08 | PASS | PASS | PASS | PASS | PASS | PASS | Demo-only; not part of the product. |
 | US-09 | PASS | PASS | PASS | PASS | PASS | PASS | Should: without it every recurring invoice becomes an exception. |
-| US-10 | PASS | PASS | PASS | PASS | PARTIAL | PASS | Small: signature check, trust level, entity check, and duplicate check in one story (L). Tested with test certificates. The checks of US-12 to US-16 run after an upload because UC-10 includes them; that is not a story dependency. |
+| US-10 | PASS | PASS | PASS | PASS | PARTIAL | PASS | Small: signature check, trust level, entity check, duplicate check, and the simulated status lookup in one story (L). Tested with test certificates. The checks of US-12 to US-16 run after an upload because UC-10 includes them; that is not a story dependency. |
 | US-11 | — | — | — | — | — | — | Removed (D-33). No review: the story is Advanced (W-19). |
 | US-12 | PASS | PASS | PASS | PASS | PASS | PARTIAL | Testable: LLM output varies, so it is tested with a mocked LLM and a fixed set; the "flow unclear" threshold still needs calibration. |
 | US-13 | PARTIAL | PASS | PASS | PASS | PASS | PARTIAL | Independent: it needs synced data (US-07) and profiles (US-09). Testable: the LLM fallback is tested with a mock. |
@@ -84,17 +88,21 @@ Each requirement is small enough to implement and test on its own, or says why i
 | US-26 | PARTIAL | PASS | PASS | PARTIAL | PASS | PASS | Independent and Estimable: the data the ERP returns (the paid status and the payment reference) is defined in Steps 5 and 6; the criteria assume a simulated reply. |
 | US-27 | PASS | PASS | PASS | PASS | PASS | PASS | G-01 and G-02 are shown together; the limit of the risk-weighted sample is displayed (AC-27.4). |
 | US-28 | PASS | PASS | PASS | PASS | PASS | PASS | Fail-closed logging (DF-30) is tested with a forced write failure. |
+| US-29 | PARTIAL | PASS | PASS | PASS | PASS | PASS | Independent: it needs synced orders (US-07) and an invoice that waits for goods (US-13); the story is demonstrable with seeded data. Should: if it is cut, a service acceptance comes from the ERP only, as before (D-90). |
+| US-30 | PARTIAL | PASS | PASS | PARTIAL | PASS | PASS | Independent: it needs the signing flow of US-25. Estimable: the legal validity of a delegated e-signature is Unverified (O-17), and the range limit of 30 days is a default (DF-62). |
+| US-31 | PASS | PASS | PASS | PASS | PASS | PASS | The mailbox is simulated and the Email Service is mocked; every attachment follows the checks of US-10 (D-92). |
+| US-32 | PARTIAL | PASS | PASS | PASS | PARTIAL | PASS | Independent: it needs the batch, signing, and correction-request flows (US-19, US-24, US-25). Small: four kinds of notice in one story, tested one by one (AC-32.1..AC-32.5). It reverses the Step 3 decision D-41 (D-97). |
 
 ## Cross-cutting acceptance constraints
 
-- Only these roles exist: AP Accountant, Chief Accountant, Payment Approver, Entity Admin, Group Admin, and the demo-only Demo Operator. A user has one role in one entity (DF-14).
+- Only these roles exist: AP Accountant, Chief Accountant, Payment Approver, Requesting Department, Entity Admin, Group Admin, and the demo-only Demo Operator. A user has one role in one entity (DF-14). A delegate signs with a delegator's level only in the range of a delegation (BR-38); it is not a role.
 - The server, not the browser, enforces entity scope and roles (BR-09). Measured by the permissions test suite TS-01 (G-06).
 - The Rule Engine alone admits an invoice to a batch, from stored evidence, without an LLM (BR-05, BR-27). The AI never signs and never sends anything outside the system.
 - Document content is data, never an instruction. LLM output must match its schema, and any AI failure sends the invoice to an exception without blocking intake (BR-27, DF-08).
 - Every AI, rule, and human decision is written to the audit log, which cannot be edited through the application. If an entry cannot be written, the action does not complete (BR-12, DF-30).
 - An invoice has exactly one state, and only the allowed transitions happen (BR-33). The same holds for exceptions (BR-34) and for batches and payment requests (BR-35).
 - Every signature is tied to the version and content hash of one request. An action from an outdated view is rejected (BR-37).
-- A signer cannot be the person who prepared the batch, created the order, or confirmed the receipt (BR-02, BR-36).
+- A signer cannot be the person who prepared the batch, created the order, confirmed the receipt or the service acceptance, or processed an invoice in the request (BR-02, BR-36).
 - The platform reads the Entity ERP and never edits it (BR-25).
 - All figures use the brief's example values as demo configuration (DF-11), and all sample data is fictional (DF-12).
 
