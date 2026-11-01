@@ -1,5 +1,5 @@
 // MatchPay wireframe script: builds the sidebar and top bar for the role, and switches states.
-// URL: ?role=<role>  ?state=<state>  ?shot=1 (hide the wireframe bar and the yellow numbers)  ?notes=0 (hide numbers only)
+// URL: ?role=<role> (ap, chief, approver, dept, entity-admin, group-admin, demo)  ?state=<state>  ?shot=1 (hide the wireframe bar and the yellow numbers)  ?notes=0 (hide numbers only)
 // Markup hooks:
 //   data-show="a b"   visible only in the listed states     data-hide="a b"  hidden in the listed states
 //   data-roles="ap chief"  visible only for the listed roles
@@ -21,23 +21,32 @@
     'ap': { user: 'Alice', title: 'AP Accountant', entity: ENTITY, nav: [
       ['invoices', 'Invoices', '10-invoice-worklist.html', 'file', '6'],
       ['batch', 'Batch', '30-batch-review.html', 'stack'],
+      ['mailbox', 'Mailbox', '24-mailbox-log.html', 'mail'],
       ['recurring', 'Recurring profiles', '20-recurring-profiles.html', 'repeat'],
-      ['dashboard', 'Dashboard', '60-dashboard.html', 'bars']] },
+      ['notifications', 'Notifications', '62-notifications.html', 'bell'],
+      ['dashboard', 'Dashboard', '60-dashboard.html', 'bars']], bell: true },
     'chief': { user: 'Carol', title: 'Chief Accountant', entity: ENTITY, nav: [
       ['decisions', 'Decisions', '40-decision-queue.html', 'scale', '1'],
       ['signing', 'Signing queue', '50-signing-queue.html', 'pen', '2'],
+      ['delegations', 'Delegations', '55-signing-delegations.html', 'handover'],
       ['invoices', 'Invoices', '10-invoice-worklist.html', 'file'],
+      ['notifications', 'Notifications', '62-notifications.html', 'bell'],
       ['dashboard', 'Dashboard', '60-dashboard.html', 'bars'],
-      ['audit', 'Audit log', '61-audit-log.html', 'book']] },
+      ['audit', 'Audit log', '61-audit-log.html', 'book']], bell: true },
     'approver': { user: 'Fiona', title: 'Payment Approver (CFO)', entity: ENTITY, nav: [
       ['signing', 'Signing queue', '50-signing-queue.html', 'pen'],
       ['decisions', 'Approvals', '40-decision-queue.html', 'checkcircle', '2'],
+      ['delegations', 'Delegations', '55-signing-delegations.html', 'handover'],
       ['invoices', 'Invoices', '10-invoice-worklist.html', 'file'],
-      ['dashboard', 'Dashboard', '60-dashboard.html', 'bars']] },
+      ['notifications', 'Notifications', '62-notifications.html', 'bell'],
+      ['dashboard', 'Dashboard', '60-dashboard.html', 'bars']], bell: true },
+    'dept': { user: 'Rowan', title: 'Requesting Department', entity: ENTITY, nav: [
+      ['acceptance', 'Acceptance queue', '22-acceptance-queue.html', 'checkcircle', '3']] },
     'entity-admin': { user: 'Evan', title: 'Entity Admin', entity: ENTITY, nav: [
       ['policy', 'Entity policy', '73-entity-policy.html', 'sliders'],
       ['matrix', 'Approval matrix', '74-approval-matrix.html', 'grid'],
       ['users', 'Users', '70-users.html', 'users'],
+      ['delegations', 'Delegations', '55-signing-delegations.html', 'handover'],
       ['dashboard', 'Dashboard', '60-dashboard.html', 'bars'],
       ['audit', 'Audit log', '61-audit-log.html', 'book']] },
     'group-admin': { user: 'Gina', title: 'Group Admin', entity: 'Calderwood Group', nav: [
@@ -63,9 +72,13 @@
 
   var side = document.getElementById('sidebar');
   if (side) {
+    // A page can override a sidebar badge for one state: body[data-badges-<state>="invoices=7"].
+    var ov = {};
+    (body.getAttribute('data-badges-' + state) || '').split(/\s+/).forEach(function (kv) { var a = kv.split('='); if (a[1]) ov[a[0]] = a[1]; });
     var items = R.nav.map(function (n) {
       var cur = body.getAttribute('data-nav') === n[0] ? ' aria-current="page"' : '';
-      var badge = n[4] ? '<span class="count"><span class="sr">Count: </span>' + n[4] + '</span>' : '';
+      var cnt = ov[n[0]] || n[4];
+      var badge = cnt ? '<span class="count"><span class="sr">Count: </span>' + cnt + '</span>' : '';
       return '<li><a href="' + withRole(n[2]) + '"' + cur + '>' + icon(n[3]) + '<span>' + n[1] + '</span>' + badge + '</a></li>';
     }).join('');
     side.innerHTML =
@@ -75,9 +88,14 @@
   }
   var top = document.getElementById('topbar');
   if (top) {
+    // Mind map sync (D-100): the AP Accountant, the Chief Accountant, and the Payment Approver see "Notifications" with the number of unread items.
+    // Unread count is 3 in the sample; a page can list states with no unread item in body[data-unread-zero] (the number is then left out).
+    var unread = has(body.getAttribute('data-unread-zero'), state) ? 0 : 3;
+    var bell = R.bell ? '<a class="bell" href="' + withRole('62-notifications.html') + '"' + (body.getAttribute('data-nav') === 'notifications' ? ' aria-current="page"' : '') + '>' + icon('bell') + '<span>Notifications</span>' +
+      (unread ? '<span class="unread-badge"><span class="sr">Unread: </span>' + unread + '</span>' : '') + '</a>' : '';
     top.innerHTML =
       '<div class="top-entity"><span class="entity-name">' + R.entity + '</span>' + (R.demo ? '<span class="demo-mark">Demo only</span>' : '') + '</div>' +
-      '<div class="top-user"><span class="avatar" aria-hidden="true">' + initials + '</span>' +
+      '<div class="top-user">' + bell + '<span class="avatar" aria-hidden="true">' + initials + '</span>' +
       '<span class="who"><b>' + R.user + '</b>, ' + R.title + '</span>' +
       '<a class="btn btn-quiet btn-sm" href="01-login.html">' + icon('logout', 'i-sm') + 'Log out</a></div>';
   }

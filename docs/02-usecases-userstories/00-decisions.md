@@ -223,18 +223,18 @@ The brief is never edited. These are the places where the documents now differ f
 
 ### Follow-up in Steps 3 to 5
 
-Steps 3, 4, and 5 are not edited in this pass. Until they are, the new stories read `Pending (Step 3 sync)` in the Screen column and `Pending (Step 5 sync)` in the Database column of the [traceability matrix](../traceability/master-traceability.md), and the checker accepts exactly those markers for US-29..US-32. The existing stories that gained criteria are also affected.
+Step 3 was synced in the same session ([Step 3 decisions](../03-information-architecture/00-decisions.md#changes-made-to-step-3-for-the-mind-map-sync-d-88)) and Step 4 after it ([Step 4 decisions](../04-uiux/00-decisions.md#mind-map-sync-d-88-draft-for-review)). Step 5 remains: until it is synced, the new stories read `Pending (Step 5 sync)` in the Database column of the [traceability matrix](../traceability/master-traceability.md), and the checker accepts exactly that marker for US-29..US-32. The first column below says which step the row was for.
 
 | Step | What it must add or change | Because of |
 |---|---|---|
-| 3 | A seventh role, Requesting Department, in the role list, the permission table, the sitemap, the screens per role, and DF-28 (home page: the acceptance queue); a screen for the acceptance queue with a confirm-or-reject modal (US-29) | D-90 |
-| 3 | A delegations screen for the Chief Accountant and the Payment Approver, a read and revoke view for the Entity Admin, and the "On behalf of" marking on the signing screens (US-30) | D-91 |
-| 3 | A mailbox log screen with "Fetch now" (US-31) | D-92 |
-| 3 | A notification list with an unread count in the top bar, and the **reversal of D-41** (no notification centre), including the sidebar-badge wording of DF-40 and DF-43 where they depend on it (US-32) | D-97 |
-| 3 | Search on the worklist, the state history on the invoice detail, and links from a batch and a payment request to the invoice (AC-17.10..AC-17.13) | D-98 |
-| 3 | Actions on the batch screens: expand the sample, reopen for review; on the batch and request screens: resend; an action to record a cancellation notice on the invoice detail | D-94, D-95, D-96 |
-| 3 | DF-40 says no manual retry is drawn; it must change for the resend. The flows for intake, exception handling, batch and signing need the new branches | D-96 |
-| 4 | Wireframes and screen notes for every screen and state above; the design system needs the notification list and the "On behalf of" marker | All of the above |
-| 5 | New roles value `REQUESTING_DEPARTMENT`; tables for service acceptances, signing delegations, mailbox messages and attachments, authority status lookups, cancellation notices, sample expansions, and notifications; a marker for a manual attempt and its author on the ERP send attempts; "on behalf of" on the signature records; reopen columns on the batch; new invoice states and request transitions (V20, V21, R9, B7) in the lifecycle columns and checks | D-90..D-97 |
+| 3 (done, Step 3 sync) | A seventh role, Requesting Department, in the role list, the permission table, the sitemap, the screens per role, and DF-28 (home page: the acceptance queue); a screen for the acceptance queue with a confirm-or-reject modal (US-29) | D-90 |
+| 3 (done, Step 3 sync) | A delegations screen for the Chief Accountant and the Payment Approver, a read and revoke view for the Entity Admin, and the "On behalf of" marking on the signing screens (US-30) | D-91 |
+| 3 (done, Step 3 sync) | A mailbox log screen with "Fetch now" (US-31) | D-92 |
+| 3 (done, Step 3 sync) | A notification list with an unread count in the top bar, and the **reversal of D-41** (no notification centre), including the sidebar-badge wording of DF-40 and DF-43 where they depend on it (US-32) | D-97 |
+| 3 (done, Step 3 sync) | Search on the worklist, the state history on the invoice detail, and links from a batch and a payment request to the invoice (AC-17.10..AC-17.13) | D-98 |
+| 3 (done, Step 3 sync) | Actions on the batch screens: expand the sample, reopen for review; on the batch and request screens: resend; an action to record a cancellation notice on the invoice detail | D-94, D-95, D-96 |
+| 3 (done, Step 3 sync) | DF-40 says no manual retry is drawn; it must change for the resend. The flows for intake, exception handling, batch and signing need the new branches | D-96 |
+| 4 (done, Step 4 sync) | Wireframes and screen notes for every screen and state above; the design system needs the notification list and the "On behalf of" marker | All of the above |
+| 5 (still to do) | New roles value `REQUESTING_DEPARTMENT`; tables for service acceptances, signing delegations, mailbox messages and attachments, authority status lookups, cancellation notices, sample expansions, and notifications; a marker for a manual attempt and its author on the ERP send attempts; "on behalf of" on the signature records; reopen columns on the batch; new invoice states and request transitions (V20, V21, R9, B7) in the lifecycle columns and checks | D-90..D-97 |
 
 **Related:** [Step index](README.md) · [Step 1 decisions](../01-research/00-decisions.md)
