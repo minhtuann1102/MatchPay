@@ -1344,7 +1344,7 @@ Source: [Runtime and Deployment](docs/07-architecture/07-runtime-and-deployment.
 
 ## Interactive prototype
 
-A Vietnamese, clickable front end on mock data lives in [`prototype/`](prototype/README.md) (React, TypeScript, Vite; the mock API runs in the browser and follows the OpenAPI operation names). It sits next to the English wireframes, which stay the design reference. Decisions D-187..D-196 are calls that await the user's review: see [the UI/UX decisions](docs/04-uiux/00-decisions.md). Screenshots by role are in [`docs/images/prototype/`](docs/images/prototype/).
+A Vietnamese, clickable front end on mock data lives in [`prototype/`](prototype/README.md) (React, TypeScript, Vite; the mock API runs in the browser and follows the OpenAPI operation names). It sits next to the English wireframes, which stay the design reference. D-187 and D-197 are the user's decisions; D-188..D-196 and D-198..D-204 are calls that await the user's review: see [the UI/UX decisions](docs/04-uiux/00-decisions.md). Screenshots by role are in [`docs/images/prototype/`](docs/images/prototype/).
 
 ```bash
 cd prototype
