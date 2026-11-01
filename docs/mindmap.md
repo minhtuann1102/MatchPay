@@ -77,7 +77,11 @@ mindmap
 
 ## Feature map (F01..F12)
 
-This map mirrors the user's feature mind map, translated into English. Each leaf carries the use case or story that delivers it. Leaves marked NEW were added by the sync to that mind map (D-88); leaves marked EXTENDED existed and gained behaviour. Everything in this map is in the MVP.
+This English Mermaid map mirrors the user's final feature mind map, which the user confirmed on 2026-11-01 (D-88). The original image is [feature-mind-map.png](images/source/feature-mind-map.png) and is embedded below. The image is in Vietnamese because it is a source document, like the brief; it is not translated or edited.
+
+![The user's final feature mind map (Vietnamese source image)](images/source/feature-mind-map.png)
+
+The Mermaid map is the English reading of it. Each leaf carries the use case or story that delivers it. Leaves marked NEW were added by the sync to that mind map (D-88); leaves marked EXTENDED existed and gained behaviour. Everything in this map is in the MVP.
 
 ```mermaid
 mindmap
