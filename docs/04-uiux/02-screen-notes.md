@@ -3,8 +3,12 @@
 > Design status: MVP — Step 4 of 9, approved
 >
 > Implementation status: NOT STARTED
+>
+> Revision R1 (UX redesign, 2026-11-01): draft for review
 
 Each page lists its purpose, the yellow annotation numbers shown in the HTML, and its states. The **Source** column names the row of the [UI/UX state contract](../03-information-architecture/06-ui-states-and-accessibility.md) (Step 3) that each state implements, or the rule or acceptance criterion behind it. Open a state with `?state=<name>` and a role with `?role=<name>` (roles: `ap`, `chief`, `approver`, `entity-admin`, `group-admin`, `demo`). Modals are states of their parent page and have their own `####` heading. Sample data is the Calderwood Group (DF-12, DF-46). The design language is in the [design system](01-design-system.md).
+
+**Revision R1 (draft for review, D-73..D-81).** The pages are laid out as object pages (SCR-12, SCR-51) or as lists with tiles, saved-view tabs, a toolbar, and one-line rows (SCR-10, SCR-20, SCR-40, SCR-50, and others); forms with more than three fields open in a drawer. Each page below has a **Layout (R1)** line that names these parts. The yellow numbers keep their meaning; R1 adds one number (SCR-10, note 8). Two query parameters are new: `?tab=<id>` selects a tab and `?filters=1` opens the filter panel. **A tab is a view of the same page, not a state**: it never changes the item, it is not in the control bar, and it is not a row in the state tables. The state rows and their links are unchanged.
 
 ## Access
 
@@ -48,13 +52,16 @@ Purpose: the one answer to a URL the role may not open or a record of another en
 
 Purpose: every invoice of the own entity with its state, reasons, and due date. The AP Accountant uploads and re-runs; the Chief Accountant and the Payment Approver see no upload and no re-run control (AC-17.4, read-only).
 
+**Layout (R1):** a header (title "Invoices", the last ERP sync as meta, **Upload XML** as the one primary action); four tiles (Open exceptions 6, Due within 7 days 2, In batch 5 with VND 70,050,000, Waiting for goods 1) that open the matching tab; five saved-view tabs; a toolbar (search, **Filters** with a count, chips such as **Reminder due**); one-line rows with a chevron; and a footer with the range and paging. Tabs: `needs` Needs action 6 (exceptions, the default), `waiting` Waiting 3 (Waiting for Goods, In Check, Received), `batch` In batch 5, `done` Completed 4 (Sent, Paid, Rejected), `all` All 18. The row shows one reason tag and a "+N" pill; the Reminder due note ("request sent 22/10/2026, no reply") is the tooltip of the tag. The Chief Accountant and the Payment Approver get the same layout without **Upload XML** and without re-run.
+
 | # | Note |
 |---|---|
 | 1 | "Last ERP sync: 31/10/2026 09:15" (US-07). |
 | 2 | **Upload XML** opens SCR-11. AP Accountant only. |
-| 3 | Filters: state, supplier, flow, invoice date, and **Reminder due** for correction requests with no reply after 5 working days (AC-17.7, DF-21). The sidebar badge "6" counts the open exceptions. |
+| 3 | Filters (behind the **Filters** button, or `?filters=1`): state, supplier, flow, invoice date, and **Reminder due** for correction requests with no reply after 5 working days (AC-17.7, DF-21). The sidebar badge "6" counts the open exceptions. |
 | 4 | "No results" names the active filters and offers **Clear filters** (AC-17.7). |
 | 5 | An invoice with the reason "AI unavailable" can be re-run from the worklist; there is no automatic retry (DF-08). Rows also show: "Due soon" within 7 days (AC-17.8, DF-18); Waiting for Goods as a non-exception (BR-14); the reason numbers of AC-16.2; and the payment reference once Paid (AC-26.2). |
+| 8 | The saved-view tabs (Needs action, Waiting, In batch, Completed, All) with their counts. They are views of one table and not states: `?tab=needs`, `waiting`, `batch`, `done`, or `all` selects one (R1, D-74). |
 
 | State | Source | Behavior |
 |---|---|---|
@@ -82,16 +89,18 @@ Purpose: every invoice of the own entity with its state, reasons, and due date. 
 
 Purpose: the core screen. The evidence of one invoice, with the three hands visible, and a role-dependent action panel that appears only when the invoice awaits that role (D-37, AC-17.4). The default invoice is C26TAA-0000123 from Brightfield Paper Ltd (VND 8,098,750), an exception with four reasons. Layout on narrow screens: header, action panel, evidence panels (collapsible), history.
 
+**Layout (R1):** an object page. The header shows the number, the state chips, the exception reasons, the amount, and the key facts; the stepper runs Received, Checked, Exception (only while the invoice is an exception), In Batch, In Request, Sent, Paid; the evidence sits in tabs `overview` (default: the attention card with the failed conditions in short form, key facts, flow and identification, anomaly numbers), `lines` (line matches), `checks` (the six conditions; passed ones fold under "N passed"), `documents` (XML fields, order, and receipt with their sync times), `anomalies`, and `history` (the latest three events, "Show all" for the rest). Which tabs exist depends on the state (for example `paid` has `overview` and `history`). The right column is the action panel: one next step with one primary button, other resolutions as compact rows, **Report wrong entity** under **More actions**, and **Reject invoice** as a quiet danger link. The header carries no action button (D-82). `?tab=<id>` opens a tab.
+
 | # | Note |
 |---|---|
-| 1 | Exception reasons with their numbers, for example "Price +2.5%, tolerance 2%" (AC-16.2). |
-| 2 | Flow with the AI tag; the flow, its reason, and its confidence are stored (AC-12.1). |
-| 3 | The order and the receipt each show the time of the sync they came from (US-07, Step 3 sync-time state). |
-| 4 | Flow and identification: AI reason, confidence 0.97, model and prompt versions (BR-12). |
-| 5 | Line matches with the method (mapping table, embedding with signal fusion, LLM) and the probability against the 0.90 threshold; a doubtful line says why (AC-14.1, AC-14.5, DF-15). |
-| 6 | Anomaly numbers: price against the 6-month median, near-duplicate, supplier history, period (AC-15.1, AC-15.3, AC-15.7). |
-| 7 | The six conditions of BR-05, each with its value and Pass or Fail, set by the Rule Engine without an LLM (AC-16.2, AC-16.3). |
-| 8 | Decision history: who or what decided, with the three tags (AC-17.3). |
+| 1 | Exception reasons with their numbers, for example "Price +2.5%, tolerance 2%" (AC-16.2). In the header. |
+| 2 | Flow with the AI tag; the flow, its reason, and its confidence are stored (AC-12.1). In the key facts of the header. |
+| 3 | The order and the receipt each show the time of the sync they came from (US-07, Step 3 sync-time state). On the `documents` tab. |
+| 4 | Flow and identification: AI reason, confidence 0.97, model and prompt versions (BR-12). On the `overview` tab; the long reasoning folds under "Why the AI proposed this". |
+| 5 | Line matches with the method (mapping table, embedding with signal fusion, LLM) and the probability against the 0.90 threshold; a doubtful line says why (AC-14.1, AC-14.5, DF-15). On the `lines` tab. |
+| 6 | Anomaly numbers: price against the 6-month median, near-duplicate, supplier history, period (AC-15.1, AC-15.3, AC-15.7). On the `overview` tab and in full on the `anomalies` tab. |
+| 7 | The six conditions of BR-05, each with its value and Pass or Fail, set by the Rule Engine without an LLM (AC-16.2, AC-16.3). The attention card on `overview` lists the failed ones; the `checks` tab lists all six, with the passed ones folded under "N passed". |
+| 8 | Decision history: who or what decided, with the three tags (AC-17.3). On the `history` tab; the latest three events show, the rest open with "Show all". |
 | 9 | Action panel for the AP Accountant: confirm a line match, correct the flow, report a wrong entity, request a correction, send for a decision, reject (US-18). Chief Accountant and Payment Approver see a notice that nothing waits for them. |
 | 10 | In the default invoice: **Request correction** opens SCR-14. In other cases: the hold decision (SCR-16), the individual approval (SCR-18), the only action for a foreign invoice, or **Withdraw from batch** (AC-24.7). |
 | 11 | **Reject invoice** opens SCR-15. |
@@ -158,12 +167,14 @@ Purpose: the AP Accountant writes a correction request, data-fix notice, or reis
 
 Purpose: the contracts that repeat each period; a matching profile is the independent source for a recurring invoice (BR-17, BR-24).
 
+**Layout (R1):** a header with **Add profile**; tabs `active` Active 3 (default), `inactive` Inactive 1, `all` All 4; a compact table with one line per profile; SCR-21 as a right drawer (states `form`, `form-error`, `form-duplicate`, `form-saving`); the deactivate confirmation stays a centered modal.
+
 | # | Note |
 |---|---|
 | 1 | **Add profile** opens SCR-21. |
 | 2 | Each profile shows the amounts of earlier periods and their average, so the usage-based 30% limit can be checked (AC-09.1, DF-11). |
 | 3 | **Deactivate** states that later invoices become exceptions. |
-| 4 | SCR-21: supplier, location, contract, period, price type, contract price (required for a fixed price), deviation threshold. |
+| 4 | SCR-21: supplier, location, contract, period, price type, contract price (required for a fixed price), deviation threshold. SCR-21 opens as a right drawer. |
 
 | State | Source | Behavior |
 |---|---|---|
@@ -182,6 +193,8 @@ Purpose: the contracts that repeat each period; a matching profile is the indepe
 ### SCR-30 Batch Review, SCR-31, and SCR-32 — [`30-batch-review.html`](wireframes/30-batch-review.html) · role `ap` · [PNG](../images/ap-accountant/30-batch-review.png)
 
 Purpose: close the October 2026 batch (5 invoices, VND 70,050,000), check the AI-selected sample, release it for signing, and follow the ERP send status.
+
+**Layout (R1):** a header with the batch state chip and the stepper Open, Closed for review, Sample checked, Released, Sent (the current step carries the exact state); the header action is **Close for review** or **Release for signing**; four tiles (Invoices, Total, Payment requests, Due soonest); the **Sample check** as a focused panel above the table while the sample is open; the invoices grouped under their supplier with a subtotal for each, because each supplier becomes one payment request (D-79); after release the **Payment requests** table with the ERP send status. SCR-31 and SCR-32 stay centered modals.
 
 | # | Note |
 |---|---|
@@ -216,6 +229,8 @@ Purpose: close the October 2026 batch (5 invoices, VND 70,050,000), check the AI
 
 Purpose: one list, two roles (D-40). "Decisions" for the Chief Accountant (tax-risk holds), "Approvals" for the Payment Approver (exceptions at the approver level).
 
+**Layout (R1):** role tiles (Waiting on me, Amount, Oldest); saved-view tabs for each role. Chief Accountant: `mine` Waiting on me, `hold` Tax-risk hold, `all` All. Payment Approver: `mine` Waiting on me, `price` Gate closed, unusual price, `dup` Possible duplicate, `all` All. A toolbar, one line per invoice with its reason tag, amount, and age, and a **Review** button, which is a real action: it opens SCR-12 where the decision is made.
+
 | # | Note |
 |---|---|
 | 1 | Chief Accountant: C26TAA-0000188 from Eastbay Trading, "Tax-risk hold" (AC-21.1). |
@@ -232,6 +247,8 @@ Purpose: one list, two roles (D-40). "Decisions" for the Chief Accountant (tax-r
 ### SCR-50 Signing Queue and SCR-52 — [`50-signing-queue.html`](wireframes/50-signing-queue.html) · roles `chief`, `approver` · [PNG Chief Accountant](../images/chief-accountant/50-signing-queue.png), [PNG Payment Approver](../images/payment-approver/50-signing-queue.png)
 
 Purpose: payment requests of the entity; several can be signed in one action (AC-25.4).
+
+**Layout (R1):** tiles (Ready for me, Total to sign, Waiting for others, With a flag); tabs `ready` Ready for me, `waiting` Waiting for others, `signed` Signed (the default is `ready` for the Chief Accountant and `waiting` for the Payment Approver, who has nothing ready until the Chief Accountant signs); a toolbar; a compact table with a checkbox, and a sticky bar "N selected, VND x" with **Sign selected**. SCR-52 stays a centered modal.
 
 | # | Note |
 |---|---|
@@ -256,17 +273,19 @@ Purpose: payment requests of the entity; several can be signed in one action (AC
 | [`erp-failed`](wireframes/50-signing-queue.html?state=erp-failed) | ERP send states | "Sending to the ERP failed after 3 attempts." |
 | [`conflict`](wireframes/50-signing-queue.html?state=conflict&role=chief) | Conflict | Reload message; nothing signed; selection kept. |
 
-### SCR-51 Payment Request Detail, SCR-53, and SCR-54 — [`51-payment-request.html`](wireframes/51-payment-request.html) · roles `chief`, `approver` · [PNG](../images/chief-accountant/51-payment-request.png)
+### SCR-51 Payment Request Detail, SCR-53, and SCR-54 — [`51-payment-request.html`](wireframes/51-payment-request.html) · roles `chief`, `approver` · [PNG Chief Accountant](../images/chief-accountant/51-payment-request.png), [PNG Payment Approver](../images/payment-approver/51-payment-request.png)
 
 Purpose: what the signer reads before signing PR-0042 (Harbor Cartons Ltd, VND 53,000,000, level CFO). There is no payment method and no cash flag: the MVP sends a non-cash instruction to the simulated ERP (AC-26.1, D-33).
+
+**Layout (R1):** an object page. The header shows PR-0042, its chip, the amount, and the key facts (supplier, entity, required level, invoices, flags); the stepper runs Awaiting Chief Accountant, Awaiting Payment Approver, Signed, Sent, Paid; the left column holds the AI summary (it folds), the Rule Engine totals as a key-value grid, and tabs `invoices` Invoices 3 (default), `checks` Checks, `erp` ERP send; the right column is the signature panel with the signature records, one next step (**Sign**), and **Decline request** as a quiet danger link. The `paid` state shows the paid request PR-0038 with its paid block. SCR-53 and SCR-54 stay centered modals.
 
 | # | Note |
 |---|---|
 | 1 | AI summary labelled as AI; it is never a signature (AC-25.1, AC-25.9). |
 | 2 | When the summary fails: "The AI summary is unavailable. You can still sign using the evidence." (AC-25.13). |
-| 3 | Rule Engine totals by entity and supplier, invoices of VND 50,000,000 or more, and the sample-check result (AC-25.1). |
+| 3 | Rule Engine totals by entity and supplier, invoices of VND 50,000,000 or more, and the sample-check result (AC-25.1). The totals are a grid above the tabs; the sample-check result is on the `checks` tab. |
 | 4 | Flags for a new supplier or a changed bank account (BR-30). None on this request. |
-| 5 | **Remove line** opens SCR-53. |
+| 5 | **Remove line** opens SCR-53. On the `invoices` tab. |
 | 6 | Signature records: Carol first, Fiona second; pending ones are dashed (DF-01, BR-20). |
 | 7 | **Decline request** opens SCR-54. |
 | 8 | A failed send raises an alert and the request stays Signed (AC-26.5). |
@@ -296,6 +315,8 @@ Purpose: what the signer reads before signing PR-0042 (Harbor Cartons Ltd, VND 5
 ### SCR-60 Dashboard — [`60-dashboard.html`](wireframes/60-dashboard.html) · roles `ap`, `chief`, `approver`, `entity-admin`, `group-admin` · [PNG AP Accountant](../images/ap-accountant/60-dashboard.png), [PNG Chief Accountant](../images/chief-accountant/60-dashboard.png), [PNG Entity Admin](../images/entity-admin/60-dashboard.png), [PNG Group Admin](../images/group-admin/60-dashboard.png)
 
 Purpose: the touchless rate and the AI misplacement rate side by side, the backlog, and the Group Admin's per-entity counts (US-27). Default period: the current month (DF-23).
+
+**Layout (R1):** a row of tiles (Touchless rate with its validity, AI misplacement rate beside it, Open exceptions, Waiting for goods), then the two bar charts side by side. The Group Admin sees tiles (Entities, Received, Open exceptions, Waiting for Goods) and the per-entity table.
 
 | # | Note |
 |---|---|
@@ -340,7 +361,7 @@ Purpose: the touchless rate and the AI misplacement rate side by side, the backl
 | 1 | **Create user** opens SCR-71. |
 | 2 | The Group Admin has an entity filter; the Entity Admin sees only the own entity (AC-02.8). |
 | 3 | On the own row the role and status cannot be changed (AC-02.8). |
-| 4 | SCR-71: name, unique email, role, entity, initial password of at least 8 characters, ERP user link (DF-32, DF-14). The Entity Admin can choose only AP Accountant, Chief Accountant, or Payment Approver, in the own entity. |
+| 4 | SCR-71: name, unique email, role, entity, initial password of at least 8 characters, ERP user link (DF-32, DF-14). The Entity Admin can choose only AP Accountant, Chief Accountant, or Payment Approver, in the own entity. SCR-71 opens as a right drawer. |
 | 5 | SCR-72 states the effect of deactivation. |
 
 | State | Source | Behavior |
@@ -401,6 +422,16 @@ Purpose: the touchless rate and the AI misplacement rate side by side, the backl
 
 Purpose: the Group Admin's home page, built from US-06 and US-07 (D-39). Counts only.
 
+**Layout (R1):** four tiles (Entities, Open gates, Closed gates, Gate alerts), the gate alert as a notice with **Review the gate**, and a compact table of the entities.
+
+**Layout (R1):** a settings page: the Approval tiers section and the same sticky save bar as SCR-73.
+
+**Layout (R1):** a settings page: a sub-navigation with the sections Limits, Sampling, and Payment request grouping, and a sticky save bar ("Unsaved changes", Discard, Save) that also shows `saving` and `saved` (D-80).
+
+**Layout (R1):** a toolbar (search, **Filters**) and a compact table (name and email in one cell, role, entity, ERP user link, status, actions); SCR-71 as a right drawer (states `create`, `edit`, `email-error`, `role-error`, `saving`); SCR-72 stays a centered modal.
+
+**Layout (R1):** a toolbar (search, **Filters**, chips) and a compact table; a row expands in place to its detail (D-76).
+
 | # | Note |
 |---|---|
 | 1 | No invoice, batch, request, or audit entry of an entity is shown (BR-09). |
@@ -422,7 +453,7 @@ Purpose: the Group Admin's home page, built from US-06 and US-07 (D-39). Counts 
 | 1 | **Add entity** opens SCR-77. |
 | 2 | Group maximums: price tolerance 5% and batch threshold VND 300,000,000 (DF-13); the sector list (DF-25). |
 | 3 | Lowering a maximum below an entity value says that the value will be lowered (Step 3). |
-| 4 | SCR-77: entity name and a unique 10-digit tax code (US-03). |
+| 4 | SCR-77: entity name and a unique 10-digit tax code (US-03). SCR-77 opens as a right drawer. |
 
 | State | Source | Behavior |
 |---|---|---|
@@ -439,6 +470,10 @@ Purpose: the Group Admin's home page, built from US-06 and US-07 (D-39). Counts 
 ### SCR-78 Automation Gates and SCR-79 — [`78-automation-gates.html`](wireframes/78-automation-gates.html) · role `group-admin` · [PNG](../images/group-admin/78-automation-gates.png)
 
 Purpose: one gate for each supplier and entity pair, with counts and accuracy and no invoice contents (US-06, DF-49).
+
+**Layout (R1):** four tiles (Gates, Open, Closed, With an alert), the alert notice, and a compact table with the accuracy meter kept; **Open** and **Close** stay on the row and open SCR-79 as a centered modal.
+
+**Layout (R1):** a header with **Add entity**; the entities table on the left and the **Group limits** card on the right; SCR-77 as a right drawer (states `add`, `add-duplicate`, `add-invalid`).
 
 | # | Note |
 |---|---|
@@ -466,14 +501,16 @@ Purpose: one gate for each supplier and entity pair, with counts and accuracy an
 
 Purpose: the Demo Operator plays the buyer, the warehouse keeper, and the acceptor so that separation of duties (BR-02) can be shown (D-12). "Demo only" is in the top bar, in a banner, and on every card and modal.
 
+**Layout (R1):** a header with the actions to create a purchase order and to confirm a receipt, a persona toolbar, and two compact tables (Purchase orders, Receipts and acceptances); SCR-81 and SCR-82 as right drawers (states `po-form`, `po-error`, `receipt-form`, `receipt-no-order`, `receipt-same-persona`).
+
 | # | Note |
 |---|---|
 | 1 | Banner "Demo only" (AC-08.7). |
 | 2 | Entity selector and persona selector (buyer, warehouse keeper, acceptor). The entity is chosen here and not in the top bar (DF-36). |
 | 3 | **New purchase order** for the buyer; **Confirm receipt** for the other personas. |
 | 4 | Confirm a receipt from a row of an order. |
-| 5 | SCR-81: supplier, kind, lines; the creator is the persona chosen on the page. |
-| 6 | SCR-82: order reference (required), quantity, delivery note ("60 of 100 received, 40 outstanding"). No field takes data from an invoice (BR-13). |
+| 5 | SCR-81 (right drawer): supplier, kind, lines; the creator is the persona chosen on the page. |
+| 6 | SCR-82 (right drawer): order reference (required), quantity, delivery note ("60 of 100 received, 40 outstanding"). No field takes data from an invoice (BR-13). |
 
 | State | Source | Behavior |
 |---|---|---|
