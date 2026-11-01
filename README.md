@@ -14,7 +14,7 @@ The work is done in nine steps. A step is only approved when the user approves i
 |---|---|---|
 | 1 | Research and problem analysis | Draft for review |
 | 2 | Use cases and user stories (INVEST, acceptance criteria, business rules, MoSCoW) | Draft for review |
-| 3 | Information architecture (sitemap, routes and permissions, navigation, screen inventory, user flows, UI states) | Approved |
+| 3 | Information architecture (sitemap, routes and permissions, navigation, screen inventory, user flows, UI states) | Approved; the sync to the feature mind map (2026-11-01) is a draft for review |
 | 4 | UI/UX and wireframes (design system, screen notes, HTML wireframes with PNG exports) | Approved |
 | 5 | Database | Draft for review |
 | 6 | API contract | Not started |
@@ -346,19 +346,20 @@ The Demo Operator, who plays the buyer and the warehouse keeper in the ERP simul
 
 ## 2. Information Architecture, Screen Hierarchy, and UI/UX
 
-Step 3 (approved by the user) places the 26 stories of the earlier scope on 35 screens: 18 pages and 17 modals; the four stories added by D-88 (US-29..US-32) and the new criteria of existing stories are pending (Step 3 sync), see the [follow-up](docs/02-usecases-userstories/00-decisions.md#follow-up-in-steps-3-to-5). SCR-13 and SCR-17 were removed by D-33 and their numbers are not reused. Each role has a left sidebar with only the pages it may open, and a top bar with the entity name, the user, and Log out. Pages are grouped into areas by the roles that use them, and decisions, confirmations, and forms are modals on their parent page. The Rule Engine's work and the other system behaviour has no screen of its own; its results appear on the invoice worklist, the invoice evidence, the batch review, the payment request, and the group overview.
+Step 3 (approved by the user, then synced to the feature mind map as a draft for review) places the 30 stories on 45 screens: 22 pages and 23 modals. The sync (D-88) added the seventh role, the Requesting Department, ten screens (the acceptance queue, the mailbox log, signing delegations, the notification list, and six modals), three flows, and a notification centre that reverses D-41. SCR-13 and SCR-17 were removed by D-33 and their numbers are not reused. Each role has a left sidebar with only the pages it may open, and a top bar with the entity name, the user, and Log out. Pages are grouped into areas by the roles that use them, and decisions, confirmations, and forms are modals on their parent page. The Rule Engine's work and the other system behaviour has no screen of its own; its results appear on the invoice worklist, the invoice evidence, the batch review, the payment request, and the group overview.
 
 ### 2.1 Information architecture
 
 Solid lines connect a parent page to a child page; dashed arrows show which areas each actor uses; purple cards are pages with AI features.
 
-Finance roles: the AP Accountant, the Chief Accountant, and the Payment Approver, with the areas each one uses.
+Finance-side roles: the AP Accountant, the Chief Accountant, the Payment Approver, and the Requesting Department, with the areas each one uses. The Delegations area is drawn again in the second diagram because the Entity Admin reads and revokes delegations.
 
 ```mermaid
 flowchart TB
     ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
     ca["<span style='font-size:40px'>👤</span><br/><b>Chief Accountant</b>"]
     pa["<span style='font-size:40px'>👤</span><br/><b>Payment Approver</b>"]
+    rd["<span style='font-size:40px'>👤</span><br/><b>Requesting Department</b>"]
 
     subgraph access["Access"]
         direction TB
@@ -368,13 +369,19 @@ flowchart TB
     subgraph prep["AP preparation (AP Accountant)"]
         direction TB
         scr20["<b>SCR-20 Recurring Profiles</b><br/>• Profiles, earlier amounts<br/>• Add, deactivate"]
-        scr30["<b>SCR-30 Batch Review</b><br/>• Close batch, AI sample, OK or Error<br/>• Release for signing<br/>• Request and ERP send status"]
+        scr24["<b>SCR-24 Mailbox Log</b><br/>• Messages and attachments with results<br/>• Fetch now<br/>• Last fetch time or failure"]
+        scr30["<b>SCR-30 Batch Review</b><br/>• Close batch, AI sample, OK or Error<br/>• Expand sample, reopen for review<br/>• Release for signing<br/>• Request, ERP send status, resend"]
+    end
+
+    subgraph acceptance["Service acceptance (Requesting Department)"]
+        direction TB
+        scr22["<b>SCR-22 Acceptance Queue</b><br/>• Service invoices waiting for acceptance<br/>• Confirm or reject with a note<br/>• Own entity only"]
     end
 
     subgraph invoices["Invoices (AP: full · Chief Accountant, Payment Approver: read-only)"]
         direction TB
-        scr10["<b>SCR-10 Invoice Worklist</b><br/>• Invoices by state, filters<br/>• Due soon mark, last ERP sync<br/>• Upload XML only (AP)"]
-        scr12["<b>SCR-12 Invoice Detail and Evidence</b><br/>• Document, order, receipt, line matches<br/>• Anomalies, six conditions, history<br/>• AI text labelled AI<br/>• Action panel for the role that must decide"]
+        scr10["<b>SCR-10 Invoice Worklist</b><br/>• Search by number, supplier, total<br/>• Filters by state, Due soon, source<br/>• Last ERP sync, upload XML only (AP)"]
+        scr12["<b>SCR-12 Invoice Detail and Evidence</b><br/>• Document, order, receipt, line matches<br/>• Anomalies, six conditions, authority status<br/>• State history, AI text labelled AI<br/>• Action panel for the role that must decide<br/>• Record a cancellation notice (AP)"]
         scr10 --> scr12
     end
 
@@ -385,9 +392,19 @@ flowchart TB
 
     subgraph signing["Signing (Chief Accountant, Payment Approver)"]
         direction TB
-        scr50["<b>SCR-50 Signing Queue</b><br/>• Requests to sign, select many<br/>• Sign in one action<br/>• ERP status"]
-        scr51["<b>SCR-51 Payment Request Detail</b><br/>• AI summary labelled AI<br/>• Totals, large invoices, flags<br/>• Lines, remove, decline<br/>• Paid status and reference"]
+        scr50["<b>SCR-50 Signing Queue</b><br/>• Requests to sign, select many<br/>• Sign in one action, On behalf of mark<br/>• ERP status"]
+        scr51["<b>SCR-51 Payment Request Detail</b><br/>• AI summary labelled AI<br/>• Totals, large invoices, flags<br/>• Lines, remove, decline, resend<br/>• Paid status and reference"]
         scr50 --> scr51
+    end
+
+    subgraph delegations["Signing delegations (Chief Accountant, Payment Approver; Entity Admin reads and revokes)"]
+        direction TB
+        scr55["<b>SCR-55 Signing Delegations</b><br/>• Delegations given and received<br/>• New delegation, revoke<br/>• Scheduled, Active, Ended, Revoked"]
+    end
+
+    subgraph notifications["Notifications (AP Accountant, Chief Accountant, Payment Approver)"]
+        direction TB
+        scr62["<b>SCR-62 Notifications</b><br/>• Own notices and reminders<br/>• Unread count in the top bar<br/>• Each item opens its object"]
     end
 
     subgraph oversight["Oversight"]
@@ -396,29 +413,41 @@ flowchart TB
         scr61["<b>SCR-61 Audit Log</b><br/>• AI, rule, human, signature entries<br/>• Filters, read-only<br/>• Group Admin: group events only"]
     end
 
+    scr30 --> scr12
     scr40 --> scr12
     scr51 --> scr12
+    scr62 --> scr12
+    scr62 --> scr30
+    scr62 --> scr50
+    scr62 --> scr51
 
     ap -.-> access
     ap -.-> invoices
     ap -.-> prep
+    ap -.-> notifications
     ap -.-> oversight
     ca -.-> access
     ca -.-> invoices
     ca -.-> decisions
     ca -.-> signing
+    ca -.-> delegations
+    ca -.-> notifications
     ca -.-> oversight
     pa -.-> access
     pa -.-> invoices
     pa -.-> decisions
     pa -.-> signing
+    pa -.-> delegations
+    pa -.-> notifications
     pa -.-> oversight
+    rd -.-> access
+    rd -.-> acceptance
 
     classDef actor fill:none,stroke:none,color:#111
     classDef screen fill:#fff,color:#111,stroke:#1168bd,text-align:left
     classDef ai fill:#f3ecfb,color:#111,stroke:#7b3fbf,text-align:left
-    class ap,ca,pa actor
-    class scr01,scr10,scr20,scr40,scr50,scr60,scr61 screen
+    class ap,ca,pa,rd actor
+    class scr01,scr10,scr20,scr22,scr24,scr40,scr50,scr55,scr60,scr61,scr62 screen
     class scr12,scr30,scr51 ai
 ```
 
@@ -439,6 +468,11 @@ flowchart TB
         direction TB
         scr60["<b>SCR-60 Dashboard</b><br/>• Touchless rate and AI misplacement rate<br/>• Exception backlog by state and age<br/>• Group Admin: per-entity figures only"]
         scr61["<b>SCR-61 Audit Log</b><br/>• AI, rule, human, signature entries<br/>• Filters, read-only<br/>• Group Admin: group events only"]
+    end
+
+    subgraph delegations["Signing delegations (Chief Accountant, Payment Approver; Entity Admin reads and revokes)"]
+        direction TB
+        scr55["<b>SCR-55 Signing Delegations</b><br/>• Delegations given and received<br/>• New delegation, revoke<br/>• Scheduled, Active, Ended, Revoked"]
     end
 
     subgraph useradmin["User administration"]
@@ -469,6 +503,7 @@ flowchart TB
     entityAdmin -.-> oversight
     entityAdmin -.-> useradmin
     entityAdmin -.-> entityconfig
+    entityAdmin -.-> delegations
     groupAdmin -.-> access
     groupAdmin -.-> oversight
     groupAdmin -.-> useradmin
@@ -480,7 +515,7 @@ flowchart TB
     classDef screen fill:#fff,color:#111,stroke:#1168bd,text-align:left
     classDef ai fill:#f3ecfb,color:#111,stroke:#7b3fbf,text-align:left
     class entityAdmin,groupAdmin,demo actor
-    class scr01,scr60,scr61,scr70,scr73,scr74,scr75,scr76,scr80 screen
+    class scr01,scr55,scr60,scr61,scr70,scr73,scr74,scr75,scr76,scr80 screen
     class scr78 ai
 ```
 
@@ -490,14 +525,15 @@ Login takes each role to its home page (DF-28, D-39, DF-44), as the table below 
 
 | Role | Home page after login (DF-28) | Sidebar pages |
 |---|---|---|
-| AP Accountant | Invoice Worklist | Invoices, Batch, Recurring profiles, Dashboard |
-| Chief Accountant | Decision Queue | Decisions, Signing queue, Invoices (read-only), Dashboard, Audit log |
-| Payment Approver | Signing Queue | Signing queue, Approvals, Invoices (read-only), Dashboard |
-| Entity Admin | Entity Policy | Entity policy, Approval matrix, Users, Dashboard, Audit log |
+| AP Accountant | Invoice Worklist | Invoices, Batch, Mailbox, Recurring profiles, Notifications, Dashboard |
+| Chief Accountant | Decision Queue | Decisions, Signing queue, Delegations, Invoices (read-only), Notifications, Dashboard, Audit log |
+| Payment Approver | Signing Queue | Signing queue, Approvals, Delegations, Invoices (read-only), Notifications, Dashboard |
+| Requesting Department | Acceptance Queue | Acceptance queue |
+| Entity Admin | Entity Policy | Entity policy, Approval matrix, Users, Delegations, Dashboard, Audit log |
 | Group Admin | Group Overview | Group overview, Automation gates, Entities and limits, Users, Dashboard, Audit log |
 | Demo Operator | ERP Simulator (demo only) | ERP simulator |
 
-Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with the diagram of areas and page cards. Routes and the page-permission table are in [Routes and Permissions](docs/03-information-architecture/02-routes-and-permissions.md), navigation in [Navigation](docs/03-information-architecture/03-navigation.md), screen IDs and the requirement-to-screen mapping in [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), flows in [Primary User Flows](docs/03-information-architecture/05-user-flows.md), and states in [UI/UX States and Accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md). Only the D-33 adjustments and the diagram presentation await review in [Decisions and Defaults](docs/03-information-architecture/00-decisions.md).
+Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with the diagram of areas and page cards. Routes and the page-permission table are in [Routes and Permissions](docs/03-information-architecture/02-routes-and-permissions.md), navigation in [Navigation](docs/03-information-architecture/03-navigation.md), screen IDs and the requirement-to-screen mapping in [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), flows in [Primary User Flows](docs/03-information-architecture/05-user-flows.md), and states in [UI/UX States and Accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md). The D-33 adjustments, the diagram presentation, and the mind map sync (D-100..D-107, DF-69..DF-72) await review in [Decisions and Defaults](docs/03-information-architecture/00-decisions.md).
 
 ### 2.3 UI wireframes
 
