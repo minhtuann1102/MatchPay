@@ -1,0 +1,72 @@
+type: object
+description: >-
+  One reason of an exception. An exception lists every failed condition
+  (AC-16.2).
+required:
+  - id
+  - reasonCode
+  - createdAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  reasonCode:
+    $ref: ./ReasonCode.yaml
+  conditionNo:
+    type: integer
+    nullable: true
+  detail:
+    type: string
+    nullable: true
+    description: >-
+      Explanation with numbers, for example "Price +2.5%, tolerance 2%"
+      (AC-16.2).
+  withdrawReason:
+    type: string
+    allOf:
+      - $ref: ./WithdrawReason.yaml
+    nullable: true
+  withdrawnByName:
+    type: string
+    nullable: true
+  recordedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  createdAt:
+    type: string
+    format: date-time
+  resolvedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  resolvedAt:
+    type: string
+    format: date-time
+    nullable: true
+  conditionResultId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  anomalyFindingId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  serviceAcceptanceId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  authorityStatusLookupId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  cancellationNoticeId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true

@@ -1,0 +1,19 @@
+type: object
+description: >-
+  Originals that became Superseded and exceptions that closed (AC-20.3,
+  AC-20.4).
+required:
+  - supersededInvoiceIds
+  - closedExceptionIds
+  - followUpInvoice
+properties:
+  supersededInvoiceIds:
+    type: array
+    items:
+      $ref: ./Id.yaml
+  closedExceptionIds:
+    type: array
+    items:
+      $ref: ./Id.yaml
+  followUpInvoice:
+    $ref: ./InvoiceBrief.yaml

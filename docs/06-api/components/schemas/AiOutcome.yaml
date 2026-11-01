@@ -1,0 +1,8 @@
+type: string
+description: Same values as the DBML enum `ai_outcome`.
+enum:
+  - SUCCESS
+  - INVALID_OUTPUT
+  - TIMEOUT
+  - ERROR
+x-dbml-enum: ai_outcome

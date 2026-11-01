@@ -1,0 +1,6 @@
+name: runId
+in: path
+required: true
+description: Identifier of a run (sync, fetch, or check run).
+schema:
+  $ref: ../schemas/Id.yaml

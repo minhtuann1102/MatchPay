@@ -1,0 +1,24 @@
+type: object
+description: A receipt or acceptance copied from the ERP.
+required:
+  - id
+  - erpRef
+  - kind
+  - receivedAt
+  - syncedAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  erpRef:
+    type: string
+  kind:
+    $ref: ./ReceiptKind.yaml
+  receivedAt:
+    type: string
+    format: date-time
+  confirmedBy:
+    type: string
+    nullable: true
+  syncedAt:
+    type: string
+    format: date-time

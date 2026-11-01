@@ -1,0 +1,14 @@
+type: string
+description: A figure of the dashboard that opens a list (AC-27.6).
+enum:
+  - RECEIVED
+  - TOUCHLESS
+  - SEPARATED
+  - REJECTED
+  - OPEN_EXCEPTIONS
+  - EXCEPTIONS_0_2_DAYS
+  - EXCEPTIONS_3_7_DAYS
+  - EXCEPTIONS_OVER_7_DAYS
+  - WAITING_FOR_GOODS
+  - SAMPLED
+  - SAMPLE_ERRORS

@@ -59,7 +59,7 @@ US_DB = list(US)  # the stories database covers: every active story
 N_DB = len(US_DB)
 N_MUST, N_SHOULD = 20, 10
 W_MAX = 21
-D_MAX = 186  # D-165..D-186 are the architecture calls (architecture);  D-130..D-164 are the API calls (API contract);  D-118..D-129 are the database calls of the mind map sync; D-108..D-117 are the UI/UX calls of the mind map sync; D-100..D-107 are the information architecture calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the UI/UX R1 redesign; D-33 is the scope decision; information architecture calls are D-34..D-41; UI/UX calls are D-42..D-46; database calls are D-47..D-66; D-67..D-72 are user decisions on the database gaps
+D_MAX = 187  # D-187 is the user's request to split the API contract into files;  D-165..D-186 are the architecture calls (architecture);  D-130..D-164 are the API calls (API contract);  D-118..D-129 are the database calls of the mind map sync; D-108..D-117 are the UI/UX calls of the mind map sync; D-100..D-107 are the information architecture calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the UI/UX R1 redesign; D-33 is the scope decision; information architecture calls are D-34..D-41; UI/UX calls are D-42..D-46; database calls are D-47..D-66; D-67..D-72 are user decisions on the database gaps
 DF_MAX = 93  # DF-89..DF-93 are the architecture defaults;  DF-83..DF-88 are the API defaults;  DF-77..DF-82 are the database defaults of the mind map sync; DF-73..DF-76 are the UI/UX defaults of the mind map sync; DF-69..DF-72 are the information architecture defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the information architecture defaults; DF-45..DF-52 are the UI/UX defaults; DF-53..DF-60 are the database defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
@@ -1271,10 +1271,46 @@ s6 = []
 for f_ in ['README.md', '00-decisions.md', '01-api-traceability.md']:
     if A6 + f_ not in text: s6.append(f_ + ' missing')
     elif '> Design status: MVP — draft for review' not in text[A6 + f_]: s6.append(f_ + ' lacks the API header')
-raw6 = open(ROOT + '/' + A6 + 'openapi.yaml', encoding='utf-8').read()
-for p_ in (A6 + 'openapi.yaml', 'redocly.yaml'):
+# The contract is split into a root file plus paths/ and components/ files. Rebuild one document without
+# calling any external tool: file refs under components/<kind>/ become internal refs and are collected into
+# the components section; every other file ref (the paths/ files) is inlined.
+def load_api6(root_rel):
+    base_ = os.path.normpath(os.path.join(ROOT, root_rel))
+    comps_ = {}
+    cache_ = {}
+    def read_(fp_):
+        if fp_ not in cache_:
+            cache_[fp_] = yaml.safe_load(open(fp_, encoding='utf-8').read())
+        return cache_[fp_]
+    def walk_(node_, cur_):
+        if isinstance(node_, list): return [walk_(x_, cur_) for x_ in node_]
+        if not isinstance(node_, dict): return node_
+        r_ = node_.get('$ref')
+        if isinstance(r_, str) and not r_.startswith('#'):
+            f_, _, ptr_ = r_.partition('#')
+            fp_ = os.path.normpath(os.path.join(os.path.dirname(cur_), f_))
+            kind_ = os.path.relpath(os.path.dirname(fp_), os.path.join(os.path.dirname(base_), 'components')).replace(os.sep, '/')
+            if not kind_.startswith('..') and kind_ != '.' and '/' not in kind_ and not ptr_:
+                name_ = os.path.splitext(os.path.basename(fp_))[0]
+                bucket_ = comps_.setdefault(kind_, {})
+                if name_ not in bucket_:
+                    bucket_[name_] = None
+                    bucket_[name_] = walk_(read_(fp_), fp_)
+                return {'$ref': '#/components/%s/%s' % (kind_, name_)}
+            tgt_ = read_(fp_)
+            for part_ in [x_.replace('~1', '/').replace('~0', '~') for x_ in ptr_.strip('/').split('/') if x_]: tgt_ = tgt_[part_]
+            return walk_(tgt_, fp_)
+        return {k_: walk_(v_, cur_) for k_, v_ in node_.items()}
+    doc_ = walk_(read_(base_), base_)
+    c_ = doc_.setdefault('components', {})
+    for kind_, items_ in comps_.items():
+        c_.setdefault(kind_, {}).update(items_)
+    return doc_
+api = load_api6(A6 + 'openapi.yaml')
+raw6 = yaml.safe_dump(api, sort_keys=False, allow_unicode=True)
+api_files6 = [rel(os.path.join(dp, f_)) for dp, dn, fn in os.walk(ROOT + '/' + A6) for f_ in fn if f_.endswith('.yaml')]
+for p_ in api_files6 + ['redocly.yaml']:
     if re.search('[À-ỹĐđ]', open(ROOT + '/' + p_, encoding='utf-8').read()): s6.append('Vietnamese letters in ' + p_)
-api = yaml.safe_load(raw6)
 if not str(api.get('openapi', '')).startswith('3.0'): s6.append('openapi version is not 3.0.x')
 ops6 = {}
 for path_, item_ in api['paths'].items():
@@ -1381,7 +1417,7 @@ for f_ in FILES7:
         if b_.split()[0] not in ('flowchart', 'classDiagram', 'sequenceDiagram'): s7.append('unknown Mermaid kind in ' + f_)
         if re.search(r'^\s*(sequenceDiagram|participant|actor|Note|[A-Za-z]+-+>>?).*[;#]', b_, re.M) and b_.startswith('sequenceDiagram'): s7.append('semicolon or hash in a sequence diagram of ' + f_)
 dec7 = text.get(A7 + '00-decisions.md', '')
-for n_ in range(165, D_MAX + 1):
+for n_ in range(165, 187):
     if not re.search(r'^\| D-%d \|.*\| Call, awaiting user review \|$' % n_, dec7, re.M): s7.append('D-%d row missing or not "Call, awaiting user review"' % n_)
 for n_ in range(89, DF_MAX + 1):
     if not re.search(r'^\| DF-%02d \|.*\| Default, pending confirmation \|$' % n_, dec7, re.M): s7.append('DF-%02d row missing or not "Default, pending confirmation"' % n_)
@@ -1463,7 +1499,7 @@ print('  components: %d; operations owned once: %d of %d; jobs: %d; tables owned
 if s7: fail('Architecture architecture checks')
 
 print('\n== CHECK: README Mermaid blocks match their source documents ==')
-_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None, 'docs/05-database/02-er-diagram.md': None, 'docs/07-architecture/02-container.md': None}
+_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None, 'docs/05-database/02-er-diagram.md': None, 'docs/07-architecture/02-container.md': None, 'docs/07-architecture/01-system-context.md': None, 'docs/07-architecture/03-component.md': None, 'docs/07-architecture/04-code.md': None, 'docs/07-architecture/07-runtime-and-deployment.md': None}
 _pool = []
 for _p in _src:
     _pool += re.findall(r'```mermaid\n(.*?)```', open(_p, encoding='utf-8').read(), re.S)

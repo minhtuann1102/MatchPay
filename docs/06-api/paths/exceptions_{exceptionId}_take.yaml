@@ -1,0 +1,54 @@
+post:
+  tags:
+    - Exceptions
+  summary: Take an exception
+  description: >-
+    The AP Accountant starts work on an Open exception: state In Review,
+    `takenBy` and `takenAt` set (E2, BR-34). Carries `version`. Appends to
+    audit_log. A Chief Accountant, a Payment Approver, or an AP Accountant of
+    another entity gets 403 (AC-18.10).
+  operationId: takeException
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-18
+  x-rules:
+    - BR-34
+    - BR-37
+  x-screens:
+    - SCR-12
+  x-tables:
+    - exceptions
+    - audit_log
+  x-criteria:
+    - AC-18.1
+    - AC-18.7
+    - AC-18.10
+  parameters:
+    - $ref: ../components/parameters/exceptionId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/TakeRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Exception.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

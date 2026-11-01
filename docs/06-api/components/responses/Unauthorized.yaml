@@ -1,0 +1,17 @@
+description: >-
+  No session, or the session ended. A deactivated user's session ends on the
+  next request (AC-02.5). A wrong password at signing also gives 401
+  AUTH_INVALID_CREDENTIALS; the client tells them apart by errorCode.
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    examples:
+      sessionExpired:
+        value:
+          type: https://matchpay.example/problems/auth-session-expired
+          title: Session expired
+          status: 401
+          detail: The session has ended. Log in again.
+          errorCode: AUTH_SESSION_EXPIRED
+          traceId: 4f1c9a6e8b2d47a0

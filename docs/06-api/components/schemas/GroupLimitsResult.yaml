@@ -1,0 +1,12 @@
+type: object
+description: The saved limits and every entity value that was lowered with them.
+required:
+  - group
+  - adjustments
+properties:
+  group:
+    $ref: ./Group.yaml
+  adjustments:
+    type: array
+    items:
+      $ref: ./PolicyAdjustment.yaml

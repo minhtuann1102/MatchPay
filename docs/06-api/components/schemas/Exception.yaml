@@ -1,0 +1,120 @@
+type: object
+description: >-
+  An exception with every reason, links, and the actions open to the caller
+  (SCR-12, SCR-18).
+required:
+  - id
+  - invoiceId
+  - invoiceNumber
+  - totalAmount
+  - state
+  - openedAt
+  - ageDays
+  - awaitingApConfirmation
+  - linkedExceptionIds
+  - version
+  - reasons
+  - followUps
+  - individualApprovalAllowed
+  - allowedActions
+properties:
+  id:
+    $ref: ./Id.yaml
+  invoiceId:
+    $ref: ./Id.yaml
+  invoiceNumber:
+    type: string
+  supplierName:
+    type: string
+    nullable: true
+  totalAmount:
+    $ref: ./Money.yaml
+  state:
+    $ref: ./ExceptionState.yaml
+  outcome:
+    type: string
+    allOf:
+      - $ref: ./ExceptionOutcome.yaml
+    nullable: true
+  openedAt:
+    type: string
+    format: date-time
+  ageDays:
+    type: integer
+  takenBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  takenAt:
+    type: string
+    format: date-time
+    nullable: true
+  waitingRole:
+    type: string
+    allOf:
+      - $ref: ./DecisionRole.yaml
+    nullable: true
+  awaitingApConfirmation:
+    type: boolean
+  approvalAmount:
+    type: string
+    allOf:
+      - $ref: ./Money.yaml
+    nullable: true
+    description: The combined amount of split orders that decides the level (BR-10).
+  requiredLevelName:
+    type: string
+    nullable: true
+    description: Approval level for an individual approval (BR-03). Computed.
+  splitFindingId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  linkedExceptionIds:
+    type: array
+    items:
+      $ref: ./Id.yaml
+    description: Other exceptions of the same split-order finding, decided together (D-70).
+  closedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  closedAt:
+    type: string
+    format: date-time
+    nullable: true
+  version:
+    $ref: ./Version.yaml
+  reasons:
+    type: array
+    items:
+      $ref: ./ExceptionReason.yaml
+  followUps:
+    type: array
+    items:
+      $ref: ./FollowUpLink.yaml
+  taxRiskEntry:
+    type: object
+    allOf:
+      - $ref: ./TaxRiskEntry.yaml
+    nullable: true
+  wrongEntityReport:
+    type: object
+    allOf:
+      - $ref: ./WrongEntityReport.yaml
+    nullable: true
+  approvalBlock:
+    type: object
+    allOf:
+      - $ref: ./SignBlock.yaml
+    nullable: true
+  individualApprovalAllowed:
+    type: boolean
+    description: False for the kinds named in AC-23.4 (D-31).
+  allowedActions:
+    type: array
+    items:
+      $ref: ./ExceptionAction.yaml

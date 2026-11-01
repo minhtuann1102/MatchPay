@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `user_status`.
+enum:
+  - ACTIVE
+  - DEACTIVATED
+x-dbml-enum: user_status

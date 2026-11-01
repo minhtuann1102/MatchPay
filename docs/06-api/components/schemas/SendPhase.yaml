@@ -1,0 +1,13 @@
+type: string
+description: >-
+  ERP send status shown on the request (AC-26.5, AC-26.10). Computed from
+  erp_send_attempts and the request (DF-69).
+enum:
+  - NOT_SENT
+  - SENDING
+  - RETRY
+  - FAILED_ALERT
+  - DELIVERED
+  - PAID
+  - PAYMENT_FAILED
+  - CANCELLED

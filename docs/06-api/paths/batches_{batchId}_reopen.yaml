@@ -1,0 +1,63 @@
+post:
+  tags:
+    - Batch
+  summary: Reopen the batch for review
+  description: >-
+    In Signing back to In Review (B7, D-95) with a required reason. Refused with
+    409 STATE_CONFLICT "A request in this batch is already signed" when any
+    request holds a valid signature (AC-24.16). All requests become Cancelled,
+    the invoices stay In Batch, sample marks and recorded individual approvals
+    are kept (AC-24.15). Checked against the batch version in one transaction,
+    so a reopening and a signature cannot both succeed (AC-24.17). Appends to
+    audit_log.
+  operationId: reopenBatch
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-24
+  x-rules:
+    - BR-35
+    - BR-37
+  x-screens:
+    - SCR-34
+    - SCR-30
+  x-tables:
+    - batch_reopenings
+    - payment_batches
+    - payment_requests
+    - payment_request_lines
+    - request_signatures
+    - batch_sample_items
+    - audit_log
+  x-criteria:
+    - AC-24.15
+    - AC-24.16
+    - AC-24.17
+  parameters:
+    - $ref: ../components/parameters/batchId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/ReopenBatchRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ReopenBatchResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

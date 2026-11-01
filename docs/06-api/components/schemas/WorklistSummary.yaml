@@ -1,0 +1,39 @@
+type: object
+description: >-
+  Header figures of the worklist, computed from invoices and erp_sync_runs
+  (D-142).
+required:
+  - openExceptionCount
+  - waitingForGoodsCount
+  - dueSoonCount
+  - replyDueCount
+  - countsByState
+  - erpSync
+properties:
+  openExceptionCount:
+    type: integer
+    description: Badge of open exceptions (AC-17.1).
+  waitingForGoodsCount:
+    type: integer
+  dueSoonCount:
+    type: integer
+  replyDueCount:
+    type: integer
+  countsByState:
+    type: object
+    additionalProperties:
+      type: integer
+    description: Invoice count for each state name.
+  erpSync:
+    $ref: ./ErpSyncStatus.yaml
+example:
+  openExceptionCount: 7
+  waitingForGoodsCount: 2
+  dueSoonCount: 3
+  replyDueCount: 1
+  countsByState:
+    IN_BATCH: 5
+    EXCEPTION: 7
+  erpSync:
+    lastSuccessAt: '2026-10-31T09:15:12+07:00'
+    isStale: false

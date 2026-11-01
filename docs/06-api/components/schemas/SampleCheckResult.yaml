@@ -1,0 +1,13 @@
+type: object
+description: Sample-check result of the batch (AC-25.1).
+required:
+  - sampledCount
+  - okCount
+  - errorCount
+properties:
+  sampledCount:
+    type: integer
+  okCount:
+    type: integer
+  errorCount:
+    type: integer

@@ -1,0 +1,11 @@
+type: object
+description: Result of a resolution. Returned with 202 when a check run starts, else 200.
+required:
+  - exception
+properties:
+  exception:
+    $ref: ./Exception.yaml
+  checkRunId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: Check run started after the resolution (UC-16 runs again, AC-18.3).

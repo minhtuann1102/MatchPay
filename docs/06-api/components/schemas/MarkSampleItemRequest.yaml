@@ -1,0 +1,18 @@
+type: object
+description: Mark a sample item OK or ERROR. PENDING cannot be sent.
+required:
+  - mark
+  - version
+properties:
+  mark:
+    $ref: ./SampleMark.yaml
+  reason:
+    type: string
+    description: Required for ERROR (AC-24.4).
+  version:
+    allOf:
+      - $ref: ./Version.yaml
+    description: Version of the batch last read.
+example:
+  mark: OK
+  version: 3

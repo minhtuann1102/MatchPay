@@ -1,0 +1,14 @@
+type: object
+description: >-
+  The batch In Signing and the payment requests created (AC-24.6). AI summaries
+  are produced after the response (D-135).
+required:
+  - batch
+  - requests
+properties:
+  batch:
+    $ref: ./Batch.yaml
+  requests:
+    type: array
+    items:
+      $ref: ./PaymentRequestSummary.yaml

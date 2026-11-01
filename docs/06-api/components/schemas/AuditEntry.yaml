@@ -1,0 +1,100 @@
+type: object
+description: One entry of the append-only audit log (BR-12, D-55).
+required:
+  - id
+  - occurredAt
+  - actorType
+  - eventType
+  - isGroupEvent
+  - summary
+properties:
+  id:
+    $ref: ./Id.yaml
+  entityId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  occurredAt:
+    type: string
+    format: date-time
+  actorType:
+    $ref: ./AuditActor.yaml
+  actorUserId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  actorName:
+    type: string
+    nullable: true
+  eventType:
+    $ref: ./AuditEvent.yaml
+  isGroupEvent:
+    type: boolean
+  subjectType:
+    type: string
+    nullable: true
+  subjectId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  invoiceId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  task:
+    type: string
+    allOf:
+      - $ref: ./AiTask.yaml
+    nullable: true
+  method:
+    type: string
+    nullable: true
+  result:
+    type: string
+    nullable: true
+  reason:
+    type: string
+    nullable: true
+  confidence:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  modelVersion:
+    type: string
+    nullable: true
+  promptVersion:
+    type: string
+    nullable: true
+  summary:
+    type: string
+  details:
+    type: object
+    additionalProperties: true
+    nullable: true
+    description: Old and new values, conditions, and similar facts.
+  correlationId:
+    type: string
+    format: uuid
+    nullable: true
+example:
+  id: 90001
+  entityId: 1
+  occurredAt: '2026-10-31T09:05:00+07:00'
+  actorType: RULE_ENGINE
+  eventType: RULE_DECISION
+  isGroupEvent: false
+  subjectType: invoice
+  subjectId: 1042
+  invoiceId: 1042
+  method: rule engine 1.4
+  result: EXCEPTION
+  reason: Gate closed
+  summary: 'Invoice C26TAA-0000123 became an exception: Gate closed'
+  details:
+    failedConditions:
+      - 5

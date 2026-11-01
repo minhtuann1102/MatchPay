@@ -1,0 +1,12 @@
+type: object
+description: One page of Delegation records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./Delegation.yaml
+  meta:
+    $ref: ./PageMeta.yaml

@@ -1,0 +1,24 @@
+type: object
+description: An entry of the simulated tax-risk list with its source and date (D-21).
+required:
+  - id
+  - supplierTaxCode
+  - supplierName
+  - source
+  - listedOn
+  - loadedAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  supplierTaxCode:
+    type: string
+  supplierName:
+    type: string
+  source:
+    type: string
+  listedOn:
+    type: string
+    format: date
+  loadedAt:
+    type: string
+    format: date-time

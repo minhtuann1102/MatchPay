@@ -1,0 +1,13 @@
+type: object
+description: The expansion and the new sample.
+required:
+  - expansion
+  - batch
+  - sample
+properties:
+  expansion:
+    $ref: ./SampleExpansion.yaml
+  batch:
+    $ref: ./Batch.yaml
+  sample:
+    $ref: ./BatchSample.yaml

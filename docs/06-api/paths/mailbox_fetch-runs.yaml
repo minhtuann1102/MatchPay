@@ -1,0 +1,65 @@
+post:
+  tags:
+    - Mailbox
+  summary: Fetch the mailbox now
+  description: >-
+    "Fetch now" (AC-31.8). Queues a fetch and returns 202 with the run id
+    (D-135); the mailbox is also read every 15 minutes (DF-63). Each new message
+    is stored on its own; each XML attachment is stored and checked like an
+    upload with the source EMAIL (AC-31.1), a PDF or other file is logged and
+    rejected without creating an invoice (AC-31.2), an attachment over 10 MB is
+    logged without its bytes (DF-79), and the mailbox never chooses another
+    entity (AC-31.6). The fetch and each attachment result are written to
+    audit_log (AC-31.9).
+  operationId: startMailboxFetch
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-31
+  x-rules:
+    - BR-01
+    - BR-11
+    - BR-12
+    - BR-17
+    - BR-33
+  x-screens:
+    - SCR-24
+  x-tables:
+    - mailbox_fetch_runs
+    - mailbox_messages
+    - mailbox_attachments
+    - invoices
+    - invoice_documents
+    - invoice_lines
+    - invoice_corrections
+    - authority_status_lookups
+    - audit_log
+  x-criteria:
+    - AC-31.1
+    - AC-31.2
+    - AC-31.3
+    - AC-31.4
+    - AC-31.5
+    - AC-31.6
+    - AC-31.7
+    - AC-31.9
+  responses:
+    '202':
+      description: Fetch queued
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/JobAccepted.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '429':
+      $ref: ../components/responses/TooManyRequests.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+    '503':
+      $ref: ../components/responses/Unavailable.yaml

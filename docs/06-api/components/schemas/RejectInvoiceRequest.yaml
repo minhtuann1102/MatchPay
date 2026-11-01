@@ -1,0 +1,14 @@
+type: object
+description: Reject an invoice with a reason.
+required:
+  - version
+  - reason
+properties:
+  version:
+    $ref: ./Version.yaml
+  reason:
+    type: string
+    description: Required (AC-18.6).
+example:
+  version: 2
+  reason: Supplier sent the wrong buyer

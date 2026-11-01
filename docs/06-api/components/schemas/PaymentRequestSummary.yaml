@@ -1,0 +1,88 @@
+type: object
+description: A payment request in a list (SCR-50, SCR-30).
+required:
+  - id
+  - requestNo
+  - batchId
+  - state
+  - totalAmount
+  - requiredLevelName
+  - individuallyApproved
+  - lineCount
+  - flags
+  - signatures
+  - version
+properties:
+  id:
+    $ref: ./Id.yaml
+  requestNo:
+    type: string
+    description: PR- and four digits, counted per entity (DF-54).
+  batchId:
+    $ref: ./Id.yaml
+  supplierId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  supplierName:
+    type: string
+    nullable: true
+  state:
+    $ref: ./RequestState.yaml
+  totalAmount:
+    $ref: ./Money.yaml
+  requiredLevelName:
+    type: string
+  individuallyApproved:
+    type: boolean
+  lineCount:
+    type: integer
+  flags:
+    $ref: ./RequestFlags.yaml
+  earliestDueDate:
+    type: string
+    format: date
+    nullable: true
+  signatures:
+    type: array
+    items:
+      $ref: ./SignatureRecord.yaml
+  awaitingRole:
+    type: string
+    allOf:
+      - $ref: ./SignerRole.yaml
+    nullable: true
+    description: Role whose signature the request waits for.
+  onBehalfOfName:
+    type: string
+    nullable: true
+    description: Set for the caller who may sign as an active delegate (AC-30.2).
+  erpStatus:
+    type: object
+    allOf:
+      - $ref: ./ErpSendStatus.yaml
+    nullable: true
+  paymentReference:
+    type: string
+    nullable: true
+  version:
+    $ref: ./Version.yaml
+example:
+  id: 311
+  requestNo: PR-0017
+  batchId: 41
+  supplierId: 52
+  supplierName: Harbor Cartons Ltd
+  state: AWAITING_CHIEF_ACCOUNTANT
+  totalAmount: '53000000.00'
+  requiredLevelName: CFO
+  individuallyApproved: true
+  lineCount: 3
+  flags:
+    newSupplier: false
+    bankAccountChanged: false
+  earliestDueDate: '2026-11-10'
+  signatures: []
+  awaitingRole: CHIEF_ACCOUNTANT
+  version: 1

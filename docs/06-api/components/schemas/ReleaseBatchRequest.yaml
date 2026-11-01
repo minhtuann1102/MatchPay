@@ -1,0 +1,9 @@
+type: object
+description: Release the batch for signing (B3).
+required:
+  - version
+properties:
+  version:
+    $ref: ./Version.yaml
+example:
+  version: 3

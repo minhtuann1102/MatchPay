@@ -1,0 +1,56 @@
+post:
+  tags:
+    - Delegations
+  summary: Revoke a delegation
+  description: >-
+    The delegator or the Entity Admin of the entity revokes at any time.
+    Signatures already given stay valid; the delegate can no longer sign on
+    behalf (AC-30.8, AC-30.9, BR-38). Carries `version`. Appends to audit_log.
+  operationId: revokeDelegation
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+    - ENTITY_ADMIN
+  x-stories:
+    - US-30
+  x-rules:
+    - BR-09
+    - BR-12
+    - BR-38
+  x-screens:
+    - SCR-55
+  x-tables:
+    - signing_delegations
+    - audit_log
+  x-criteria:
+    - AC-30.8
+    - AC-30.9
+    - AC-30.11
+  parameters:
+    - $ref: ../components/parameters/delegationId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/VersionOnly.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Delegation.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

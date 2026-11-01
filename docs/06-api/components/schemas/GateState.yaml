@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `gate_state`.
+enum:
+  - CLOSED
+  - OPEN
+x-dbml-enum: gate_state

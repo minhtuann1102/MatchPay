@@ -1,0 +1,34 @@
+type: object
+description: One entity on the group overview (SCR-75). Counts only.
+required:
+  - entityId
+  - entityName
+  - taxCode
+  - openGateCount
+  - closedGateCount
+  - openAlertCount
+  - syncFailed
+properties:
+  entityId:
+    $ref: ./Id.yaml
+  entityName:
+    type: string
+  taxCode:
+    type: string
+  openGateCount:
+    type: integer
+  closedGateCount:
+    type: integer
+  openAlertCount:
+    type: integer
+  lastSyncAt:
+    type: string
+    format: date-time
+    nullable: true
+  lastSyncStatus:
+    type: string
+    allOf:
+      - $ref: ./SyncStatus.yaml
+    nullable: true
+  syncFailed:
+    type: boolean

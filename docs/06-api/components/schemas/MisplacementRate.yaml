@@ -1,0 +1,22 @@
+type: object
+description: AI misplacement rate with the risk-weighted sample note (AC-27.4).
+required:
+  - withdrawnAfterSampleError
+  - sampledCount
+  - note
+  - aboveLimit
+properties:
+  rate:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  withdrawnAfterSampleError:
+    type: integer
+  sampledCount:
+    type: integer
+  note:
+    type: string
+  aboveLimit:
+    type: boolean
+    description: 'True above 1%: the touchless rate is marked "not valid" (AC-27.2).'

@@ -1,0 +1,19 @@
+type: object
+description: >-
+  Why the caller cannot sign or approve now (BR-02, BR-36, BR-38). The server
+  refuses a direct call with the same reason.
+required:
+  - code
+  - message
+properties:
+  code:
+    $ref: ./SignBlockCode.yaml
+  message:
+    type: string
+    description: >-
+      Text for the control, for example "You created the order for this
+      invoice".
+  invoiceId:
+    $ref: ./Id.yaml
+  invoiceNumber:
+    type: string

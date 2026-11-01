@@ -1,0 +1,8 @@
+type: string
+description: Kinds of server job that an operation can start (D-135).
+enum:
+  - ERP_SYNC
+  - MAILBOX_FETCH
+  - CHECK_RUN
+  - AUTHORITY_LOOKUP
+  - ERP_SEND

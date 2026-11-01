@@ -1,0 +1,19 @@
+type: object
+description: Confirm a line match; the pair joins the entity mapping table (AC-18.2).
+required:
+  - version
+  - invoiceLineId
+  - itemId
+properties:
+  version:
+    $ref: ./Version.yaml
+  invoiceLineId:
+    $ref: ./Id.yaml
+  itemId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: ERP item of the same entity.
+example:
+  version: 2
+  invoiceLineId: 5101
+  itemId: 7001

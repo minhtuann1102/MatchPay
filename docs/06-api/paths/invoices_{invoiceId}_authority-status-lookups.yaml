@@ -1,0 +1,102 @@
+post:
+  tags:
+    - Checks and evidence
+  summary: Run the authority status lookup again
+  description: >-
+    For an invoice with the exception "Authority status unavailable" (AC-10.15,
+    DF-64). Looks up the simulated tax-authority status (at most 10 seconds),
+    stores the result as a new lookup row, and queues a check run; returns 202.
+    Cancelled or Replaced rejects the invoice with the reason and date (BR-39,
+    V6, V13). Carries `version`. Appends to audit_log.
+  operationId: runAuthorityLookup
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-10
+  x-rules:
+    - BR-31
+    - BR-39
+  x-screens:
+    - SCR-10
+    - SCR-12
+  x-tables:
+    - authority_status_lookups
+    - invoices
+    - invoice_check_runs
+    - audit_log
+  x-criteria:
+    - AC-10.12
+    - AC-10.13
+    - AC-10.15
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/VersionOnly.yaml
+  responses:
+    '202':
+      description: Lookup done; run queued
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/JobAccepted.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+    '503':
+      $ref: ../components/responses/Unavailable.yaml
+get:
+  tags:
+    - Checks and evidence
+  summary: List the authority status lookups of an invoice
+  description: >-
+    Every lookup with its status, status date, outcome, and time (BR-39,
+    AC-10.16). A key the feed does not list is answered Valid with
+    `feedEntryFound` false (DF-78).
+  operationId: listAuthorityStatusLookups
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-10
+  x-rules:
+    - BR-12
+    - BR-39
+  x-screens:
+    - SCR-12
+  x-tables:
+    - authority_status_lookups
+  x-criteria:
+    - AC-10.14
+    - AC-10.16
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/AuthorityStatusList.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

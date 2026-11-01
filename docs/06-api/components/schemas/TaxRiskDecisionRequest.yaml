@@ -1,0 +1,18 @@
+type: object
+description: Release or reject a tax-risk hold.
+required:
+  - version
+  - decision
+  - reason
+properties:
+  version:
+    $ref: ./Version.yaml
+  decision:
+    $ref: ./HoldDecision.yaml
+  reason:
+    type: string
+    description: Required (AC-21.5).
+example:
+  version: 5
+  decision: RELEASE
+  reason: Supplier cleared by the tax office letter of 2026-10-28

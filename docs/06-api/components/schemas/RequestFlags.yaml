@@ -1,0 +1,10 @@
+type: object
+description: Flags the signer must see (BR-30, AC-25.1). Computed.
+required:
+  - newSupplier
+  - bankAccountChanged
+properties:
+  newSupplier:
+    type: boolean
+  bankAccountChanged:
+    type: boolean

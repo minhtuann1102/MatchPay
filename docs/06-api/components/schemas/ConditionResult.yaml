@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `condition_result`.
+enum:
+  - PASS
+  - FAIL
+  - NOT_EVALUATED
+x-dbml-enum: condition_result

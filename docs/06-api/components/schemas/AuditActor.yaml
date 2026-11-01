@@ -1,0 +1,9 @@
+type: string
+description: Same values as the DBML enum `audit_actor`.
+enum:
+  - USER
+  - AI
+  - RULE_ENGINE
+  - SYSTEM
+  - ERP
+x-dbml-enum: audit_actor

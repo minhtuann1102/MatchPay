@@ -1,0 +1,131 @@
+get:
+  tags:
+    - Invoices
+  summary: List and search the invoices of the entity
+  description: >-
+    The worklist and the search (SCR-10). Lists invoices of the caller's entity
+    in any state, including Paid, Rejected, and Superseded (AC-17.10). `q`
+    matches part of an invoice number, part of a supplier name, or, when it
+    reads as a number, the exact total with VAT ignoring thousands separators
+    (DF-68). Filters match the SCR-10 query string (D-140); the client sends
+    pageSize=50 (DF-68). An invoice that exists only in another entity is simply
+    not found: the list is empty and nothing hints that it exists (AC-17.13,
+    BR-09). Chief Accountant and Payment Approver get the same list read-only
+    (AC-17.4). An Entity Admin, Group Admin, or Demo Operator gets 403
+    (AC-17.9).
+  operationId: listInvoices
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-10
+    - US-17
+    - US-31
+  x-rules:
+    - BR-09
+  x-screens:
+    - SCR-10
+    - SCR-30
+    - SCR-51
+    - SCR-60
+  x-tables:
+    - invoices
+    - erp_suppliers
+    - exceptions
+    - correction_requests
+  x-criteria:
+    - AC-17.1
+    - AC-17.5
+    - AC-17.7
+    - AC-17.8
+    - AC-17.10
+    - AC-17.13
+    - AC-17.9
+    - AC-31.1
+  parameters:
+    - name: q
+      in: query
+      required: false
+      description: Search text (DF-68).
+      schema:
+        type: string
+    - name: state
+      in: query
+      required: false
+      description: One or more states.
+      schema:
+        type: array
+        items:
+          $ref: ../components/schemas/InvoiceState.yaml
+      style: form
+      explode: true
+    - name: supplierId
+      in: query
+      required: false
+      description: One supplier.
+      schema:
+        $ref: ../components/schemas/Id.yaml
+    - name: flow
+      in: query
+      required: false
+      description: One flow.
+      schema:
+        $ref: ../components/schemas/InvoiceFlow.yaml
+    - name: dateFrom
+      in: query
+      required: false
+      description: Invoice date from, inclusive.
+      schema:
+        type: string
+        format: date
+    - name: dateTo
+      in: query
+      required: false
+      description: Invoice date to, inclusive.
+      schema:
+        type: string
+        format: date
+    - name: source
+      in: query
+      required: false
+      description: Upload or Email (DF-72).
+      schema:
+        $ref: ../components/schemas/InvoiceSource.yaml
+    - name: replyDue
+      in: query
+      required: false
+      description: Only invoices with a correction request past 5 working days (DF-21).
+      schema:
+        type: boolean
+    - name: dueSoon
+      in: query
+      required: false
+      description: Only invoices due within 7 days (DF-18).
+      schema:
+        type: boolean
+    - name: hasOpenException
+      in: query
+      required: false
+      description: Only invoices with an open exception.
+      schema:
+        type: boolean
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/InvoiceSummaryPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

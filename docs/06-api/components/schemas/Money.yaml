@@ -1,0 +1,4 @@
+type: string
+pattern: ^-?[0-9]{1,16}(\.[0-9]{1,2})?$
+description: Amount in VND as a decimal string, never a JSON number (D-138).
+example: '70050000.00'

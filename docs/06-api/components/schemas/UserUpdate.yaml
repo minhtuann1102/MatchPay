@@ -1,0 +1,19 @@
+type: object
+description: >-
+  Change a user. An administrator cannot change their own role (AC-02.8). A user
+  keeps one role in one entity (D-13).
+required:
+  - version
+properties:
+  version:
+    $ref: ./Version.yaml
+  fullName:
+    type: string
+  role:
+    $ref: ./UserRole.yaml
+  erpUserId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+    description: Set to null to remove the link.

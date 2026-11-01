@@ -1,0 +1,68 @@
+post:
+  tags:
+    - Session
+  summary: Log in
+  description: >-
+    Authenticates with email and password and starts a server-side session. The
+    response sets the HttpOnly, Secure, SameSite=Strict cookie `mp_session` and
+    returns the CSRF token for the `X-CSRF-Token` header (D-131). A wrong email
+    or a wrong password gives the same 401 AUTH_INVALID_CREDENTIALS and writes a
+    LOGIN_FAILED audit entry (AC-01.2, BR-12). A deactivated account with the
+    right credentials gives 403 AUTH_ACCOUNT_DEACTIVATED (AC-01.3). Public
+    operation. Rate limited (DF-88).
+  operationId: login
+  security: []
+  x-roles: []
+  x-stories:
+    - US-01
+  x-rules:
+    - BR-12
+  x-screens:
+    - SCR-01
+  x-tables:
+    - users
+    - audit_log
+  x-criteria:
+    - AC-01.1
+    - AC-01.2
+    - AC-01.3
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/LoginRequest.yaml
+        example:
+          email: alice@calderwood-foods.example
+          password: ExamplePassword123!
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/SessionResponse.yaml
+          example:
+            user:
+              id: 11
+              fullName: Alice
+              email: alice@calderwood-foods.example
+              role: AP_ACCOUNTANT
+              status: ACTIVE
+              groupId: 1
+              entityId: 1
+              entityName: Calderwood Foods Co.
+              erpUserId: 301
+            csrfToken: c1f4d6b8a2e04b9f9e1d7a53
+            sessionExpiresAt: '2026-10-31T09:45:00+07:00'
+            homeRoute: /invoices
+    '401':
+      $ref: ../components/responses/InvalidCredentials.yaml
+    '403':
+      $ref: ../components/responses/AccountDeactivated.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '429':
+      $ref: ../components/responses/TooManyRequests.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

@@ -1,0 +1,13 @@
+type: object
+description: Report a wrong entity (AC-18.11).
+required:
+  - version
+  - note
+properties:
+  version:
+    $ref: ./Version.yaml
+  note:
+    type: string
+example:
+  version: 2
+  note: Delivery address is Calderwood Packaging Co.

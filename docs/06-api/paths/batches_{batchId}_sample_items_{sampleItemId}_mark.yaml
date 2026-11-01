@@ -1,0 +1,67 @@
+post:
+  tags:
+    - Batch
+  summary: Mark a sample item
+  description: >-
+    OK or ERROR. An ERROR needs a reason and withdraws the invoice into
+    exceptions; it counts for the misplacement rate and the gate alert (AC-24.4,
+    BR-07, BR-06). When 20 sampled invoices of an open pair in 30 days have an
+    error rate above 2% an alert is raised and the gate stays open until the
+    Group Admin acts (AC-06.7, DF-16). The marking user counts as having
+    processed the invoice for BR-36 (D-89). Carries the batch `version`. Appends
+    to audit_log.
+  operationId: markSampleItem
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-24
+    - US-06
+  x-rules:
+    - BR-06
+    - BR-07
+    - BR-36
+    - BR-37
+  x-screens:
+    - SCR-30
+  x-tables:
+    - batch_sample_items
+    - batch_items
+    - invoices
+    - exceptions
+    - exception_reasons
+    - supplier_gates
+    - gate_alerts
+    - payment_batches
+    - audit_log
+  x-criteria:
+    - AC-24.4
+    - AC-06.7
+  parameters:
+    - $ref: ../components/parameters/batchId.yaml
+    - $ref: ../components/parameters/sampleItemId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/MarkSampleItemRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/MarkSampleItemResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

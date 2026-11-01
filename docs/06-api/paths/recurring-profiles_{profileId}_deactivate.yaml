@@ -1,0 +1,50 @@
+post:
+  tags:
+    - Recurring profiles
+  summary: Deactivate a recurring profile
+  description: >-
+    The next invoice of that supplier and location has no profile and becomes an
+    exception "No matching profile" (AC-09.5). Carries `version`. Appends to
+    audit_log.
+  operationId: deactivateRecurringProfile
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-09
+  x-rules:
+    - BR-24
+  x-screens:
+    - SCR-20
+  x-tables:
+    - recurring_profiles
+    - audit_log
+  x-criteria:
+    - AC-09.5
+  parameters:
+    - $ref: ../components/parameters/profileId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/VersionOnly.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/RecurringProfile.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

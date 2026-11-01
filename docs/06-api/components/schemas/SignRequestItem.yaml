@@ -1,0 +1,12 @@
+type: object
+description: A request to sign and the version seen.
+required:
+  - requestId
+  - version
+properties:
+  requestId:
+    $ref: ./Id.yaml
+  version:
+    allOf:
+      - $ref: ./Version.yaml
+    description: Version of the request last read (BR-37).

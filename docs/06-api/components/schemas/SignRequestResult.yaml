@@ -1,0 +1,34 @@
+type: object
+description: The outcome for one request of the action (SCR-52).
+required:
+  - requestId
+  - requestNo
+  - outcome
+  - message
+  - sendStarted
+properties:
+  requestId:
+    $ref: ./Id.yaml
+  requestNo:
+    type: string
+  outcome:
+    $ref: ./SignOutcome.yaml
+  refusalCode:
+    $ref: ./SignRefusalCode.yaml
+  message:
+    type: string
+  invoiceId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: The invoice that causes a separation-of-duties refusal (AC-25.16).
+  signature:
+    $ref: ./SignatureRecord.yaml
+  newState:
+    $ref: ./RequestState.yaml
+  newVersion:
+    $ref: ./Version.yaml
+  sendStarted:
+    type: boolean
+    description: >-
+      True when this signature completed the request and the ERP send job was
+      queued (AC-25.11).

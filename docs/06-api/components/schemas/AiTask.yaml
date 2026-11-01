@@ -1,0 +1,11 @@
+type: string
+description: Same values as the DBML enum `ai_task`.
+enum:
+  - CLASSIFY_FLOW
+  - IDENTIFY
+  - MATCH_LINES
+  - DETECT_ANOMALIES
+  - DRAFT_REQUEST
+  - SELECT_SAMPLE
+  - SUMMARIZE_BATCH
+x-dbml-enum: ai_task

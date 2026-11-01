@@ -1,0 +1,6 @@
+name: batchId
+in: path
+required: true
+description: Identifier of a payment batch of the caller's entity.
+schema:
+  $ref: ../schemas/Id.yaml

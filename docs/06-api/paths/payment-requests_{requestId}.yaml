@@ -1,0 +1,87 @@
+get:
+  tags:
+    - Signing
+  summary: Get a payment request
+  description: >-
+    The request page (SCR-51): the AI summary labelled as AI, or a message when
+    it is unavailable (signing continues on the evidence, AC-25.13); totals by
+    entity and supplier; invoices of VND 50,000,000 or more; the sample-check
+    result; flags for a new supplier or a changed bank account (BR-30); the
+    required level; lines with links to SCR-12 (AC-17.12); signature records,
+    "signed by Dan on behalf of Carol" for a delegate (AC-30.10); and
+    `signBlock` with the reason signing is blocked: level, order of signing
+    (DF-01), "You processed an invoice in this request" naming the invoice
+    (AC-25.16), or an ERP link to the order or receipt (AC-25.8). A tax-risk
+    release by the Chief Accountant does not block (AC-25.17). The AI summary is
+    never a signature (AC-25.9).
+  operationId: getPaymentRequest
+  security:
+    - sessionCookie: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-25
+    - US-30
+    - US-26
+    - US-17
+  x-rules:
+    - BR-02
+    - BR-03
+    - BR-20
+    - BR-30
+    - BR-36
+    - BR-38
+  x-screens:
+    - SCR-51
+    - SCR-52
+    - SCR-12
+  x-tables:
+    - payment_requests
+    - payment_request_lines
+    - request_signatures
+    - ai_payment_summaries
+    - signing_delegations
+    - approval_tiers
+    - approval_tier_approvers
+    - service_acceptances
+    - batch_sample_items
+    - exceptions
+    - anomaly_findings
+    - invoices
+    - users
+    - erp_users
+    - erp_purchase_orders
+    - erp_receipts
+    - erp_send_attempts
+    - supplier_entity_stats
+    - erp_supplier_bank_accounts
+  x-criteria:
+    - AC-25.1
+    - AC-25.2
+    - AC-25.8
+    - AC-25.9
+    - AC-25.13
+    - AC-25.15
+    - AC-25.16
+    - AC-25.17
+    - AC-30.5
+    - AC-30.10
+    - AC-17.12
+    - AC-26.2
+    - AC-26.13
+  parameters:
+    - $ref: ../components/parameters/requestId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/PaymentRequestDetail.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

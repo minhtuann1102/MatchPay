@@ -1,0 +1,93 @@
+type: object
+description: >-
+  A supplier and entity pair with its gate. Counts and accuracy only; no invoice
+  content (BR-09, AC-06.9). Derived values are computed from gate_comparisons
+  (D-142).
+required:
+  - id
+  - supplierId
+  - supplierName
+  - entityId
+  - entityName
+  - state
+  - comparedCount
+  - unchangedCount
+  - thresholdPct
+  - canOpen
+  - hasSimulatedHistory
+  - version
+properties:
+  id:
+    $ref: ./Id.yaml
+  supplierId:
+    $ref: ./Id.yaml
+  supplierName:
+    type: string
+  entityId:
+    $ref: ./Id.yaml
+  entityName:
+    type: string
+  state:
+    $ref: ./GateState.yaml
+  comparedCount:
+    type: integer
+    description: Invoices compared in shadow mode, real and simulated (DF-17).
+  unchangedCount:
+    type: integer
+  accuracyPct:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+    description: unchangedCount divided by comparedCount; NULL when nothing was compared.
+  thresholdPct:
+    allOf:
+      - $ref: ./Decimal.yaml
+    description: The 98% threshold (DF-11).
+  canOpen:
+    type: boolean
+    description: True with at least 50 compared invoices (DF-16, AC-06.4).
+  hasSimulatedHistory:
+    type: boolean
+    description: >-
+      True when the figures include seeded history, labelled "Simulated history"
+      (AC-06.10).
+  openAlert:
+    type: object
+    allOf:
+      - $ref: ./GateAlert.yaml
+    nullable: true
+  openedAt:
+    type: string
+    format: date-time
+    nullable: true
+  openedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  closedAt:
+    type: string
+    format: date-time
+    nullable: true
+  closedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  version:
+    $ref: ./Version.yaml
+example:
+  id: 9
+  supplierId: 51
+  supplierName: Brightfield Paper Ltd
+  entityId: 1
+  entityName: Calderwood Foods Co.
+  state: CLOSED
+  comparedCount: 50
+  unchangedCount: 49
+  accuracyPct: '98.00'
+  thresholdPct: '98.00'
+  canOpen: true
+  hasSimulatedHistory: true
+  version: 1

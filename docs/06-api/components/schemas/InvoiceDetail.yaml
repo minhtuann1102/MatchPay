@@ -1,0 +1,105 @@
+type: object
+description: An invoice with its header fields (SCR-12).
+required:
+  - summary
+  - sellerTaxCode
+  - subtotalAmount
+  - vatAmount
+  - currency
+  - signatureStatus
+  - stateChangedAt
+  - document
+  - originalInvoiceIds
+  - warnings
+  - allowedActions
+properties:
+  summary:
+    $ref: ./InvoiceSummary.yaml
+  sellerTaxCode:
+    type: string
+  buyerTaxCode:
+    type: string
+    nullable: true
+  buyerName:
+    type: string
+    nullable: true
+  subtotalAmount:
+    $ref: ./Money.yaml
+  vatAmount:
+    $ref: ./Money.yaml
+  currency:
+    type: string
+  taxAuthorityCode:
+    type: string
+    nullable: true
+  signatureStatus:
+    $ref: ./SignatureStatus.yaml
+  signatureCheckedAt:
+    type: string
+    format: date-time
+    nullable: true
+  trustLevel:
+    type: string
+    allOf:
+      - $ref: ./TrustLevel.yaml
+    nullable: true
+  flowSetBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+    description: Set when a person chose the flow (AC-12.4).
+  entityConfirmedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  orderId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  recurringProfileId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  rejectionReason:
+    type: string
+    allOf:
+      - $ref: ./RejectionReason.yaml
+    nullable: true
+  rejectionNote:
+    type: string
+    nullable: true
+  rejectedAt:
+    type: string
+    format: date-time
+    nullable: true
+  uploadedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  stateChangedAt:
+    type: string
+    format: date-time
+  document:
+    $ref: ./DocumentInfo.yaml
+  originalInvoiceIds:
+    type: array
+    items:
+      $ref: ./Id.yaml
+    description: Invoices that this adjustment or replacement refers to (BR-31).
+  paymentReference:
+    type: string
+    nullable: true
+    description: Computed from the active request line (D-63).
+  warnings:
+    type: array
+    items:
+      $ref: ./Warning.yaml
+  allowedActions:
+    type: array
+    items:
+      $ref: ./InvoiceAction.yaml

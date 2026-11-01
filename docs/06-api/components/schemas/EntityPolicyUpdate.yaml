@@ -1,0 +1,27 @@
+type: object
+description: >-
+  Replace the four policy values (AC-04.1). Values above a group maximum give
+  422 RULE_LIMIT_EXCEEDED (AC-04.2).
+required:
+  - version
+  - priceTolerancePct
+  - batchThresholdVnd
+  - sampleRatePct
+  - groupingMode
+properties:
+  version:
+    $ref: ./Version.yaml
+  priceTolerancePct:
+    $ref: ./Decimal.yaml
+  batchThresholdVnd:
+    $ref: ./Money.yaml
+  sampleRatePct:
+    $ref: ./Decimal.yaml
+  groupingMode:
+    $ref: ./GroupingMode.yaml
+example:
+  version: 4
+  priceTolerancePct: '2.00'
+  batchThresholdVnd: '200000000.00'
+  sampleRatePct: '10.00'
+  groupingMode: BY_SUPPLIER

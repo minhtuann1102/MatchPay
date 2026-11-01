@@ -1,0 +1,29 @@
+type: object
+description: >-
+  What a line removal or a decline changed: the new total and level, voided
+  signatures, returned invoices (AC-25.5..AC-25.7).
+required:
+  - request
+  - requestCancelled
+  - previousRequiredLevelName
+  - voidedSignatureCount
+  - returnedInvoiceIds
+properties:
+  request:
+    $ref: ./PaymentRequestDetail.yaml
+  returnedInvoiceId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  requestCancelled:
+    type: boolean
+  previousRequiredLevelName:
+    type: string
+  voidedSignatureCount:
+    type: integer
+  returnedInvoiceIds:
+    type: array
+    items:
+      $ref: ./Id.yaml
+    description: Every invoice sent back to exceptions (all lines on a decline).

@@ -1,0 +1,9 @@
+type: object
+description: All records; the list is short and not paginated.
+required:
+  - items
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./CancellationNotice.yaml

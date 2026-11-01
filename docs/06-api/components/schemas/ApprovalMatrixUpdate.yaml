@@ -1,0 +1,26 @@
+type: object
+description: >-
+  Replace the whole matrix. Gaps, overlaps, and a tier with no active approver
+  are refused with the uncovered amounts (AC-05.2, AC-05.3).
+required:
+  - matrixVersion
+  - tiers
+properties:
+  matrixVersion:
+    $ref: ./Version.yaml
+  tiers:
+    type: array
+    items:
+      $ref: ./ApprovalTierInput.yaml
+example:
+  matrixVersion: 3
+  tiers:
+    - levelName: Department Head
+      minAmount: '0.00'
+      maxAmount: '49999999.99'
+      approverUserIds:
+        - 13
+    - levelName: CFO
+      minAmount: '50000000.00'
+      approverUserIds:
+        - 14

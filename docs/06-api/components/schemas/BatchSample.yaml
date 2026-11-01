@@ -1,0 +1,35 @@
+type: object
+description: The sample of a batch under review (SCR-30).
+required:
+  - batchId
+  - selectedWithoutAi
+  - sampleSize
+  - remainingToMark
+  - notInSampleCount
+  - items
+  - expansions
+properties:
+  batchId:
+    $ref: ./Id.yaml
+  method:
+    type: string
+    allOf:
+      - $ref: ./SampleMethod.yaml
+    nullable: true
+  selectedWithoutAi:
+    type: boolean
+    description: True shows the label "selected without AI" (AC-24.8, DF-29).
+  sampleSize:
+    type: integer
+  remainingToMark:
+    type: integer
+  notInSampleCount:
+    type: integer
+  items:
+    type: array
+    items:
+      $ref: ./SampleItem.yaml
+  expansions:
+    type: array
+    items:
+      $ref: ./SampleExpansion.yaml

@@ -1,0 +1,33 @@
+type: object
+description: A service acceptance with user, time, note, and source (AC-29.2, AC-29.4).
+required:
+  - decision
+  - decidedAt
+  - source
+  - overriddenByErp
+properties:
+  id:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  decision:
+    $ref: ./AcceptanceDecision.yaml
+  note:
+    type: string
+    nullable: true
+  decidedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  decidedByName:
+    type: string
+    nullable: true
+  decidedAt:
+    type: string
+    format: date-time
+  source:
+    $ref: ./AcceptanceSource.yaml
+  overriddenByErp:
+    type: boolean

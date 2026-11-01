@@ -1,0 +1,9 @@
+type: string
+description: >-
+  ACCEPTED: an invoice was stored and checks follow. REJECTED_INVOICE: an XML
+  was stored as a Rejected invoice (original kept as evidence). REJECTED_FILE:
+  no invoice was created (AC-10.8).
+enum:
+  - ACCEPTED
+  - REJECTED_INVOICE
+  - REJECTED_FILE

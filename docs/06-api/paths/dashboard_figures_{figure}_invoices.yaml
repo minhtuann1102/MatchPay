@@ -1,0 +1,53 @@
+get:
+  tags:
+    - Dashboard and group overview
+  summary: List the invoices behind a dashboard figure
+  description: >-
+    Every figure opens a list whose count equals the figure (AC-27.6). Open to
+    the roles that may open the worklist; an Entity Admin sees counts only
+    (AC-17.9, D-155).
+  operationId: listDashboardFigureInvoices
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-27
+  x-rules: []
+  x-screens:
+    - SCR-60
+    - SCR-10
+  x-tables:
+    - invoices
+    - exceptions
+    - batch_items
+    - batch_sample_items
+  x-criteria:
+    - AC-27.6
+  parameters:
+    - $ref: ../components/parameters/figure.yaml
+    - name: period
+      in: query
+      required: false
+      description: Calendar month as YYYY-MM.
+      schema:
+        type: string
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/InvoiceSummaryPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

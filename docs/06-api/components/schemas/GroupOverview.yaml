@@ -1,0 +1,9 @@
+type: object
+description: 'Group overview: gate counts, alerts, and last ERP sync per entity (SCR-75).'
+required:
+  - entities
+properties:
+  entities:
+    type: array
+    items:
+      $ref: ./GroupOverviewEntity.yaml

@@ -1,0 +1,35 @@
+type: object
+description: One mailbox fetch.
+required:
+  - id
+  - trigger
+  - startedAt
+  - status
+  - messagesRead
+  - messagesStored
+properties:
+  id:
+    $ref: ./Id.yaml
+  trigger:
+    $ref: ./FetchTrigger.yaml
+  requestedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  startedAt:
+    type: string
+    format: date-time
+  finishedAt:
+    type: string
+    format: date-time
+    nullable: true
+  status:
+    $ref: ./SyncStatus.yaml
+  messagesRead:
+    type: integer
+  messagesStored:
+    type: integer
+  errorMessage:
+    type: string
+    nullable: true

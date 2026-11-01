@@ -1,0 +1,35 @@
+type: object
+description: Create a user (AC-02.1, AC-02.2).
+required:
+  - fullName
+  - email
+  - password
+  - role
+properties:
+  fullName:
+    type: string
+  email:
+    type: string
+    format: email
+  password:
+    type: string
+    description: At least 8 characters (DF-32).
+  role:
+    $ref: ./UserRole.yaml
+  entityId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: >-
+      Group Admin only: the entity of the new user. Ignored and forced to the
+      own entity for an Entity Admin. Omitted for the Group Admin and Demo
+      Operator roles, who belong to the group.
+  erpUserId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: ERP user to link (AC-02.4).
+example:
+  fullName: Rowan
+  email: rowan@calderwood-foods.example
+  password: InitialPass#2026
+  role: REQUESTING_DEPARTMENT
+  entityId: 1

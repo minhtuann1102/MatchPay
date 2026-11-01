@@ -1,0 +1,6 @@
+name: sectorId
+in: path
+required: true
+description: Identifier of a sector list entry.
+schema:
+  $ref: ../schemas/Id.yaml

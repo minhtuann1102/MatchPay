@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `message_outcome`.
+enum:
+  - PENDING
+  - PROCESSED
+  - NO_ATTACHMENT
+x-dbml-enum: message_outcome

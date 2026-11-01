@@ -1,0 +1,28 @@
+type: object
+description: An approved request template (DF-21).
+required:
+  - id
+  - kind
+  - versionNo
+  - body
+  - isActive
+properties:
+  id:
+    $ref: ./Id.yaml
+  kind:
+    $ref: ./MessageKind.yaml
+  versionNo:
+    type: integer
+  body:
+    type: string
+  approvedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  approvedAt:
+    type: string
+    format: date-time
+    nullable: true
+  isActive:
+    type: boolean

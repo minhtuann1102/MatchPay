@@ -1,0 +1,18 @@
+type: object
+description: Result of a mark.
+required:
+  - sampleItem
+  - batch
+properties:
+  sampleItem:
+    $ref: ./SampleItem.yaml
+  batch:
+    $ref: ./Batch.yaml
+  withdrawnInvoiceId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: 'Set for ERROR: the invoice went back to exceptions (AC-24.4).'
+  gateAlert:
+    allOf:
+      - $ref: ./GateAlert.yaml
+    description: Set when the mark raised an alert (AC-06.7).

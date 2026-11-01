@@ -1,0 +1,62 @@
+post:
+  tags:
+    - Batch
+  summary: Withdraw an invoice from its batch
+  description: >-
+    The AP Accountant withdraws an In Batch invoice with a reason before its
+    request is Signed; it returns to exceptions (V15, AC-24.7, DF-07). After the
+    request is Signed the call gives 409 STATE_CONFLICT. The request total,
+    level, and hash are recomputed and earlier signatures on it voided (R5,
+    AC-25.5). Carries the invoice `version` (D-151). Appends to audit_log.
+  operationId: withdrawInvoiceFromBatch
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-24
+  x-rules:
+    - BR-33
+    - BR-35
+    - BR-37
+  x-screens:
+    - SCR-12
+    - SCR-30
+  x-tables:
+    - batch_items
+    - invoices
+    - exceptions
+    - exception_reasons
+    - payment_request_lines
+    - payment_requests
+    - request_signatures
+    - audit_log
+  x-criteria:
+    - AC-24.7
+    - AC-18.9
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/WithdrawRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/WithdrawResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

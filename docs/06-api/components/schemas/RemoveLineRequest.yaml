@@ -1,0 +1,13 @@
+type: object
+description: Remove a line before signing (AC-25.6).
+required:
+  - reason
+  - version
+properties:
+  reason:
+    type: string
+  version:
+    $ref: ./Version.yaml
+example:
+  reason: Price differs from the contract
+  version: 1

@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `sample_mark`.
+enum:
+  - PENDING
+  - OK
+  - ERROR
+x-dbml-enum: sample_mark

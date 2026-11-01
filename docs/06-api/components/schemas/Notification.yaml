@@ -1,0 +1,48 @@
+type: object
+description: >-
+  An in-app notification or reminder (D-97). No email is sent to staff
+  (AC-32.8).
+required:
+  - id
+  - kind
+  - objectType
+  - objectId
+  - summary
+  - createdAt
+  - isRead
+  - targetRoute
+properties:
+  id:
+    $ref: ./Id.yaml
+  kind:
+    $ref: ./NotificationKind.yaml
+  objectType:
+    $ref: ./NotificationObject.yaml
+  objectId:
+    $ref: ./Id.yaml
+  summary:
+    type: string
+  detail:
+    type: string
+    nullable: true
+  createdAt:
+    type: string
+    format: date-time
+  readAt:
+    type: string
+    format: date-time
+    nullable: true
+  isRead:
+    type: boolean
+  targetRoute:
+    type: string
+    description: Front-end route of the object, for example /signing/requests/311.
+example:
+  id: 612
+  kind: BATCH_RELEASED
+  objectType: BATCH
+  objectId: 41
+  summary: 3 payment requests wait for your signature
+  createdAt: '2026-10-31T09:55:00+07:00'
+  isRead: false
+  targetRoute: /signing

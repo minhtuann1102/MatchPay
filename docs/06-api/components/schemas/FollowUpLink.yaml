@@ -1,0 +1,35 @@
+type: object
+description: A follow-up invoice linked to an exception (BR-26, BR-31).
+required:
+  - id
+  - exceptionId
+  - followUpInvoiceId
+  - followUpInvoiceNumber
+  - kind
+  - status
+  - linkedAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  exceptionId:
+    $ref: ./Id.yaml
+  followUpInvoiceId:
+    $ref: ./Id.yaml
+  followUpInvoiceNumber:
+    type: string
+  kind:
+    $ref: ./FollowupKind.yaml
+  status:
+    $ref: ./FollowupStatus.yaml
+  linkedAt:
+    type: string
+    format: date-time
+  confirmedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  confirmedAt:
+    type: string
+    format: date-time
+    nullable: true

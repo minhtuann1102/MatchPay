@@ -1,0 +1,62 @@
+post:
+  tags:
+    - Batch
+  summary: Expand the sample
+  description: >-
+    Adds at least the original sample size again, in the same order of risk, or
+    all that remain; a reason is required; saved with the name and the time; can
+    be repeated (AC-24.12, DF-65). Disabled when every invoice is already in the
+    sample (AC-24.13). The batch cannot be released until the new items are
+    marked. Without the AI the highest-value remaining invoices are taken and
+    labelled (AC-24.14). Carries `version` (AC-24.17).
+  operationId: expandSample
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-24
+  x-rules:
+    - BR-07
+    - BR-35
+    - BR-37
+  x-screens:
+    - SCR-33
+    - SCR-30
+  x-tables:
+    - sample_expansions
+    - batch_sample_items
+    - payment_batches
+    - ai_requests
+    - audit_log
+  x-criteria:
+    - AC-24.12
+    - AC-24.13
+    - AC-24.14
+    - AC-24.17
+  parameters:
+    - $ref: ../components/parameters/batchId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/ExpandSampleRequest.yaml
+  responses:
+    '201':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ExpandSampleResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

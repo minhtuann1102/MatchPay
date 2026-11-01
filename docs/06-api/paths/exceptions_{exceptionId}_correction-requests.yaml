@@ -1,0 +1,112 @@
+post:
+  tags:
+    - Corrections and follow-ups
+  summary: Draft a correction request or data-fix notice
+  description: >-
+    The AI drafts a request to the supplier or a notice to the responsible
+    internal team from an approved template, using only data of the own entity
+    and of the invoice (AC-19.1, AC-19.3, AC-19.5, AC-19.9). Invoice notes are
+    data and never change the template (AC-19.8, BR-27). When the LLM is
+    unavailable the blank template is returned with `isBlankTemplate` true
+    (AC-19.7). Nothing is sent (AC-19.2). Response 201 with the draft. Appends
+    to audit_log with the model and prompt version. The model call runs as a
+    background job that the server waits for, up to 25 seconds (a call-and-wait
+    job, see the background jobs in the API traceability); when the wait ends
+    first, the blank template is returned as for an unavailable LLM (AC-19.7).
+  operationId: draftCorrectionRequest
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-19
+  x-rules:
+    - BR-01
+    - BR-09
+    - BR-25
+    - BR-26
+    - BR-27
+    - BR-31
+  x-screens:
+    - SCR-14
+  x-tables:
+    - correction_requests
+    - message_templates
+    - exceptions
+    - erp_suppliers
+    - ai_requests
+    - audit_log
+  x-criteria:
+    - AC-19.1
+    - AC-19.3
+    - AC-19.5
+    - AC-19.7
+    - AC-19.8
+    - AC-19.9
+    - AC-19.10
+  parameters:
+    - $ref: ../components/parameters/exceptionId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/CorrectionDraftRequest.yaml
+  responses:
+    '201':
+      description: Draft created
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/CorrectionRequest.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+    '503':
+      $ref: ../components/responses/Unavailable.yaml
+get:
+  tags:
+    - Corrections and follow-ups
+  summary: List the requests of an exception
+  description: >-
+    Drafts and sent requests of the exception, with the reply deadline of 5
+    working days (DF-21).
+  operationId: listCorrectionRequests
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-19
+  x-rules:
+    - BR-26
+  x-screens:
+    - SCR-14
+    - SCR-12
+  x-tables:
+    - correction_requests
+    - exceptions
+  x-criteria:
+    - AC-19.4
+    - AC-19.10
+  parameters:
+    - $ref: ../components/parameters/exceptionId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/CorrectionRequestList.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

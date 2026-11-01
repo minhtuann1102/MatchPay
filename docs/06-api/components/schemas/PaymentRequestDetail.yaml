@@ -1,0 +1,78 @@
+type: object
+description: The payment request page (SCR-51).
+required:
+  - summary
+  - contentHash
+  - aiSummary
+  - totalsByEntityAndSupplier
+  - largeInvoices
+  - sampleCheck
+  - lines
+  - canSign
+  - canRemoveLines
+  - canDecline
+properties:
+  summary:
+    $ref: ./PaymentRequestSummary.yaml
+  contentHash:
+    type: string
+  preparedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  aiSummary:
+    $ref: ./AiPaymentSummary.yaml
+  totalsByEntityAndSupplier:
+    type: array
+    items:
+      $ref: ./TotalByEntitySupplier.yaml
+  largeInvoices:
+    type: array
+    items:
+      $ref: ./LargeInvoice.yaml
+  sampleCheck:
+    $ref: ./SampleCheckResult.yaml
+  lines:
+    type: array
+    items:
+      $ref: ./PaymentRequestLine.yaml
+  signBlock:
+    type: object
+    allOf:
+      - $ref: ./SignBlock.yaml
+    nullable: true
+    description: Why the caller cannot sign now; NULL when signing is open.
+  canSign:
+    type: boolean
+  canRemoveLines:
+    type: boolean
+  canDecline:
+    type: boolean
+  cancelKind:
+    type: string
+    allOf:
+      - $ref: ./CancelKind.yaml
+    nullable: true
+  cancelReason:
+    type: string
+    nullable: true
+  cancelledAt:
+    type: string
+    format: date-time
+    nullable: true
+  sentAt:
+    type: string
+    format: date-time
+    nullable: true
+  paidAt:
+    type: string
+    format: date-time
+    nullable: true
+  erpFailedAt:
+    type: string
+    format: date-time
+    nullable: true
+  erpFailureReason:
+    type: string
+    nullable: true

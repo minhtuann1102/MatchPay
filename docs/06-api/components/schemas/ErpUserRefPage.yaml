@@ -1,0 +1,12 @@
+type: object
+description: One page of ErpUserRef records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./ErpUserRef.yaml
+  meta:
+    $ref: ./PageMeta.yaml

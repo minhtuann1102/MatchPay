@@ -1,0 +1,99 @@
+get:
+  tags:
+    - Approval matrix
+  summary: Get the approval matrix of the own entity
+  description: >-
+    Returns the amount tiers with the level of each (Department Head, CFO) and
+    the Payment Approvers assigned. Another entity's matrix is not reachable
+    (AC-05.5).
+  operationId: getApprovalMatrix
+  security:
+    - sessionCookie: []
+  x-roles:
+    - ENTITY_ADMIN
+  x-stories:
+    - US-05
+  x-rules:
+    - BR-03
+    - BR-09
+  x-screens:
+    - SCR-74
+  x-tables:
+    - approval_tiers
+    - approval_tier_approvers
+    - entities
+    - users
+  x-criteria:
+    - AC-05.5
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ApprovalMatrix.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+put:
+  tags:
+    - Approval matrix
+  summary: Replace the approval matrix
+  description: >-
+    Replaces all tiers in one transaction. Gaps and overlaps are refused with
+    the uncovered amounts (AC-05.2). A tier with no active approver gives "No
+    approver for VND 50,000,000 and over" (AC-05.3). Unsigned requests are
+    recomputed from their totals; a Signed request keeps its level (AC-05.4,
+    BR-03). Carries `matrixVersion`. Appends to audit_log with the old and new
+    tiers (AC-05.6).
+  operationId: replaceApprovalMatrix
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - ENTITY_ADMIN
+  x-stories:
+    - US-05
+  x-rules:
+    - BR-03
+  x-screens:
+    - SCR-74
+  x-tables:
+    - approval_tiers
+    - approval_tier_approvers
+    - entities
+    - users
+    - payment_requests
+    - audit_log
+  x-criteria:
+    - AC-05.1
+    - AC-05.2
+    - AC-05.3
+    - AC-05.4
+    - AC-05.6
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/ApprovalMatrixUpdate.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ApprovalMatrixResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

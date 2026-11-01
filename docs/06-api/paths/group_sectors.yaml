@@ -1,0 +1,79 @@
+get:
+  tags:
+    - Group and entities
+  summary: List the sectors allowed to issue non-coded invoices
+  description: >-
+    Returns the active sector list; the default holds only electricity (D-24,
+    DF-25). A seller's sector comes from the ERP supplier data and is compared
+    with this list ignoring case (D-71).
+  operationId: listSectors
+  security:
+    - sessionCookie: []
+  x-roles:
+    - GROUP_ADMIN
+  x-stories:
+    - US-03
+  x-rules:
+    - BR-17
+  x-screens:
+    - SCR-76
+  x-tables:
+    - group_sectors
+  x-criteria:
+    - AC-03.6
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/SectorList.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+post:
+  tags:
+    - Group and entities
+  summary: Add a sector
+  description: Adds a sector to the list (AC-03.6). Appends to audit_log.
+  operationId: addSector
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - GROUP_ADMIN
+  x-stories:
+    - US-03
+  x-rules:
+    - BR-17
+  x-screens:
+    - SCR-76
+  x-tables:
+    - group_sectors
+    - audit_log
+  x-criteria:
+    - AC-03.6
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/SectorCreate.yaml
+  responses:
+    '201':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Sector.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

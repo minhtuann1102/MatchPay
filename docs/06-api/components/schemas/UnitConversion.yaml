@@ -1,0 +1,12 @@
+type: object
+description: A unit conversion of an item.
+required:
+  - fromUnit
+  - factor
+properties:
+  fromUnit:
+    type: string
+  factor:
+    allOf:
+      - $ref: ./Decimal.yaml
+    description: Base units per one fromUnit.

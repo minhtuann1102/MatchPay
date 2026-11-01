@@ -1,0 +1,40 @@
+type: object
+description: A legal entity of the group.
+required:
+  - id
+  - groupId
+  - name
+  - taxCode
+  - isActive
+  - matrixVersion
+  - version
+  - createdAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  groupId:
+    $ref: ./Id.yaml
+  name:
+    type: string
+  taxCode:
+    type: string
+    description: Unique 10-digit tax code (BR-01).
+    pattern: ^[0-9]{10}$
+  isActive:
+    type: boolean
+  matrixVersion:
+    $ref: ./Version.yaml
+  version:
+    $ref: ./Version.yaml
+  createdAt:
+    type: string
+    format: date-time
+example:
+  id: 1
+  groupId: 1
+  name: Calderwood Foods Co.
+  taxCode: '0100000011'
+  isActive: true
+  matrixVersion: 3
+  version: 1
+  createdAt: '2026-10-01T08:00:00+07:00'

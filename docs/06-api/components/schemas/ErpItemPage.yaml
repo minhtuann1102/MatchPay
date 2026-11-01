@@ -1,0 +1,12 @@
+type: object
+description: One page of ErpItem records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./ErpItem.yaml
+  meta:
+    $ref: ./PageMeta.yaml

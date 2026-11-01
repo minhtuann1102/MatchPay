@@ -1,0 +1,11 @@
+type: string
+description: Same values as the DBML enum `notification_kind`.
+enum:
+  - BATCH_RELEASED
+  - SIGNATURE_WAITING
+  - EXCEPTION_OPENED
+  - REQUEST_RETURNED
+  - REQUEST_CANCELLED
+  - REPLY_REMINDER
+  - SIGNATURE_REMINDER
+x-dbml-enum: notification_kind

@@ -1,0 +1,13 @@
+type: object
+description: A total in the summary (AC-25.1).
+required:
+  - entityName
+  - supplierName
+  - amount
+properties:
+  entityName:
+    type: string
+  supplierName:
+    type: string
+  amount:
+    $ref: ./Money.yaml

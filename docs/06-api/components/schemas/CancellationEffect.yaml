@@ -1,0 +1,9 @@
+type: string
+description: Same values as the DBML enum `cancellation_effect`.
+enum:
+  - REJECTED
+  - WITHDRAWN_AND_REJECTED
+  - REQUEST_CANCELLED
+  - WARNING_ONLY
+  - NO_EFFECT
+x-dbml-enum: cancellation_effect

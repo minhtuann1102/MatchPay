@@ -1,0 +1,16 @@
+type: object
+description: 'A simulator persona: buyer, warehouse keeper, or acceptor (D-12).'
+required:
+  - id
+  - kind
+  - erpRef
+  - displayName
+properties:
+  id:
+    $ref: ./Id.yaml
+  kind:
+    $ref: ./PersonaKind.yaml
+  erpRef:
+    type: string
+  displayName:
+    type: string

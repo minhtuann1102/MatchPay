@@ -1,0 +1,13 @@
+type: string
+description: Same values as the DBML enum `sync_record_type`.
+enum:
+  - PURCHASE_ORDER
+  - RECEIPT
+  - ACCEPTANCE
+  - SUPPLIER
+  - ITEM
+  - UNIT_CONVERSION
+  - ERP_USER
+  - TAX_RISK_ENTRY
+  - AUTHORITY_STATUS
+x-dbml-enum: sync_record_type

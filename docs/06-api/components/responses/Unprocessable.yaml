@@ -1,0 +1,40 @@
+description: >-
+  The body or query is invalid (VALIDATION_FAILED, with `errors`), a group limit
+  is exceeded (RULE_LIMIT_EXCEEDED, BR-16), or a file is refused
+  (FILE_REJECTED).
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    examples:
+      validation:
+        value:
+          type: https://matchpay.example/problems/validation-failed
+          title: Validation failed
+          status: 422
+          detail: One or more fields are invalid
+          errorCode: VALIDATION_FAILED
+          traceId: 4f1c9a6e8b2d47a0
+          errors:
+            email:
+              - Email already in use
+      limit:
+        value:
+          type: https://matchpay.example/problems/rule-limit-exceeded
+          title: Group limit exceeded
+          status: 422
+          detail: 'Maximum allowed by the group: 5%'
+          errorCode: RULE_LIMIT_EXCEEDED
+          traceId: 4f1c9a6e8b2d47a0
+          errors:
+            priceTolerancePct:
+              - 'Maximum allowed by the group: 5%'
+      file:
+        value:
+          type: https://matchpay.example/problems/file-rejected
+          title: File rejected
+          status: 422
+          detail: The upload has no file part
+          errorCode: FILE_REJECTED
+          traceId: 4f1c9a6e8b2d47a0
+          rejectionReason: NO_FILE_PART

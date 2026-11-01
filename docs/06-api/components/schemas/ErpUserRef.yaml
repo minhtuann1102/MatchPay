@@ -1,0 +1,17 @@
+type: object
+description: An ERP user copied by the sync; used to link a MatchPay user (BR-02).
+required:
+  - id
+  - erpRef
+  - displayName
+  - syncedAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  erpRef:
+    type: string
+  displayName:
+    type: string
+  syncedAt:
+    type: string
+    format: date-time

@@ -1,0 +1,127 @@
+get:
+  tags:
+    - Users
+  summary: List users
+  description: >-
+    Entity Admin: users of the own entity only. Group Admin: users of all
+    entities, optionally narrowed by `entityId` (the Group Admin is not
+    entity-scoped, D-147). Another entity's users are never listed or reachable
+    for an Entity Admin (AC-02.6, BR-09). The password hash is never returned.
+  operationId: listUsers
+  security:
+    - sessionCookie: []
+  x-roles:
+    - ENTITY_ADMIN
+    - GROUP_ADMIN
+  x-stories:
+    - US-02
+  x-rules:
+    - BR-09
+  x-screens:
+    - SCR-70
+  x-tables:
+    - users
+    - entities
+    - erp_users
+  x-criteria:
+    - AC-02.6
+  parameters:
+    - name: entityId
+      in: query
+      required: false
+      description: 'Group Admin only: show one entity.'
+      schema:
+        $ref: ../components/schemas/Id.yaml
+    - name: role
+      in: query
+      required: false
+      description: Filter by role.
+      schema:
+        $ref: ../components/schemas/UserRole.yaml
+    - name: status
+      in: query
+      required: false
+      description: Filter by status.
+      schema:
+        $ref: ../components/schemas/UserStatus.yaml
+    - name: q
+      in: query
+      required: false
+      description: Part of the name or email.
+      schema:
+        type: string
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/UserPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+post:
+  tags:
+    - Users
+  summary: Create a user
+  description: >-
+    Creates a user with one role in one entity (D-13). Entity Admin: roles
+    AP_ACCOUNTANT, CHIEF_ACCOUNTANT, PAYMENT_APPROVER, or REQUESTING_DEPARTMENT,
+    own entity only; a request for an administrator role is refused (AC-02.2).
+    Group Admin: any entity. The password has at least 8 characters (DF-32). A
+    duplicate email gives 422 VALIDATION_FAILED on `email` (AC-02.7). Linking an
+    ERP user supports BR-02 and BR-36 (AC-02.4). Appends to audit_log (AC-02.1).
+  operationId: createUser
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - ENTITY_ADMIN
+    - GROUP_ADMIN
+  x-stories:
+    - US-02
+  x-rules:
+    - BR-02
+    - BR-36
+  x-screens:
+    - SCR-71
+  x-tables:
+    - users
+    - entities
+    - erp_users
+    - audit_log
+  x-criteria:
+    - AC-02.1
+    - AC-02.2
+    - AC-02.3
+    - AC-02.4
+    - AC-02.7
+    - AC-02.9
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/UserCreate.yaml
+  responses:
+    '201':
+      description: User created
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/User.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

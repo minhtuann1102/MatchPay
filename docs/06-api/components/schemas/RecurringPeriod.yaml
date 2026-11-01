@@ -1,0 +1,22 @@
+type: object
+description: An earlier period of a profile (BR-24).
+required:
+  - id
+  - periodStart
+  - amount
+  - origin
+properties:
+  id:
+    $ref: ./Id.yaml
+  periodStart:
+    type: string
+    format: date
+  amount:
+    $ref: ./Money.yaml
+  invoiceId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  origin:
+    $ref: ./PeriodOrigin.yaml

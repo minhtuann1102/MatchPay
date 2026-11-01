@@ -1,0 +1,9 @@
+type: object
+description: Ask for a draft of one kind (AC-19.1, AC-19.3, AC-19.5).
+required:
+  - kind
+properties:
+  kind:
+    $ref: ./MessageKind.yaml
+example:
+  kind: CORRECTION_REQUEST

@@ -1,0 +1,10 @@
+type: string
+description: >-
+  Why a file was refused before any invoice was created (AC-10.8, DF-85).
+  Reasons for an XML that became a Rejected invoice are in `RejectionReason`.
+enum:
+  - NOT_XML
+  - FILE_TOO_LARGE
+  - EMPTY_FILE
+  - NO_FILE_PART
+  - TOO_MANY_FILES

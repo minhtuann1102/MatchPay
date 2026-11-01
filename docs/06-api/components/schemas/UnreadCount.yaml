@@ -1,0 +1,9 @@
+type: object
+description: Unread notifications of the caller (AC-32.6).
+required:
+  - unread
+properties:
+  unread:
+    type: integer
+example:
+  unread: 3

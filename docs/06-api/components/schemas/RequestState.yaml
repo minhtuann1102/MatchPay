@@ -1,0 +1,10 @@
+type: string
+description: Same values as the DBML enum `request_state`.
+enum:
+  - AWAITING_CHIEF_ACCOUNTANT
+  - AWAITING_PAYMENT_APPROVER
+  - SIGNED
+  - SENT
+  - PAID
+  - CANCELLED
+x-dbml-enum: request_state

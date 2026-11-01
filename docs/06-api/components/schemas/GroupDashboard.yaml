@@ -1,0 +1,12 @@
+type: object
+description: Per-entity aggregates for the Group Admin (AC-27.7, DF-23).
+required:
+  - period
+  - entities
+properties:
+  period:
+    $ref: ./Period.yaml
+  entities:
+    type: array
+    items:
+      $ref: ./EntityFigures.yaml

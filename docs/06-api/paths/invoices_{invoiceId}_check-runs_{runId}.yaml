@@ -1,0 +1,117 @@
+get:
+  tags:
+    - Checks and evidence
+  summary: Get one check run with all its outputs
+  description: >-
+    The full run: flow classification, identification, line matches with the
+    signals behind the probability, anomaly findings, the rule evaluation with
+    its six conditions, the authority lookups, and the AI calls with model and
+    prompt version and outcome (no document text, D-59). The Rule Engine
+    decision is the same with the LLM switched off because it uses no LLM
+    (AC-16.10, D-08).
+  operationId: getCheckRun
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-12
+    - US-13
+    - US-14
+    - US-15
+    - US-16
+  x-rules:
+    - BR-04
+    - BR-05
+    - BR-09
+    - BR-10
+    - BR-11
+    - BR-12
+    - BR-14
+    - BR-15
+    - BR-17
+    - BR-23
+    - BR-24
+    - BR-27
+    - BR-28
+    - BR-29
+    - BR-30
+    - BR-06
+    - BR-08
+    - BR-16
+  x-screens:
+    - SCR-12
+  x-tables:
+    - invoice_check_runs
+    - ai_flow_classifications
+    - ai_identifications
+    - invoice_line_matches
+    - anomaly_findings
+    - anomaly_finding_invoices
+    - rule_evaluations
+    - rule_condition_results
+    - authority_status_lookups
+    - ai_requests
+    - price_history
+  x-criteria:
+    - AC-12.1
+    - AC-12.4
+    - AC-12.5
+    - AC-13.1
+    - AC-13.2
+    - AC-13.3
+    - AC-13.4
+    - AC-14.1
+    - AC-14.2
+    - AC-14.4
+    - AC-14.5
+    - AC-14.6
+    - AC-14.9
+    - AC-15.1
+    - AC-15.3
+    - AC-15.4
+    - AC-15.5
+    - AC-15.6
+    - AC-15.7
+    - AC-15.8
+    - AC-15.11
+    - AC-16.1
+    - AC-16.2
+    - AC-16.3
+    - AC-16.4
+    - AC-16.5
+    - AC-16.6
+    - AC-16.7
+    - AC-16.8
+    - AC-16.9
+    - AC-16.10
+    - AC-16.11
+    - AC-16.13
+    - AC-16.15
+    - AC-12.2
+    - AC-12.3
+    - AC-12.7
+    - AC-12.8
+    - AC-13.7
+    - AC-13.8
+    - AC-14.8
+    - AC-14.10
+    - AC-15.12
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+    - $ref: ../components/parameters/runId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/CheckRun.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

@@ -1,0 +1,58 @@
+type: object
+description: A service invoice that waits for goods with no ERP acceptance (SCR-22).
+required:
+  - invoiceId
+  - invoiceNumber
+  - supplierName
+  - orderId
+  - orderErpRef
+  - serviceLines
+  - totalAmount
+  - dueSoon
+  - invoiceVersion
+properties:
+  invoiceId:
+    $ref: ./Id.yaml
+  invoiceNumber:
+    type: string
+  supplierName:
+    type: string
+  orderId:
+    $ref: ./Id.yaml
+  orderErpRef:
+    type: string
+  serviceLines:
+    type: array
+    items:
+      $ref: ./ServiceLine.yaml
+  totalAmount:
+    $ref: ./Money.yaml
+  dueDate:
+    type: string
+    format: date
+    nullable: true
+  dueSoon:
+    type: boolean
+  invoiceVersion:
+    $ref: ./Version.yaml
+  blocked:
+    type: object
+    allOf:
+      - $ref: ./SignBlock.yaml
+    nullable: true
+    description: Set when the caller created the order (AC-29.6).
+example:
+  invoiceId: 1050
+  invoiceNumber: C26TAA-0000150
+  supplierName: Lakeside Facility Services Ltd
+  orderId: 910
+  orderErpRef: PO-CF-1020
+  totalAmount: '12000000.00'
+  dueDate: '2026-11-14'
+  dueSoon: false
+  invoiceVersion: 2
+  serviceLines:
+    - description: Cleaning, 5 days
+      quantity: '5.000'
+      unit: day
+      unitPrice: '2400000.00'

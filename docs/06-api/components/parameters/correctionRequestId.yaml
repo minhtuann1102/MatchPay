@@ -1,0 +1,6 @@
+name: correctionRequestId
+in: path
+required: true
+description: Identifier of a correction request or data-fix notice.
+schema:
+  $ref: ../schemas/Id.yaml

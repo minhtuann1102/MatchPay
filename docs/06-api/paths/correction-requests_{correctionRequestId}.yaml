@@ -1,0 +1,88 @@
+get:
+  tags:
+    - Corrections and follow-ups
+  summary: Get a correction request
+  description: >-
+    One draft or sent request. Another entity's request gives 403 ACCESS_DENIED
+    (BR-09).
+  operationId: getCorrectionRequest
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-19
+  x-rules:
+    - BR-09
+  x-screens:
+    - SCR-14
+  x-tables:
+    - correction_requests
+  x-criteria:
+    - AC-19.9
+    - AC-19.10
+  parameters:
+    - $ref: ../components/parameters/correctionRequestId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/CorrectionRequest.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+patch:
+  tags:
+    - Corrections and follow-ups
+  summary: Edit a draft
+  description: >-
+    Edits the subject, body, or recipient of a draft that has not been sent
+    (AC-19.1). The row has no version: a draft has one author, the AP Accountant
+    who created it, and a sent request cannot be edited (409 STATE_CONFLICT).
+  operationId: updateCorrectionRequest
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-19
+  x-rules:
+    - BR-26
+  x-screens:
+    - SCR-14
+  x-tables:
+    - correction_requests
+  x-criteria:
+    - AC-19.1
+    - AC-19.2
+  parameters:
+    - $ref: ../components/parameters/correctionRequestId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/CorrectionUpdate.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/CorrectionRequest.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

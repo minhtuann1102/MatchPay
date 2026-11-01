@@ -1,0 +1,14 @@
+type: object
+description: Add an entity (AC-03.1).
+required:
+  - name
+  - taxCode
+properties:
+  name:
+    type: string
+  taxCode:
+    type: string
+    pattern: ^[0-9]{10}$
+example:
+  name: Calderwood Logistics Co.
+  taxCode: '0100000044'

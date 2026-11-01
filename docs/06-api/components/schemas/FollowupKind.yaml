@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `followup_kind`.
+enum:
+  - FRESH_STANDARD
+  - ADJUSTMENT
+  - REPLACEMENT
+x-dbml-enum: followup_kind

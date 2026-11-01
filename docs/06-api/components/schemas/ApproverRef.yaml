@@ -1,0 +1,13 @@
+type: object
+description: A Payment Approver assigned to a tier.
+required:
+  - userId
+  - fullName
+  - status
+properties:
+  userId:
+    $ref: ./Id.yaml
+  fullName:
+    type: string
+  status:
+    $ref: ./UserStatus.yaml

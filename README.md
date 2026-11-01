@@ -1,37 +1,22 @@
 # MatchPay
 
-MatchPay is a shared platform for a group of several legal entities. AI checks every incoming invoice against its purchase order and goods receipt, and the Rule Engine admits invoices that pass six conditions into a payment batch. The MVP reads XML e-invoices only; foreign invoices and the cash payment flag are Advanced. Authorised people then sign consolidated payment requests per supplier, many in one action, and only exceptions need to be handled one by one. The goal is to pay the right amount, to the right entity, on time, without losing tax deductions.
+MatchPay is a shared platform for a group of legal entities. AI reads each incoming invoice and checks it against its purchase order and goods receipt, and a Rule Engine admits the invoices that pass six conditions into a payment batch. Authorised people then sign consolidated payment requests per supplier, many in one action, and only exceptions are handled one by one. The MVP reads XML e-invoices; foreign invoices and the cash payment flag are Advanced. The goal is to pay the right amount, to the right entity, on time, without losing tax deductions.
 
-## 1. Requirements — Research, Use Cases, and Acceptance Criteria
+## 1. Requirements — INVEST, Use Cases, and Acceptance Criteria
 
 Requirements define what MatchPay must do, who uses it, the value delivered, and the observable conditions of success. User stories are reviewed with INVEST and mapped to use cases, business rules, and acceptance criteria.
 
 ### 1.1 Product mind map
 
-See the [product mind map](docs/mindmap.md), including the [feature map F01–F12](docs/mindmap.md#feature-map-f01f12).
+![MatchPay feature mind map](docs/images/source/feature-mind-map.png)
 
-The original Vietnamese feature mind map is displayed below:
+The feature map F01–F12 is described in the [product mind map](docs/mindmap.md).
 
-![Feature Mind Map](docs/images/source/feature-mind-map.png)
+The research behind the requirements covers four problems (manual matching, inconsistent item names and units, risky suppliers and wrong-entity invoices, and payment approval without a matrix), seven measurable goals, the similar products, the regulatory context, and the risks. See [Research and Problem Analysis](docs/01-research/README.md).
 
-### 1.2 Research and Problem Analysis Summary
+### 1.2 INVEST requirements
 
-This research identifies four problems: manual matching of invoice, order, and receipt (P-01); item names and units that differ between documents (P-02); invoices from risky suppliers or issued to the wrong entity (P-03); and payment approval by email and chat with no approval matrix (P-04). It sets seven measurable goals, G-01..G-07, of which the touchless rate (G-01) is always reported together with the AI misplacement rate (G-02), and defines ten MVP modules, M-01..M-10.
-
-The brief's facts were checked against sources opened on 2026-10-31. Four points matter most:
-
-- **The legal base moved.** The e-invoice decree and circular in force changed on 2026-07-01. This rests on one secondary source (an EY summary); the official texts were not opened. The brief's 2025 sentence about all businesses with revenue of VND 1 billion was wrong and is replaced by a rationale that holds ([Decisions](docs/01-research/00-decisions.md), D-15..D-17).
-- **A tax rule ties payment to deduction.** A purchase of VND 5 million or more keeps its VAT deduction only if it is paid by non-cash means ([Regulatory context](docs/01-research/10-regulatory-context.md)). It stays as regulatory background and in the "why now" rationale. A rule that flagged cash payments (BR-32, D-25) was removed from the MVP by the user's decision D-33 and is Advanced (W-21); a signed batch is a non-cash transfer instruction by design.
-- **The market gap is still an assumption.** Cost does not support it, Vietnam e-invoice support of international products is unpublished rather than disproven, and data location is a compliance step ([Similar products](docs/01-research/04-similar-products.md)).
-- **Open items remain** for the user, the manager, an accountant, or a lawyer, including the name, the legal effect of policy delegation and of a delegated e-signature (O-05, O-17), and the usage-based non-coded invoices of D-24 ([Decisions](docs/01-research/00-decisions.md), O-01..O-17).
-
-Start with the [Research and Problem Analysis](docs/01-research/README.md).
-
-### 1.3 INVEST requirements, use cases, and business rules
-
-#### 1.3.1 INVEST requirements
-
-The MVP backlog includes 30 user stories, one per use case and numbered like it (US-01 is UC-01). The user removed foreign invoices and the cash payment flag from the MVP (D-33), so UC-11, UC-22, US-11, and US-22 are removed and their numbers are not reused. On 2026-11-01 the user attached a feature mind map and asked to sync the documents to it (D-88), which added four Should stories, UC-29..UC-32 (service acceptance by the Requesting Department, signing delegation while absent, invoices by email, and notifications and reminders), and extended some existing ones; the readings behind them are calls approved by the user (2026-11-01) (D-89..D-99). They cover access and configuration, source data, intake and AI understanding, exceptions, the batch with its sample check and signing, and oversight. Before a user story is ready for development, it is checked using the INVEST criteria.
+The MVP backlog has 30 user stories, one per use case and numbered like it (US-01 is UC-01). US-11 and US-22 were removed with foreign invoices and the cash payment flag, and their numbers are not reused. Before a user story is ready for development, it is checked using the INVEST criteria.
 
 | Criterion | Meaning in MatchPay |
 |---|---|
@@ -43,27 +28,24 @@ The MVP backlog includes 30 user stories, one per use case and numbered like it 
 | **Testable** | Every story has Given/When/Then acceptance criteria with concrete values. |
 
 ```text
-US-01–US-06   Access and configuration (log in with entity scope, users and roles, entities and group limits,
-              entity policy, approval matrix, automation gates)
-US-07–US-09   Source data (sync from the ERP, ERP simulator, recurring profiles)
-US-10–US-16   Intake and AI understanding (XML upload, flow, identification, line matching,
-              anomalies, the six batch conditions; US-11 removed)
-US-17–US-23   Exceptions (worklist, search, and evidence, resolve, correction requests, follow-up invoices,
-              tax-risk hold, individual approval; US-22 removed)
-US-24–US-26   Batch and signing (sample check with expansion and reopening, signing of payment requests,
-              sending to the ERP with a manual resend)
-US-27–US-28   Oversight (dashboard, audit log)
-US-29–US-32   Added by D-88 (service acceptance, signing delegation, invoices by email,
-              notifications and reminders)
+US-01–US-06   Access and configuration
+US-07–US-09   Source data
+US-10–US-16   Intake and AI understanding (US-11 removed)
+US-17–US-23   Exceptions (US-22 removed)
+US-24–US-26   Batch and signing
+US-27–US-28   Oversight
+US-29–US-32   Service acceptance, signing delegation, invoices by email, notifications
 ```
 
-Stories are prioritized with MoSCoW: 20 Must, 10 Should (US-29..US-32 are Should), 0 Could, and 21 Won't (Advanced items W-01..W-21; W-05 and W-13 now mean the supplier portal and the real tax-authority connection). The complete backlog and per-story INVEST review are in [User Stories (INVEST)](docs/02-usecases-userstories/03-user-stories-invest.md), the Given/When/Then criteria in [Acceptance Criteria](docs/02-usecases-userstories/04-acceptance-criteria.md), and the priorities in [MoSCoW Prioritization](docs/02-usecases-userstories/05-moscow-prioritization.md). The goals G-03, G-04, and G-06 are measured on named evaluation sets and a permissions test suite, defined in the acceptance criteria.
+MoSCoW priority: 20 Must, 10 Should, 0 Could, and 21 Won't (Advanced items W-01..W-21).
 
-#### 1.3.2 Use cases
+- [User Stories (INVEST)](docs/02-usecases-userstories/03-user-stories-invest.md)
+- [Acceptance Criteria](docs/02-usecases-userstories/04-acceptance-criteria.md)
+- [MoSCoW Prioritization](docs/02-usecases-userstories/05-moscow-prioritization.md)
 
-The model is drawn as one actor diagram and four use case diagrams, one per group of modules, so each picture stays readable. Human actors carry the person icon; systems are rounded nodes, and purple nodes use an LLM. UC-11 and UC-22 are not drawn (removed by D-33). UC-29 to UC-32 are drawn in the intake and the batch diagrams (D-88).
+### 1.3 Use cases
 
-Thick arrows marked «generalize» point from a child actor to the parent whose use cases it inherits. A Group Admin and an Entity Admin are two scopes of the Administrator.
+One actor diagram and four use case diagrams, one per group of modules. Purple nodes use an LLM.
 
 ```mermaid
 flowchart LR
@@ -89,8 +71,6 @@ flowchart LR
     classDef actor fill:none,stroke:none,color:#111
     class ap,ca,pa,rd,demo,entityAdmin,groupAdmin,admin,user actor
 ```
-
-Everyone logs in; the two administrator scopes manage users, entities, policy, the approval matrix, and the automation gates.
 
 ```mermaid
 flowchart LR
@@ -131,8 +111,6 @@ flowchart LR
     style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
     style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
 ```
-
-The Demo Operator creates orders and receipts in the simulator, the Requesting Department confirms service acceptances, the AP Accountant adds profiles, uploads XML invoices, and watches the invoice mailbox, and the AI Agent and the Rule Engine do the reading, matching, and routing. The Invoice Status Lookup Service (simulated) answers UC-10, and the Email Service holds the mailbox that UC-31 reads.
 
 ```mermaid
 flowchart LR
@@ -196,8 +174,6 @@ flowchart LR
     style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
 ```
 
-The AP Accountant resolves exceptions, the Chief Accountant decides tax-risk holds, and the Payment Approver approves single exceptions. The AI Agent drafts the request, and the Email Service delivers it.
-
 ```mermaid
 flowchart LR
     subgraph left["Actors"]
@@ -244,8 +220,6 @@ flowchart LR
     style right fill:#fff,stroke:#bbb,stroke-dasharray:5 5
     style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
 ```
-
-The AP Accountant reviews the batch, the Chief Accountant and the Payment Approver sign and can name a delegate, the Entity Admin sees and revokes delegations, and the System sends the signed batch to the ERP; the AP Accountant and the Chief Accountant can resend it by hand. All three finance roles receive notifications and reminders. The Administrator views the dashboard and the audit log; a Group Admin and an Entity Admin do the same because they inherit from the Administrator (see the actor diagram above, and the matrix for the scope).
 
 ```mermaid
 flowchart LR
@@ -304,9 +278,9 @@ flowchart LR
     style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
 ```
 
-An Administrator is not a finance role and never signs or approves. For the actors, the role and use case matrix, and the included and extending use cases, see [Actors and Use Cases](docs/02-usecases-userstories/01-use-cases.md); for the flows, see [Use Case Specifications](docs/02-usecases-userstories/02-use-case-specifications.md).
+For the actors, the role and use case matrix, and the flows, see [Actors and Use Cases](docs/02-usecases-userstories/01-use-cases.md) and [Use Case Specifications](docs/02-usecases-userstories/02-use-case-specifications.md).
 
-#### 1.3.3 Roles and permissions
+### 1.4 Roles and permissions
 
 | Capability | AP Accountant | Chief Accountant | Payment Approver | Requesting Department | Entity Admin | Group Admin |
 |---|---|---|---|---|---|---|
@@ -326,11 +300,11 @@ An Administrator is not a finance role and never signs or approves. For the acto
 | Configure entity policy and approval matrix | No | No | No | No | Own entity | No |
 | Manage entities, group limits, and automation gates | No | No | No | No | No | Yes |
 
-The Demo Operator, who plays the buyer and the warehouse keeper in the ERP simulator, appears only in the demo. The Rule Engine alone admits an invoice to a batch, from stored evidence and without an LLM; the AI supplies evidence and never decides. The server enforces roles and entity scope, and hiding a control in the screen serves only the user interface. The rules, including the lifecycles of invoices, exceptions, and batches, are in [Business rules](docs/requirements/business-rules.md).
+The Demo Operator, who plays the buyer and the warehouse keeper in the ERP simulator, appears only in the demo. The server enforces roles and entity scope; hiding a control in the screen serves only the user interface. The Rule Engine alone admits an invoice to a batch, from stored evidence and without an LLM; the AI supplies evidence and never decides. See [Business rules](docs/requirements/business-rules.md).
 
 ## 2. Information Architecture, Screen Hierarchy, and UI/UX
 
-The information architecture (approved by the user, then synced to the feature mind map as approved) places the 30 stories on 45 screens: 22 pages and 23 modals. The sync (D-88) added the seventh role, the Requesting Department, ten screens (the acceptance queue, the mailbox log, signing delegations, the notification list, and six modals), three flows, and a notification centre that reverses D-41. SCR-13 and SCR-17 were removed by D-33 and their numbers are not reused. Each role has a left sidebar with only the pages it may open, and a top bar with the entity name, the user, and Log out. Pages are grouped into areas by the roles that use them, and decisions, confirmations, and forms are modals on their parent page. The Rule Engine's work and the other system behaviour has no screen of its own; its results appear on the invoice worklist, the invoice evidence, the batch review, the payment request, and the group overview.
+The information architecture places the 30 stories on 45 screens: 22 pages and 23 modals. Each role sees only the pages it may open, and decisions, confirmations, and forms are modals on their parent page.
 
 ### 2.1 Information architecture
 
@@ -505,9 +479,7 @@ flowchart TB
 
 ### 2.2 Screen hierarchy
 
-Login takes each role to its home page (DF-28, D-39, DF-44), as the table below shows. Lists open full detail pages; decisions, forms, and confirmations are modals on their parent page. SCR-13 and SCR-17 were removed by D-33.
-
-| Role | Home page after login (DF-28) | Sidebar pages |
+| Role | Home page after login | Sidebar pages |
 |---|---|---|
 | AP Accountant | Invoice Worklist | Invoices, Batch, Mailbox, Recurring profiles, Notifications, Dashboard |
 | Chief Accountant | Decision Queue | Decisions, Signing queue, Delegations, Invoices (read-only), Notifications, Dashboard, Audit log |
@@ -517,35 +489,92 @@ Login takes each role to its home page (DF-28, D-39, DF-44), as the table below 
 | Group Admin | Group Overview | Group overview, Automation gates, Entities and limits, Users, Dashboard, Audit log |
 | Demo Operator | ERP Simulator (demo only) | ERP simulator |
 
-Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with the diagram of areas and page cards. Routes and the page-permission table are in [Routes and Permissions](docs/03-information-architecture/02-routes-and-permissions.md), navigation in [Navigation](docs/03-information-architecture/03-navigation.md), screen IDs and the requirement-to-screen mapping in [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), flows in [Primary User Flows](docs/03-information-architecture/05-user-flows.md), and states in [UI/UX States and Accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md). The D-33 adjustments, the diagram presentation, and the mind map sync (D-100..D-107, DF-69..DF-72) are approved by the user (2026-11-01) in [Decisions and Defaults](docs/03-information-architecture/00-decisions.md).
+Login takes each role to its home page; lists open full detail pages, and decisions, forms, and confirmations are modals on their parent page. Screen IDs and the requirement-to-screen mapping are in the [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), and the flows are in [Primary User Flows](docs/03-information-architecture/05-user-flows.md).
 
-### 2.3 UI wireframes
+### 2.3 Current UI design
 
-The UI/UX (approved by the user) draws the 45 active screens as 22 high-fidelity page files; modals are states of their parent page. The design concept is "three hands": what the **AI proposed** (dotted rail, round dashed tag), what the **Rule Engine decided** (double rail, square tag, six conditions with their values), and what a **person decided or signed** (solid rail, filled tag, signature record) are always distinguishable, in text and in shape. Only four core screens are shown here. Every screen and state, in every role, is in the wireframe gallery: open `docs/04-uiux/wireframes/index.html` in a browser from a local clone (GitHub shows `.html` files as source code). Revision R1 (2026-11-01) redesigned the layout of these screens (object pages with a stepper and tabs, lists with tiles and saved views, drawers for forms) and is approved; the images below are the R1 exports and keep their paths. The mind map sync (D-88, 2026-11-01, approved) added four pages and six modals or drawers for the Requesting Department, the signing delegations, the mailbox log, and the notifications, and states on six existing pages; the new calls are D-108..D-117 and DF-73..DF-76.
+The design concept is "three hands": what the AI proposed, what the Rule Engine decided, and what a person decided or signed are always distinguishable. The full gallery of every screen and state is `docs/04-uiux/wireframes/index.html`; open it in a browser from a local clone.
 
-**Invoice worklist (AP Accountant, SCR-10):** every state chip, reasons with numbers, "Due soon", and the sync time.
+#### Invoice worklist (AP Accountant, SCR-10)
 
 ![Invoice worklist](docs/images/ap-accountant/10-invoice-worklist.png)
 
-**Invoice detail with evidence (SCR-12):** AI evidence, the six conditions of BR-05 with values, line matches with method and probability, the decision history, and an action panel for the role.
+Every state chip, reasons with numbers, "Due soon", and the sync time.
+
+#### Invoice detail with evidence (SCR-12)
 
 ![Invoice detail and evidence](docs/images/ap-accountant/12-invoice-detail.png)
 
-**Batch review (SCR-30):** the AI-selected sample the AP Accountant marks before release.
+AI evidence, the six conditions with values, line matches, the decision history, and an action panel for the role.
+
+#### Batch review (SCR-30)
 
 ![Batch review](docs/images/ap-accountant/30c-batch-review-sample.png)
 
-**Payment request (Chief Accountant, SCR-51):** the AI summary labelled as AI, Rule Engine totals, and the signature records.
+The AI-selected sample that the AP Accountant marks before release.
+
+#### Payment request (Chief Accountant, SCR-51)
 
 ![Payment request](docs/images/chief-accountant/51-payment-request.png)
 
-Sources: [Design system](docs/04-uiux/01-design-system.md), [Screen notes and states](docs/04-uiux/02-screen-notes.md), [Decisions](docs/04-uiux/00-decisions.md).
+The AI summary labelled as AI, Rule Engine totals, and the signature records.
 
 ## 3. C4 Architecture
 
-The architecture (draft for review) documents MatchPay at four levels, from outside in: the [system context](docs/07-architecture/01-system-context.md) (seven roles, the outside systems), the [containers](docs/07-architecture/02-container.md), the [components](docs/07-architecture/03-component.md) of the backend, and the [code](docs/07-architecture/04-code.md) of the Rule Engine's six conditions and of signing many requests at once. MatchPay is a modular monolith (D-165): one Python codebase run as an `api` process for the 121 operations and a `worker` process for the ten background jobs, in front of one PostgreSQL 16 database with pgvector. The web application is React with TypeScript, built with Vite. Entity isolation has two layers, the server filter and PostgreSQL row-level security. Item embeddings run locally inside the worker, and the hosted LLM sits behind a port; the recommendation is Anthropic `claude-sonnet-5-5` with OpenAI `gpt-6.1-terra` as the switch-over, based on vendor pages opened on 2026-11-01, with the Vietnamese quality, rate limits, and availability still Unverified ([the record](docs/07-architecture/06-llm-provider.md)). Every decision is a call awaiting the user's review.
+This README presents C1–C3. C4 Level 4 is in the architecture documentation.
 
-The container diagram (C2):
+### C1 — System Context
+
+```mermaid
+flowchart LR
+    ap(["👤 AP Accountant"])
+    ca(["👤 Chief Accountant"])
+    pa(["👤 Payment Approver"])
+    rd(["👤 Requesting Department"])
+    entityAdmin(["👤 Entity Admin"])
+    groupAdmin(["👤 Group Admin"])
+    demo(["👤 Demo Operator<br/><i>[demo only]</i>"])
+
+    subgraph boundary["MatchPay [Software System Boundary]"]
+        direction TB
+        matchpay["MatchPay<br/><i>[Software System]</i><br/>Reads and matches invoices with AI, admits clean ones<br/>to a payment batch with the Rule Engine,<br/>and collects signatures on payment requests"]
+    end
+
+    erp[("Entity ERP<br/><i>[External System]</i><br/>Orders, receipts, suppliers,<br/>items, and payment status")]
+    authority(["Invoice Status Lookup Service<br/><i>[External System]</i><br/>Status of an e-invoice at the tax authority"])
+    mailbox(["Entity Invoice Mailbox<br/><i>[External System]</i><br/>Invoices that suppliers send by e-mail"])
+    email(["Email Service<br/><i>[External System]</i><br/>Delivers requests and notices"])
+    llm(["LLM Provider<br/><i>[External System]</i><br/>Language model API"])
+    supplier(["👤 Supplier<br/><i>[outside the system]</i>"])
+
+    ap -- "uploads XML, resolves exceptions, reviews the batch" --> matchpay
+    ca -- "decides tax-risk holds, signs first" --> matchpay
+    pa -- "approves exceptions, signs second" --> matchpay
+    rd -- "confirms service acceptance" --> matchpay
+    entityAdmin -- "manages the own entity" --> matchpay
+    groupAdmin -- "manages the group and the gates" --> matchpay
+    demo -- "creates orders and receipts in the simulator" --> matchpay
+
+    erp -- "master data, orders, receipts" --> matchpay
+    matchpay -- "sends signed payment requests" --> erp
+    matchpay -- "asks for the status of an invoice" --> authority
+    mailbox -- "invoice e-mails with XML attachments" --> matchpay
+    matchpay -- "sends the requests the AP Accountant approves" --> email
+    matchpay -- "sends a line, a draft task, or a summary task" --> llm
+    email -- "delivers a correction request" --> supplier
+    supplier -- "sends invoices by e-mail" --> mailbox
+
+    style matchpay fill:#1168bd,color:#fff
+    style boundary fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
+    style erp fill:#999,color:#fff
+    style authority fill:#999,color:#fff
+    style mailbox fill:#999,color:#fff
+    style email fill:#999,color:#fff
+    style llm fill:#7b3fbf,color:#fff
+    style supplier fill:#ddd,color:#111
+```
+
+### C2 — Container
 
 ```mermaid
 flowchart TB
@@ -599,15 +628,143 @@ flowchart TB
     style platform fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
 ```
 
-Sources: [Architecture index](docs/07-architecture/README.md), [Decisions and defaults](docs/07-architecture/00-decisions.md), [Tech stack](docs/07-architecture/05-tech-stack.md), [LLM provider](docs/07-architecture/06-llm-provider.md), [Runtime and deployment](docs/07-architecture/07-runtime-and-deployment.md).
+### C3 — Component
+
+```mermaid
+flowchart TB
+    web["Reverse Proxy and Web<br/><i>[Container]</i>"]
+    db[("PostgreSQL<br/><i>[Container: Database]</i>")]
+    ext(["ERP, status service, mailbox, Email Service<br/><i>[External Systems]</i>"])
+    llmext(["LLM Provider<br/><i>[External System]</i>"])
+
+    subgraph backend["Backend codebase [Container: API and Worker]"]
+        direction TB
+        http["HTTP API<br/><i>[Component: FastAPI routers]</i><br/>Session, CSRF, roles, entity scope,<br/>validation, Problem Details"]
+        jobs["Job Runner<br/><i>[Component]</i><br/>Queue on PostgreSQL, schedules,<br/>retries, call-and-wait jobs"]
+
+        subgraph config["Access and configuration"]
+            direction LR
+            identity["Identity and Access"]
+            group["Group Configuration"]
+            policy["Entity Policy and Approval Matrix"]
+            deleg["Delegations"]
+            gates["Automation Gates"]
+        end
+
+        subgraph source["Source data"]
+            direction LR
+            erpsync["ERP Sync"]
+            sim["ERP Simulator demo"]
+            recurring["Recurring Profiles"]
+        end
+
+        subgraph intake["Intake"]
+            direction LR
+            invoice["Invoice Intake"]
+            mailboxmod["Mailbox Intake"]
+            authority["Authority Status"]
+        end
+
+        subgraph understanding["Understanding and decision"]
+            direction LR
+            ai["AI Understanding"]
+            rules["Rule Engine"]
+        end
+
+        subgraph exceptions["Exceptions"]
+            direction LR
+            exc["Exception Handling"]
+            corr["Corrections and Follow-ups"]
+            tax["Tax-Risk Decisions"]
+            indiv["Individual Approval"]
+            svc["Service Acceptance"]
+        end
+
+        subgraph payment["Batch, signing, and payment"]
+            direction LR
+            batch["Batch and Sample"]
+            signing["Signing"]
+            erpsend["ERP Send"]
+        end
+
+        subgraph oversight["Oversight"]
+            direction LR
+            notif["Notifications"]
+            dash["Oversight and Dashboard"]
+            audit["Audit Log"]
+        end
+
+        subgraph shared["Shared services"]
+            direction LR
+            llm["LLM Gateway"]
+            embed["Embedding Service"]
+            adapters["Adapters<br/>ErpPort, MailboxPort,<br/>AuthorityStatusPort, MailerPort"]
+            persistence["Persistence<br/>Unit of work, row-level security setting"]
+        end
+    end
+
+    web --> http
+    http --> config
+    http --> source
+    http --> intake
+    http --> understanding
+    http --> exceptions
+    http --> payment
+    http --> oversight
+    http -- "enqueue and wait" --> jobs
+    jobs --> erpsync
+    jobs --> mailboxmod
+    jobs --> authority
+    jobs --> ai
+    jobs --> signing
+    jobs --> erpsend
+    jobs --> notif
+    jobs --> sim
+    jobs --> corr
+    invoice -- "starts a check run" --> jobs
+    mailboxmod --> invoice
+    ai --> rules
+    rules -- "opens an exception" --> exc
+    rules -- "admits an invoice" --> batch
+    ai --> embed
+    ai --> llm
+    corr --> llm
+    signing --> llm
+    batch -- "releases requests" --> signing
+    signing -- "signed request starts a send" --> jobs
+    erpsync --> adapters
+    authority --> adapters
+    erpsend --> adapters
+    corr --> adapters
+    mailboxmod --> adapters
+    sim -. "implements the simulated adapters" .-> adapters
+    llm --> llmext
+    adapters --> ext
+    config -. "audit entry in the same transaction" .-> audit
+    exceptions -. "audit entry in the same transaction" .-> audit
+    payment -. "audit entry in the same transaction" .-> audit
+    persistence --> db
+
+    style http fill:#3a7bd5,color:#fff
+    style jobs fill:#3a7bd5,color:#fff
+    style ai fill:#7b3fbf,color:#fff
+    style embed fill:#7b3fbf,color:#fff
+    style llm fill:#7b3fbf,color:#fff
+    style rules fill:#0b4f9e,color:#fff
+    style persistence fill:#3a7bd5,color:#fff
+    style adapters fill:#3a7bd5,color:#fff
+    style backend fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
+```
+
+Complete documentation: [Architecture index](docs/07-architecture/README.md), [Tech stack](docs/07-architecture/05-tech-stack.md), and [LLM provider](docs/07-architecture/06-llm-provider.md).
 
 ## 4. Database Diagrams and OpenAPI 3.0 Contract
 
-The database defines the persistence contract. The API defines the HTTP contract (4.2).
+The database defines the persistence contract, and the API defines the HTTP contract that the web application uses.
 
 ### 4.1 Database diagrams
 
-The PostgreSQL model (assumed here, confirmed in the architecture as PostgreSQL 16 with pgvector) has 74 tables in twelve groups, including the tables added by the sync to the feature mind map (delegations, service acceptances, mailbox, authority status lookups, cancellation notices, sample expansions, batch reopenings, notifications; approved). Every business row carries its entity and the server enforces the scope; the only structure that sees the whole group is the unique index behind the exact-duplicate check. An invoice is stored with its original XML and hash, and every AI output (flow, identification, line match, anomaly finding) and every Rule Engine condition is a row with its numbers and its model and prompt version, so that a decision can be explained later. Exceptions, batches, payment requests, and signatures follow the lifecycles of BR-33, BR-34, and BR-35, a signature is bound to the version and the content hash of its request, and the audit log is append-only. Values that can be computed, such as the touchless rate and the badges, are not stored. The diagram below shows the tables that carry an invoice from upload to payment; the other groups are in the [ER diagram](docs/05-database/02-er-diagram.md), and the schema source is [matchpay.dbml](docs/05-database/matchpay.dbml).
+The PostgreSQL 16 model, with the pgvector extension, has 74 tables in twelve groups. Every business row carries its entity, every AI output and every Rule Engine condition is stored with its values and versions, and the audit log is append-only. The diagram shows the tables that carry an invoice from upload to payment.
 
 ```mermaid
 erDiagram
@@ -676,9 +833,514 @@ erDiagram
     }
 ```
 
-### 4.2 OpenAPI 3.0 contract
+See the [data model](docs/05-database/01-data-model.md), the [full ER diagram](docs/05-database/02-er-diagram.md), and the [DBML schema](docs/05-database/matchpay.dbml).
 
-The API (draft for review) writes one HTTP contract for the web application in [`openapi.yaml`](docs/06-api/openapi.yaml): OpenAPI 3.0.4, 121 operations on 104 paths in 24 tags, and it is the source of truth for paths, bodies, roles, and errors (D-130). Every operation names its user stories, business rules, screens, and database tables (`x-stories`, `x-rules`, `x-screens`, `x-tables`), so the [API cross-check](docs/06-api/01-api-traceability.md) shows that every active story has an operation and every operation uses tables of the schema above. The conventions: a server-side session in an HttpOnly cookie with a CSRF header, the entity taken from the session and never from a path, errors as Problem Details with a stable `errorCode`, money as decimal strings, optimistic concurrency with `version`, an `Idempotency-Key` on signing, release, and resend, and 202 with a run id for work that continues in the background. The AI checks, the ERP sync, the mailbox fetch, the status lookups, the ERP send, and the reminders are jobs, not operations. The contract lints clean with Redocly. Every decision of the API contract awaits the user's review. Read the [API index](docs/06-api/README.md) and the [decisions](docs/06-api/00-decisions.md).
+### 4.2 OpenAPI 3.0 API documentation
+
+The HTTP contract (draft for review) is written first and is the source of truth for paths, bodies, roles, and errors. Every operation names the stories, business rules, screens, and tables it serves.
+
+```text
+OpenAPI 3.0.4
+121 operations on 104 paths, 24 tags
+Cookie session (HttpOnly) with a CSRF header
+Errors as Problem Details with a stable errorCode
+Idempotency-Key on signing, release, and resend
+Optimistic concurrency with version
+202 with a run id for work that continues in the background
+```
+
+- [OpenAPI 3.0.4 specification](docs/06-api/openapi.yaml)
+- [API documentation](docs/06-api/README.md)
+
+## 5. Frontend and Backend Folder Structures
+
+### 5.1 Current repository layout
+
+No source code exists yet. The repository holds documents, the checker script, and the lint configuration.
+
+```text
+MatchPay/
+├── docs/
+│   ├── 01-research/               # Problem, goals, stakeholders, similar products, scope, risks
+│   ├── 02-usecases-userstories/   # Use cases, user stories (INVEST), acceptance criteria, MoSCoW
+│   ├── 03-information-architecture/  # Sitemap, routes, navigation, screen inventory, flows, UI states
+│   ├── 04-uiux/                   # Design system, screen notes, HTML wireframes
+│   ├── 05-database/               # Data model, ER diagram, DBML schema
+│   ├── 06-api/                    # OpenAPI contract and API traceability
+│   ├── 07-architecture/           # C4 levels 1-4, tech stack, LLM provider, runtime
+│   ├── requirements/              # Business rules
+│   ├── traceability/              # Master traceability matrix
+│   ├── images/                    # Role-based wireframe screenshots and the feature mind map
+│   ├── handoff/                   # Session handoff and research log
+│   └── mindmap.md                 # Product mind map and feature map F01-F12
+├── tools/
+│   └── check_docs.py              # Documentation checks
+├── redocly.yaml                   # OpenAPI lint configuration
+└── README.md
+```
+
+### 5.2 Target frontend structure
+
+Target, not yet implemented. The web application is React with TypeScript, built with Vite, with React Router in history mode and TanStack Query for server state. API types are generated from `docs/06-api/openapi.yaml`.
+
+```text
+web/
+├── src/
+│   ├── app/            # Routes, providers, role home pages, sidebar
+│   ├── features/       # One folder per screen area: invoices, batch, signing, delegations,
+│   │                   # decisions, acceptance, mailbox, profiles, notifications,
+│   │                   # dashboard, audit, users, entity-config, group-admin, simulator
+│   ├── components/     # Shared layout, tables, state chips, AI / rule / person labels
+│   ├── api/            # Types generated from openapi.yaml and the shared client
+│   └── styles/         # Tokens from the UI/UX design system
+└── tests/              # End-to-end tests of the user flows
+```
+
+### 5.3 Target backend structure
+
+Target, not yet implemented. The backend is a Python 3.12 FastAPI modular monolith: one codebase run as an `api` process and a `worker` process in front of PostgreSQL 16 with pgvector. There is one module per C3 component, and the module names follow the tags of `openapi.yaml`.
+
+```text
+backend/
+├── matchpay/
+│   ├── http_api/                    # Routers, session and CSRF, Problem Details
+│   ├── job_runner/                  # Queue on PostgreSQL, schedules, retries
+│   ├── identity_and_access/
+│   ├── group_configuration/
+│   ├── entity_policy_and_approval_matrix/
+│   ├── delegations/
+│   ├── automation_gates/
+│   ├── erp_sync/
+│   ├── erp_simulator/               # Demo only
+│   ├── recurring_profiles/
+│   ├── invoice_intake/
+│   ├── mailbox_intake/
+│   ├── authority_status/
+│   ├── ai_understanding/
+│   ├── rule_engine/
+│   ├── exception_handling/
+│   ├── corrections_and_follow_ups/
+│   ├── tax_risk_decisions/
+│   ├── individual_approval/
+│   ├── service_acceptance/
+│   ├── batch_and_sample/
+│   ├── signing/
+│   ├── erp_send/
+│   ├── notifications/
+│   ├── oversight_and_dashboard/
+│   ├── audit_log/
+│   ├── llm_gateway/
+│   ├── embedding_service/
+│   ├── adapters/                    # ErpPort, MailboxPort, AuthorityStatusPort, MailerPort
+│   └── persistence/                 # Unit of work, row-level security setting
+├── migrations/                      # Alembic, written to match matchpay.dbml
+└── tests/
+```
+
+Dependency rules:
+
+```text
+A business module calls another only through its public interface; it never writes another module's tables
+Rule Engine -> stored AI evidence, policy, gates, tax-risk data; never the LLM Gateway or the Embedding Service
+Only the worker process starts the model, the embedding, and the adapters
+Every state-changing path ends in Audit Log inside the caller's transaction
+```
+
+The detailed code structure design is still open. See [Component](docs/07-architecture/03-component.md), [Tech stack](docs/07-architecture/05-tech-stack.md), and [Runtime and deployment](docs/07-architecture/07-runtime-and-deployment.md).
+
+## 6. Detailed Class and Sequence Design
+
+Detailed design follows the C4 components and covers the two features where a mistake costs the most, plus the main runtime paths. These are target design views.
+
+### 6.1 C4 Level 4 — Code
+
+#### L4.1 Rule Engine — the six conditions (US-16)
+
+```mermaid
+classDiagram
+    direction LR
+    class RuleEngine {
+        +evaluate(invoice_id, check_run_id) RuleEvaluation
+    }
+    class RoutingGuard {
+        +route_before_conditions(evidence) Decision
+    }
+    class EvidenceReader {
+        <<Protocol>>
+        +load(invoice_id, check_run_id) Evidence
+    }
+    class SqlEvidenceReader {
+        +load(invoice_id, check_run_id) Evidence
+    }
+    class Evidence {
+        <<frozen dataclass>>
+        +invoice
+        +independent_source
+        +line_matches
+        +price_and_quantity_checks
+        +entity_policy
+        +gate
+        +tax_risk_hold
+        +open_anomalies
+    }
+    class Condition {
+        <<Protocol>>
+        +number int
+        +evaluate(evidence) ConditionResult
+    }
+    class IndependentSourceCondition
+    class LineMatchCondition
+    class ToleranceAndReceiptCondition
+    class BatchThresholdCondition
+    class GateAndTaxRiskCondition
+    class NoAnomalyCondition
+    class ConditionResult {
+        <<frozen dataclass>>
+        +number
+        +result PASS or FAIL or NOT_EVALUATED
+        +measured_value
+        +limit_value
+        +value_text
+        +note
+    }
+    class RuleEvaluation {
+        <<frozen dataclass>>
+        +invoice_id
+        +check_run_id
+        +decision ADMITTED or EXCEPTION or WAITING_FOR_GOODS or SEPARATED
+        +results
+        +engine_version
+    }
+    class EvaluationRepository {
+        <<Protocol>>
+        +save(evaluation) None
+    }
+    class BatchAdmission {
+        <<Protocol>>
+        +admit(invoice_id) BatchItem
+    }
+    class ExceptionOpening {
+        <<Protocol>>
+        +open_for(invoice_id, failed_results) None
+    }
+    class InvoiceStateChanger {
+        <<Protocol>>
+        +move(invoice_id, transition) None
+    }
+    class AuditWriter {
+        <<Protocol>>
+        +append(entry) None
+    }
+
+    RuleEngine --> RoutingGuard
+    RuleEngine --> EvidenceReader
+    RuleEngine --> Condition : six, in order
+    RuleEngine --> EvaluationRepository
+    RuleEngine --> BatchAdmission
+    RuleEngine --> ExceptionOpening
+    RuleEngine --> InvoiceStateChanger
+    RuleEngine --> AuditWriter
+    SqlEvidenceReader ..|> EvidenceReader
+    IndependentSourceCondition ..|> Condition
+    LineMatchCondition ..|> Condition
+    ToleranceAndReceiptCondition ..|> Condition
+    BatchThresholdCondition ..|> Condition
+    GateAndTaxRiskCondition ..|> Condition
+    NoAnomalyCondition ..|> Condition
+    Condition --> Evidence : reads
+    Condition --> ConditionResult : returns
+    RuleEngine --> RuleEvaluation : returns
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant J as Check run job (AI Understanding)
+    participant R as RuleEngine
+    participant G as RoutingGuard
+    participant E as SqlEvidenceReader
+    participant C as Six conditions
+    participant S as EvaluationRepository
+    participant B as BatchAdmission
+    participant X as ExceptionOpening
+    participant I as InvoiceStateChanger
+    participant A as AuditWriter
+
+    J->>R: evaluate(invoice_id, check_run_id) inside one transaction
+    R->>E: load(invoice_id, check_run_id)
+    E-->>R: Evidence, with None for a missing part
+    R->>G: route_before_conditions(evidence)
+    alt no receipt or employee expense
+        G-->>R: WAITING_FOR_GOODS or SEPARATED
+        R->>S: save(evaluation without admission)
+        R->>I: move(invoice, V8 or V7)
+    else conditions apply
+        loop condition 1 to 6
+            R->>C: evaluate(evidence)
+            C-->>R: ConditionResult PASS, FAIL, or NOT_EVALUATED
+        end
+        R->>S: save(evaluation with six results)
+        alt all six PASS
+            R->>B: admit(invoice_id)
+            B-->>R: batch item in the open batch of the entity
+            R->>I: move(invoice, V11 or V12)
+        else any FAIL or NOT_EVALUATED
+            R->>X: open_for(invoice_id, failed results)
+            R->>I: move(invoice, V10)
+        end
+    end
+    R->>A: append(decision entry with the six values)
+    R-->>J: RuleEvaluation
+```
+
+#### L4.2 Signing many payment requests in one action (US-25)
+
+```mermaid
+classDiagram
+    direction LR
+    class SigningRouter {
+        +sign_payment_requests(body, idempotency_key) SigningResponse
+    }
+    class SigningService {
+        +sign_many(actor, items, password, idempotency_key) SigningResponse
+        -sign_one(actor, item, action) RequestResult
+    }
+    class IdempotencyStore {
+        <<Protocol>>
+        +get_or_reserve(key, request_hash) StoredResult
+        +complete(key, result) None
+    }
+    class ReauthVerifier {
+        <<Protocol>>
+        +verify(actor, password) bool
+    }
+    class PaymentRequestRepository {
+        <<Protocol>>
+        +lock(request_id, seen_version) PaymentRequest
+        +save_signed(request, new_state) None
+    }
+    class ContentHasher {
+        +hash(request) str
+    }
+    class SignerGuard {
+        +check(actor, request, signer_role) Refusal or None
+    }
+    class OrderOfSigning {
+        +required_role(request) SignerRole
+    }
+    class ApprovalLevelResolver {
+        +level_allows(actor, request) bool
+    }
+    class SelfSigningGuard {
+        +blocks(actor, request) InvoiceReference or None
+    }
+    class DelegationResolver {
+        <<Protocol>>
+        +active_for(actor, request, at) Delegation or None
+    }
+    class CertificateProvider {
+        <<Protocol>>
+        +certificate_ref(actor) str
+    }
+    class SignatureRepository {
+        <<Protocol>>
+        +add(signature) None
+        +valid_for(request_id) list
+    }
+    class JobQueue {
+        <<Protocol>>
+        +enqueue_in_transaction(kind, payload) None
+    }
+    class RequestResult {
+        <<frozen dataclass>>
+        +request_id
+        +outcome SIGNED or REFUSED
+        +reason_code
+        +detail
+    }
+    class AuditWriter {
+        <<Protocol>>
+        +append(entry) None
+    }
+
+    SigningRouter --> SigningService
+    SigningService --> IdempotencyStore
+    SigningService --> ReauthVerifier
+    SigningService --> PaymentRequestRepository
+    SigningService --> ContentHasher
+    SigningService --> SignerGuard
+    SigningService --> DelegationResolver
+    SigningService --> CertificateProvider
+    SigningService --> SignatureRepository
+    SigningService --> JobQueue
+    SigningService --> AuditWriter
+    SigningService --> RequestResult : returns one per request
+    SignerGuard --> OrderOfSigning
+    SignerGuard --> ApprovalLevelResolver
+    SignerGuard --> SelfSigningGuard
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Signer
+    participant R as SigningRouter
+    participant S as SigningService
+    participant K as IdempotencyStore
+    participant V as ReauthVerifier
+    participant P as PaymentRequestRepository
+    participant G as SignerGuard
+    participant H as ContentHasher
+    participant D as DelegationResolver
+    participant N as SignatureRepository
+    participant Q as JobQueue
+    participant A as AuditWriter
+
+    U->>R: POST /payment-requests/sign with requests, password, Idempotency-Key
+    R->>S: sign_many(actor, items, password, key)
+    S->>K: get_or_reserve(key, request_hash)
+    alt key already completed
+        K-->>S: first result
+        S-->>R: first result, nothing is signed again
+    else first use of the key
+        S->>V: verify(actor, password)
+        alt wrong password
+            V-->>S: false
+            S->>A: append(LOGIN_FAILED)
+            S-->>R: 401 AUTH_INVALID_CREDENTIALS, nothing signed
+        else password accepted
+            loop each request, own transaction
+                S->>P: lock(request_id, seen_version)
+                alt version is stale
+                    P-->>S: conflict
+                    S->>S: RequestResult REFUSED VERSION_CONFLICT
+                else version matches
+                    S->>D: active_for(actor, request, now)
+                    D-->>S: delegation or None
+                    S->>G: check(actor, request, signer_role)
+                    alt a guard refuses
+                        G-->>S: refusal with reason and invoice
+                        S->>S: RequestResult REFUSED
+                    else all guards pass
+                        S->>H: hash(request)
+                        H-->>S: content hash now
+                        S->>N: add(signature with version, hash, signing_action_id)
+                        S->>P: save_signed(request, next state)
+                        opt second signature makes it Signed
+                            S->>Q: enqueue_in_transaction(erp_send)
+                        end
+                        S->>A: append(signature entry)
+                        S->>S: RequestResult SIGNED
+                    end
+                end
+            end
+            S->>K: complete(key, results)
+            S-->>R: one result for each request
+        end
+    end
+    R-->>U: 200 with the list of results
+```
+
+Source: [C4 Level 4 — Code](docs/07-architecture/04-code.md)
+
+### 6.2 Runtime sequences
+
+#### XML upload to the Rule Engine decision
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as AP Accountant
+    participant API as API
+    participant DB as PostgreSQL
+    participant W as Worker
+    participant AS as Authority Status
+    participant AI as AI Understanding
+    participant EM as Embedding Service
+    participant LG as LLM Gateway
+    participant RE as Rule Engine
+
+    U->>API: POST /invoices/uploads, XML files
+    API->>API: check size, parse XML, check signature and buyer tax code
+    API->>DB: insert invoice, original XML, and a check_run job in one transaction, plus the audit entry
+    API-->>U: 202 with one result for each file
+    W->>DB: claim the job with SKIP LOCKED
+    W->>AS: look up the invoice key through AuthorityStatusPort
+    AS-->>W: Valid, Adjusted, Replaced, Cancelled, or unavailable after 10 seconds
+    W->>AI: run the check for the invoice
+    AI->>AI: classify the flow and identify the entity and order from the XML fields
+    opt fields are not enough
+        AI->>LG: ask for the flow or the identification as JSON
+        LG-->>AI: validated answer or a schema failure
+    end
+    loop each invoice line
+        AI->>DB: look up the mapping table of the entity
+        alt a confirmed pair exists
+            DB-->>AI: item, no model call
+        else no pair
+            AI->>EM: embed the line text, find 3 to 5 candidate items
+            EM-->>AI: candidates with similarity
+            AI->>AI: signal fusion gives a probability
+            opt probability from 0.50 to below 0.90
+                AI->>LG: ask once for this line as JSON
+                LG-->>AI: validated answer, then the probability is recomputed
+            end
+        end
+    end
+    AI->>AI: detect anomalies from history
+    AI->>DB: store every output with its method, model version, and prompt version
+    W->>RE: evaluate the six conditions from stored evidence
+    RE->>DB: store the evaluation, admit to the batch or open an exception, write the audit entry
+    W->>DB: mark the job done
+```
+
+#### Batch release, signing, and sending to the ERP
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor AP as AP Accountant
+    actor CA as Chief Accountant
+    actor PA as Payment Approver
+    participant API as API
+    participant DB as PostgreSQL
+    participant W as Worker
+    participant LG as LLM Gateway
+    participant ER as ERP through ErpPort
+
+    AP->>API: POST /batches/id/release with Idempotency-Key
+    API->>DB: create the payment requests with their hashes, move the batch, add notifications and the audit entry
+    API->>DB: insert an ai_payment_summary job for each request
+    API-->>AP: 200
+    W->>DB: claim a summary job
+    W->>LG: ask for the summary as JSON
+    LG-->>W: validated summary or a failure
+    W->>DB: store the summary labelled AI, or none if it failed
+    CA->>API: POST /payment-requests/sign with password
+    API->>DB: signature and state change in a transaction for each request
+    API-->>CA: 200 with a result for each request
+    PA->>API: POST /payment-requests/sign with password
+    API->>DB: second signature, the request is Signed, insert an erp_send job in the same transaction
+    API-->>PA: 200
+    W->>DB: claim the erp_send job
+    W->>ER: send the request, the request number is the idempotency key
+    alt the ERP accepts
+        ER-->>W: payment reference
+        W->>DB: record the attempt, the Sent state, and later the Paid state with the reference
+    else the ERP fails
+        ER-->>W: failure
+        W->>DB: record the attempt, schedule the next one 5 minutes later, up to 3 attempts
+        W->>DB: after the third failure keep the request Sent, record erp_failed_at, add a notification
+        AP->>API: POST /payment-requests/id/erp-resend with Idempotency-Key
+        API->>DB: insert a new erp_send job and the audit entry
+        API-->>AP: 202
+        W->>ER: send again with the same request number
+        ER-->>W: payment reference, and no second payment is created
+        W->>DB: record the attempt and the Paid state
+    end
+```
+
+Source: [Runtime and Deployment](docs/07-architecture/07-runtime-and-deployment.md)
 
 ## Interactive prototype
 
@@ -718,3 +1380,4 @@ npm run dev
 - [x] Design the C4 model and choose the tech stack and LLM provider (draft for review)
 - [ ] Design the code structure
 - [ ] Implement the modules
+

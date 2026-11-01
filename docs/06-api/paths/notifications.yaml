@@ -1,0 +1,66 @@
+get:
+  tags:
+    - Notifications
+  summary: List my notifications
+  description: >-
+    The notifications addressed to the caller, newest first; "Unread only" is a
+    filter (AC-32.6). Kinds: batch released, signature waiting, new exception,
+    request returned or cancelled, correction request past 5 working days,
+    request waiting past its due date (AC-32.1..AC-32.5). In-app only; no email
+    is sent to staff (AC-32.8). A notification about another entity's object is
+    never created for the caller (AC-32.7). An Entity Admin, Group Admin, Demo
+    Operator, or Requesting Department user gets 403 (AC-32.10).
+  operationId: listNotifications
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-32
+  x-rules:
+    - BR-09
+    - BR-26
+    - BR-34
+    - BR-35
+  x-screens:
+    - SCR-62
+  x-tables:
+    - notifications
+    - users
+  x-criteria:
+    - AC-32.1
+    - AC-32.2
+    - AC-32.3
+    - AC-32.4
+    - AC-32.5
+    - AC-32.6
+    - AC-32.7
+    - AC-32.8
+    - AC-32.9
+    - AC-32.10
+  parameters:
+    - name: unreadOnly
+      in: query
+      required: false
+      description: Only unread items.
+      schema:
+        type: boolean
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/NotificationPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

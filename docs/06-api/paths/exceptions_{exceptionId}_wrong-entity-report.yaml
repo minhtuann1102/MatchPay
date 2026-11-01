@@ -1,0 +1,60 @@
+post:
+  tags:
+    - Exceptions
+  summary: Report a wrong entity
+  description: >-
+    The invoice stays in its entity and never moves (D-68, AC-18.11). The server
+    traces where the mismatch comes from (buyer tax code, buyer name, order
+    reference, ERP data) and stores the report with the note, the user, and the
+    time. The exception gets the reason "Wrong buyer tax code" or "Wrong entity
+    reported" (AC-18.12); individual approval is not offered (D-31). Carries
+    `version`.
+  operationId: reportWrongEntity
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-18
+  x-rules:
+    - BR-01
+    - BR-09
+    - BR-34
+    - BR-37
+  x-screens:
+    - SCR-12
+  x-tables:
+    - wrong_entity_reports
+    - exceptions
+    - exception_reasons
+    - invoices
+    - audit_log
+  x-criteria:
+    - AC-18.11
+    - AC-18.12
+  parameters:
+    - $ref: ../components/parameters/exceptionId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/WrongEntityRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Exception.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

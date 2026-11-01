@@ -1,0 +1,16 @@
+type: object
+description: A service line of the order.
+required:
+  - description
+  - quantity
+  - unit
+  - unitPrice
+properties:
+  description:
+    type: string
+  quantity:
+    $ref: ./Decimal.yaml
+  unit:
+    type: string
+  unitPrice:
+    $ref: ./Money.yaml

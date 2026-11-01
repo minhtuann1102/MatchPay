@@ -1,0 +1,23 @@
+type: object
+description: Last sync time and stale warning, computed from erp_sync_runs (D-142).
+required:
+  - isStale
+properties:
+  lastSuccessAt:
+    type: string
+    format: date-time
+    nullable: true
+  lastRun:
+    type: object
+    allOf:
+      - $ref: ./ErpSyncRun.yaml
+    nullable: true
+  isStale:
+    type: boolean
+    description: True when the latest run failed after the last success (AC-07.7).
+  failureMessage:
+    type: string
+    nullable: true
+example:
+  lastSuccessAt: '2026-10-31T09:15:12+07:00'
+  isStale: false

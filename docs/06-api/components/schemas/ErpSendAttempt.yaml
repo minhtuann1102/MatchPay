@@ -1,0 +1,61 @@
+type: object
+description: >-
+  One attempt to send a signed request to the Entity ERP (D-60). A manual
+  attempt carries the name and the time (AC-26.11).
+required:
+  - id
+  - attemptNo
+  - isManual
+  - idempotencyKey
+  - requestedAt
+  - outcome
+  - reply
+properties:
+  id:
+    $ref: ./Id.yaml
+  attemptNo:
+    type: integer
+  isManual:
+    type: boolean
+  triggeredBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  triggeredByName:
+    type: string
+    nullable: true
+  idempotencyKey:
+    type: string
+    description: The request number (DF-24).
+  contentHashSent:
+    type: string
+    nullable: true
+  requestedAt:
+    type: string
+    format: date-time
+  completedAt:
+    type: string
+    format: date-time
+    nullable: true
+  outcome:
+    $ref: ./SendOutcome.yaml
+  errorMessage:
+    type: string
+    nullable: true
+  nextAttemptAt:
+    type: string
+    format: date-time
+    nullable: true
+  reply:
+    $ref: ./ErpReply.yaml
+  repliedAt:
+    type: string
+    format: date-time
+    nullable: true
+  paymentReference:
+    type: string
+    nullable: true
+  failureReason:
+    type: string
+    nullable: true

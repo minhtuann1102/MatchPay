@@ -1,0 +1,52 @@
+get:
+  tags:
+    - Session
+  summary: Get the current session
+  description: >-
+    Returns the signed-in user, a fresh CSRF token, the idle expiry, and the
+    home route of the role (AC-01.1, DF-28). Used on page load to decide the
+    navigation (AC-01.7) and to redirect a signed-in user away from the login
+    page. A deactivated user's session is refused on the next request (AC-02.5):
+    this call then returns 401 AUTH_SESSION_EXPIRED.
+  operationId: getSession
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+    - REQUESTING_DEPARTMENT
+    - ENTITY_ADMIN
+    - GROUP_ADMIN
+    - DEMO_OPERATOR
+  x-stories:
+    - US-01
+  x-rules:
+    - BR-09
+  x-screens:
+    - SCR-01
+    - SCR-90
+  x-tables:
+    - users
+    - entities
+  x-criteria:
+    - AC-01.1
+    - AC-01.4
+    - AC-01.5
+    - AC-01.6
+    - AC-01.7
+    - AC-01.8
+    - AC-02.5
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/SessionResponse.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

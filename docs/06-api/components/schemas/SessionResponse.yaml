@@ -1,0 +1,34 @@
+type: object
+description: Returned by login and by getSession.
+required:
+  - user
+  - csrfToken
+  - sessionExpiresAt
+  - homeRoute
+properties:
+  user:
+    $ref: ./SessionUser.yaml
+  csrfToken:
+    type: string
+    description: Send in the X-CSRF-Token header on every state-changing request (D-131).
+  sessionExpiresAt:
+    type: string
+    format: date-time
+    description: When the idle timeout ends the session if nothing is called (DF-84).
+  homeRoute:
+    type: string
+    description: Home page of the role (AC-01.1, DF-28), for example /invoices.
+example:
+  user:
+    id: 11
+    fullName: Alice
+    email: alice@calderwood-foods.example
+    role: AP_ACCOUNTANT
+    status: ACTIVE
+    groupId: 1
+    entityId: 1
+    entityName: Calderwood Foods Co.
+    erpUserId: 301
+  csrfToken: c1f4d6b8a2e04b9f9e1d7a53
+  sessionExpiresAt: '2026-10-31T09:45:00+07:00'
+  homeRoute: /invoices

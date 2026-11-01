@@ -1,0 +1,43 @@
+get:
+  tags:
+    - Invoices
+  summary: Get the worklist header figures
+  description: >-
+    Badge of open exceptions, counts by state, Waiting for Goods, due soon,
+    reply due, and the last ERP sync with the stale warning (AC-17.1, AC-07.7).
+    All computed from invoices, exceptions, correction_requests, and
+    erp_sync_runs (D-142).
+  operationId: getWorklistSummary
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-17
+    - US-07
+  x-rules: []
+  x-screens:
+    - SCR-10
+  x-tables:
+    - invoices
+    - exceptions
+    - correction_requests
+    - erp_sync_runs
+  x-criteria:
+    - AC-17.1
+    - AC-07.7
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/WorklistSummary.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

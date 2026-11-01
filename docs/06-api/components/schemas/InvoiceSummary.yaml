@@ -1,0 +1,89 @@
+type: object
+description: One row of the worklist (SCR-10).
+required:
+  - id
+  - series
+  - number
+  - invoiceNumber
+  - sellerName
+  - totalAmount
+  - dueSoon
+  - state
+  - source
+  - invoiceKind
+  - replyDue
+  - receivedAt
+  - version
+properties:
+  id:
+    $ref: ./Id.yaml
+  series:
+    type: string
+  number:
+    type: string
+  invoiceNumber:
+    type: string
+    description: Series and number, for example C26TAA-0000123.
+  sellerName:
+    type: string
+  supplierId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  flow:
+    type: string
+    allOf:
+      - $ref: ./InvoiceFlow.yaml
+    nullable: true
+  totalAmount:
+    $ref: ./Money.yaml
+  invoiceDate:
+    type: string
+    format: date
+    nullable: true
+  dueDate:
+    type: string
+    format: date
+    nullable: true
+  dueSoon:
+    type: boolean
+    description: Due within 7 days and not final (DF-18). Computed.
+  state:
+    $ref: ./InvoiceState.yaml
+  source:
+    $ref: ./InvoiceSource.yaml
+  invoiceKind:
+    $ref: ./InvoiceKind.yaml
+  openExceptionId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  replyDue:
+    type: boolean
+    description: A correction request has no reply after 5 working days (DF-21). Computed.
+  receivedAt:
+    type: string
+    format: date-time
+  version:
+    $ref: ./Version.yaml
+example:
+  id: 1042
+  series: C26TAA
+  number: '0000123'
+  invoiceNumber: C26TAA-0000123
+  sellerName: Brightfield Paper Ltd
+  supplierId: 51
+  flow: GOODS_WITH_ORDER
+  totalAmount: '6600000.00'
+  invoiceDate: '2026-10-28'
+  dueDate: '2026-11-27'
+  dueSoon: false
+  state: EXCEPTION
+  source: UPLOAD
+  invoiceKind: ORIGINAL
+  openExceptionId: 2201
+  replyDue: false
+  receivedAt: '2026-10-31T08:50:00+07:00'
+  version: 4

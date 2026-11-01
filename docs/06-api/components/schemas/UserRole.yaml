@@ -1,0 +1,11 @@
+type: string
+description: Same values as the DBML enum `user_role`.
+enum:
+  - AP_ACCOUNTANT
+  - CHIEF_ACCOUNTANT
+  - PAYMENT_APPROVER
+  - REQUESTING_DEPARTMENT
+  - ENTITY_ADMIN
+  - GROUP_ADMIN
+  - DEMO_OPERATOR
+x-dbml-enum: user_role

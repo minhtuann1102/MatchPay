@@ -1,0 +1,30 @@
+type: object
+description: >-
+  The notice and what it changed: withdrawal, a recomputed or cancelled request,
+  voided signatures (AC-18.13..AC-18.16).
+required:
+  - notice
+  - invoice
+  - cancelledRequestIds
+  - voidedSignatureCount
+  - newExceptionIds
+properties:
+  notice:
+    $ref: ./CancellationNotice.yaml
+  invoice:
+    $ref: ./InvoiceBrief.yaml
+  cancelledRequestIds:
+    type: array
+    items:
+      $ref: ./Id.yaml
+  recomputedRequestId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  voidedSignatureCount:
+    type: integer
+  newExceptionIds:
+    type: array
+    items:
+      $ref: ./Id.yaml

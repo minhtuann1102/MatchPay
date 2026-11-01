@@ -1,0 +1,5 @@
+type: string
+description: Entity policy fields bounded by group limits.
+enum:
+  - PRICE_TOLERANCE_PCT
+  - BATCH_THRESHOLD_VND

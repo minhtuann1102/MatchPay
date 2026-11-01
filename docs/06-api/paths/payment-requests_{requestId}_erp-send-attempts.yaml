@@ -1,0 +1,56 @@
+get:
+  tags:
+    - ERP send
+  summary: List the ERP send attempts of a request
+  description: >-
+    Every attempt, automatic and manual, with outcome, the next attempt time,
+    the ERP reply, and the payment reference: up to 3 automatic attempts 5
+    minutes apart (DF-24); a hash that differs from the signed one is
+    HASH_MISMATCH and is not sent (AC-26.7). Retry n of 3 and the failed-send
+    alert are computed from these rows (DF-69). Chief Accountant and AP
+    Accountant of the entity; never the Payment Approver (AC-26.10).
+  operationId: listErpSendAttempts
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+  x-stories:
+    - US-26
+  x-rules:
+    - BR-09
+    - BR-12
+    - BR-20
+    - BR-25
+    - BR-37
+  x-screens:
+    - SCR-57
+    - SCR-51
+    - SCR-30
+  x-tables:
+    - erp_send_attempts
+    - payment_requests
+  x-criteria:
+    - AC-26.1
+    - AC-26.2
+    - AC-26.5
+    - AC-26.6
+    - AC-26.7
+    - AC-26.8
+    - AC-26.9
+    - AC-26.12
+  parameters:
+    - $ref: ../components/parameters/requestId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErpSendAttemptList.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

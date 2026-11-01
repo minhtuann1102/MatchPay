@@ -1,0 +1,9 @@
+type: object
+description: Start work on an open exception (E2).
+required:
+  - version
+properties:
+  version:
+    $ref: ./Version.yaml
+example:
+  version: 2

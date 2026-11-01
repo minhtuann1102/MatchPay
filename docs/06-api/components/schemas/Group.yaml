@@ -1,0 +1,32 @@
+type: object
+description: The corporate group and its limits (BR-16).
+required:
+  - id
+  - name
+  - maxPriceTolerancePct
+  - maxBatchThresholdVnd
+  - version
+  - updatedAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  name:
+    type: string
+  maxPriceTolerancePct:
+    allOf:
+      - $ref: ./Decimal.yaml
+    description: Group maximum for the entity price tolerance (BR-16).
+  maxBatchThresholdVnd:
+    $ref: ./Money.yaml
+  version:
+    $ref: ./Version.yaml
+  updatedAt:
+    type: string
+    format: date-time
+example:
+  id: 1
+  name: Calderwood Group
+  maxPriceTolerancePct: '5.00'
+  maxBatchThresholdVnd: '300000000.00'
+  version: 2
+  updatedAt: '2026-10-01T08:00:00+07:00'

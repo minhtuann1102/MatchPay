@@ -1,0 +1,47 @@
+get:
+  tags:
+    - Service acceptance
+  summary: Get one invoice of the acceptance queue
+  description: >-
+    The invoice, order, service lines, amount, and due date for the confirm or
+    reject dialog, with `blocked` set when the caller created the order
+    (AC-29.6). An invoice of another entity, or one not in the queue for this
+    role, gives 403 ACCESS_DENIED (AC-29.8).
+  operationId: getAcceptanceQueueItem
+  security:
+    - sessionCookie: []
+  x-roles:
+    - REQUESTING_DEPARTMENT
+  x-stories:
+    - US-29
+  x-rules:
+    - BR-02
+    - BR-09
+  x-screens:
+    - SCR-23
+  x-tables:
+    - invoices
+    - service_acceptances
+    - erp_purchase_orders
+    - erp_po_lines
+    - users
+    - erp_users
+  x-criteria:
+    - AC-29.1
+    - AC-29.6
+    - AC-29.8
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/AcceptanceQueueItem.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

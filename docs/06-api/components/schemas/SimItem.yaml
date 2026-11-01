@@ -1,0 +1,13 @@
+type: object
+description: An item of the simulator seed data.
+required:
+  - erpRef
+  - name
+  - baseUnit
+properties:
+  erpRef:
+    type: string
+  name:
+    type: string
+  baseUnit:
+    type: string

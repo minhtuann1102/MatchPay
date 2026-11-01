@@ -1,0 +1,82 @@
+post:
+  tags:
+    - Service acceptance
+  summary: Confirm or reject the acceptance of a service
+  description: >-
+    Confirm: the acceptance is saved with the user, time, and note, counts as
+    the independent source (BR-17, BR-19, D-90), and UC-16 runs again in the
+    same action, so the response is 202 with the run (AC-29.2). Reject: a note
+    is required (AC-29.3); the invoice becomes an exception "Service acceptance
+    rejected", the AP Accountant is notified, and individual approval is not
+    offered (D-31). Refused with 403 SEPARATION_OF_DUTIES "You created the order
+    for this invoice" when the user is linked to the order creator (AC-29.6,
+    BR-02). Where the ERP also holds an acceptance, the ERP one is used
+    (AC-29.4). Carries the invoice `version` (AC-29.7). Appends to audit_log
+    (AC-29.9).
+  operationId: decideServiceAcceptance
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - REQUESTING_DEPARTMENT
+  x-stories:
+    - US-29
+  x-rules:
+    - BR-02
+    - BR-09
+    - BR-12
+    - BR-14
+    - BR-17
+    - BR-19
+    - BR-33
+    - BR-37
+  x-screens:
+    - SCR-23
+    - SCR-22
+  x-tables:
+    - service_acceptances
+    - invoices
+    - invoice_check_runs
+    - exceptions
+    - exception_reasons
+    - invoice_receipts
+    - erp_purchase_orders
+    - erp_receipts
+    - users
+    - erp_users
+    - notifications
+    - audit_log
+  x-criteria:
+    - AC-29.2
+    - AC-29.3
+    - AC-29.4
+    - AC-29.6
+    - AC-29.7
+    - AC-29.8
+    - AC-29.9
+    - AC-13.9
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/AcceptanceDecisionRequest.yaml
+  responses:
+    '202':
+      description: Decision saved; check run queued
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/AcceptanceDecisionResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/ForbiddenSod.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

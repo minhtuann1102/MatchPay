@@ -1,0 +1,12 @@
+type: string
+description: Same values as the DBML enum `withdraw_reason`.
+enum:
+  - SAMPLE_ERROR
+  - WITHDRAWN_BY_AP
+  - REMOVED_BY_SIGNER
+  - REQUEST_DECLINED
+  - RISK_LIST_CHANGE
+  - CANCELLATION_NOTICE
+  - REQUEST_CANCELLED
+  - BATCH_REOPENED
+x-dbml-enum: withdraw_reason

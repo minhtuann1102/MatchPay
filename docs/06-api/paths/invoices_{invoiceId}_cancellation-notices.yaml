@@ -1,0 +1,114 @@
+post:
+  tags:
+    - Corrections and follow-ups
+  summary: Record a cancellation notice
+  description: >-
+    The AP Accountant records a notice from the seller (reference, date, file up
+    to 10 MB, DF-81). The effect depends on the state of the invoice (BR-31,
+    D-94): Waiting for Goods or an exception becomes Rejected "Cancelled by the
+    seller" (AC-18.16); In Batch in an unsigned request is withdrawn and
+    Rejected, the exception closes, the request total and level are recomputed
+    and earlier signatures voided (AC-18.13); Signed in a request not yet sent
+    cancels the whole request, nothing is sent, and its invoices become
+    exceptions (AC-18.14); Sent or Paid only stores the notice as a warning
+    (AC-18.15). All in one transaction with a version check on the invoice and
+    its request and batch (BR-37). The file is stored with its hash. Appends to
+    audit_log; the AP Accountant and the Chief Accountant are notified on a
+    cancelled request.
+  operationId: recordCancellationNotice
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-18
+  x-rules:
+    - BR-31
+    - BR-33
+    - BR-35
+    - BR-37
+  x-screens:
+    - SCR-19
+    - SCR-12
+  x-tables:
+    - cancellation_notices
+    - invoices
+    - exceptions
+    - exception_reasons
+    - batch_items
+    - payment_requests
+    - payment_request_lines
+    - request_signatures
+    - notifications
+    - audit_log
+  x-criteria:
+    - AC-18.13
+    - AC-18.14
+    - AC-18.15
+    - AC-18.16
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  requestBody:
+    required: true
+    content:
+      multipart/form-data:
+        schema:
+          $ref: ../components/schemas/CancellationNoticeForm.yaml
+  responses:
+    '201':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/CancellationNoticeResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+get:
+  tags:
+    - Corrections and follow-ups
+  summary: List the cancellation notices of an invoice
+  description: >-
+    Stored notices with their effect. A notice on a Sent or Paid invoice is
+    shown as a warning (AC-18.15).
+  operationId: listCancellationNotices
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-18
+    - US-17
+  x-rules:
+    - BR-31
+  x-screens:
+    - SCR-12
+  x-tables:
+    - cancellation_notices
+  x-criteria:
+    - AC-18.15
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/CancellationNoticeList.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

@@ -1,0 +1,12 @@
+type: object
+description: One page of AuditEntry records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./AuditEntry.yaml
+  meta:
+    $ref: ./PageMeta.yaml

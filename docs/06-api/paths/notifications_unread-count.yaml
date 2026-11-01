@@ -1,0 +1,34 @@
+get:
+  tags:
+    - Notifications
+  summary: Get the number of unread notifications
+  description: Shown in the top bar of every page for the three finance roles (AC-32.6).
+  operationId: getUnreadNotificationCount
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-32
+  x-rules: []
+  x-screens:
+    - SCR-62
+  x-tables:
+    - notifications
+  x-criteria:
+    - AC-32.6
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/UnreadCount.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
