@@ -10,7 +10,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-01), D-26
 - **Related US:** US-03, US-10, US-13, US-19, US-31
-- **Related API:** TBD (Step 6)
+- **Related API:** `listEntities`, `createEntity`, `uploadInvoices`, `getInvoice`, `listMailboxMessages`, `startMailboxFetch`, `confirmEntity`, `reportWrongEntity`, `draftCorrectionRequest`
 - **Rule:**
   - Every document (order, receipt, acceptance, invoice, payment request) belongs to exactly one entity. Entities are identified by a unique tax code.
   - An invoice whose **buyer tax code** does not match the tax code of the ordering entity is rejected (state `Rejected`, BR-33), and the supplier is asked to reissue it. The correction follows the BR-31 path: an adjustment or replacement invoice, always handled by a person (D-26).
@@ -20,7 +20,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-02), D-90
 - **Related US:** US-02, US-08, US-23, US-25, US-29, US-30
-- **Related API:** TBD (Step 6)
+- **Related API:** `createUser`, `updateUser`, `listErpUsers`, `createDelegation`, `getException`, `decideIndividualApproval`, `getAcceptanceQueueItem`, `decideServiceAcceptance`, `getPaymentRequest`, `signPaymentRequests`, `createSimPurchaseOrder`, `confirmSimReceipt`
 - **Rule:**
   - For one transaction, the person who created the purchase order, the person who confirmed the receipt, and the person who approves payment must be three different people.
   - The creator and the confirmer come from ERP data. A platform user can be linked to an ERP user (DF-14), so the check can tell whether two roles are the same person.
@@ -31,7 +31,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-03), DF-02
 - **Related US:** US-05, US-23, US-25, US-30
-- **Related API:** TBD (Step 6)
+- **Related API:** `getApprovalMatrix`, `replaceApprovalMatrix`, `getDecisionQueue`, `sendForDecision`, `decideIndividualApproval`, `releaseBatch`, `listPaymentRequests`, `getPaymentRequest`, `signPaymentRequests`, `removeRequestLine`
 - **Rule:**
   - Each entity has an approval matrix by amount. Example: under VND 50,000,000 the department head approves; from VND 50,000,000 the CFO approves.
   - The tiers must cover every amount without gaps or overlaps, and the top tier needs at least one active approver.
@@ -42,7 +42,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-04), DF-11
 - **Related US:** US-04, US-16
-- **Related API:** TBD (Step 6)
+- **Related API:** `updateEntityPolicy`, `getCheckRun`
 - **Rule:**
   - Price and quantity tolerances are set per entity inside the group limits (BR-16). Example: price ±2%; the quantity may not exceed the quantity received.
   - The price of a line is compared after unit conversion. A deviation of exactly 2.0% passes; above 2.0% fails the condition.
@@ -51,7 +51,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-05), D-08
 - **Related US:** US-16, US-18, US-24, US-27
-- **Related API:** TBD (Step 6)
+- **Related API:** `getInvoiceEvidence`, `getCheckRun`, `releaseBatch`, `getDashboard`
 - **Rule:**
   - The **Rule Engine** admits an invoice to the open batch of its entity only when all six conditions hold; the AI supplies the evidence and does not decide. If one condition is missing, the invoice becomes an exception (BR-34).
     1. The key fields (seller, amount, quantity) are confirmed by an independent source (BR-17).
@@ -69,7 +69,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 - **Source:** brief (BR-06), D-06, D-27, D-29, DF-16, DF-17
 - **Related US:** US-06, US-16, US-18, US-24, US-28
 - **Advanced part:** W-01, automatic opening and closing
-- **Related API:** TBD (Step 6)
+- **Related API:** `listGates`, `getGate`, `openGate`, `closeGate`, `getCheckRun`, `confirmAiResults`, `markSampleItem`, `getGroupOverview`, `listAuditEntries`
 - **Rule:**
   - **MVP part.**
     - There is one gate for each supplier and entity pair. A new pair starts closed (D-29).
@@ -82,7 +82,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-07), DF-06, DF-29, D-95, DF-65
 - **Related US:** US-04, US-06, US-24, US-27
-- **Related API:** TBD (Step 6)
+- **Related API:** `updateEntityPolicy`, `closeBatchForReview`, `getBatchSample`, `markSampleItem`, `expandSample`, `releaseBatch`, `getDashboard`
 - **Rule:**
   - Before signing, the AP Accountant checks a part of the batch (example 10%). The AI selects the sample by risk: high-value invoices first, then suppliers whose gate opened recently, then items often matched wrongly. Each selected invoice shows why it was selected.
   - Sample size = rate times invoices in the batch, rounded up, minimum 1 (DF-06). If the AI cannot select, the highest-value invoices are taken and the sample is labelled "selected without AI" (DF-29).
@@ -94,7 +94,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-08), D-21, D-28
 - **Related US:** US-07, US-16, US-21
-- **Related API:** TBD (Step 6)
+- **Related API:** `startErpSync`, `getCheckRun`, `decideTaxRiskHold`
 - **Rule:**
   - An invoice from a supplier on the tax-risk list is held, and the Chief Accountant decides, per invoice, to release or reject it. The system never rejects such an invoice by itself.
   - The list is a simulated external feed loaded through UC-07. Every entry carries a source and a date, and an entry without them is rejected (D-21, D-28).
@@ -105,7 +105,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 - **Source:** brief (BR-09), D-09, DF-23
 - **Related US:** US-01, US-02, US-03, US-04, US-05, US-06, US-07, US-08, US-09, US-10, US-13, US-14, US-15, US-17, US-18, US-19, US-20, US-23, US-24, US-25, US-26, US-27, US-28, US-29, US-30, US-31, US-32
 - **Advanced part:** W-07, comparison across entities
-- **Related API:** TBD (Step 6)
+- **Related API:** `getSession`, `listUsers`, `getUser`, `getEntityPolicy`, `getApprovalMatrix`, `listDelegations`, `getDelegation`, `revokeDelegation`, `listGates`, `getGate`, `listErpSyncRuns`, `getRecurringProfile`, `updateRecurringProfile`, `uploadInvoices`, `listInvoices`, `getInvoice`, `getInvoiceEvidence`, `getCheckRun`, `getMailboxStatus`, `listMailboxMessages`, `getMailboxMessage`, `getMailboxFetchRun`, `getException`, `confirmLineMatch`, `reportWrongEntity`, `listFollowUps`, `draftCorrectionRequest`, `getCorrectionRequest`, `decideIndividualApproval`, `getAcceptanceQueueItem`, `decideServiceAcceptance`, `getCurrentBatch`, `listBatches`, `getBatch`, `listPaymentRequests`, `signPaymentRequests`, `listErpSendAttempts`, `resendToErp`, `listNotifications`, `getGroupDashboard`, `getGroupOverview`, `listAuditEntries`, `getAuditEntry`, `getSimMasterData`, `listSimPurchaseOrders`, `listSimReceipts`
 - **Rule:**
   - **MVP part.**
     - Every record carries an entity code. A user sees only the data of their own entity. A Group Admin sees configuration and, for each entity, counts and rates only, never invoice-level data (DF-23).
@@ -118,7 +118,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-10), DF-11
 - **Related US:** US-15, US-16, US-23
-- **Related API:** TBD (Step 6)
+- **Related API:** `getCheckRun`, `getException`, `getDecisionQueue`, `decideIndividualApproval`
 - **Rule:**
   - Several orders from one entity to the same supplier within a short window (example 7 days), each below the approval threshold but together reaching it, are combined. The combined amount decides the approval level (BR-03), which is higher.
   - The invoices of the combined orders become **linked exceptions**, one per invoice, joined by the split-order finding, for individual approval by the Payment Approver (UC-23). The level is set by the combined amount. The approver approves or declines all linked exceptions together in one action; a partial approval is not possible, so no one can approve the invoices one by one to stay under the level (D-70). The window is measured on the order dates.
@@ -127,7 +127,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-11), D-09, DF-19
 - **Related US:** US-10, US-15, US-16, US-20, US-31
-- **Related API:** TBD (Step 6)
+- **Related API:** `uploadInvoices`, `getCheckRun`, `listMailboxMessages`, `startMailboxFetch`
 - **Rule:**
   - An invoice with the same supplier, series, and number as an existing invoice is blocked (state `Rejected`). This check covers the whole group (D-09, BR-09).
   - An invoice whose content is nearly the same goes to a person to check: the same supplier and entity, the same total, an invoice date within 3 days, and a different number (DF-19). This check is within one entity in the MVP.
@@ -137,7 +137,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-12), DF-30
 - **Related US:** US-01, US-02, US-03, US-04, US-05, US-06, US-07, US-09, US-10, US-12, US-13, US-14, US-15, US-16, US-17, US-18, US-20, US-21, US-25, US-26, US-28, US-29, US-30, US-31, US-32
-- **Related API:** TBD (Step 6)
+- **Related API:** `login`, `updateEntityPolicy`, `createDelegation`, `revokeDelegation`, `uploadInvoices`, `downloadInvoiceDocument`, `getInvoiceHistory`, `getInvoiceEvidence`, `listCheckRuns`, `rerunChecks`, `getCheckRun`, `listAuthorityStatusLookups`, `startMailboxFetch`, `confirmFollowUp`, `decideTaxRiskHold`, `decideServiceAcceptance`, `releaseBatch`, `listErpSendAttempts`, `listAuditEntries`, `getAuditEntry`
 - **Rule:**
   - Every AI decision stores its reason, confidence, method (mapping table, embedding with the signal-fusion model, or LLM), model version, and prompt version.
   - Every Rule Engine decision stores each condition with its value. Every decision by a person, every signature, every configuration change, and every gate change stores who and when.
@@ -147,7 +147,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-13)
 - **Related US:** US-07, US-08
-- **Related API:** TBD (Step 6)
+- **Related API:** `startErpSync`, `listErpSyncRejections`, `confirmSimReceipt`
 - **Rule:**
   - A goods receipt note is made only by the warehouse keeper from the quantity actually received, and refers to a purchase order. It is never generated from an invoice.
   - MatchPay only reads receipts. The ERP simulator enforces the rule when a receipt is created, and a sync rejects a receipt that has no purchase order reference or that is marked as created from an invoice.
@@ -156,7 +156,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-14), DF-07, D-90
 - **Related US:** US-07, US-13, US-16, US-24, US-29
-- **Related API:** TBD (Step 6)
+- **Related API:** `startErpSync`, `getInvoiceEvidence`, `getCheckRun`, `listAcceptanceQueue`, `decideServiceAcceptance`
 - **Rule:**
   - An invoice with no matching receipt is `Waiting for Goods`. It cannot be admitted to a batch or paid. This covers an invoice that arrives before the goods.
   - A service invoice with no acceptance, from the ERP or from the Requesting Department (BR-19), is `Waiting for Goods` too. It is re-evaluated when an acceptance is confirmed in MatchPay (UC-29) as well as after every sync (D-90).
@@ -166,7 +166,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-15)
 - **Related US:** US-08, US-16
-- **Related API:** TBD (Step 6)
+- **Related API:** `getCheckRun`, `listSimPurchaseOrders`, `getSimPurchaseOrder`, `confirmSimReceipt`
 - **Rule:**
   - The quantity paid cannot exceed the quantity received. An invoice for more than was received fails condition 3 of BR-05 and becomes an exception.
   - A short delivery keeps the purchase order open for the rest.
@@ -175,7 +175,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-16), DF-13
 - **Related US:** US-03, US-04, US-16
-- **Related API:** TBD (Step 6)
+- **Related API:** `getGroup`, `updateGroupLimits`, `createEntity`, `getEntityPolicy`, `updateEntityPolicy`, `getCheckRun`
 - **Rule:**
   - The Entity Admin sets tolerance and batch threshold only inside the maximums set by the Group Admin and cannot go above them. Demo maximums: price tolerance 5%, batch threshold VND 300,000,000 (DF-13).
   - When the Group Admin lowers a maximum below an entity's current value, that value is lowered to the new maximum and the change is recorded.
@@ -185,7 +185,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 - **Source:** brief (BR-17), D-08, D-24, DF-25, D-33, D-90, D-92
 - **Related US:** US-03, US-10, US-12, US-16, US-29, US-31
 - **Advanced part:** W-03, medium-trust PDF; W-19, PDF intake and foreign invoices
-- **Related API:** TBD (Step 6)
+- **Related API:** `listSectors`, `addSector`, `removeSector`, `uploadInvoices`, `getCheckRun`, `listMailboxMessages`, `startMailboxFetch`, `correctFlow`, `decideServiceAcceptance`
 - **Rule:** The Rule Engine admits an invoice only when an independent source confirms the seller, the amount, and the quantity. The brief says that the AI puts the invoice in the batch; this page rewords it according to D-08, because the AI supplies evidence and the Rule Engine decides. A document with no independent source always goes through a person.
   - **MVP part.**
     - **Only XML e-invoices are accepted (D-33).** A PDF, an image, or any other file that is not XML is rejected at upload with the reason "Only XML e-invoices are accepted in the MVP". The reading of PDF and of images by a multimodal LLM is Advanced (W-19).
@@ -200,7 +200,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-18), D-33
 - **Related US:** none in the MVP; this rule is entirely Advanced and is carried by W-19 and W-09
-- **Related API:** TBD (Step 6)
+- **Related API:** None (Advanced W-19, W-09)
 - **Rule:** *(Advanced, W-19 and W-09; status Advanced, not Removed)*
   - The MVP accepts XML only (BR-17), so no PDF exists to compare with an XML file.
   - When PDF intake exists (W-19): if the PDF and the XML of one invoice differ in an amount, a quantity, or a tax code, the invoice is flagged as suspected fraud and goes to an exception.
@@ -210,7 +210,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-19), D-90
 - **Related US:** US-07, US-08, US-13, US-29
-- **Related API:** TBD (Step 6)
+- **Related API:** `startErpSync`, `getInvoiceEvidence`, `listAcceptanceQueue`, `decideServiceAcceptance`, `confirmSimReceipt`
 - **Rule:**
   - The quantity received and the acceptance of a service come from the confirmation of the warehouse keeper or the acceptor in the ERP or warehouse software.
   - **Amended (D-90):** for a service, when the ERP holds no acceptance, the Requesting Department user of the entity can confirm or reject the acceptance in MatchPay with a note (UC-29). The confirmation counts as the independent acceptance source (BR-17). The ERP acceptance is still preferred and wins if both exist; the confirmation stays in the history. The quantity of goods still comes only from the goods receipt (BR-13). The brief names the warehouse keeper and the acceptor in the ERP only, so this is a difference from the brief and a call approved by the user (2026-11-01).
@@ -220,7 +220,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-20), D-19, DF-01, DF-10, O-15
 - **Related US:** US-04, US-25, US-26, US-30
-- **Related API:** TBD (Step 6)
+- **Related API:** `updateEntityPolicy`, `getInvoiceEvidence`, `releaseBatch`, `listPaymentRequests`, `getPaymentRequest`, `signPaymentRequests`, `listErpSendAttempts`, `resendToErp`
 - **Rule:**
   - Every payment needs the e-signature of the person with authority and of the Chief Accountant before the money is paid. The AI never signs.
   - A batch holds **consolidated payment requests**, one per supplier by default or one per invoice, as the entity sets in its policy (grouping mode, UC-04). The request is this platform's own document, not the paper form 05-TT (D-19). It lists every invoice it covers.
@@ -233,7 +233,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-21), O-07, D-33
 - **Related US:** none; Removed (D-33), now Advanced W-20
-- **Related API:** TBD (Step 6)
+- **Related API:** None (Removed, D-33)
 - **Rule:** **Removed (D-33), now Advanced W-20.** The design below is kept for W-20. Nothing here applies to the MVP, which accepts XML only (BR-17); a foreign invoice that still arrives is an "Unsupported: foreign invoice" exception (BR-17).
   - **Foreign service:** payment is blocked until the Chief Accountant records the outcome for foreign contractor tax: the entity handled the tax (payment proof attached), the supplier is registered directly in Vietnam (registration evidence attached; the status of this outcome under Tax Administration Law No. 108/2025/QH15, which Circular 91 guides, is Unverified, O-07), or the tax does not apply (reason recorded).
   - **Imported goods:** the customs declaration and the proof of paying import-stage VAT must be attached before the invoice can join a batch. The AP Accountant attaches the documents.
@@ -244,7 +244,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-22)
 - **Related US:** none in the MVP; this rule is entirely Advanced and is carried by W-04
-- **Related API:** TBD (Step 6)
+- **Related API:** None (Advanced W-04)
 - **Rule:** *(Advanced, W-04)*
   - A subscription charged to a card has a card limit set in its subscription profile.
   - The invoice is confirmed afterwards. When the number of seats or the unit price differs from the profile, or the same period is charged twice, the system requests a refund, a reduction of seats, or a card block.
@@ -254,7 +254,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-23), D-14
 - **Related US:** US-12, US-27
-- **Related API:** TBD (Step 6)
+- **Related API:** `getCheckRun`, `correctFlow`, `getDashboard`
 - **Rule:**
   - An invoice for an employee expense with no booking request (hotel, restaurant, taxi) is separated into a list waiting for a reimbursement file. It is not an exception and is left out of the denominator of the touchless rate (G-01).
   - Whether the seller falls under the purchase-list rule is decided by the accountant, not by the AI.
@@ -263,7 +263,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-24), D-24, DF-11
 - **Related US:** US-09, US-13, US-15, US-16
-- **Related API:** TBD (Step 6)
+- **Related API:** `listRecurringProfiles`, `createRecurringProfile`, `getRecurringProfile`, `updateRecurringProfile`, `deactivateRecurringProfile`, `getCheckRun`
 - **Rule:**
   - A recurring invoice (electricity, water, office rent, fixed-price subscription) is checked against its recurring profile: the right supplier, entity, location, and period. Each period can have only one invoice.
   - **Fixed price:** the amount must equal the contract.
@@ -274,7 +274,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-25), DF-31
 - **Related US:** US-07, US-18, US-19, US-20, US-26
-- **Related API:** TBD (Step 6)
+- **Related API:** `getErpSyncStatus`, `listErpSyncRuns`, `startErpSync`, `getErpSyncRun`, `listSuppliers`, `listErpItems`, `draftCorrectionRequest`, `listErpSendAttempts`, `resendToErp`
 - **Rule:**
   - The ERP of each entity is the source of truth for purchase orders, receipts, acceptances, suppliers, and master data. MatchPay reads them and never edits them; the only thing it sends is the signed batch (UC-26).
   - When data differs, the responsible team is told, with a draft written by the AI, so that it fixes the data in the ERP, and the data is synced again.
@@ -284,7 +284,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-26), D-07, DF-21
 - **Related US:** US-18, US-19, US-20, US-32
-- **Related API:** TBD (Step 6)
+- **Related API:** `listFollowUps`, `confirmFollowUp`, `listMessageTemplates`, `draftCorrectionRequest`, `listCorrectionRequests`, `updateCorrectionRequest`, `sendCorrectionRequest`, `recordCorrectionReply`, `listNotifications`
 - **Rule:**
   - The AI drafts a request to the supplier from an approved template. Only the AP Accountant presses Send, and the AI never sends anything outside the system.
   - The AI tracks the reply deadline (5 working days, DF-21) and reminds the AP Accountant inside the system.
@@ -294,7 +294,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-27), DF-08
 - **Related US:** US-12, US-13, US-14, US-16, US-19
-- **Related API:** TBD (Step 6)
+- **Related API:** `listInvoiceLines`, `getInvoiceEvidence`, `getCheckRun`, `listMessageTemplates`, `draftCorrectionRequest`
 - **Rule:**
   - The content of a document (item names, notes, any text inside the file) is always data and never an instruction.
   - The LLM output must follow a fixed schema. A wrong schema, a timeout, or an unavailable LLM sends the invoice to an exception, and intake never blocks (DF-08).
@@ -304,7 +304,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-28), DF-15
 - **Related US:** US-14, US-16
-- **Related API:** TBD (Step 6)
+- **Related API:** `listErpItems`, `listInvoiceLines`, `getCheckRun`, `confirmLineMatch`
 - **Rule:**
   - The confidence the LLM reports about itself is never the only basis for a decision. A match combines the similarity of the embeddings, the match of price and quantity, and the matching history, in the signal-fusion model.
   - A line is matched at a probability of at least 0.90. Thresholds are calibrated on a labelled data set, and a new model version replaces the current one only when it does better on the test set (DF-15).
@@ -314,7 +314,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-29), DF-11, DF-20
 - **Related US:** US-15, US-16
-- **Related API:** TBD (Step 6)
+- **Related API:** `getCheckRun`
 - **Rule:**
   - The price of each line is compared with the entity's own purchase history. A deviation of more than the threshold (example 20% from the 6-month median) becomes an exception, even when the order, the receipt, and the invoice match each other. This catches an order placed at a high price from the start.
   - The check needs at least 3 purchases of the item in the last 6 months. With fewer, it is skipped and the skip is recorded (DF-20).
@@ -323,7 +323,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-30), DF-05
 - **Related US:** US-15, US-16, US-23, US-24, US-25
-- **Related API:** TBD (Step 6)
+- **Related API:** `getCheckRun`, `decideIndividualApproval`, `listPaymentRequests`, `getPaymentRequest`
 - **Rule:**
   - A new supplier (no previously paid invoice for the supplier and entity pair) and a supplier whose bank account changed in the period never join a batch untouched. Both take the exception path and are approved individually (D-31).
   - The change is flagged on the signing screen.
@@ -332,7 +332,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** brief (BR-31), D-07, D-26, D-94
 - **Related US:** US-07, US-10, US-18, US-19, US-20
-- **Related API:** TBD (Step 6)
+- **Related API:** `startErpSync`, `uploadInvoices`, `runAuthorityLookup`, `listFollowUps`, `confirmFollowUp`, `draftCorrectionRequest`, `recordCancellationNotice`, `listCancellationNotices`
 - **Rule:**
   - An adjustment or replacement invoice is recognised from its type and its reference to the original. This includes one adjustment invoice that corrects several wrong invoices of the same month.
   - In the MVP it always goes to a person. It is never admitted to a batch automatically. When the AP Accountant confirms it, the original invoices it corrects become `Superseded` (BR-33).
@@ -347,7 +347,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** D-25, D-33, [Regulatory context](../01-research/10-regulatory-context.md) L-12
 - **Related US:** none; Removed (D-33), now Advanced W-21
-- **Related API:** TBD (Step 6)
+- **Related API:** None (Removed, D-33)
 - **Rule:** **Removed (D-33), now Advanced W-21.** The design below is kept for W-21. In the MVP, a signed batch is a non-cash transfer instruction by design (D-11, BR-35), and UC-26 records only the paid status and the payment document reference. The non-cash rule of L-12 stays as regulatory background.
   - A signed batch is a non-cash transfer instruction by design (D-11).
   - When the Entity ERP returns the paid status, MatchPay records the payment method and the payment document reference returned with it (W-21).
@@ -358,7 +358,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 - **Source:** Step 2 (new rule)
 - **Related US:** US-10, US-12, US-13, US-16, US-18, US-26, US-29, US-31
-- **Related API:** TBD (Step 6)
+- **Related API:** `uploadInvoices`, `getInvoice`, `rerunChecks`, `startMailboxFetch`, `rejectInvoice`, `confirmFollowUp`, `recordCancellationNotice`, `decideServiceAcceptance`, `withdrawInvoiceFromBatch`, `resendToErp`
 - **Rule:** An invoice is always in exactly one state, and only the transitions below are allowed. `Rejected`, `Separated`, `Superseded`, and `Paid` are final.
 
 ```mermaid
@@ -430,7 +430,7 @@ V2 and V3 were removed by D-33 together with the state `Awaiting Field Confirmat
 
 - **Source:** Step 2 (new rule)
 - **Related US:** US-18, US-20, US-21, US-23, US-32
-- **Related API:** TBD (Step 6)
+- **Related API:** `listExceptions`, `getException`, `getDecisionQueue`, `takeException`, `confirmLineMatch`, `correctFlow`, `confirmEntity`, `reportWrongEntity`, `confirmAiResults`, `rejectInvoice`, `sendForDecision`, `confirmFollowUp`, `recordCorrectionReply`, `decideTaxRiskHold`, `decideIndividualApproval`, `listNotifications`
 - **Rule:** An exception holds one or more reasons and is always in one state. `Closed` is final and carries an outcome. A new problem with the same invoice creates a new exception.
 
 ```mermaid
@@ -475,7 +475,7 @@ stateDiagram-v2
 
 - **Source:** Step 2 (new rule), D-10, D-11, DF-01..DF-03
 - **Related US:** US-18, US-23, US-24, US-25, US-26, US-32
-- **Related API:** TBD (Step 6)
+- **Related API:** `recordCancellationNotice`, `decideIndividualApproval`, `getCurrentBatch`, `listBatches`, `getBatch`, `listBatchItems`, `closeBatchForReview`, `expandSample`, `releaseBatch`, `reopenBatch`, `withdrawInvoiceFromBatch`, `listBatchRequests`, `signPaymentRequests`, `removeRequestLine`, `declineRequest`, `resendToErp`, `listNotifications`
 - **Rule:** There is one open batch per entity per period (DF-18). A batch and each of its payment requests are always in one state, and only these transitions are allowed. `Completed`, `Cancelled`, and `Paid` are final.
 
 ```mermaid
@@ -545,7 +545,7 @@ Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In 
 
 - **Source:** Step 2 (new rule), DF-01, BR-02, D-89
 - **Related US:** US-02, US-23, US-25, US-30
-- **Related API:** TBD (Step 6)
+- **Related API:** `createUser`, `updateUser`, `createDelegation`, `getException`, `decideIndividualApproval`, `markSampleItem`, `listPaymentRequests`, `getPaymentRequest`, `signPaymentRequests`
 - **Rule:**
   - The Chief Accountant signs first and the Payment Approver second (DF-01), except for an individually approved exception, where the Approver's approval comes first and the Chief Accountant co-signs (DF-03). The two must be different people, and no one can sign the same request twice.
   - The user who prepared the batch cannot sign it.
@@ -558,7 +558,7 @@ Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In 
 
 - **Source:** Step 2 (new rule), D-30, DF-27
 - **Related US:** US-18, US-21, US-23, US-24, US-25, US-26, US-29, US-30
-- **Related API:** TBD (Step 6)
+- **Related API:** `takeException`, `confirmLineMatch`, `correctFlow`, `confirmEntity`, `reportWrongEntity`, `confirmAiResults`, `rejectInvoice`, `sendForDecision`, `confirmFollowUp`, `recordCancellationNotice`, `decideTaxRiskHold`, `decideIndividualApproval`, `decideServiceAcceptance`, `closeBatchForReview`, `markSampleItem`, `expandSample`, `releaseBatch`, `reopenBatch`, `withdrawInvoiceFromBatch`, `signPaymentRequests`, `removeRequestLine`, `declineRequest`, `listErpSendAttempts`, `resendToErp`
 - **Rule:**
   - Every invoice, exception, batch, and payment request has a version number that changes with each change (DF-27).
   - A state-changing action carries the version the user saw. If the object has changed since, the action is rejected, nothing is saved, and the user is asked to reload. Signing and withdrawal are the critical cases (D-30).
@@ -568,7 +568,7 @@ Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In 
 
 - **Source:** Step 2 (new rule), D-91, DF-62, O-17
 - **Related US:** US-30
-- **Related API:** TBD (Step 6)
+- **Related API:** `listDelegations`, `createDelegation`, `listDelegateCandidates`, `getDelegation`, `revokeDelegation`, `getInvoiceEvidence`, `listPaymentRequests`, `getPaymentRequest`, `signPaymentRequests`
 - **Rule:** *(a call approved by the user (2026-11-01); its legal validity is Unverified, O-17)*
   - A Chief Accountant or a Payment Approver can name a delegate for a date range while they are absent. The delegate is an active Chief Accountant or Payment Approver of the same entity (DF-62). The range is at most 30 days, starts today or later, and does not overlap another delegation of the same delegator.
   - In the range the delegate can sign the requests that wait for the delegator, **at the delegator's approval level** (BR-03), and only in the range. The delegate enters their own password again (DF-10). The delegator cannot sign while the delegation is active.
@@ -582,7 +582,7 @@ Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In 
 - **Source:** Step 2 (new rule), D-93, DF-64, L-18, O-10
 - **Related US:** US-07, US-10
 - **Advanced part:** W-13, the real connection point
-- **Related API:** TBD (Step 6)
+- **Related API:** `startErpSync`, `listErpSyncRejections`, `uploadInvoices`, `runAuthorityLookup`, `listAuthorityStatusLookups`
 - **Rule:** *(a call approved by the user (2026-11-01))*
   - **MVP part: a simulated lookup.** Like the simulated tax-risk list (D-21), the status comes from a simulated feed: for an invoice key (seller, series, number) it gives Valid, Adjusted, Replaced, or Cancelled, with a status date (DF-64). Each entry carries its key, status, and date, and an entry without them is rejected.
   - At intake, after the signature check, the system looks up the status. **Cancelled** or **Replaced** stops the invoice: it is `Rejected` with the reason and the date, and it is not processed further (BR-33 V6). **Adjusted** is a warning on the evidence; the adjustment invoice is a separate document handled by BR-31.

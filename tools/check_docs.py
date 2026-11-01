@@ -58,8 +58,8 @@ US_DB = list(US)  # the stories Step 5 covers: every active story
 N_DB = len(US_DB)
 N_MUST, N_SHOULD = 20, 10
 W_MAX = 21
-D_MAX = 129  # D-118..D-129 are the Step 5 calls of the mind map sync; D-108..D-117 are the Step 4 calls of the mind map sync; D-100..D-107 are the Step 3 calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the Step 4 R1 redesign; D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
-DF_MAX = 82  # DF-77..DF-82 are the Step 5 defaults of the mind map sync; DF-73..DF-76 are the Step 4 defaults of the mind map sync; DF-69..DF-72 are the Step 3 defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
+D_MAX = 164  # D-130..D-164 are the Step 6 calls (API contract);  D-118..D-129 are the Step 5 calls of the mind map sync; D-108..D-117 are the Step 4 calls of the mind map sync; D-100..D-107 are the Step 3 calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the Step 4 R1 redesign; D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
+DF_MAX = 88  # DF-83..DF-88 are the Step 6 defaults;  DF-77..DF-82 are the Step 5 defaults of the mind map sync; DF-73..DF-76 are the Step 4 defaults of the mind map sync; DF-69..DF-72 are the Step 3 defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
 BR = ['BR-%02d' % n for n in range(1, 40)]
@@ -184,9 +184,9 @@ parts = re.split(r'^## (BR-\d\d) — .+$', brf, flags=re.M)
 blocks = {parts[i]: parts[i + 1] for i in range(1, len(parts), 2)}
 bad_fields = []
 for b, body in blocks.items():
-    for fld in ['- **Source:**', '- **Related US:**', '- **Related API:** TBD (Step 6)', '- **Rule:**']:
+    for fld in ['- **Source:**', '- **Related US:**', '- **Related API:**', '- **Rule:**']:
         if fld not in body: bad_fields.append((b, fld))
-print('  each BR has Source, Related US, Related API TBD (Step 6), Rule: %s' % ('yes' if not bad_fields else bad_fields))
+print('  each BR has Source, Related US, Related API, Rule: %s' % ('yes' if not bad_fields else bad_fields))
 if bad_fields: fail('BR fields missing')
 hdr_brs = set(b for d in stories.values() for b in d['hdr'][1])
 wsection = mos[mos.index('## Won'):]
@@ -1256,6 +1256,109 @@ if 'Requesting Department' not in matrix.split('\n| UC-01')[0]: s9.append('matri
 if re.search(r'Pending \(Step', trace): s9.append('a Pending (Step n sync) marker is still in the matrix')
 print('  D-88 user decision, D-89..D-99 calls, DF-61..DF-68, BR-38, BR-39, V20, V21, B7, R9, O-17, W-05 and W-13 reworded, no pending marker left in the matrix:', 'yes' if not s9 else s9)
 if s9: fail('mind map sync checks')
+
+print('\n== CHECK: Step 6 API contract ==')
+import yaml
+A6 = 'docs/06-api/'
+s6 = []
+for f_ in ['README.md', '00-decisions.md', '01-api-traceability.md']:
+    if A6 + f_ not in text: s6.append(f_ + ' missing')
+    elif 'Step 6 of 9' not in text[A6 + f_]: s6.append(f_ + ' lacks the Step 6 header')
+raw6 = open(ROOT + '/' + A6 + 'openapi.yaml', encoding='utf-8').read()
+for p_ in (A6 + 'openapi.yaml', 'redocly.yaml'):
+    if re.search('[À-ỹĐđ]', open(ROOT + '/' + p_, encoding='utf-8').read()): s6.append('Vietnamese letters in ' + p_)
+api = yaml.safe_load(raw6)
+if not str(api.get('openapi', '')).startswith('3.0'): s6.append('openapi version is not 3.0.x')
+ops6 = {}
+for path_, item_ in api['paths'].items():
+    for m_, o_ in item_.items():
+        if m_ in ('get', 'post', 'put', 'patch', 'delete'):
+            oid_ = o_.get('operationId')
+            if not oid_ or oid_ in ops6: s6.append('operationId missing or duplicate at %s %s' % (m_, path_))
+            ops6[oid_] = (m_, path_, o_)
+            for k_ in ('x-roles', 'x-stories'):
+                if k_ not in o_: s6.append('%s lacks %s' % (oid_, k_))
+            for st_ in o_.get('x-stories', []):
+                if st_ not in uc_file.replace('UC-', 'US-') and not re.search(r'\b%s\b' % st_, inv): s6.append('%s cites unknown %s' % (oid_, st_))
+ROLES6 = {'AP_ACCOUNTANT', 'CHIEF_ACCOUNTANT', 'PAYMENT_APPROVER', 'REQUESTING_DEPARTMENT', 'ENTITY_ADMIN', 'GROUP_ADMIN', 'DEMO_OPERATOR'}
+dbml6 = open(ROOT + '/docs/05-database/matchpay.dbml', encoding='utf-8').read()
+tables6 = set(re.findall(r'^Table (\w+)', dbml6, re.M))
+for oid_, (m_, p_, o_) in ops6.items():
+    for r_ in o_.get('x-roles', []):
+        if r_ not in ROLES6: s6.append('%s has unknown role %s' % (oid_, r_))
+    for t_ in o_.get('x-tables', []):
+        if t_ not in tables6: s6.append('%s cites unknown table %s' % (oid_, t_))
+# every active story is served by at least one operation
+active6 = set(re.findall(r'^\| (US-\d\d) \|', trace, re.M))
+cited6 = {s_ for _, _, o_ in ops6.values() for s_ in o_.get('x-stories', [])}
+missing6 = sorted(u_ for u_ in active6 if u_ not in cited6 and not re.search(r'^\| %s \|.*\bremoved\b' % u_, trace, re.M | re.I))
+if missing6: s6.append('stories with no operation: %s' % missing6)
+# schemas referenced exist
+refs6 = set(re.findall(r"#/components/schemas/(\w+)", raw6))
+miss_s6 = sorted(refs6 - set(api['components']['schemas']))
+if miss_s6: s6.append('unresolved schema refs: %s' % miss_s6)
+# business rules Related API lines name real operations
+for b_, body_ in blocks.items():
+    m_ = re.search(r'- \*\*Related API:\*\*(.*)', body_)
+    if not m_ or 'TBD' in m_.group(1): s6.append(b_ + ' Related API not filled'); continue
+    for oid_ in re.findall(r'`(\w+)`', m_.group(1)):
+        if oid_ not in ops6: s6.append('%s Related API names unknown %s' % (b_, oid_))
+# (a) the matrix API column equals the operations whose x-stories name the story
+cells6 = lambda l: [c.strip() for c in l.strip().strip('|').split('|')]
+hdr6 = [l for l in trace.split('\n') if l.startswith('| Requirement |')][0]
+api_col = cells6(hdr6).index('API operationId')
+for l_ in trace.split('\n'):
+    m_ = re.match(r'^\| (US-\d\d) \|', l_)
+    if not m_: continue
+    u_ = m_.group(1)
+    got_ = {x.strip() for x in cells6(l_)[api_col].split(',')} - {'', '—'}
+    want_ = {o for o, (_, _, x_) in ops6.items() if u_ in x_.get('x-stories', [])}
+    if got_ != want_: s6.append('matrix API cell of %s differs from the contract: %s' % (u_, sorted(got_ ^ want_)))
+# (b) each BR Related API line equals the operations whose x-rules include it
+for b_, body_ in blocks.items():
+    line_ = re.search(r'- \*\*Related API:\*\*(.*)', body_).group(1)
+    got_ = set(re.findall(r'`(\w+)`', line_))
+    want_ = {o for o, (_, _, x_) in ops6.items() if b_ in x_.get('x-rules', [])}
+    if got_ != want_: s6.append('%s Related API differs from x-rules: %s' % (b_, sorted(got_ ^ want_)))
+    if not got_ and not line_.strip().startswith('None ('): s6.append(b_ + ' has no operation and no None wording')
+# (c) the operations table of 01-api-traceability.md matches the contract
+tr6 = text[A6 + '01-api-traceability.md']
+sec2_ = tr6[tr6.index('## 2. Operations'):tr6.index('## 3. ')]
+rows2_ = {}
+for l_ in sec2_.split('\n'):
+    m_ = re.match(r'^\| `(\w+)` \|', l_)
+    if m_: rows2_[m_.group(1)] = cells6(l_)
+if set(rows2_) != set(ops6): s6.append('operations table ids differ from the contract: %s' % sorted(set(rows2_) ^ set(ops6)))
+sp_ = lambda c: {x.strip().strip('`') for x in c.split(',')} - {'', '—'}
+for oid_, (m_, p_, o_) in ops6.items():
+    c_ = rows2_.get(oid_)
+    if not c_: continue
+    roles_ = sp_(c_[2]) - {'public'}
+    if c_[1] != '%s `%s`' % (m_.upper(), p_) and c_[1] != '%s %s' % (m_.upper(), '`%s`' % p_): s6.append(oid_ + ' method or path differs in the operations table')
+    if roles_ != set(o_.get('x-roles', [])): s6.append(oid_ + ' roles differ in the operations table')
+    if sp_(c_[3]) != set(o_.get('x-stories', [])): s6.append(oid_ + ' stories differ in the operations table')
+    if sp_(c_[4]) != set(o_.get('x-tables', [])): s6.append(oid_ + ' tables differ in the operations table')
+    if sp_(c_[5]) != set(o_.get('x-screens', [])): s6.append(oid_ + ' screens differ in the operations table')
+# (d) every DBML table is in some x-tables or in the jobs table
+jobs_ = tr6[tr6.index('## 4. Background jobs'):tr6.index('## 5. ')]
+used_ = {t_ for _, _, o_ in ops6.values() for t_ in o_.get('x-tables', [])} | set(re.findall(r'`(\w+)`', jobs_))
+if tables6 - used_: s6.append('tables in no operation and no job: %s' % sorted(tables6 - used_))
+# the screen-to-API mapping of the screen inventory equals the x-screens of the contract
+inv6 = text['docs/03-information-architecture/04-screen-inventory.md']
+map6_ = inv6[inv6.index('## Screen-to-API mapping'):]
+got6_ = {}
+for l_ in map6_.split('\n'):
+    m_ = re.match(r'^\| (SCR-\d\d) [^|]*\| (.*) \|$', l_)
+    if m_: got6_[m_.group(1)] = set(re.findall(r'`(\w+)`', m_.group(2)))
+act6_ = set(re.findall(r'^\| `(SCR-\d\d)` \|(?![^\n]*Removed)', inv6, re.M))
+for sc_ in sorted(act6_):
+    want_ = {o for o, (_, _, x_) in ops6.items() if sc_ in x_.get('x-screens', [])}
+    if sc_ not in got6_: s6.append('inventory mapping lacks ' + sc_)
+    elif got6_[sc_] != want_: s6.append('inventory mapping of %s differs from x-screens' % sc_)
+if set(got6_) - act6_: s6.append('inventory mapping has unknown screens: %s' % sorted(set(got6_) - act6_))
+if 'TBD (Step 6)' in ''.join(text.values()).replace('"TBD (Step 6)"', ''): s6.append('a TBD (Step 6) placeholder is left')
+print('  operations: %d; paths: %d; schemas: %d; tags: %d; Step 6 problems: %s' % (len(ops6), len(api['paths']), len(api['components']['schemas']), len(api.get('tags', [])), s6 or 'none'))
+if s6: fail('Step 6 API checks')
 
 print('\n== CHECK: README Mermaid blocks match their source documents ==')
 _src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None, 'docs/05-database/02-er-diagram.md': None}
