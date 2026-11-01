@@ -12,7 +12,7 @@ Step 6 turns the [user stories and acceptance criteria](../02-usecases-userstori
 | [openapi.yaml](openapi.yaml) | The OpenAPI 3.0.4 contract: 24 tags, 121 operations, shared error responses, and the schemas, with sample data of the fictional Calderwood Group |
 | [01-api-traceability.md](01-api-traceability.md) | The cross-check: stories and operations, the operations table, tables and operations, background jobs, business rules, screens, and acceptance criteria |
 
-**Related:** [README](../../README.md) · [Previous: Database](../05-database/README.md) · [Master traceability](../traceability/master-traceability.md)
+**Related:** [README](../../README.md) · [Previous: Database](../05-database/README.md) · [Next: Architecture](../07-architecture/README.md) · [Master traceability](../traceability/master-traceability.md)
 
 ## API conventions
 
@@ -171,6 +171,6 @@ Its Step 6 section parses the YAML, checks the extensions of every operation aga
 
 ## What the contract does not cover
 
-- Where sessions, idempotency keys, and the XML bytes are stored, and the server configuration (intervals, retry counts, timeouts): Step 7.
+- Where sessions, idempotency keys, and the XML bytes are stored, and the server configuration (intervals, retry counts, timeouts): answered in Step 7 (draft for review), see the [deferred items](../07-architecture/00-decisions.md#items-deferred-to-step-7-and-their-answers).
 - The link from MatchPay to an ERP, the mailbox, the status feed, the Email Service, and the LLM. These are server-side ports, not operations of this contract (D-143).
 - A public or partner API, a webhook, a bank connection, password reset, and any PDF or foreign-invoice intake: not in the MVP (D-130, D-33, W-19).

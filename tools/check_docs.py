@@ -58,8 +58,8 @@ US_DB = list(US)  # the stories Step 5 covers: every active story
 N_DB = len(US_DB)
 N_MUST, N_SHOULD = 20, 10
 W_MAX = 21
-D_MAX = 164  # D-130..D-164 are the Step 6 calls (API contract);  D-118..D-129 are the Step 5 calls of the mind map sync; D-108..D-117 are the Step 4 calls of the mind map sync; D-100..D-107 are the Step 3 calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the Step 4 R1 redesign; D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
-DF_MAX = 88  # DF-83..DF-88 are the Step 6 defaults;  DF-77..DF-82 are the Step 5 defaults of the mind map sync; DF-73..DF-76 are the Step 4 defaults of the mind map sync; DF-69..DF-72 are the Step 3 defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
+D_MAX = 186  # D-165..D-186 are the Step 7 calls (architecture);  D-130..D-164 are the Step 6 calls (API contract);  D-118..D-129 are the Step 5 calls of the mind map sync; D-108..D-117 are the Step 4 calls of the mind map sync; D-100..D-107 are the Step 3 calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the Step 4 R1 redesign; D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
+DF_MAX = 93  # DF-89..DF-93 are the Step 7 defaults;  DF-83..DF-88 are the Step 6 defaults;  DF-77..DF-82 are the Step 5 defaults of the mind map sync; DF-73..DF-76 are the Step 4 defaults of the mind map sync; DF-69..DF-72 are the Step 3 defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
 BR = ['BR-%02d' % n for n in range(1, 40)]
@@ -1360,8 +1360,103 @@ if 'TBD (Step 6)' in ''.join(text.values()).replace('"TBD (Step 6)"', ''): s6.ap
 print('  operations: %d; paths: %d; schemas: %d; tags: %d; Step 6 problems: %s' % (len(ops6), len(api['paths']), len(api['components']['schemas']), len(api.get('tags', [])), s6 or 'none'))
 if s6: fail('Step 6 API checks')
 
+print('\n== CHECK: Step 7 architecture ==')
+A7 = 'docs/07-architecture/'
+s7 = []
+FILES7 = ['README.md', '00-decisions.md', '01-system-context.md', '02-container.md', '03-component.md', '04-code.md',
+          '05-tech-stack.md', '06-llm-provider.md', '07-runtime-and-deployment.md']
+for f_ in FILES7:
+    if A7 + f_ not in text: s7.append(f_ + ' missing'); continue
+    t_ = text[A7 + f_]
+    if '> Design status: MVP — Step 7 of 9, draft for review\n>\n> Implementation status: NOT STARTED' not in t_: s7.append(f_ + ' lacks the Step 7 header block')
+    if re.search('[À-ỹĐđ]', t_): s7.append('Vietnamese letters in ' + f_)
+    for b_ in re.findall(r'```mermaid\n(.*?)```', t_, re.S):
+        if b_.split()[0] not in ('flowchart', 'classDiagram', 'sequenceDiagram'): s7.append('unknown Mermaid kind in ' + f_)
+        if re.search(r'^\s*(sequenceDiagram|participant|actor|Note|[A-Za-z]+-+>>?).*[;#]', b_, re.M) and b_.startswith('sequenceDiagram'): s7.append('semicolon or hash in a sequence diagram of ' + f_)
+dec7 = text.get(A7 + '00-decisions.md', '')
+for n_ in range(165, D_MAX + 1):
+    if not re.search(r'^\| D-%d \|.*\| Call, awaiting user review \|$' % n_, dec7, re.M): s7.append('D-%d row missing or not "Call, awaiting user review"' % n_)
+for n_ in range(89, DF_MAX + 1):
+    if not re.search(r'^\| DF-%02d \|.*\| Default, pending confirmation \|$' % n_, dec7, re.M): s7.append('DF-%02d row missing or not "Default, pending confirmation"' % n_)
+for h_ in ('## Items deferred to Step 7 and their answers', '## Differences from Steps 1 to 6', '## Gaps found in approved steps', '## Doubts for the user'):
+    if h_ not in dec7: s7.append('decisions lack the section ' + h_)
+# the component catalog
+cmp7 = text.get(A7 + '03-component.md', '')
+cat7 = {}
+if '## Component catalog' in cmp7:
+    sec7 = cmp7[cmp7.index('## Component catalog'):cmp7.index('## What each component does')]
+    for l_ in sec7.split('\n'):
+        c_ = [x_.strip() for x_ in l_.strip().strip('|').split('|')]
+        if l_.startswith('| ') and len(c_) == 6 and c_[0] not in ('Component',) and not c_[0].startswith('---'):
+            cat7[c_[0]] = c_
+else: s7.append('03-component.md lacks the component catalog')
+tag_of7 = {o_: ob_['tags'][0] for o_, (_, _, ob_) in ops6.items()}
+tag_count7 = {}
+for tg_ in tag_of7.values(): tag_count7[tg_] = tag_count7.get(tg_, 0) + 1
+owners7 = {}
+for nm_, c_ in cat7.items():
+    got_ = set()
+    for part_ in c_[2].split(';'):
+        part_ = part_.strip()
+        m_ = re.match(r'^([^`]+?) \((\d+)\)$', part_)
+        if m_:
+            if tag_count7.get(m_.group(1)) != int(m_.group(2)): s7.append('%s: tag %s count differs from the contract' % (nm_, m_.group(1)))
+            got_ |= {o_ for o_, tg_ in tag_of7.items() if tg_ == m_.group(1)}
+        for o_ in re.findall(r'`(\w+)`', part_):
+            if o_ not in ops6: s7.append('%s owns unknown operation %s' % (nm_, o_))
+            got_.add(o_)
+    for o_ in got_: owners7.setdefault(o_, []).append(nm_)
+bad_o7 = sorted(o_ for o_ in ops6 if len(owners7.get(o_, [])) != 1)
+if bad_o7: s7.append('operations without exactly one component: %s' % bad_o7)
+jobs_sec7 = text['docs/06-api/01-api-traceability.md']
+jobs_sec7 = jobs_sec7[jobs_sec7.index('## 4. Background jobs'):jobs_sec7.index('## 5. Business rules')]
+jobs7 = [m_.group(1) for m_ in re.finditer(r'^\| ([^|]+?) \| [^|]+ \| US-', jobs_sec7, re.M)]
+job_owner7 = {}
+for nm_, c_ in cat7.items():
+    for j_ in c_[3].split(';'):
+        j_ = j_.strip()
+        if j_ and j_ != '—': job_owner7.setdefault(j_, []).append(nm_)
+bad_j7 = sorted(j_ for j_ in set(jobs7) | set(job_owner7) if len(job_owner7.get(j_, [])) != 1 or j_ not in jobs7)
+if len(jobs7) != 10 or bad_j7: s7.append('jobs without exactly one component (or unknown): %s' % bad_j7)
+tab_owner7 = {}
+for nm_, c_ in cat7.items():
+    for tb_ in re.findall(r'`(\w+)`', c_[4]): tab_owner7.setdefault(tb_, []).append(nm_)
+bad_t7 = sorted((tb_ for tb_ in tables6 | set(tab_owner7) if len(tab_owner7.get(tb_, [])) != 1 or tb_ not in tables6), key=str)
+if bad_t7: s7.append('tables without exactly one owner (or unknown): %s' % bad_t7)
+# the C4 Component column of the matrix
+c4col7 = {}
+for l_ in trace.split('\n'):
+    m_ = re.match(r'^\| (US-\d\d) \|(.*)\|\s*$', l_)
+    if not m_: continue
+    cells_ = [x_.strip() for x_ in ('| ' + m_.group(1) + ' |' + m_.group(2)).strip().strip('|').split('|')]
+    if len(cells_) != 9: continue
+    if m_.group(1) in US_REMOVED:
+        if cells_[7] != '—': s7.append('%s removed row must keep a dash in the C4 Component column' % m_.group(1))
+        continue
+    names_ = [x_.strip() for x_ in cells_[7].split(',')]
+    c4col7[m_.group(1)] = names_
+    if 'TBD' in cells_[7] or not names_ or names_ == ['']: s7.append('%s has a TBD or empty C4 Component cell' % m_.group(1))
+    for n_ in names_:
+        if n_ not in cat7: s7.append('%s names an unknown component: %s' % (m_.group(1), n_))
+if len(c4col7) != N_ACTIVE: s7.append('C4 Component column has %d active rows, expected %d' % (len(c4col7), N_ACTIVE))
+for nm_, c_ in cat7.items():
+    if c_[5] in ('All', '—'): continue
+    want_ = sorted(s_ for s_, ns_ in c4col7.items() if nm_ in ns_)
+    have_ = [x_.strip() for x_ in c_[5].split(',')]
+    if want_ != have_: s7.append('stories of %s in the catalog differ from the matrix' % nm_)
+if 'last update: Step 7, draft for review' not in trace: s7.append('matrix header not updated to Step 7')
+llm7 = text.get(A7 + '06-llm-provider.md', '')
+if 'Unverified' not in llm7 or '2026-11-01' not in llm7: s7.append('LLM record lacks Unverified marks or the date opened')
+srcs7 = re.findall(r'^\| S\d+ \| (\S+) \|', llm7, re.M)
+if len(srcs7) < 10 or [u_ for u_ in srcs7 if not u_.startswith('https://')]: s7.append('LLM record sources table is short or has a non-https URL')
+for cand_ in ('Anthropic', 'OpenAI', 'Gemini', 'Self-hosted'):
+    if cand_ not in llm7: s7.append('LLM record lacks candidate ' + cand_)
+print('  components: %d; operations owned once: %d of %d; jobs: %d; tables owned once: %d of %d; stories with components: %d; Step 7 problems: %s' % (
+    len(cat7), len(ops6) - len(bad_o7), len(ops6), len(jobs7), len(tables6) - len(bad_t7), len(tables6), len(c4col7), s7 or 'none'))
+if s7: fail('Step 7 architecture checks')
+
 print('\n== CHECK: README Mermaid blocks match their source documents ==')
-_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None, 'docs/05-database/02-er-diagram.md': None}
+_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None, 'docs/05-database/02-er-diagram.md': None, 'docs/07-architecture/02-container.md': None}
 _pool = []
 for _p in _src:
     _pool += re.findall(r'```mermaid\n(.*?)```', open(_p, encoding='utf-8').read(), re.S)
