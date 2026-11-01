@@ -2,37 +2,21 @@
 
 MatchPay is a shared platform for a group of several legal entities. AI checks every incoming invoice against its purchase order and goods receipt, and the Rule Engine admits invoices that pass six conditions into a payment batch. The MVP reads XML e-invoices only; foreign invoices and the cash payment flag are Advanced. Authorised people then sign consolidated payment requests per supplier, many in one action, and only exceptions need to be handled one by one. The goal is to pay the right amount, to the right entity, on time, without losing tax deductions.
 
-AI helps at eight points: it classifies the invoice flow, reads the document, identifies the entity and the order, matches invoice lines, detects anomalies, explains and drafts the handling of exceptions, selects the sample for the sample check, and summarises the batch for the signer. **The AI provides evidence, the Rule Engine decides, and a person signs and is accountable.** The AI never signs and never sends anything outside the system by itself.
-
-MatchPay serves the finance teams of a group, not the purchasing or warehouse teams. Those teams keep working in their ERP, and their data is synced in. Examples and sample data use one fictional group, **Calderwood Group**, with three fictional entities. The real source documents (invoices, laws) are Vietnamese; all documentation is written in English. "MatchPay" is a working name (O-01).
-
-## Steps and status
-
-The work is done in nine steps. A step is only approved when the user approves it.
-
-| Step | Content | Status |
-|---|---|---|
-| 1 | Research and problem analysis | Approved by the user (2026-11-01) |
-| 2 | Use cases and user stories (INVEST, acceptance criteria, business rules, MoSCoW) | Approved by the user (2026-11-01) |
-| 3 | Information architecture (sitemap, routes and permissions, navigation, screen inventory, user flows, UI states) | Approved (2026-10-31); the D-33 adjustments and the sync to the feature mind map (2026-11-01) are approved by the user (2026-11-01) |
-| 4 | UI/UX and wireframes (design system, screen notes, HTML wireframes with PNG exports) | Approved (2026-10-31); revision R1 and the mind map sync (2026-11-01) are approved by the user (2026-11-01) |
-| 5 | Database | Approved by the user (2026-11-01) |
-| 6 | API contract | Draft for review |
-| 7 | C4 architecture, tech stack, and LLM provider | Draft for review |
-| 8 | Code structure | Not started |
-| 9 | Implementation | Not started |
-
 ## 1. Requirements — Research, Use Cases, and Acceptance Criteria
 
 Requirements define what MatchPay must do, who uses it, the value delivered, and the observable conditions of success. User stories are reviewed with INVEST and mapped to use cases, business rules, and acceptance criteria.
 
 ### 1.1 Product mind map
 
-See the [product mind map](docs/mindmap.md), which also holds the [feature map F01..F12](docs/mindmap.md#feature-map-f01f12) that mirrors the mind map the user attached on 2026-11-01 (D-88). The user's final mind map image (Vietnamese source document) is [feature-mind-map.png](docs/images/source/feature-mind-map.png).
+See the [product mind map](docs/mindmap.md), including the [feature map F01–F12](docs/mindmap.md#feature-map-f01f12).
 
-### 1.2 Step 1 summary: research and problem analysis
+The original Vietnamese feature mind map is displayed below:
 
-Step 1 analyses four problems: manual matching of invoice, order, and receipt (P-01); item names and units that differ between documents (P-02); invoices from risky suppliers or issued to the wrong entity (P-03); and payment approval by email and chat with no approval matrix (P-04). It sets seven measurable goals, G-01..G-07, of which the touchless rate (G-01) is always reported together with the AI misplacement rate (G-02), and defines ten MVP modules, M-01..M-10.
+![Feature Mind Map](docs/images/source/feature-mind-map.png)
+
+### 1.2 Research and Problem Analysis Summary
+
+This research identifies four problems: manual matching of invoice, order, and receipt (P-01); item names and units that differ between documents (P-02); invoices from risky suppliers or issued to the wrong entity (P-03); and payment approval by email and chat with no approval matrix (P-04). It sets seven measurable goals, G-01..G-07, of which the touchless rate (G-01) is always reported together with the AI misplacement rate (G-02), and defines ten MVP modules, M-01..M-10.
 
 The brief's facts were checked against sources opened on 2026-10-31. Four points matter most:
 
@@ -41,7 +25,7 @@ The brief's facts were checked against sources opened on 2026-10-31. Four points
 - **The market gap is still an assumption.** Cost does not support it, Vietnam e-invoice support of international products is unpublished rather than disproven, and data location is a compliance step ([Similar products](docs/01-research/04-similar-products.md)).
 - **Open items remain** for the user, the manager, an accountant, or a lawyer, including the name, the legal effect of policy delegation and of a delegated e-signature (O-05, O-17), and the usage-based non-coded invoices of D-24 ([Decisions](docs/01-research/00-decisions.md), O-01..O-17).
 
-Start with the [Step 1 index](docs/01-research/README.md).
+Start with the [Research and Problem Analysis](docs/01-research/README.md).
 
 ### 1.3 INVEST requirements, use cases, and business rules
 
