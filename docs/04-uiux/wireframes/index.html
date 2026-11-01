@@ -13,18 +13,27 @@
   <p>18 page files cover the 35 active screens of Step 3 (modals are states of their parent page). Open a page, then use the dark bar at the top to switch role and state. Add <code>?shot=1</code> to hide the bar and the yellow annotation numbers. Sample data is the fictional Calderwood Group (DF-12). Screen SCR-13 and SCR-17 were removed by D-33 and have no wireframe.</p>
   <p class="small"><span class="au au-ai">AI proposed</span> dotted rail, round dashed tag &middot; <span class="au au-rule">Rule Engine</span> double rail, square tag &middot; <span class="au au-person">Person</span> solid rail, filled tag</p>
 </header>
+<nav class="tabs gal-tabs" role="tablist" aria-label="Filter by role">
+  <button class="tab" role="tab" aria-selected="true" data-area="">All pages</button>
+  <button class="tab" role="tab" aria-selected="false" data-area="ap">AP Accountant</button>
+  <button class="tab" role="tab" aria-selected="false" data-area="chief">Chief Accountant</button>
+  <button class="tab" role="tab" aria-selected="false" data-area="approver">Payment Approver</button>
+  <button class="tab" role="tab" aria-selected="false" data-area="entity-admin">Entity Admin</button>
+  <button class="tab" role="tab" aria-selected="false" data-area="group-admin">Group Admin</button>
+  <button class="tab" role="tab" aria-selected="false" data-area="demo">Demo Operator</button>
+</nav>
 <section class="gallery-section" aria-labelledby="g-acce">
   <h2 id="g-acce">Access</h2>
   <div class="gallery">
-    <article class="shot-card">
+    <article class="shot-card" data-area="all">
       <a href="01-login.html"><img src="../../images/common/01-login.png" alt="SCR-01 Login" loading="lazy"></a>
       <div class="body"><h3><a href="01-login.html">SCR-01 Login</a></h3>
-        <div class="state-links"><a href="01-login.html?state=error">error</a><a href="01-login.html?state=deactivated">deactivated</a><a href="01-login.html?state=session-ended">session-ended</a><a href="01-login.html?state=saving">saving</a></div></div>
+        <details class="states"><summary>4 states and variants</summary><div class="state-links"><a href="01-login.html?state=error">error</a><a href="01-login.html?state=deactivated">deactivated</a><a href="01-login.html?state=session-ended">session-ended</a><a href="01-login.html?state=saving">saving</a></div></details></div>
     </article>
-    <article class="shot-card">
+    <article class="shot-card" data-area="all">
       <a href="90-access-denied.html"><img src="../../images/common/90-access-denied.png" alt="SCR-90 Access denied" loading="lazy"></a>
       <div class="body"><h3><a href="90-access-denied.html">SCR-90 Access denied</a></h3>
-        <div class="state-links"><a href="90-access-denied.html?role=ap">role: AP Accountant opens /signing</a><a href="90-access-denied.html?role=chief">role: Chief Accountant opens /users</a><a href="90-access-denied.html?role=entity-admin">role: Entity Admin opens /invoices</a><a href="90-access-denied.html?role=demo">role: Demo Operator opens /dashboard</a><a href="90-access-denied.html?state=other-entity">other-entity</a></div></div>
+        <details class="states"><summary>5 states and variants</summary><div class="state-links"><a href="90-access-denied.html?role=ap">role: AP Accountant opens /signing</a><a href="90-access-denied.html?role=chief">role: Chief Accountant opens /users</a><a href="90-access-denied.html?role=entity-admin">role: Entity Admin opens /invoices</a><a href="90-access-denied.html?role=demo">role: Demo Operator opens /dashboard</a><a href="90-access-denied.html?state=other-entity">other-entity</a></div></details></div>
     </article>
   </div>
 </section>
@@ -32,15 +41,15 @@
 <section class="gallery-section" aria-labelledby="g-invo">
   <h2 id="g-invo">Invoices</h2>
   <div class="gallery">
-    <article class="shot-card">
+    <article class="shot-card" data-area="ap chief approver">
       <a href="10-invoice-worklist.html"><img src="../../images/ap-accountant/10-invoice-worklist.png" alt="SCR-10 Invoice Worklist" loading="lazy"></a>
       <div class="body"><h3><a href="10-invoice-worklist.html">SCR-10 Invoice Worklist</a></h3>
-        <div class="state-links"><a href="10-invoice-worklist.html?role=ap">role: AP Accountant</a><a href="10-invoice-worklist.html?role=chief">role: Chief Accountant (read-only)</a><a href="10-invoice-worklist.html?role=approver">role: Payment Approver (read-only)</a><a href="10-invoice-worklist.html?state=loading">loading</a><a href="10-invoice-worklist.html?state=empty">empty</a><a href="10-invoice-worklist.html?state=no-results">no-results</a><a href="10-invoice-worklist.html?state=stale">stale</a><a href="10-invoice-worklist.html?state=server-error">server-error</a><a href="10-invoice-worklist.html?state=upload">SCR-11 upload</a><a href="10-invoice-worklist.html?state=upload-results">SCR-11 results</a><a href="10-invoice-worklist.html?state=upload-non-xml">SCR-11 non-XML</a></div></div>
+        <details class="states"><summary>11 states and variants</summary><div class="state-links"><a href="10-invoice-worklist.html?role=ap">role: AP Accountant</a><a href="10-invoice-worklist.html?role=chief">role: Chief Accountant (read-only)</a><a href="10-invoice-worklist.html?role=approver">role: Payment Approver (read-only)</a><a href="10-invoice-worklist.html?state=loading">loading</a><a href="10-invoice-worklist.html?state=empty">empty</a><a href="10-invoice-worklist.html?state=no-results">no-results</a><a href="10-invoice-worklist.html?state=stale">stale</a><a href="10-invoice-worklist.html?state=server-error">server-error</a><a href="10-invoice-worklist.html?state=upload">SCR-11 upload</a><a href="10-invoice-worklist.html?state=upload-results">SCR-11 results</a><a href="10-invoice-worklist.html?state=upload-non-xml">SCR-11 non-XML</a></div></details></div>
     </article>
-    <article class="shot-card">
+    <article class="shot-card" data-area="ap chief approver">
       <a href="12-invoice-detail.html"><img src="../../images/ap-accountant/12-invoice-detail.png" alt="SCR-12 Invoice Detail and Evidence" loading="lazy"></a>
       <div class="body"><h3><a href="12-invoice-detail.html">SCR-12 Invoice Detail and Evidence</a></h3>
-        <div class="state-links"><a href="12-invoice-detail.html?role=ap">role: AP Accountant</a><a href="12-invoice-detail.html?role=chief">role: Chief Accountant</a><a href="12-invoice-detail.html?role=approver">role: Payment Approver</a><a href="12-invoice-detail.html?state=loading">loading</a><a href="12-invoice-detail.html?state=server-error">server-error</a><a href="12-invoice-detail.html?state=checking">checking</a><a href="12-invoice-detail.html?state=confirm-line&amp;role=ap">confirm-line</a><a href="12-invoice-detail.html?state=correct&amp;role=ap">correct</a><a href="12-invoice-detail.html?state=draft&amp;role=ap">SCR-14 draft</a><a href="12-invoice-detail.html?state=draft-loading&amp;role=ap">draft-loading</a><a href="12-invoice-detail.html?state=draft-ai-error&amp;role=ap">draft-ai-error</a><a href="12-invoice-detail.html?state=draft-not-sent&amp;role=ap">draft-not-sent</a><a href="12-invoice-detail.html?state=reject&amp;role=ap">SCR-15 reject</a><a href="12-invoice-detail.html?state=reject-error&amp;role=ap">reject-error</a><a href="12-invoice-detail.html?state=hold&amp;role=chief">hold</a><a href="12-invoice-detail.html?state=hold-decision&amp;role=chief">SCR-16 hold-decision</a><a href="12-invoice-detail.html?state=approve&amp;role=approver">approve</a><a href="12-invoice-detail.html?state=approve-modal&amp;role=approver">SCR-18 approve-modal</a><a href="12-invoice-detail.html?state=approve-blocked&amp;role=approver">approve-blocked</a><a href="12-invoice-detail.html?state=approve-split&amp;role=approver">approve-split</a><a href="12-invoice-detail.html?state=approve-split-modal&amp;role=approver">SCR-18 approve-split-modal</a><a href="12-invoice-detail.html?state=foreign&amp;role=ap">foreign</a><a href="12-invoice-detail.html?state=foreign-reject&amp;role=ap">foreign-reject</a><a href="12-invoice-detail.html?state=ai-failure&amp;role=ap">ai-failure</a><a href="12-invoice-detail.html?state=in-batch&amp;role=ap">in-batch</a><a href="12-invoice-detail.html?state=paid&amp;role=ap">paid</a><a href="12-invoice-detail.html?state=conflict&amp;role=ap">conflict</a><a href="12-invoice-detail.html?state=audit-error&amp;role=ap">audit-error</a></div></div>
+        <details class="states"><summary>28 states and variants</summary><div class="state-links"><a href="12-invoice-detail.html?role=ap">role: AP Accountant</a><a href="12-invoice-detail.html?role=chief">role: Chief Accountant</a><a href="12-invoice-detail.html?role=approver">role: Payment Approver</a><a href="12-invoice-detail.html?state=loading">loading</a><a href="12-invoice-detail.html?state=server-error">server-error</a><a href="12-invoice-detail.html?state=checking">checking</a><a href="12-invoice-detail.html?state=confirm-line&amp;role=ap">confirm-line</a><a href="12-invoice-detail.html?state=correct&amp;role=ap">correct</a><a href="12-invoice-detail.html?state=draft&amp;role=ap">SCR-14 draft</a><a href="12-invoice-detail.html?state=draft-loading&amp;role=ap">draft-loading</a><a href="12-invoice-detail.html?state=draft-ai-error&amp;role=ap">draft-ai-error</a><a href="12-invoice-detail.html?state=draft-not-sent&amp;role=ap">draft-not-sent</a><a href="12-invoice-detail.html?state=reject&amp;role=ap">SCR-15 reject</a><a href="12-invoice-detail.html?state=reject-error&amp;role=ap">reject-error</a><a href="12-invoice-detail.html?state=hold&amp;role=chief">hold</a><a href="12-invoice-detail.html?state=hold-decision&amp;role=chief">SCR-16 hold-decision</a><a href="12-invoice-detail.html?state=approve&amp;role=approver">approve</a><a href="12-invoice-detail.html?state=approve-modal&amp;role=approver">SCR-18 approve-modal</a><a href="12-invoice-detail.html?state=approve-blocked&amp;role=approver">approve-blocked</a><a href="12-invoice-detail.html?state=approve-split&amp;role=approver">approve-split</a><a href="12-invoice-detail.html?state=approve-split-modal&amp;role=approver">SCR-18 approve-split-modal</a><a href="12-invoice-detail.html?state=foreign&amp;role=ap">foreign</a><a href="12-invoice-detail.html?state=foreign-reject&amp;role=ap">foreign-reject</a><a href="12-invoice-detail.html?state=ai-failure&amp;role=ap">ai-failure</a><a href="12-invoice-detail.html?state=in-batch&amp;role=ap">in-batch</a><a href="12-invoice-detail.html?state=paid&amp;role=ap">paid</a><a href="12-invoice-detail.html?state=conflict&amp;role=ap">conflict</a><a href="12-invoice-detail.html?state=audit-error&amp;role=ap">audit-error</a></div></details></div>
     </article>
   </div>
 </section>
@@ -48,10 +57,10 @@
 <section class="gallery-section" aria-labelledby="g-recu">
   <h2 id="g-recu">Recurring profiles</h2>
   <div class="gallery">
-    <article class="shot-card">
+    <article class="shot-card" data-area="ap">
       <a href="20-recurring-profiles.html"><img src="../../images/ap-accountant/20-recurring-profiles.png" alt="SCR-20 Recurring Profiles" loading="lazy"></a>
       <div class="body"><h3><a href="20-recurring-profiles.html">SCR-20 Recurring Profiles</a></h3>
-        <div class="state-links"><a href="20-recurring-profiles.html?state=loading">loading</a><a href="20-recurring-profiles.html?state=empty">empty</a><a href="20-recurring-profiles.html?state=server-error">server-error</a><a href="20-recurring-profiles.html?state=deactivate">deactivate</a><a href="20-recurring-profiles.html?state=form">SCR-21 form</a><a href="20-recurring-profiles.html?state=form-error">form-error</a><a href="20-recurring-profiles.html?state=form-duplicate">form-duplicate</a><a href="20-recurring-profiles.html?state=form-saving">form-saving</a></div></div>
+        <details class="states"><summary>8 states and variants</summary><div class="state-links"><a href="20-recurring-profiles.html?state=loading">loading</a><a href="20-recurring-profiles.html?state=empty">empty</a><a href="20-recurring-profiles.html?state=server-error">server-error</a><a href="20-recurring-profiles.html?state=deactivate">deactivate</a><a href="20-recurring-profiles.html?state=form">SCR-21 form</a><a href="20-recurring-profiles.html?state=form-error">form-error</a><a href="20-recurring-profiles.html?state=form-duplicate">form-duplicate</a><a href="20-recurring-profiles.html?state=form-saving">form-saving</a></div></details></div>
     </article>
   </div>
 </section>
@@ -59,10 +68,10 @@
 <section class="gallery-section" aria-labelledby="g-batc">
   <h2 id="g-batc">Batch</h2>
   <div class="gallery">
-    <article class="shot-card">
+    <article class="shot-card" data-area="ap">
       <a href="30-batch-review.html"><img src="../../images/ap-accountant/30-batch-review.png" alt="SCR-30 Batch Review" loading="lazy"></a>
       <div class="body"><h3><a href="30-batch-review.html">SCR-30 Batch Review</a></h3>
-        <div class="state-links"><a href="30-batch-review.html?state=loading">loading</a><a href="30-batch-review.html?state=empty">empty</a><a href="30-batch-review.html?state=close">SCR-31 close</a><a href="30-batch-review.html?state=in-review">in-review</a><a href="30-batch-review.html?state=sample-no-ai">sample-no-ai</a><a href="30-batch-review.html?state=mark-error">mark-error</a><a href="30-batch-review.html?state=ready">ready</a><a href="30-batch-review.html?state=release">SCR-32 release</a><a href="30-batch-review.html?state=conflict">conflict</a><a href="30-batch-review.html?state=released">released</a><a href="30-batch-review.html?state=sending">sending</a><a href="30-batch-review.html?state=send-failed">send-failed</a></div></div>
+        <details class="states"><summary>12 states and variants</summary><div class="state-links"><a href="30-batch-review.html?state=loading">loading</a><a href="30-batch-review.html?state=empty">empty</a><a href="30-batch-review.html?state=close">SCR-31 close</a><a href="30-batch-review.html?state=in-review">in-review</a><a href="30-batch-review.html?state=sample-no-ai">sample-no-ai</a><a href="30-batch-review.html?state=mark-error">mark-error</a><a href="30-batch-review.html?state=ready">ready</a><a href="30-batch-review.html?state=release">SCR-32 release</a><a href="30-batch-review.html?state=conflict">conflict</a><a href="30-batch-review.html?state=released">released</a><a href="30-batch-review.html?state=sending">sending</a><a href="30-batch-review.html?state=send-failed">send-failed</a></div></details></div>
     </article>
   </div>
 </section>
@@ -70,20 +79,20 @@
 <section class="gallery-section" aria-labelledby="g-deci">
   <h2 id="g-deci">Decisions and signing</h2>
   <div class="gallery">
-    <article class="shot-card">
+    <article class="shot-card" data-area="chief approver">
       <a href="40-decision-queue.html"><img src="../../images/chief-accountant/40-decision-queue.png" alt="SCR-40 Decision Queue" loading="lazy"></a>
       <div class="body"><h3><a href="40-decision-queue.html">SCR-40 Decision Queue</a></h3>
-        <div class="state-links"><a href="40-decision-queue.html?role=chief">role: Chief Accountant: Decisions</a><a href="40-decision-queue.html?role=approver">role: Payment Approver: Approvals</a><a href="40-decision-queue.html?state=loading">loading</a><a href="40-decision-queue.html?state=empty">empty</a><a href="40-decision-queue.html?state=no-results">no-results</a><a href="40-decision-queue.html?state=server-error">server-error</a></div></div>
+        <details class="states"><summary>6 states and variants</summary><div class="state-links"><a href="40-decision-queue.html?role=chief">role: Chief Accountant: Decisions</a><a href="40-decision-queue.html?role=approver">role: Payment Approver: Approvals</a><a href="40-decision-queue.html?state=loading">loading</a><a href="40-decision-queue.html?state=empty">empty</a><a href="40-decision-queue.html?state=no-results">no-results</a><a href="40-decision-queue.html?state=server-error">server-error</a></div></details></div>
     </article>
-    <article class="shot-card">
+    <article class="shot-card" data-area="chief approver">
       <a href="50-signing-queue.html"><img src="../../images/chief-accountant/50-signing-queue.png" alt="SCR-50 Signing Queue" loading="lazy"></a>
       <div class="body"><h3><a href="50-signing-queue.html">SCR-50 Signing Queue</a></h3>
-        <div class="state-links"><a href="50-signing-queue.html?role=chief">role: Chief Accountant</a><a href="50-signing-queue.html?role=approver">role: Payment Approver</a><a href="50-signing-queue.html?state=loading">loading</a><a href="50-signing-queue.html?state=empty">empty</a><a href="50-signing-queue.html?state=server-error">server-error</a><a href="50-signing-queue.html?state=sign&amp;role=chief">SCR-52 sign</a><a href="50-signing-queue.html?state=sign-wrong-password&amp;role=chief">wrong-password</a><a href="50-signing-queue.html?state=sign-results&amp;role=chief">sign-results</a><a href="50-signing-queue.html?state=chief-signed&amp;role=approver">chief-signed</a><a href="50-signing-queue.html?state=erp-retry">erp-retry</a><a href="50-signing-queue.html?state=erp-failed">erp-failed</a><a href="50-signing-queue.html?state=conflict&amp;role=chief">conflict</a></div></div>
+        <details class="states"><summary>12 states and variants</summary><div class="state-links"><a href="50-signing-queue.html?role=chief">role: Chief Accountant</a><a href="50-signing-queue.html?role=approver">role: Payment Approver</a><a href="50-signing-queue.html?state=loading">loading</a><a href="50-signing-queue.html?state=empty">empty</a><a href="50-signing-queue.html?state=server-error">server-error</a><a href="50-signing-queue.html?state=sign&amp;role=chief">SCR-52 sign</a><a href="50-signing-queue.html?state=sign-wrong-password&amp;role=chief">wrong-password</a><a href="50-signing-queue.html?state=sign-results&amp;role=chief">sign-results</a><a href="50-signing-queue.html?state=chief-signed&amp;role=approver">chief-signed</a><a href="50-signing-queue.html?state=erp-retry">erp-retry</a><a href="50-signing-queue.html?state=erp-failed">erp-failed</a><a href="50-signing-queue.html?state=conflict&amp;role=chief">conflict</a></div></details></div>
     </article>
-    <article class="shot-card">
+    <article class="shot-card" data-area="chief approver">
       <a href="51-payment-request.html"><img src="../../images/chief-accountant/51-payment-request.png" alt="SCR-51 Payment Request Detail" loading="lazy"></a>
       <div class="body"><h3><a href="51-payment-request.html">SCR-51 Payment Request Detail</a></h3>
-        <div class="state-links"><a href="51-payment-request.html?role=chief">role: Chief Accountant</a><a href="51-payment-request.html?role=approver">role: Payment Approver</a><a href="51-payment-request.html?state=loading">loading</a><a href="51-payment-request.html?state=summary-loading">summary-loading</a><a href="51-payment-request.html?state=summary-unavailable">summary-unavailable</a><a href="51-payment-request.html?state=sample-no-ai">sample-no-ai</a><a href="51-payment-request.html?state=remove-line">SCR-53 remove-line</a><a href="51-payment-request.html?state=decline">SCR-54 decline</a><a href="51-payment-request.html?state=decline-error">decline-error</a><a href="51-payment-request.html?state=conflict">conflict</a><a href="51-payment-request.html?state=chief-signed&amp;role=approver">chief-signed</a><a href="51-payment-request.html?state=sending">sending</a><a href="51-payment-request.html?state=retry">retry</a><a href="51-payment-request.html?state=failed">failed</a><a href="51-payment-request.html?state=hash-mismatch">hash-mismatch</a><a href="51-payment-request.html?state=paid">paid</a><a href="51-payment-request.html?state=server-error">server-error</a></div></div>
+        <details class="states"><summary>17 states and variants</summary><div class="state-links"><a href="51-payment-request.html?role=chief">role: Chief Accountant</a><a href="51-payment-request.html?role=approver">role: Payment Approver</a><a href="51-payment-request.html?state=loading">loading</a><a href="51-payment-request.html?state=summary-loading">summary-loading</a><a href="51-payment-request.html?state=summary-unavailable">summary-unavailable</a><a href="51-payment-request.html?state=sample-no-ai">sample-no-ai</a><a href="51-payment-request.html?state=remove-line">SCR-53 remove-line</a><a href="51-payment-request.html?state=decline">SCR-54 decline</a><a href="51-payment-request.html?state=decline-error">decline-error</a><a href="51-payment-request.html?state=conflict">conflict</a><a href="51-payment-request.html?state=chief-signed&amp;role=approver">chief-signed</a><a href="51-payment-request.html?state=sending">sending</a><a href="51-payment-request.html?state=retry">retry</a><a href="51-payment-request.html?state=failed">failed</a><a href="51-payment-request.html?state=hash-mismatch">hash-mismatch</a><a href="51-payment-request.html?state=paid">paid</a><a href="51-payment-request.html?state=server-error">server-error</a></div></details></div>
     </article>
   </div>
 </section>
@@ -91,15 +100,15 @@
 <section class="gallery-section" aria-labelledby="g-over">
   <h2 id="g-over">Oversight</h2>
   <div class="gallery">
-    <article class="shot-card">
+    <article class="shot-card" data-area="ap chief approver entity-admin group-admin">
       <a href="60-dashboard.html"><img src="../../images/ap-accountant/60-dashboard.png" alt="SCR-60 Dashboard" loading="lazy"></a>
       <div class="body"><h3><a href="60-dashboard.html">SCR-60 Dashboard</a></h3>
-        <div class="state-links"><a href="60-dashboard.html?role=ap">role: AP Accountant</a><a href="60-dashboard.html?role=chief">role: Chief Accountant</a><a href="60-dashboard.html?role=approver">role: Payment Approver</a><a href="60-dashboard.html?role=entity-admin">role: Entity Admin</a><a href="60-dashboard.html?role=group-admin">role: Group Admin (per entity)</a><a href="60-dashboard.html?state=valid">touchless-valid</a><a href="60-dashboard.html?state=loading">loading</a><a href="60-dashboard.html?state=empty">empty</a><a href="60-dashboard.html?state=server-error">server-error</a></div></div>
+        <details class="states"><summary>9 states and variants</summary><div class="state-links"><a href="60-dashboard.html?role=ap">role: AP Accountant</a><a href="60-dashboard.html?role=chief">role: Chief Accountant</a><a href="60-dashboard.html?role=approver">role: Payment Approver</a><a href="60-dashboard.html?role=entity-admin">role: Entity Admin</a><a href="60-dashboard.html?role=group-admin">role: Group Admin (per entity)</a><a href="60-dashboard.html?state=valid">touchless-valid</a><a href="60-dashboard.html?state=loading">loading</a><a href="60-dashboard.html?state=empty">empty</a><a href="60-dashboard.html?state=server-error">server-error</a></div></details></div>
     </article>
-    <article class="shot-card">
+    <article class="shot-card" data-area="chief entity-admin group-admin">
       <a href="61-audit-log.html"><img src="../../images/chief-accountant/61-audit-log.png" alt="SCR-61 Audit Log" loading="lazy"></a>
       <div class="body"><h3><a href="61-audit-log.html">SCR-61 Audit Log</a></h3>
-        <div class="state-links"><a href="61-audit-log.html?role=chief">role: Chief Accountant</a><a href="61-audit-log.html?role=entity-admin">role: Entity Admin</a><a href="61-audit-log.html?role=group-admin">role: Group Admin (group events)</a><a href="61-audit-log.html?state=loading">loading</a><a href="61-audit-log.html?state=empty">empty</a><a href="61-audit-log.html?state=no-results">no-results</a><a href="61-audit-log.html?state=server-error">server-error</a></div></div>
+        <details class="states"><summary>7 states and variants</summary><div class="state-links"><a href="61-audit-log.html?role=chief">role: Chief Accountant</a><a href="61-audit-log.html?role=entity-admin">role: Entity Admin</a><a href="61-audit-log.html?role=group-admin">role: Group Admin (group events)</a><a href="61-audit-log.html?state=loading">loading</a><a href="61-audit-log.html?state=empty">empty</a><a href="61-audit-log.html?state=no-results">no-results</a><a href="61-audit-log.html?state=server-error">server-error</a></div></details></div>
     </article>
   </div>
 </section>
@@ -107,20 +116,20 @@
 <section class="gallery-section" aria-labelledby="g-enti">
   <h2 id="g-enti">Entity administration</h2>
   <div class="gallery">
-    <article class="shot-card">
+    <article class="shot-card" data-area="entity-admin group-admin">
       <a href="70-users.html"><img src="../../images/entity-admin/70-users.png" alt="SCR-70 Users" loading="lazy"></a>
       <div class="body"><h3><a href="70-users.html">SCR-70 Users</a></h3>
-        <div class="state-links"><a href="70-users.html?role=entity-admin">role: Entity Admin</a><a href="70-users.html?role=group-admin">role: Group Admin</a><a href="70-users.html?state=loading">loading</a><a href="70-users.html?state=no-results">no-results</a><a href="70-users.html?state=server-error">server-error</a><a href="70-users.html?state=create">SCR-71 create</a><a href="70-users.html?state=edit">edit</a><a href="70-users.html?state=email-error">email-error</a><a href="70-users.html?state=role-error">role-error</a><a href="70-users.html?state=saving">saving</a><a href="70-users.html?state=deactivate">SCR-72 deactivate</a><a href="70-users.html?state=conflict">conflict</a></div></div>
+        <details class="states"><summary>12 states and variants</summary><div class="state-links"><a href="70-users.html?role=entity-admin">role: Entity Admin</a><a href="70-users.html?role=group-admin">role: Group Admin</a><a href="70-users.html?state=loading">loading</a><a href="70-users.html?state=no-results">no-results</a><a href="70-users.html?state=server-error">server-error</a><a href="70-users.html?state=create">SCR-71 create</a><a href="70-users.html?state=edit">edit</a><a href="70-users.html?state=email-error">email-error</a><a href="70-users.html?state=role-error">role-error</a><a href="70-users.html?state=saving">saving</a><a href="70-users.html?state=deactivate">SCR-72 deactivate</a><a href="70-users.html?state=conflict">conflict</a></div></details></div>
     </article>
-    <article class="shot-card">
+    <article class="shot-card" data-area="entity-admin">
       <a href="73-entity-policy.html"><img src="../../images/entity-admin/73-entity-policy.png" alt="SCR-73 Entity Policy" loading="lazy"></a>
       <div class="body"><h3><a href="73-entity-policy.html">SCR-73 Entity Policy</a></h3>
-        <div class="state-links"><a href="73-entity-policy.html?state=loading">loading</a><a href="73-entity-policy.html?state=validation-error">validation-error</a><a href="73-entity-policy.html?state=saving">saving</a><a href="73-entity-policy.html?state=saved">saved</a><a href="73-entity-policy.html?state=server-error">server-error</a><a href="73-entity-policy.html?state=conflict">conflict</a></div></div>
+        <details class="states"><summary>6 states and variants</summary><div class="state-links"><a href="73-entity-policy.html?state=loading">loading</a><a href="73-entity-policy.html?state=validation-error">validation-error</a><a href="73-entity-policy.html?state=saving">saving</a><a href="73-entity-policy.html?state=saved">saved</a><a href="73-entity-policy.html?state=server-error">server-error</a><a href="73-entity-policy.html?state=conflict">conflict</a></div></details></div>
     </article>
-    <article class="shot-card">
+    <article class="shot-card" data-area="entity-admin">
       <a href="74-approval-matrix.html"><img src="../../images/entity-admin/74-approval-matrix.png" alt="SCR-74 Approval Matrix" loading="lazy"></a>
       <div class="body"><h3><a href="74-approval-matrix.html">SCR-74 Approval Matrix</a></h3>
-        <div class="state-links"><a href="74-approval-matrix.html?state=loading">loading</a><a href="74-approval-matrix.html?state=gap-error">gap-error</a><a href="74-approval-matrix.html?state=no-approver">no-approver</a><a href="74-approval-matrix.html?state=saving">saving</a><a href="74-approval-matrix.html?state=saved">saved</a><a href="74-approval-matrix.html?state=server-error">server-error</a><a href="74-approval-matrix.html?state=conflict">conflict</a></div></div>
+        <details class="states"><summary>7 states and variants</summary><div class="state-links"><a href="74-approval-matrix.html?state=loading">loading</a><a href="74-approval-matrix.html?state=gap-error">gap-error</a><a href="74-approval-matrix.html?state=no-approver">no-approver</a><a href="74-approval-matrix.html?state=saving">saving</a><a href="74-approval-matrix.html?state=saved">saved</a><a href="74-approval-matrix.html?state=server-error">server-error</a><a href="74-approval-matrix.html?state=conflict">conflict</a></div></details></div>
     </article>
   </div>
 </section>
@@ -128,20 +137,20 @@
 <section class="gallery-section" aria-labelledby="g-grou">
   <h2 id="g-grou">Group administration</h2>
   <div class="gallery">
-    <article class="shot-card">
+    <article class="shot-card" data-area="group-admin">
       <a href="75-group-overview.html"><img src="../../images/group-admin/75-group-overview.png" alt="SCR-75 Group Overview" loading="lazy"></a>
       <div class="body"><h3><a href="75-group-overview.html">SCR-75 Group Overview</a></h3>
-        <div class="state-links"><a href="75-group-overview.html?state=loading">loading</a><a href="75-group-overview.html?state=no-alerts">no-alerts</a><a href="75-group-overview.html?state=server-error">server-error</a></div></div>
+        <details class="states"><summary>3 states and variants</summary><div class="state-links"><a href="75-group-overview.html?state=loading">loading</a><a href="75-group-overview.html?state=no-alerts">no-alerts</a><a href="75-group-overview.html?state=server-error">server-error</a></div></details></div>
     </article>
-    <article class="shot-card">
+    <article class="shot-card" data-area="group-admin">
       <a href="76-entities.html"><img src="../../images/group-admin/76-entities.png" alt="SCR-76 Entities and Group Limits" loading="lazy"></a>
       <div class="body"><h3><a href="76-entities.html">SCR-76 Entities and Group Limits</a></h3>
-        <div class="state-links"><a href="76-entities.html?state=loading">loading</a><a href="76-entities.html?state=lower-warning">lower-warning</a><a href="76-entities.html?state=saved">saved</a><a href="76-entities.html?state=server-error">server-error</a><a href="76-entities.html?state=conflict">conflict</a><a href="76-entities.html?state=add">SCR-77 add</a><a href="76-entities.html?state=add-duplicate">add-duplicate</a><a href="76-entities.html?state=add-invalid">add-invalid</a></div></div>
+        <details class="states"><summary>8 states and variants</summary><div class="state-links"><a href="76-entities.html?state=loading">loading</a><a href="76-entities.html?state=lower-warning">lower-warning</a><a href="76-entities.html?state=saved">saved</a><a href="76-entities.html?state=server-error">server-error</a><a href="76-entities.html?state=conflict">conflict</a><a href="76-entities.html?state=add">SCR-77 add</a><a href="76-entities.html?state=add-duplicate">add-duplicate</a><a href="76-entities.html?state=add-invalid">add-invalid</a></div></details></div>
     </article>
-    <article class="shot-card">
+    <article class="shot-card" data-area="group-admin">
       <a href="78-automation-gates.html"><img src="../../images/group-admin/78-automation-gates.png" alt="SCR-78 Automation Gates" loading="lazy"></a>
       <div class="body"><h3><a href="78-automation-gates.html">SCR-78 Automation Gates</a></h3>
-        <div class="state-links"><a href="78-automation-gates.html?state=loading">loading</a><a href="78-automation-gates.html?state=server-error">server-error</a><a href="78-automation-gates.html?state=open-ready">SCR-79 open-ready</a><a href="78-automation-gates.html?state=open-disabled">open-disabled</a><a href="78-automation-gates.html?state=open-below">open-below</a><a href="78-automation-gates.html?state=open-below-error">open-below-error</a><a href="78-automation-gates.html?state=close">close</a><a href="78-automation-gates.html?state=conflict">conflict</a></div></div>
+        <details class="states"><summary>8 states and variants</summary><div class="state-links"><a href="78-automation-gates.html?state=loading">loading</a><a href="78-automation-gates.html?state=server-error">server-error</a><a href="78-automation-gates.html?state=open-ready">SCR-79 open-ready</a><a href="78-automation-gates.html?state=open-disabled">open-disabled</a><a href="78-automation-gates.html?state=open-below">open-below</a><a href="78-automation-gates.html?state=open-below-error">open-below-error</a><a href="78-automation-gates.html?state=close">close</a><a href="78-automation-gates.html?state=conflict">conflict</a></div></details></div>
     </article>
   </div>
 </section>
@@ -149,14 +158,30 @@
 <section class="gallery-section" aria-labelledby="g-demo">
   <h2 id="g-demo">Demo</h2>
   <div class="gallery">
-    <article class="shot-card">
+    <article class="shot-card" data-area="demo">
       <a href="80-erp-simulator.html"><img src="../../images/demo-operator/80-erp-simulator.png" alt="SCR-80 ERP Simulator" loading="lazy"></a>
       <div class="body"><h3><a href="80-erp-simulator.html">SCR-80 ERP Simulator</a></h3>
-        <div class="state-links"><a href="80-erp-simulator.html?state=warehouse">persona: warehouse keeper</a><a href="80-erp-simulator.html?state=loading">loading</a><a href="80-erp-simulator.html?state=empty">empty</a><a href="80-erp-simulator.html?state=server-error">server-error</a><a href="80-erp-simulator.html?state=po-form">SCR-81 po-form</a><a href="80-erp-simulator.html?state=po-error">po-error</a><a href="80-erp-simulator.html?state=receipt-form">SCR-82 receipt-form</a><a href="80-erp-simulator.html?state=receipt-no-order">receipt-no-order</a><a href="80-erp-simulator.html?state=receipt-same-persona">receipt-same-persona</a></div></div>
+        <details class="states"><summary>9 states and variants</summary><div class="state-links"><a href="80-erp-simulator.html?state=warehouse">persona: warehouse keeper</a><a href="80-erp-simulator.html?state=loading">loading</a><a href="80-erp-simulator.html?state=empty">empty</a><a href="80-erp-simulator.html?state=server-error">server-error</a><a href="80-erp-simulator.html?state=po-form">SCR-81 po-form</a><a href="80-erp-simulator.html?state=po-error">po-error</a><a href="80-erp-simulator.html?state=receipt-form">SCR-82 receipt-form</a><a href="80-erp-simulator.html?state=receipt-no-order">receipt-no-order</a><a href="80-erp-simulator.html?state=receipt-same-persona">receipt-same-persona</a></div></details></div>
     </article>
   </div>
 </section>
 
+<script>
+  (function () {
+    var tabs = document.querySelectorAll('.gal-tabs .tab');
+    function apply(area) {
+      tabs.forEach(function (t) { t.setAttribute('aria-selected', t.getAttribute('data-area') === area ? 'true' : 'false'); });
+      document.querySelectorAll('.shot-card').forEach(function (c) {
+        var a = ' ' + c.getAttribute('data-area') + ' ';
+        c.hidden = !!area && a.indexOf(' all ') < 0 && a.indexOf(' ' + area + ' ') < 0;
+      });
+      document.querySelectorAll('.gallery-section').forEach(function (sec) {
+        sec.hidden = !sec.querySelector('.shot-card:not([hidden])');
+      });
+    }
+    tabs.forEach(function (t) { t.addEventListener('click', function () { apply(t.getAttribute('data-area')); }); });
+  })();
+</script>
 <script src="assets/icons.js"></script>
 </body>
 </html>
