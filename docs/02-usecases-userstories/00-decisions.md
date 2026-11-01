@@ -223,7 +223,7 @@ The brief is never edited. These are the places where the documents now differ f
 
 ### Follow-up in Steps 3 to 5
 
-Step 3 was synced in the same session ([Step 3 decisions](../03-information-architecture/00-decisions.md#changes-made-to-step-3-for-the-mind-map-sync-d-88)) and Step 4 after it ([Step 4 decisions](../04-uiux/00-decisions.md#mind-map-sync-d-88-draft-for-review)). Step 5 remains: until it is synced, the new stories read `Pending (Step 5 sync)` in the Database column of the [traceability matrix](../traceability/master-traceability.md), and the checker accepts exactly that marker for US-29..US-32. The first column below says which step the row was for.
+Step 3 was synced in the same session ([Step 3 decisions](../03-information-architecture/00-decisions.md#changes-made-to-step-3-for-the-mind-map-sync-d-88)) and Step 4 after it ([Step 4 decisions](../04-uiux/00-decisions.md#mind-map-sync-d-88-draft-for-review)). Step 5 was synced after them ([Step 5 decisions](../05-database/00-decisions.md#mind-map-sync-d-88-draft-for-review)), so the Database column of the [traceability matrix](../traceability/master-traceability.md) is filled for US-29..US-32 and no pending marker is left. The first column below says which step the row was for.
 
 | Step | What it must add or change | Because of |
 |---|---|---|
@@ -235,6 +235,6 @@ Step 3 was synced in the same session ([Step 3 decisions](../03-information-arch
 | 3 (done, Step 3 sync) | Actions on the batch screens: expand the sample, reopen for review; on the batch and request screens: resend; an action to record a cancellation notice on the invoice detail | D-94, D-95, D-96 |
 | 3 (done, Step 3 sync) | DF-40 says no manual retry is drawn; it must change for the resend. The flows for intake, exception handling, batch and signing need the new branches | D-96 |
 | 4 (done, Step 4 sync) | Wireframes and screen notes for every screen and state above; the design system needs the notification list and the "On behalf of" marker | All of the above |
-| 5 (still to do) | New roles value `REQUESTING_DEPARTMENT`; tables for service acceptances, signing delegations, mailbox messages and attachments, authority status lookups, cancellation notices, sample expansions, and notifications; a marker for a manual attempt and its author on the ERP send attempts; "on behalf of" on the signature records; reopen columns on the batch; new invoice states and request transitions (V20, V21, R9, B7) in the lifecycle columns and checks | D-90..D-97 |
+| 5 (done, Step 5 sync) | New roles value `REQUESTING_DEPARTMENT`; tables for service acceptances, signing delegations, mailbox messages and attachments, authority status lookups, cancellation notices, sample expansions, and notifications; a marker for a manual attempt and its author on the ERP send attempts; "on behalf of" on the signature records; reopen columns on the batch; new invoice states and request transitions (V20, V21, R9, B7) in the lifecycle columns and checks | D-90..D-97 |
 
 **Related:** [Step index](README.md) · [Step 1 decisions](../01-research/00-decisions.md)

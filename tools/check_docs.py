@@ -50,17 +50,16 @@ US = [u for u in US_ALL if int(u[3:]) not in REMOVED_N]
 UC_REMOVED = [u for u in UC_ALL if u not in UC]
 US_REMOVED = [u for u in US_ALL if u not in US]
 N_ACTIVE = len(US)
-# D-88 (sync to the feature mind map) added UC-29..UC-32 and US-29..US-32, all Should. Step 3 is synced (its Screen cells are filled); Step 5 is not yet, so their Database cells hold exactly this marker.
-PEND = ['US-29', 'US-30', 'US-31', 'US-32']
-PEND_DB = 'Pending (Step 5 sync)'
+# D-88 (sync to the feature mind map) added UC-29..UC-32 and US-29..US-32, all Should. Steps 3, 4, and 5 are synced, so their Screen and Database cells are filled like those of every other story.
+NEW_STORIES = ['US-29', 'US-30', 'US-31', 'US-32']
 US_S3 = list(US)  # the stories Step 3 covers: every active story
 N_S3 = len(US_S3)
-US_DB = [u for u in US if u not in PEND]  # the stories Step 5 covers until its sync
+US_DB = list(US)  # the stories Step 5 covers: every active story
 N_DB = len(US_DB)
 N_MUST, N_SHOULD = 20, 10
 W_MAX = 21
-D_MAX = 117  # D-108..D-117 are the Step 4 calls of the mind map sync; D-100..D-107 are the Step 3 calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the Step 4 R1 redesign; D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
-DF_MAX = 76  # DF-73..DF-76 are the Step 4 defaults of the mind map sync; DF-69..DF-72 are the Step 3 defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
+D_MAX = 129  # D-118..D-129 are the Step 5 calls of the mind map sync; D-108..D-117 are the Step 4 calls of the mind map sync; D-100..D-107 are the Step 3 calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the Step 4 R1 redesign; D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
+DF_MAX = 82  # DF-77..DF-82 are the Step 5 defaults of the mind map sync; DF-73..DF-76 are the Step 4 defaults of the mind map sync; DF-69..DF-72 are the Step 3 defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
 BR = ['BR-%02d' % n for n in range(1, 40)]
@@ -1090,7 +1089,7 @@ else:
     if no_ent or bad_grp or ent_ref: fail('entity_id coverage')
     # (f) every identifier column and every who-column has a ref
     ref_cols = {(r_[0], r_[1]) for r_ in db_refs}
-    SOFT = {('audit_log', 'subject_id'), ('request_signatures', 'signing_action_id'), ('audit_log', 'correlation_id'), ('individual_approvals', 'decision_action_id')}
+    SOFT = {('audit_log', 'subject_id'), ('request_signatures', 'signing_action_id'), ('audit_log', 'correlation_id'), ('individual_approvals', 'decision_action_id'), ('notifications', 'object_id')}
     no_fk = [(n_, c_) for n_, d_ in db_tables.items() for c_ in d_['cols'] if c_ != 'id' and (c_.endswith('_id') or c_.endswith('_by')) and (n_, c_) not in ref_cols and (n_, c_) not in SOFT]
     print('  columns that end in _id or _by without a ref (allowed: %s): %s' % (sorted(SOFT), no_fk or 'none'))
     if no_fk: fail('identifier column without ref')
@@ -1157,9 +1156,6 @@ else:
         dbc_ = cells_[6]
         if m_.group(1) in US_REMOVED:
             if dbc_ != '—': tr_bad.append((m_.group(1), 'removed row must keep a dash'))
-            continue
-        if m_.group(1) in PEND:
-            if dbc_ != PEND_DB: tr_bad.append((m_.group(1), 'Database cell must read exactly ' + PEND_DB))
             continue
         tr_cnt += 1
         names_ = [x_.strip() for x_ in dbc_.split(',')]
@@ -1238,8 +1234,8 @@ if 'D-88' not in dec2_[dec2_.index('## Sync to the feature mind map'):]: s9.appe
 fu_ = dec2_[dec2_.index('### Follow-up in Steps 3 to 5'):]
 for w_ in ('D-41', 'Requesting Department', 'REQUESTING_DEPARTMENT', 'Wireframes'):
     if w_ not in fu_: s9.append('follow-up table does not mention ' + w_)
-# the new stories are Should, are pending in Steps 3 and 5, and no Must depends on them
-for u_ in PEND:
+# the new stories are Should and no Must depends on them
+for u_ in NEW_STORIES:
     if rows_b[u_][1] != 'Should': s9.append(u_ + ' is not Should')
     if any(u_ in deps_ for s_, (deps_, p_) in rows_b.items() if p_ == 'Must'): s9.append('a Must story depends on ' + u_)
 # new rules, transitions, and open item
@@ -1255,10 +1251,9 @@ for w_, kw_ in (('W-05', 'portal'), ('W-13', 'connection point')):
     if kw_ not in wrow[w_] or kw_ not in [l for l in fw.split('\n') if l.startswith('| %s |' % w_)][0]: s9.append(w_ + ' not reworded')
 # Requesting Department is a column of the matrix and an actor
 if 'Requesting Department' not in matrix.split('\n| UC-01')[0]: s9.append('matrix has no Requesting Department column')
-# the pending markers are used only for the pending stories
-bad_pend = [u_ for u_ in US_DB if re.search(r'^\| %s \|[^\n]*Pending \(Step' % u_, trace, re.M)] + (['Pending (Step 3 sync) is still in the matrix'] if 'Pending (Step 3 sync)' in trace else [])
-if bad_pend: s9.append('pending marker on non-pending stories %s' % bad_pend)
-print('  D-88 user decision, D-89..D-99 calls, DF-61..DF-68, BR-38, BR-39, V20, V21, B7, R9, O-17, W-05 and W-13 reworded, pending markers only on US-29..US-32:', 'yes' if not s9 else s9)
+# no pending marker is left in the matrix: every sync step is done
+if re.search(r'Pending \(Step', trace): s9.append('a Pending (Step n sync) marker is still in the matrix')
+print('  D-88 user decision, D-89..D-99 calls, DF-61..DF-68, BR-38, BR-39, V20, V21, B7, R9, O-17, W-05 and W-13 reworded, no pending marker left in the matrix:', 'yes' if not s9 else s9)
 if s9: fail('mind map sync checks')
 
 print('\n== CHECK: README Mermaid blocks match their source documents ==')

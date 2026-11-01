@@ -6,7 +6,7 @@
 
 Numbering continues from Step 4 (decisions end at D-46, defaults end at DF-52). The Step 5 decisions are D-47..D-66 (calls) and D-67..D-72 (user decisions), and the defaults are DF-53..DF-60. **Every row in "Decisions made in this step" and "Defaults pending confirmation" is a call made while designing the schema and awaits user review, with exceptions that the user has ruled on (2026-10-31): D-67..D-72 are the user's own decisions (see [Decisions made by the user](#decisions-made-by-the-user)); D-53, D-54, and D-64 are decided by the user through D-70, D-69, and D-72; DF-58 is decided by the user through D-71; and DF-60 is approved by the user.** The user's own scope decision D-33 (no foreign invoices, no PDF intake, no foreign tax duties, no payment method, no cash flag) is applied and not reopened: the schema has no table or column for them (see [Not modelled](01-data-model.md#not-modelled-in-step-5)).
 
-Steps 1 and 2 are still draft for review and Steps 3 and 4 are approved. Where a schema need meets a gap or a wording in an approved step, the step is not edited. The difference is recorded in [Differences from Steps 1 to 4](#differences-from-steps-1-to-4) and the gaps are listed in [Gaps found in approved steps](#gaps-found-in-approved-steps).
+Steps 1 and 2 are still draft for review and Steps 3 and 4 are approved. The sync to the feature mind map (D-88) adds D-118..D-129 and DF-77..DF-82 in [its own section](#mind-map-sync-d-88-draft-for-review); those are calls awaiting user review, and the additions that the same sync made to Steps 3 and 4 are draft for review too. Where a schema need meets a gap or a wording in an approved step, the step is not edited. The difference is recorded in [Differences from Steps 1 to 4](#differences-from-steps-1-to-4) and the gaps are listed in [Gaps found in approved steps](#gaps-found-in-approved-steps).
 
 ## Decisions made in this step
 
@@ -89,4 +89,119 @@ These were found in approved steps. All five gaps were ruled on by the user on 2
 4. **Resolved (user approval of DF-60, 2026-10-31).** BR-30 does not define "the period" of a changed bank account (difference 9): it means since the last paid invoice of the pair.
 5. **Resolved by D-71 and D-72 (user decisions, 2026-10-31).** The seller's sector (DF-58) comes from the ERP supplier data, seeded in the demo ERP. The price history of DF-20 is paid invoices, and the demo seeds the history where it has fewer than 3 (D-64).
 
-**Related:** [Step index](README.md) · [Data model](01-data-model.md) · [Step 4 decisions](../04-uiux/00-decisions.md)
+## Mind map sync (D-88), draft for review
+
+The user attached a feature mind map and asked for the documents to be synced (D-88, 2026-11-01; see [Step 2 decisions](../02-usecases-userstories/00-decisions.md#sync-to-the-feature-mind-map-user-decision-d-88-2026-11-01)). Steps 1 to 4 were synced first. This section is the Step 5 part: the schema now holds the data of US-29..US-32 and of the criteria added to US-02, US-07, US-10, US-13, US-17, US-18, US-23, US-24, US-25, US-26, and US-32. **Everything here is a call made while updating the schema and awaits user review.** The user's rulings D-67..D-72 still hold and are not reopened: an ERP failure after `Sent` is only mocked (D-67), an invoice never moves to another entity (D-68), the request of an individual approval is created at release (D-69), linked split-order exceptions are decided together (D-70), the seller's sector comes from the ERP supplier data (D-71), and a purchase is a paid invoice (D-72). The text of D-47..D-72 and DF-53..DF-60 above is unchanged; where the sync touches one of them it is listed in [Effects on earlier decisions](#effects-on-earlier-decisions).
+
+Counts after the sync: **74 tables** (63 before), **68 enums** (56 before), **268 foreign keys** (224 before), and **12 table groups** (10 before). No lifecycle state was added to BR-33, BR-34, or BR-35.
+
+### Calls made while updating the schema
+
+| ID | Decision | Why | Status |
+|---|---|---|---|
+| D-118 | **The sync adds eleven tables, twelve enums, and columns to 5 existing tables, one relaxed check, and two new table groups.** The tables are `signing_delegations`, `sim_authority_statuses`, `mailbox_fetch_runs`, `mailbox_messages`, `mailbox_attachments`, `authority_status_lookups`, `cancellation_notices`, `service_acceptances`, `sample_expansions`, `batch_reopenings`, and `notifications`. The new groups are `intake_sources_and_status` (the mailbox, the lookups, the cancellation notices) and `in_app_notifications`. The full list of changes is under [Schema changes](#schema-changes). No existing table, column, or enum value was removed or renamed, and every `entity_id` rule of D-48 holds for the new tables. | The follow-up table of the Step 2 decisions lists what Step 5 had to add. Each new table has an owner story, so none is unused. | Call, awaiting user review |
+| D-119 | **Signing delegations are one table, and a delegate's signature names both people.** `signing_delegations` holds the delegator, the delegate, the role of the delegator, the dates, the reason, and the revocation. `request_signatures` gains `on_behalf_of_user_id` and `delegation_id`, set together (a check). The delegate and the delegator are in the same entity because of the composite foreign keys of D-48. **No overlap per delegator** is an exclusion constraint on the date range of the unrevoked rows (PostgreSQL, extension `btree_gist`); DBML cannot express it, so it is written in an index note, as the matrix exclusion constraint is. **Individual approvals are not delegated**: UC-30 and BR-38 delegate signing, and no criterion lets a delegate approve an exception, so `individual_approvals` has no delegate column. | DF-62 asks for no overlap and the same entity; AC-30.2 and AC-30.10 ask that the record show both names. The unique index on the valid signer already stops a delegate from signing both signatures of one request (AC-30.3). If the user wants a delegate to approve exceptions too, `individual_approvals` needs the same two columns. | Call, awaiting user review |
+| D-120 | **The simulated authority status feed is a `sim_*` table; every lookup is a row.** `sim_authority_statuses` holds the invoice key, status, status date, and a flag that makes the simulator not answer. It is a table, unlike the tax-risk feed (a seed file under D-49), because the demo changes a status after the invoice was taken in (AC-07.11). No screen edits it; the demo seed script does (Step 9). The lookup reads it like a service. `authority_status_lookups` records each lookup with its outcome (`ANSWERED` or `UNAVAILABLE`), status, status date, time, trigger (intake, a re-run by the AP Accountant, or an ERP sync), and the check run that used it. The sync validates the feed and logs a bad entry in `erp_sync_rejections` with the new record type `AUTHORITY_STATUS` (AC-07.12). The latest lookup of an invoice is its authority status; nothing is copied to `invoices`. | AC-10.16 wants the status, its date, and the time of the lookup as evidence (BR-12); AC-10.15 wants an unavailable answer to be visible. A row per lookup keeps the history and the 10-second failures. | Call, awaiting user review |
+| D-121 | **A service acceptance is its own table, and the ERP acceptance wins by a stored link.** `service_acceptances` holds the decision (`CONFIRMED` or `REJECTED`), the note (required for a rejection), the user, the time, the order, and the check run that UC-16 started. It is not a row of `invoice_receipts`, which stays the match to an ERP receipt. When an ERP acceptance for the order is matched later, the check run sets `overridden_by_receipt_id` and `overridden_at` on the row, and the row stays as history (AC-29.4). The independent source of a service invoice is the ERP receipt if there is one, otherwise a confirmed, not overridden, acceptance. There is one decision per invoice (a unique index). A rejection opens the exception with the new reason `SERVICE_ACCEPTANCE_REJECTED`, which points to the row. | BR-17 and BR-19 name two sources with the ERP first. Mixing them in `invoice_receipts` would put a person's decision in a table that is a copy of the ERP. One decision per invoice is how AC-29.2 and AC-29.3 read; a second decision after a rejection is not described, so it is not offered (see the doubts below). | Call, awaiting user review |
+| D-122 | **The mailbox is three tables, and an invoice records its source.** `mailbox_messages` (identifier unique per entity, sender, times, outcome) and `mailbox_attachments` (one row per attachment with its outcome, the reject reason, and the invoice it created) hold the log of SCR-24. `mailbox_fetch_runs` is added beyond the minimum: AC-31.7 asks for the last successful fetch time and the failure of a failed fetch, and a failed fetch stores no message, so a run table is the only place for it (like `erp_sync_runs`). The body of a message and the bytes of a non-XML attachment are not stored. `invoices.source` is `UPLOAD` or `EMAIL`; `uploaded_by` becomes nullable and a check ties it to the source. The mailbox address is configuration (DF-55) and is copied onto each message. | AC-31.1..AC-31.9 and DF-72 (the Source column and filter). The sender is not trusted (DF-63), so nothing about the sender is used to choose an entity: the entity is that of the mailbox read. | Call, awaiting user review |
+| D-123 | **A cancellation notice is one table for both sources, with the effect stored, and the lifecycle uses existing states.** `cancellation_notices` holds the source (`SELLER` or `AUTHORITY`), the reference, the date, the file for a seller notice, the lookup for an authority notice, who recorded it, the state the invoice was in, and the effect: `REJECTED`, `WITHDRAWN_AND_REJECTED`, `REQUEST_CANCELLED`, `WARNING_ONLY` (Sent or Paid, D-67), or `NO_EFFECT`. New enum values carry the transitions: `rejection_reason` gets `CANCELLED_AT_AUTHORITY`, `REPLACED_AT_AUTHORITY`, and `CANCELLED_BY_SELLER`; `reason_code` gets `CANCELLED_AFTER_SIGNING` and `REQUEST_CANCELLED_OTHER_INVOICE`; `withdraw_reason` gets `CANCELLATION_NOTICE` and `REQUEST_CANCELLED`; `cancel_kind` gets `CANCELLATION_NOTICE`. A request cancelled by R9 may have a NULL `cancelled_by` (the check is relaxed for that kind only), because the system acts on a notice or a status. **The signatures of a request cancelled by R9 are not voided**: the request is final, and the records show what was signed. A voided signature (R5) stays for a line removal before signing, as AC-18.13 says. | BR-31, BR-33 V20/V21, BR-35 R9, AC-18.13..AC-18.16. The effect is stored because the state of the invoice changes afterwards, and the evidence must still say what was done. | Call, awaiting user review |
+| D-124 | **A sample expansion and a batch reopening are tables, not columns.** `sample_expansions` records each expansion (who, when, reason, method, model and prompt version, items added), and `batch_sample_items.expansion_id` links the added items; the original sample has none. `batch_reopenings` records each reopening (who, when, reason, requests cancelled, and the release that was undone). A reopening clears `released_by` and `released_at` on the batch; the requests it cancels carry `cancel_kind = BATCH_REOPENED`, their lines end with `BATCH_REOPENED`, and the batch items stay, so the invoices stay `In Batch`. Sample marks and individual approvals are kept. | Both can happen more than once (DF-65, DF-66), so columns on the batch would keep only the last one. | Call, awaiting user review |
+| D-125 | **A manual resend is another `erp_send_attempts` row.** `is_manual` and `triggered_by` are added; automatic attempts are numbered 1 to 3 and a manual one 4 or more, enforced by a check. A manual attempt uses the same idempotency key, asks for no signature, has no `next_attempt_at`, and the request stays `Signed` until an attempt is delivered. "Retry n of 3" and the failed alert count only the automatic rows. | AC-26.10..AC-26.12 and D-96. The unique `(request_id, attempt_no)` and the outbox of D-60 keep working. Resend before the ERP accepts the request leaves D-67 alone. | Call, awaiting user review |
+| D-126 | **Notifications are one table with a soft reference to the object.** `notifications` holds the recipient, a kind (7 values), the object type (invoice, batch, or payment request), the object id, the text, the read time, and for a reminder a key and a day. A unique index on the recipient, key, and day lets a daily job repeat a reminder without writing it twice (DF-67). The object id is not a foreign key because it can be any of three tables, as `audit_log.subject_id`; the checker lists it among the soft references. A notification is written in the transaction of its event, but a failure to write it never rolls the event back (AC-32.9). **This changes the Step 5 statement that notifications are not rows** (see Effects below). | D-97 and D-100 reverse the earlier "no notification centre". AC-32.6 needs a read mark and an unread count, which cannot be computed from other rows. | Call, awaiting user review |
+| D-127 | **No new audit event types.** Creating or revoking a delegation is `CONFIG_CHANGE`; signing as a delegate is `SIGNATURE` with the delegation in `details`; a service acceptance, a cancellation notice, an expansion, a reopening, and a resend are `PERSON_DECISION`; a mailbox fetch and its attachments are `INTAKE`; a lookup is `SYSTEM` `SYNC` or `INTAKE` by its trigger. `audit_log.subject_type` gets three more example values. | The event types are the filter of SCR-61 in Step 4; a new value would change an approved screen. The details column carries the rest. | Call, awaiting user review |
+| D-128 | **"Invoices a user processed" (BR-36, D-89) is computed from existing columns, not stored.** The query unions `exceptions.taken_by` and `closed_by`, `exception_reasons.resolved_by`, `invoice_line_matches.decided_by`, `batch_sample_items.marked_by`, and `service_acceptances.decided_by` where `CONFIRMED`. The Chief Accountant's `tax_risk_decisions` are left out, as D-89 says. The list of actions that count is a reading of "resolve or confirm its exception": Step 6 must confirm it against the API. | D-63: a stored flag could disagree with the rows. | Call, awaiting user review |
+| D-129 | **Lifecycle enums are unchanged and V20, V21, B7, and R9 are written with existing states.** `invoice_state`, `exception_state`, `batch_state`, and `request_state` keep their values, so the checker's comparison with BR-33, BR-34, and BR-35 still holds. V20 and R9 use `request_state = CANCELLED` and the invoice state `EXCEPTION`; V21 uses `REJECTED`; B7 uses `IN_REVIEW` and the cancelled requests. The row-level checks that tie a state to a column are updated only where needed (`ck_requests_cancel_fields`, `ck_send_attempts_no`). | BR-33, BR-35 as synced in Step 2. | Call, awaiting user review |
+
+### New defaults, awaiting user review
+
+| ID | Default | Status |
+|---|---|---|
+| DF-77 | **A delegation lasts at most 30 days counting both end dates.** The check is `valid_to - valid_from <= 29`. The rule "starts today or later" is checked by the API, because a check constraint cannot read the clock. DF-62 and AC-30.7 say "at most 30 days" without saying whether both ends count. | Call, awaiting user review |
+| DF-78 | **A key that the simulated feed does not list is answered as Valid.** The lookup row is `ANSWERED` with status `VALID`, the status date is the invoice date, and `feed_entry_found` is false. A feed entry with `answers = false` does not answer, which gives `UNAVAILABLE`. BR-39 and DF-64 do not say what a missing entry means; reading it as "not answered" would make every ordinary demo invoice an exception. | Call, awaiting user review |
+| DF-79 | **Mailbox limits.** An attachment over 10 MB is rejected as `REJECTED_TOO_LARGE` and logged without its bytes (DF-63 uses the limit of DF-22). A message that has not been fully processed stays `PENDING` and is processed again by the next fetch; a processed message is never processed twice. | Call, awaiting user review |
+| DF-80 | **Reminder rows.** A reminder is a `notifications` row with a key that names its work (for example `REPLY_DUE:correction_request:42`) and the day. The daily job writes at most one per recipient, key, and day, and stops when the work is done. A notification that is read stays in the list. | Call, awaiting user review |
+| DF-81 | **Cancellation notice file.** The seller notice is stored as a file with its hash, up to 10 MB, in `cancellation_notices.file_content`; whether the bytes stay in PostgreSQL is decided in Step 7, as for the XML original (D-57). | Call, awaiting user review |
+| DF-82 | **Seed data of the sync.** The demo seed adds the rows listed in [Seed data](01-data-model.md#seed-data): Rowan, the 5 messages with 8 attachments, the 4 delegations, a few authority status entries (Cancelled since 2026-11-03, Replaced, Adjusted, one that does not answer), and 3 unread notifications for each finance role (DF-73, DF-74). | Call, awaiting user review |
+
+### Schema changes
+
+Every change to `matchpay.dbml` made by the sync. A reader of the diff can check this list against it.
+
+**New tables (11)**
+
+| Table | Group | Story | Notes |
+|---|---|---|---|
+| `signing_delegations` | `group_and_access` | US-30 | `version`; checks for people, range, 30 days, revocation; exclusion constraint in a note |
+| `sim_authority_statuses` | `erp_simulator` | US-07 | Demo only; nullable key, status, and date so that a bad entry can be rejected (AC-07.12) |
+| `mailbox_fetch_runs` | `intake_sources_and_status` | US-31 | Reuses `sync_status` |
+| `mailbox_messages` | `intake_sources_and_status` | US-31 | Unique `(entity_id, message_identifier)` |
+| `mailbox_attachments` | `intake_sources_and_status` | US-31 | Unique `(message_id, attachment_no)`; unique `invoice_id` where set |
+| `authority_status_lookups` | `intake_sources_and_status` | US-10, US-07 | Checks tie the outcome to the status, date, error, and trigger columns |
+| `cancellation_notices` | `intake_sources_and_status` | US-18, US-07 | Checks tie the source to the author, the lookup, and the evidence |
+| `service_acceptances` | `exceptions_group` | US-29 | Unique `invoice_id`; a rejection needs a note |
+| `sample_expansions` | `batch_and_signing` | US-24 | Unique `(batch_id, expansion_no)` |
+| `batch_reopenings` | `batch_and_signing` | US-24 | Index on `(batch_id, reopened_at)` |
+| `notifications` | `in_app_notifications` | US-32 | Soft `object_id`; unique reminder index |
+
+**New enums (12):** `acceptance_decision`, `invoice_source`, `fetch_trigger`, `message_outcome`, `attachment_outcome`, `authority_status`, `lookup_trigger`, `lookup_outcome`, `cancel_source`, `cancellation_effect`, `notification_kind`, `notification_object`.
+
+**Values added to existing enums (15):** `user_role` `REQUESTING_DEPARTMENT`; `sync_record_type` `AUTHORITY_STATUS`; `run_trigger` `ACCEPTANCE`; `rejection_reason` `CANCELLED_AT_AUTHORITY`, `REPLACED_AT_AUTHORITY`, `CANCELLED_BY_SELLER`; `reason_code` `SERVICE_ACCEPTANCE_REJECTED`, `AUTHORITY_STATUS_UNAVAILABLE`, `CANCELLED_AFTER_SIGNING`, `REQUEST_CANCELLED_OTHER_INVOICE`; `withdraw_reason` `CANCELLATION_NOTICE`, `REQUEST_CANCELLED`, `BATCH_REOPENED`; `cancel_kind` `CANCELLATION_NOTICE`, `BATCH_REOPENED`. The notes of `sync_status` (FAILED) and `run_trigger` (RE_RUN) were widened.
+
+**Columns, checks, and indexes added to existing tables**
+
+| Table | Change |
+|---|---|
+| `invoices` | New `source` (default `UPLOAD`); `uploaded_by` is nullable; new check `ck_invoices_source`; new index `ix_invoices_source` |
+| `exception_reasons` | New `service_acceptance_id`, `authority_status_lookup_id`, `cancellation_notice_id` |
+| `batch_sample_items` | New `expansion_id`; new index `ix_sample_items_expansion` |
+| `request_signatures` | New `on_behalf_of_user_id`, `delegation_id`; new checks `ck_signatures_delegate` and `ck_signatures_delegate_person`; new index `ix_signatures_delegation` |
+| `erp_send_attempts` | New `is_manual`, `triggered_by`; `ck_send_attempts_no` replaced (`attempt_no >= 1 AND (attempt_no > 3) = is_manual`); new check `ck_send_attempts_manual` |
+| `payment_requests` | `ck_requests_cancel_fields` relaxed so that `cancelled_by` may be NULL for `CANCELLATION_NOTICE` only |
+| `payment_batches`, `payment_request_lines`, `users`, `audit_log`, `invoice_receipts` | Notes only (reopening clears `released_by`; the new end reasons; seven roles; example subjects; the service acceptance as a second source) |
+
+**Foreign keys:** 44 added (224 to 268). **Table groups:** two added, and `signing_delegations`, `sim_authority_statuses`, `service_acceptances`, `sample_expansions`, and `batch_reopenings` joined existing ones.
+
+### Effects on earlier decisions
+
+| Earlier decision | Effect of the sync |
+|---|---|
+| D-48 entity isolation | Holds. The eleven new tables have `entity_id`. Delegations use composite foreign keys on `(entity_id, delegator_id)` and `(entity_id, delegate_id)`. |
+| D-49 `sim_*` tables | One table added, `sim_authority_statuses`. The tax-risk feed stays a seed file; the status feed is a table because the demo changes it (D-120). |
+| D-50 tax-risk list per entity | The authority feed is per entity for the same reason. |
+| D-51 exact-duplicate index | Holds. An XML taken from email passes through the same insert and the same index. |
+| D-55 audit log | Unchanged. No new event types (D-127). |
+| D-56 versions on configuration | `signing_delegations` carries `version`. |
+| D-57 XML bytes | The same open question for the cancellation notice file (DF-81). |
+| D-60 outbox | Manual attempts continue the numbering; the check on `attempt_no` changed (D-125). |
+| D-61 signatures | Two columns and two checks for a delegate; the partial unique indexes are unchanged. |
+| D-63 derived values | Seven values added: authority status, delegation state, acceptance queue, independent acceptance source, invoices a user processed, unread count, last mailbox fetch. |
+| D-65 nothing is deleted | Holds. A delegation is revoked, not deleted. A reopening clears two columns on the batch, a row that has a state and a version; the earlier values are kept in `batch_reopenings`. |
+| D-67 ERP failure after `Sent` | Holds. A cancellation notice after `Sent` stores a warning and changes no state; no request state was added. |
+| D-69, D-70 individual approvals | Hold. Approvals survive a reopening, and a service acceptance rejection cannot be approved individually (D-31, enforced by the API). |
+| DF-30 audit fails closed | Holds for audit rows. Notifications are the stated exception (DF-67). |
+| DF-40 computed alerts | Superseded by DF-69 in Step 3. The failed-send alert is still computed; Resend is offered after 3 failed automatic attempts. |
+| DF-55 server configuration | Adds the mailbox address and fetch interval (15 minutes, DF-63) and the 10-second lookup timeout (DF-64). |
+| DF-56 seed | Extended (DF-82). |
+| "Not modelled": notifications as rows | Reversed: `notifications` is a table (D-126). The failed-send alert and the stale warning remain computed. |
+
+### Differences from Steps 1 to 4 found in the sync
+
+These continue the numbering of [Differences from Steps 1 to 4](#differences-from-steps-1-to-4).
+
+| # | What the source says | What the schema does | Why |
+|---|---|---|---|
+| 12 | DF-62, AC-30.7: a range is "at most 30 days". | Both end dates count, so the longest range spans 29 days between the dates (DF-77). | The sources do not say which. Awaiting user review. |
+| 13 | BR-39, DF-64: the feed gives a status for an invoice key. It does not say what a key without an entry means. | The simulator answers Valid and the row says `feed_entry_found = false` (DF-78). | A missing entry read as "no answer" would block every demo invoice. Awaiting user review. |
+| 14 | Step 5 (before the sync), "Not modelled": notifications and alerts are computed, not rows (DF-40). | Notifications are rows (D-126); alerts stay computed. | D-97 and D-100 reversed D-41; a read mark and an unread count cannot be computed. Awaiting user review. |
+| 15 | BR-35 R9: the System cancels a signed request when a notice arrives. | `cancelled_by` may be NULL for that kind; the notice row names the author or the lookup (D-123). | The earlier check required a person for every cancellation. Awaiting user review. |
+| 16 | AC-31.7: "the failure and the last successful fetch time are shown". | A run table, `mailbox_fetch_runs`, stores them (D-122). | A failed fetch stores no message. The plan for this sync listed two mailbox tables; a third was needed. Awaiting user review. |
+
+### Doubts for the user
+
+- **Reject then reconsider (D-121).** AC-29.3 turns a rejection into an exception and says nothing about the Requesting Department changing its mind. The schema allows one decision per invoice. If a second decision is wanted, the unique index becomes partial and the latest row wins.
+- **Signatures on an R9 cancellation (D-123).** The records of a cancelled request are kept as given. If the user wants them voided, the check on `request_signatures` already allows it; the rule would be written in BR-35.
+- **What counts as processing (D-128).** The list of actions behind BR-36 is a reading. A missing action would let a user sign an invoice they handled.
+- **Delegates and individual approvals (D-119).** Not delegated. A Payment Approver who is absent leaves exceptions waiting for them.
+- **DBML syntax.** The file was not parsed by the DBML tool in this session, because the tool could not be run (see the session handoff). The checker validates the structure only.
+
+**Related:** [Step index](README.md) · [Data model](01-data-model.md) · [Step 2 decisions](../02-usecases-userstories/00-decisions.md) · [Step 4 decisions](../04-uiux/00-decisions.md)
