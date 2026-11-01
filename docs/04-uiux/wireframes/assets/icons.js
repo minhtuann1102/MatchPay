@@ -39,6 +39,7 @@
     link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
     menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
     hash: '<path d="M5 9h14M5 15h14M10 4l-2 16M16 4l-2 16"/>',
+    dots: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
     undo: '<path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/>'
   };
   var out = '<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">';
