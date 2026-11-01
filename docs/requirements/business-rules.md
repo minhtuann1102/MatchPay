@@ -4,12 +4,12 @@
 >
 > Implementation status: NOT STARTED
 
-BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where this page words a rule differently, the change comes from a decision and is named in the rule (D-08, D-24, D-26, D-33). BR-32..BR-37 are new. The user's scope change D-33 removed foreign invoices and the cash payment flag from the MVP: BR-21 and BR-32 read "Removed (D-33)" and are carried by the Advanced items W-20 and W-21, and BR-18 is entirely Advanced (W-19, W-09); they keep their number and have no user story. Values marked DF-xx are defaults pending confirmation; see [Step 2 defaults](../02-usecases-userstories/00-decisions.md#defaults-pending-confirmation). The brief's example numbers are the demo configuration of each entity (DF-11); thresholds are parameters set per entity inside the group limits (BR-16). The Related API lines are filled in by Step 6. A rule that spans the MVP and Advanced says which part is which.
+BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where this page words a rule differently, the change comes from a decision and is named in the rule (D-08, D-24, D-26, D-33, D-89..D-96). BR-32..BR-39 are new (BR-38 and BR-39 came from the sync to the feature mind map, D-88). The user's scope change D-33 removed foreign invoices and the cash payment flag from the MVP: BR-21 and BR-32 read "Removed (D-33)" and are carried by the Advanced items W-20 and W-21, and BR-18 is entirely Advanced (W-19, W-09); they keep their number and have no user story. Values marked DF-xx are defaults pending confirmation; see [Step 2 defaults](../02-usecases-userstories/00-decisions.md#defaults-pending-confirmation). The brief's example numbers are the demo configuration of each entity (DF-11); thresholds are parameters set per entity inside the group limits (BR-16). The Related API lines are filled in by Step 6. A rule that spans the MVP and Advanced says which part is which.
 
 ## BR-01 — One entity per document
 
 - **Source:** brief (BR-01), D-26
-- **Related US:** US-03, US-10, US-13, US-19
+- **Related US:** US-03, US-10, US-13, US-19, US-31
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - Every document (order, receipt, acceptance, invoice, payment request) belongs to exactly one entity. Entities are identified by a unique tax code.
@@ -18,18 +18,19 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 ## BR-02 — Separation of duties
 
-- **Source:** brief (BR-02)
-- **Related US:** US-02, US-08, US-23, US-25
+- **Source:** brief (BR-02), D-90
+- **Related US:** US-02, US-08, US-23, US-25, US-29, US-30
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - For one transaction, the person who created the purchase order, the person who confirmed the receipt, and the person who approves payment must be three different people.
   - The creator and the confirmer come from ERP data. A platform user can be linked to an ERP user (DF-14), so the check can tell whether two roles are the same person.
   - A user who is linked to the creator or the confirmer of any invoice in a payment request cannot sign or approve that request (see BR-36).
+  - A Requesting Department user who confirms the acceptance of a service in MatchPay (BR-19) counts as the confirmer for this rule, and cannot confirm an acceptance for an order that the linked ERP user created (D-90).
 
 ## BR-03 — Approval matrix
 
 - **Source:** brief (BR-03), DF-02
-- **Related US:** US-05, US-23, US-25
+- **Related US:** US-05, US-23, US-25, US-30
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - Each entity has an approval matrix by amount. Example: under VND 50,000,000 the department head approves; from VND 50,000,000 the CFO approves.
@@ -79,13 +80,14 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 ## BR-07 — Sample check
 
-- **Source:** brief (BR-07), DF-06, DF-29
+- **Source:** brief (BR-07), DF-06, DF-29, D-95, DF-65
 - **Related US:** US-04, US-06, US-24, US-27
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - Before signing, the AP Accountant checks a part of the batch (example 10%). The AI selects the sample by risk: high-value invoices first, then suppliers whose gate opened recently, then items often matched wrongly. Each selected invoice shows why it was selected.
   - Sample size = rate times invoices in the batch, rounded up, minimum 1 (DF-06). If the AI cannot select, the highest-value invoices are taken and the sample is labelled "selected without AI" (DF-29).
   - An invoice found wrong is withdrawn from the batch into exceptions. The batch cannot be released for signing until every selected invoice is marked.
+  - **When the sample finds an error (D-95).** The AP Accountant can **expand the sample**: the next invoices by the same order of risk, at least the original sample size again, or all that remain (DF-65); this can be repeated, and each expansion is saved with the name, the time, and the reason. The AP Accountant can also **reopen the batch** from `In Signing` to `In Review`, while no request holds a signature (BR-35 B7).
   - Results are shown on the signing screen and feed the misplacement rate (G-02) and the gate alert (BR-06).
 
 ## BR-08 — Tax-risk suppliers
@@ -101,7 +103,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 ## BR-09 — Entity isolation
 
 - **Source:** brief (BR-09), D-09, DF-23
-- **Related US:** US-01, US-02, US-03, US-04, US-05, US-06, US-07, US-08, US-09, US-10, US-13, US-14, US-15, US-17, US-18, US-19, US-20, US-23, US-24, US-25, US-26, US-27, US-28
+- **Related US:** US-01, US-02, US-03, US-04, US-05, US-06, US-07, US-08, US-09, US-10, US-13, US-14, US-15, US-17, US-18, US-19, US-20, US-23, US-24, US-25, US-26, US-27, US-28, US-29, US-30, US-31, US-32
 - **Advanced part:** W-07, comparison across entities
 - **Related API:** TBD (Step 6)
 - **Rule:**
@@ -124,7 +126,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 ## BR-11 — No duplicate payment
 
 - **Source:** brief (BR-11), D-09, DF-19
-- **Related US:** US-10, US-15, US-16, US-20
+- **Related US:** US-10, US-15, US-16, US-20, US-31
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - An invoice with the same supplier, series, and number as an existing invoice is blocked (state `Rejected`). This check covers the whole group (D-09, BR-09).
@@ -134,7 +136,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 ## BR-12 — Audit log
 
 - **Source:** brief (BR-12), DF-30
-- **Related US:** US-01, US-02, US-03, US-04, US-05, US-06, US-07, US-09, US-10, US-12, US-13, US-14, US-15, US-16, US-17, US-18, US-20, US-21, US-25, US-26, US-28
+- **Related US:** US-01, US-02, US-03, US-04, US-05, US-06, US-07, US-09, US-10, US-12, US-13, US-14, US-15, US-16, US-17, US-18, US-20, US-21, US-25, US-26, US-28, US-29, US-30, US-31, US-32
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - Every AI decision stores its reason, confidence, method (mapping table, embedding with the signal-fusion model, or LLM), model version, and prompt version.
@@ -152,11 +154,12 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 ## BR-14 — Waiting for goods
 
-- **Source:** brief (BR-14), DF-07
-- **Related US:** US-07, US-13, US-16, US-24
+- **Source:** brief (BR-14), DF-07, D-90
+- **Related US:** US-07, US-13, US-16, US-24, US-29
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - An invoice with no matching receipt is `Waiting for Goods`. It cannot be admitted to a batch or paid. This covers an invoice that arrives before the goods.
+  - A service invoice with no acceptance, from the ERP or from the Requesting Department (BR-19), is `Waiting for Goods` too. It is re-evaluated when an acceptance is confirmed in MatchPay (UC-29) as well as after every sync (D-90).
   - It is re-evaluated after every sync (UC-07). It is a state of its own and is not an exception.
 
 ## BR-15 — Quantity paid
@@ -179,8 +182,8 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 ## BR-17 — Independent source
 
-- **Source:** brief (BR-17), D-08, D-24, DF-25, D-33
-- **Related US:** US-03, US-10, US-12, US-16
+- **Source:** brief (BR-17), D-08, D-24, DF-25, D-33, D-90, D-92
+- **Related US:** US-03, US-10, US-12, US-16, US-29, US-31
 - **Advanced part:** W-03, medium-trust PDF; W-19, PDF intake and foreign invoices
 - **Related API:** TBD (Step 6)
 - **Rule:** The Rule Engine admits an invoice only when an independent source confirms the seller, the amount, and the quantity. The brief says that the AI puts the invoice in the batch; this page rewords it according to D-08, because the AI supplies evidence and the Rule Engine decides. A document with no independent source always goes through a person.
@@ -189,6 +192,8 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
     - **High:** an XML invoice with the seller's digital signature and a tax-authority code.
     - **Signed non-coded XML (D-24):** an XML invoice with the seller's digital signature and no tax-authority code, accepted only from sellers in a sector listed in configuration (DF-25; the default list holds electricity). The signature confirms where the invoice came from. A matching recurring profile (BR-24) is the independent source. With no matching profile the invoice goes to an exception. For a **fixed price** the amount must equal the contract. For a **usage-based price** the profile gives only a plausibility check through the BR-24 deviation threshold; it is not an independent confirmation of the amount. This limit is a call for the user to review (O-16).
     - **Unsupported: foreign invoice.** A foreign invoice that still arrives, for example an XML whose seller has no Vietnamese tax code, or a foreign supplier invoice that the flow classifier recognises (UC-12), is classified "Unsupported: foreign invoice" and becomes an exception. It cannot be approved individually (D-31) and cannot join a batch. The AP Accountant resolves it by rejecting it with a reason, and it is handled outside the system. This reading of D-33 is a call awaiting user review.
+    - **Services (D-90).** For a service invoice the independent acceptance source is the acceptance in the ERP or, when the ERP holds none, the acceptance confirmed by the Requesting Department in MatchPay (BR-19). A rejected acceptance makes an exception. This reading is a call awaiting user review.
+    - **Email (D-92).** An XML attachment fetched from the entity mailbox has the same trust level as an uploaded file; the sender's address is not a source (UC-31).
   - **Advanced part (W-03, W-19).** A PDF confirmed by an independent source, such as a matching card transaction and subscription profile, may join a batch after the gate opens, with a low amount limit (W-03). A PDF, a scanned image, or a paper document with no independent source (Low trust), and a foreign PDF invoice whose fields the AP Accountant confirms, always take the exception path (W-19, DF-04).
 
 ## BR-18 — PDF and XML of the same invoice (Advanced)
@@ -203,17 +208,18 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 ## BR-19 — Received quantity and acceptance
 
-- **Source:** brief (BR-19)
-- **Related US:** US-07, US-08
+- **Source:** brief (BR-19), D-90
+- **Related US:** US-07, US-08, US-13, US-29
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - The quantity received and the acceptance of a service come from the confirmation of the warehouse keeper or the acceptor in the ERP or warehouse software.
+  - **Amended (D-90):** for a service, when the ERP holds no acceptance, the Requesting Department user of the entity can confirm or reject the acceptance in MatchPay with a note (UC-29). The confirmation counts as the independent acceptance source (BR-17). The ERP acceptance is still preferred and wins if both exist; the confirmation stays in the history. The quantity of goods still comes only from the goods receipt (BR-13). The brief names the warehouse keeper and the acceptor in the ERP only, so this is a difference from the brief and a call awaiting user review.
   - A scan with a handwritten signature is only an attachment. The AI does not verify handwritten signatures.
 
 ## BR-20 — Signing and consolidated payment requests
 
 - **Source:** brief (BR-20), D-19, DF-01, DF-10, O-15
-- **Related US:** US-04, US-25, US-26
+- **Related US:** US-04, US-25, US-26, US-30
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - Every payment needs the e-signature of the person with authority and of the Chief Accountant before the money is paid. The AI never signs.
@@ -277,7 +283,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 ## BR-26 — Correction requests and follow-up invoices
 
 - **Source:** brief (BR-26), D-07, DF-21
-- **Related US:** US-18, US-19, US-20
+- **Related US:** US-18, US-19, US-20, US-32
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - The AI drafts a request to the supplier from an approved template. Only the AP Accountant presses Send, and the AI never sends anything outside the system.
@@ -324,13 +330,18 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 
 ## BR-31 — Adjustment and replacement invoices
 
-- **Source:** brief (BR-31), D-07, D-26
-- **Related US:** US-10, US-18, US-19, US-20
+- **Source:** brief (BR-31), D-07, D-26, D-94
+- **Related US:** US-07, US-10, US-18, US-19, US-20
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - An adjustment or replacement invoice is recognised from its type and its reference to the original. This includes one adjustment invoice that corrects several wrong invoices of the same month.
   - In the MVP it always goes to a person. It is never admitted to a batch automatically. When the AP Accountant confirms it, the original invoices it corrects become `Superseded` (BR-33).
   - The correction of a wrong buyer tax code follows this path (BR-01).
+  - **Cancellation (D-94).** A cancellation notice for an invoice, recorded by the AP Accountant from the seller or read from the simulated authority status (BR-39), is the third case.
+    - Before signing: the invoice is withdrawn from the batch and rejected in one action (`In Batch` to `Exception`, then `Rejected`); the total, the level, and the signatures of its request are recomputed as for a removed line (BR-03, BR-35 R5).
+    - After signing and before sending: the request is `Cancelled` and nothing is sent; its invoices become exceptions and a new request needs new signatures (BR-33 V20, BR-35 R9). This is the only exception to the rule that an invoice cannot be withdrawn once its request is `Signed` (DF-07).
+    - After `Sent`: nothing changes in state; the notice is stored as a warning on the invoice and the case is handled outside the system (D-67).
+    - An invoice that is `Waiting for Goods` is rejected at once (BR-33 V21).
 
 ## BR-32 — Non-cash payment
 
@@ -346,7 +357,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 ## BR-33 — Invoice lifecycle
 
 - **Source:** Step 2 (new rule)
-- **Related US:** US-10, US-12, US-13, US-16, US-18, US-26
+- **Related US:** US-10, US-12, US-13, US-16, US-18, US-26, US-29, US-31
 - **Related API:** TBD (Step 6)
 - **Rule:** An invoice is always in exactly one state, and only the transitions below are allowed. `Rejected`, `Separated`, `Superseded`, and `Paid` are final.
 
@@ -374,13 +385,15 @@ stateDiagram-v2
     InCheck --> Exception: A condition is not met
     InCheck --> InBatch: All six conditions met
     Exception --> InBatch: Re-check passes or approved individually
-    Exception --> Rejected: Rejected by a person
+    Exception --> Rejected: Rejected by a person or cancelled
+    WaitGoods --> Rejected: Cancelled
     Exception --> Superseded: Follow-up invoice confirmed
     InBatch --> Exception: Withdrawn
     InBatch --> Signed: Request fully signed
     Signed --> Sent: Sent to the Entity ERP
     Sent --> Paid: ERP returns paid status
     Sent --> Exception: ERP returns failure
+    Signed --> Exception: Request cancelled before sending
     Rejected --> [*]
     Separated --> [*]
     Superseded --> [*]
@@ -394,27 +407,29 @@ stateDiagram-v2
 | V3 | — | — | Removed (D-33). The foreign PDF path moved to W-19 | — |
 | V4 | `Received` | `In Check` | Signature check passed and schema version supported | System |
 | V5 | `Received` | `Rejected` | Signature check failed, or XML not well-formed or not supported | System |
-| V6 | `In Check` | `Rejected` | Buyer tax code mismatch (BR-01) or exact duplicate (BR-11) | Rule Engine |
+| V6 | `In Check` | `Rejected` | Buyer tax code mismatch (BR-01), exact duplicate (BR-11), or a status of "Cancelled" or "Replaced" at the tax authority (BR-39) | Rule Engine |
 | V7 | `In Check` | `Separated` | Classified as an employee expense (BR-23) | Rule Engine |
 | V8 | `In Check` | `Waiting for Goods` | No matching receipt (BR-14) | Rule Engine |
 | V9 | `Waiting for Goods` | `In Check` | A receipt is synced (BR-14) | System |
 | V10 | `In Check` | `Exception` | A condition of BR-05 is not met, or an AI step failed (BR-27) | Rule Engine |
 | V11 | `In Check` | `In Batch` | All six conditions are met | Rule Engine |
 | V12 | `Exception` | `In Batch` | The check passes again after resolution, or the Payment Approver approves it individually | Rule Engine, Payment Approver |
-| V13 | `Exception` | `Rejected` | Rejected with a reason | AP Accountant, Chief Accountant |
+| V13 | `Exception` | `Rejected` | Rejected with a reason, or cancelled by the seller or at the tax authority (BR-31, BR-39) | AP Accountant, Chief Accountant, System |
 | V14 | `Exception` | `Superseded` | A follow-up invoice is confirmed (BR-31), or a fresh invoice closes the exception (BR-26) | AP Accountant, System |
-| V15 | `In Batch` | `Exception` | Withdrawn: sample-check error, a signer removes or declines, the AP Accountant withdraws, or a risk-list change (BR-08) | AP Accountant, signer, System |
+| V15 | `In Batch` | `Exception` | Withdrawn: sample-check error, a signer removes or declines, the AP Accountant withdraws, a risk-list change (BR-08), or a cancellation notice (BR-31) | AP Accountant, signer, System |
 | V16 | `In Batch` | `Signed` | Its payment request is fully signed (BR-35) | System |
 | V17 | `Signed` | `Sent` | The instruction is sent to the Entity ERP | System |
 | V18 | `Sent` | `Paid` | The ERP returns the paid status (UC-26) | System |
 | V19 | `Sent` | `Exception` | The ERP returns a failure | System |
+| V20 | `Signed` | `Exception` | Its request is cancelled before it is sent, because a cancellation notice arrived for it or for another invoice of the request (BR-31, BR-35 R9) | System |
+| V21 | `Waiting for Goods` | `Rejected` | A cancellation notice is recorded, or the authority status is "Cancelled" or "Replaced" (BR-31, BR-39) | AP Accountant, System |
 
 V2 and V3 were removed by D-33 together with the state `Awaiting Field Confirmation`; their numbers are not reused.
 
 ## BR-34 — Exception lifecycle
 
 - **Source:** Step 2 (new rule)
-- **Related US:** US-18, US-20, US-21, US-23
+- **Related US:** US-18, US-20, US-21, US-23, US-32
 - **Related API:** TBD (Step 6)
 - **Rule:** An exception holds one or more reasons and is always in one state. `Closed` is final and carries an outcome. A new problem with the same invoice creates a new exception.
 
@@ -442,7 +457,7 @@ stateDiagram-v2
 
 | # | From | To | Trigger | Who or what |
 |---|---|---|---|---|
-| E1 | — | `Open` | The invoice becomes an exception (V10, V15, V19) with its reasons | Rule Engine |
+| E1 | — | `Open` | The invoice becomes an exception (V10, V15, V19, V20) with its reasons | Rule Engine |
 | E2 | `Open` | `In Review` | The AP Accountant starts work on it | AP Accountant |
 | E3 | `In Review` | `Waiting for Supplier` | A correction request is sent (UC-19) | AP Accountant |
 | E4 | `In Review` | `Waiting for Data Fix` | A data-fix notice is sent (UC-19) | AP Accountant |
@@ -452,14 +467,14 @@ stateDiagram-v2
 | E8 | `Waiting for Decision` | `In Review` | A decision is recorded | Chief Accountant, Payment Approver |
 | E9 | `In Review` | `Closed` | Outcome **Admitted**: the check passes and the invoice joins a batch | Rule Engine |
 | E10 | `In Review` | `Closed` | Outcome **Approved individually** (UC-23) | Payment Approver |
-| E11 | `In Review` | `Closed` | Outcome **Rejected**: the invoice is rejected with a reason | AP Accountant, Chief Accountant |
+| E11 | `In Review` | `Closed` | Outcome **Rejected**: the invoice is rejected with a reason or cancelled (BR-31) | AP Accountant, Chief Accountant, System |
 | E12 | `In Review` | `Closed` | Outcome **Superseded**: a follow-up invoice is confirmed (BR-31) | AP Accountant |
 | E13 | `In Review` | `Closed` | Outcome **Auto-closed**: a fresh standard invoice passes (BR-26) | System |
 
 ## BR-35 — Batch and payment request lifecycle
 
 - **Source:** Step 2 (new rule), D-10, D-11, DF-01..DF-03
-- **Related US:** US-23, US-24, US-25, US-26
+- **Related US:** US-18, US-23, US-24, US-25, US-26, US-32
 - **Related API:** TBD (Step 6)
 - **Rule:** There is one open batch per entity per period (DF-18). A batch and each of its payment requests are always in one state, and only these transitions are allowed. `Completed`, `Cancelled`, and `Paid` are final.
 
@@ -476,6 +491,7 @@ stateDiagram-v2
     Open --> InReview: AP Accountant closes the batch
     InReview --> InSigning: Sample marked and batch released
     InSigning --> BatchSigned: Every request signed or cancelled
+    InSigning --> InReview: Reopened before any signature
     BatchSigned --> BatchSent: Sent to the Entity ERP
     BatchSent --> Completed: Every request paid
     Completed --> [*]
@@ -497,6 +513,7 @@ stateDiagram-v2
     AwaitPA --> AwaitCA: A line is removed and earlier signatures are voided
     AwaitCA --> Cancelled: All lines removed or declined
     AwaitPA --> Cancelled: All lines removed or declined
+    Signed --> Cancelled: Cancellation notice before sending
     Signed --> Sent: Sent to the Entity ERP
     Sent --> Paid: ERP returns paid status
     Cancelled --> [*]
@@ -516,31 +533,61 @@ stateDiagram-v2
 | R3 | Request | `Awaiting Payment Approver` | `Signed` | A Payment Approver at the required level (BR-03) signs | Payment Approver |
 | R4 | Request | `Awaiting Chief Accountant` | `Signed` | The Chief Accountant co-signs a request for an individually approved exception, whose Approver's approval is already recorded (DF-03). It skips the Payment Approver state | Chief Accountant |
 | R5 | Request | `Awaiting Payment Approver` | `Awaiting Chief Accountant` | A line is removed or the content changes; earlier signatures are voided (BR-37) | AP Accountant, signer |
-| R6 | Request | `Awaiting Chief Accountant`, `Awaiting Payment Approver` | `Cancelled` | All lines are removed, or a signer declines the request with a reason; its invoices return to exceptions | AP Accountant, signer |
+| R6 | Request | `Awaiting Chief Accountant`, `Awaiting Payment Approver` | `Cancelled` | All lines are removed, a signer declines the request with a reason, or the AP Accountant reopens the batch before any signature (B7); its invoices return to exceptions, or stay `In Batch` when the batch is reopened | AP Accountant, signer |
 | R7 | Request | `Signed` | `Sent` | Sent to the Entity ERP | System |
 | R8 | Request | `Sent` | `Paid` | The ERP returns the paid status | System |
+| B7 | Batch | `In Signing` | `In Review` | The AP Accountant reopens the batch with a reason, allowed only while no request of the batch holds a signature; every request becomes `Cancelled` (R6), the invoices stay `In Batch`, sample marks and recorded individual approvals are kept, and a new release creates new requests (DF-66, D-95) | AP Accountant |
+| R9 | Request | `Signed` | `Cancelled` | A cancellation notice arrives for one of its invoices before the request is sent; nothing is sent and its invoices become exceptions (BR-31, BR-33 V20, D-94) | System |
 
-Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In Signing`, and only until their request is `Signed` (DF-07).
+Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In Signing`, and only until their request is `Signed` (DF-07); the one exception is a cancellation notice (R9, BR-31). The numbering of B7 follows B6 although it sits at the end of the table, so that no existing number changed (D-95).
 
 ## BR-36 — Signer separation
 
-- **Source:** Step 2 (new rule), DF-01, BR-02
-- **Related US:** US-02, US-23, US-25
+- **Source:** Step 2 (new rule), DF-01, BR-02, D-89
+- **Related US:** US-02, US-23, US-25, US-30
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - The Chief Accountant signs first and the Payment Approver second (DF-01), except for an individually approved exception, where the Approver's approval comes first and the Chief Accountant co-signs (DF-03). The two must be different people, and no one can sign the same request twice.
   - The user who prepared the batch cannot sign it.
   - A user linked to the ERP user who created the purchase order, or who confirmed the receipt, of any invoice in a request cannot sign or approve that request (BR-02). Another signer is needed for that request.
+  - **Invoices you processed (D-89).** A user who processed an invoice in MatchPay cannot sign or approve the request that holds it. To process an invoice is to resolve or confirm its exception, to mark it in the sample check, or to confirm its service acceptance as Requesting Department (UC-29). The check compares the user and the ERP user linked to them (DF-14), so it also applies after a change of role (UC-02) and to a delegate (BR-38).
+  - **Not counted (D-89):** the Chief Accountant's decision on a tax-risk hold (UC-21). Counting it would need a second Chief Accountant per entity, because the Chief Accountant signs every request first.
   - The signer needs the approval level that the request total requires (BR-03).
 
 ## BR-37 — Concurrent-change detection
 
 - **Source:** Step 2 (new rule), D-30, DF-27
-- **Related US:** US-18, US-21, US-23, US-24, US-25, US-26
+- **Related US:** US-18, US-21, US-23, US-24, US-25, US-26, US-29, US-30
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - Every invoice, exception, batch, and payment request has a version number that changes with each change (DF-27).
   - A state-changing action carries the version the user saw. If the object has changed since, the action is rejected, nothing is saved, and the user is asked to reload. Signing and withdrawal are the critical cases (D-30).
   - A signature is bound to the version and the content hash of the request, so a signature never covers content that was changed after it was given.
+
+## BR-38 — Signing delegation
+
+- **Source:** Step 2 (new rule), D-91, DF-62, O-17
+- **Related US:** US-30
+- **Related API:** TBD (Step 6)
+- **Rule:** *(a call awaiting user review; its legal validity is Unverified, O-17)*
+  - A Chief Accountant or a Payment Approver can name a delegate for a date range while they are absent. The delegate is an active Chief Accountant or Payment Approver of the same entity (DF-62). The range is at most 30 days, starts today or later, and does not overlap another delegation of the same delegator.
+  - In the range the delegate can sign the requests that wait for the delegator, **at the delegator's approval level** (BR-03), and only in the range. The delegate enters their own password again (DF-10). The delegator cannot sign while the delegation is active.
+  - **Separation still applies to the delegate** (BR-02, BR-36): the delegate cannot sign both signatures of one request, cannot sign a request that holds an invoice they processed or whose order or receipt they are linked to, and the Chief Accountant still signs first (DF-01).
+  - The signature record names the signer and the person represented, "on behalf of", together with the request version and the content hash (BR-20, BR-37). The audit log records the creation, the use, and the revocation (BR-12).
+  - The delegator or the Entity Admin of the entity can revoke a delegation at any time; signatures already given stay valid. The Entity Admin can see every delegation of the entity and cannot create one or sign.
+  - **Not the policy delegation of O-05.** The delegate still signs each voucher; nobody signs a rule instead of vouchers. Policy delegation stays open and out of the MVP.
+
+## BR-39 — Invoice status at the tax authority
+
+- **Source:** Step 2 (new rule), D-93, DF-64, L-18, O-10
+- **Related US:** US-07, US-10
+- **Advanced part:** W-13, the real connection point
+- **Related API:** TBD (Step 6)
+- **Rule:** *(a call awaiting user review)*
+  - **MVP part: a simulated lookup.** Like the simulated tax-risk list (D-21), the status comes from a simulated feed: for an invoice key (seller, series, number) it gives Valid, Adjusted, Replaced, or Cancelled, with a status date (DF-64). Each entry carries its key, status, and date, and an entry without them is rejected.
+  - At intake, after the signature check, the system looks up the status. **Cancelled** or **Replaced** stops the invoice: it is `Rejected` with the reason and the date, and it is not processed further (BR-33 V6). **Adjusted** is a warning on the evidence; the adjustment invoice is a separate document handled by BR-31.
+  - If the lookup does not answer within 10 seconds, the invoice becomes an exception "Authority status unavailable"; intake never blocks, and an invoice with an unknown status is never admitted to a batch (BR-27 principle, DF-08). The AP Accountant can run the lookup again.
+  - The status of an invoice that is not yet sent is refreshed at every ERP sync (DF-31). A change to Cancelled or Replaced is handled as a cancellation notice (BR-31, D-94).
+  - **Advanced part (W-13).** A real connection to the tax authority's invoice portal. No official API was found (O-10); the MVP does not claim that one exists.
 
 **Related:** [Use cases and user stories](../02-usecases-userstories/README.md) · [Master traceability](../traceability/master-traceability.md) · [Step 1 decisions](../01-research/00-decisions.md)

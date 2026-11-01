@@ -28,7 +28,7 @@ Requirements define what MatchPay must do, who uses it, the value delivered, and
 
 ### 1.1 Product mind map
 
-See the [product mind map](docs/mindmap.md).
+See the [product mind map](docs/mindmap.md), which also holds the [feature map F01..F12](docs/mindmap.md#feature-map-f01f12) that mirrors the mind map the user attached on 2026-11-01 (D-88).
 
 ### 1.2 Step 1 summary: research and problem analysis
 
@@ -39,7 +39,7 @@ The brief's facts were checked against sources opened on 2026-10-31. Four points
 - **The legal base moved.** The e-invoice decree and circular in force changed on 2026-07-01. This rests on one secondary source (an EY summary); the official texts were not opened. The brief's 2025 sentence about all businesses with revenue of VND 1 billion was wrong and is replaced by a rationale that holds ([Decisions](docs/01-research/00-decisions.md), D-15..D-17).
 - **A tax rule ties payment to deduction.** A purchase of VND 5 million or more keeps its VAT deduction only if it is paid by non-cash means ([Regulatory context](docs/01-research/10-regulatory-context.md)). It stays as regulatory background and in the "why now" rationale. A rule that flagged cash payments (BR-32, D-25) was removed from the MVP by the user's decision D-33 and is Advanced (W-21); a signed batch is a non-cash transfer instruction by design.
 - **The market gap is still an assumption.** Cost does not support it, Vietnam e-invoice support of international products is unpublished rather than disproven, and data location is a compliance step ([Similar products](docs/01-research/04-similar-products.md)).
-- **Open items remain** for the user, the manager, an accountant, or a lawyer, including the name, the legal effect of policy delegation, and the usage-based non-coded invoices of D-24 ([Decisions](docs/01-research/00-decisions.md), O-01..O-16).
+- **Open items remain** for the user, the manager, an accountant, or a lawyer, including the name, the legal effect of policy delegation and of a delegated e-signature (O-05, O-17), and the usage-based non-coded invoices of D-24 ([Decisions](docs/01-research/00-decisions.md), O-01..O-17).
 
 Start with the [Step 1 index](docs/01-research/README.md).
 
@@ -47,7 +47,7 @@ Start with the [Step 1 index](docs/01-research/README.md).
 
 #### 1.3.1 INVEST requirements
 
-The MVP backlog includes 26 user stories, one per use case and numbered like it (US-01 is UC-01). The user removed foreign invoices and the cash payment flag from the MVP (D-33), so UC-11, UC-22, US-11, and US-22 are removed and their numbers are not reused. They cover access and configuration, source data, intake and AI understanding, exceptions, the batch with its sample check and signing, and oversight. Before a user story is ready for development, it is checked using the INVEST criteria.
+The MVP backlog includes 30 user stories, one per use case and numbered like it (US-01 is UC-01). The user removed foreign invoices and the cash payment flag from the MVP (D-33), so UC-11, UC-22, US-11, and US-22 are removed and their numbers are not reused. On 2026-11-01 the user attached a feature mind map and asked to sync the documents to it (D-88), which added four Should stories, UC-29..UC-32 (service acceptance by the Requesting Department, signing delegation while absent, invoices by email, and notifications and reminders), and extended some existing ones; the readings behind them are calls awaiting user review (D-89..D-99). They cover access and configuration, source data, intake and AI understanding, exceptions, the batch with its sample check and signing, and oversight. Before a user story is ready for development, it is checked using the INVEST criteria.
 
 | Criterion | Meaning in MatchPay |
 |---|---|
@@ -64,17 +64,20 @@ US-01–US-06   Access and configuration (log in with entity scope, users and ro
 US-07–US-09   Source data (sync from the ERP, ERP simulator, recurring profiles)
 US-10–US-16   Intake and AI understanding (XML upload, flow, identification, line matching,
               anomalies, the six batch conditions; US-11 removed)
-US-17–US-23   Exceptions (worklist and evidence, resolve, correction requests, follow-up invoices,
+US-17–US-23   Exceptions (worklist, search, and evidence, resolve, correction requests, follow-up invoices,
               tax-risk hold, individual approval; US-22 removed)
-US-24–US-26   Batch and signing (sample check, signing of payment requests, sending to the ERP)
+US-24–US-26   Batch and signing (sample check with expansion and reopening, signing of payment requests,
+              sending to the ERP with a manual resend)
 US-27–US-28   Oversight (dashboard, audit log)
+US-29–US-32   Added by D-88 (service acceptance, signing delegation, invoices by email,
+              notifications and reminders)
 ```
 
-Stories are prioritized with MoSCoW: 20 Must, 6 Should, 0 Could, and 21 Won't (Advanced items W-01..W-21). The complete backlog and per-story INVEST review are in [User Stories (INVEST)](docs/02-usecases-userstories/03-user-stories-invest.md), the Given/When/Then criteria in [Acceptance Criteria](docs/02-usecases-userstories/04-acceptance-criteria.md), and the priorities in [MoSCoW Prioritization](docs/02-usecases-userstories/05-moscow-prioritization.md). The goals G-03, G-04, and G-06 are measured on named evaluation sets and a permissions test suite, defined in the acceptance criteria.
+Stories are prioritized with MoSCoW: 20 Must, 10 Should (US-29..US-32 are Should), 0 Could, and 21 Won't (Advanced items W-01..W-21; W-05 and W-13 now mean the supplier portal and the real tax-authority connection). The complete backlog and per-story INVEST review are in [User Stories (INVEST)](docs/02-usecases-userstories/03-user-stories-invest.md), the Given/When/Then criteria in [Acceptance Criteria](docs/02-usecases-userstories/04-acceptance-criteria.md), and the priorities in [MoSCoW Prioritization](docs/02-usecases-userstories/05-moscow-prioritization.md). The goals G-03, G-04, and G-06 are measured on named evaluation sets and a permissions test suite, defined in the acceptance criteria.
 
 #### 1.3.2 Use cases
 
-The model is drawn as one actor diagram and four use case diagrams, one per group of modules, so each picture stays readable. Human actors carry the person icon; systems are rounded nodes, and purple nodes use an LLM. UC-11 and UC-22 are not drawn (removed by D-33).
+The model is drawn as one actor diagram and four use case diagrams, one per group of modules, so each picture stays readable. Human actors carry the person icon; systems are rounded nodes, and purple nodes use an LLM. UC-11 and UC-22 are not drawn (removed by D-33). UC-29 to UC-32 are drawn in the intake and the batch diagrams (D-88).
 
 Thick arrows marked «generalize» point from a child actor to the parent whose use cases it inherits. A Group Admin and an Entity Admin are two scopes of the Administrator.
 
@@ -83,6 +86,7 @@ flowchart LR
     ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
     ca["<span style='font-size:40px'>👤</span><br/><b>Chief Accountant</b>"]
     pa["<span style='font-size:40px'>👤</span><br/><b>Payment Approver</b>"]
+    rd["<span style='font-size:40px'>👤</span><br/><b>Requesting Department</b>"]
     demo["<span style='font-size:40px'>👤</span><br/><b>Demo Operator</b>"]
     entityAdmin["<span style='font-size:40px'>👤</span><br/><b>Entity Admin</b>"]
     groupAdmin["<span style='font-size:40px'>👤</span><br/><b>Group Admin</b>"]
@@ -92,13 +96,14 @@ flowchart LR
     ap ==>|"«generalize»"| user
     ca ==>|"«generalize»"| user
     pa ==>|"«generalize»"| user
+    rd ==>|"«generalize»"| user
     demo ==>|"«generalize»"| user
     entityAdmin ==>|"«generalize»"| admin
     groupAdmin ==>|"«generalize»"| admin
     admin ==>|"«generalize»"| user
 
     classDef actor fill:none,stroke:none,color:#111
-    class ap,ca,pa,demo,entityAdmin,groupAdmin,admin,user actor
+    class ap,ca,pa,rd,demo,entityAdmin,groupAdmin,admin,user actor
 ```
 
 Everyone logs in; the two administrator scopes manage users, entities, policy, the approval matrix, and the automation gates.
@@ -143,13 +148,14 @@ flowchart LR
     style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
 ```
 
-The Demo Operator creates orders and receipts in the simulator, the AP Accountant adds profiles and uploads XML invoices, and the AI Agent and the Rule Engine do the reading, matching, and routing.
+The Demo Operator creates orders and receipts in the simulator, the Requesting Department confirms service acceptances, the AP Accountant adds profiles, uploads XML invoices, and watches the invoice mailbox, and the AI Agent and the Rule Engine do the reading, matching, and routing. The Invoice Status Lookup Service (simulated) answers UC-10, and the Email Service holds the mailbox that UC-31 reads.
 
 ```mermaid
 flowchart LR
     subgraph left["Actors"]
         direction TB
         demo["<span style='font-size:40px'>👤</span><br/><b>Demo Operator</b>"]
+        rd["<span style='font-size:40px'>👤</span><br/><b>Requesting Department</b>"]
         ap["<span style='font-size:40px'>👤</span><br/><b>AP Accountant</b>"]
     end
 
@@ -160,10 +166,12 @@ flowchart LR
             uc07["UC-07 Sync Source Data from ERP"]
             uc08["UC-08 Create PO and Confirm Receipt in ERP Simulator"]
             uc09["UC-09 Manage Recurring Profiles"]
+            uc29["UC-29 Confirm Service Acceptance"]
         end
         subgraph intake["Intake and AI understanding"]
             direction TB
             uc10["UC-10 Upload XML Invoice"]
+            uc31["UC-31 Receive Invoices by Email"]
             uc12["UC-12 Classify Invoice Flow"]
             uc13["UC-13 Read and Identify Invoice"]
             uc14["UC-14 Match Invoice Lines"]
@@ -175,13 +183,19 @@ flowchart LR
     subgraph right["Systems"]
         direction TB
         erp(["Entity ERP"])
+        status(["Invoice Status Lookup Service"])
+        mail(["Email Service"])
         aiAgent(["AI Agent"])
         rules(["Rule Engine"])
     end
 
     demo --> uc08
-    ap --> uc09 & uc10
+    rd --> uc29
+    ap --> uc09 & uc10 & uc31
     uc07 --> erp
+    uc07 --> status
+    uc10 --> status
+    uc31 --> mail
     uc12 & uc13 & uc14 & uc15 --> aiAgent
     uc16 --> rules
 
@@ -189,10 +203,10 @@ flowchart LR
     classDef usecase fill:#1168bd,color:#fff,stroke:#0b4f9e
     classDef ai fill:#7b3fbf,color:#fff,stroke:#5a2d8c
     classDef external fill:#666,color:#fff,stroke:#333
-    class demo,ap actor
-    class uc07,uc08,uc09,uc10,uc16 usecase
+    class demo,rd,ap actor
+    class uc07,uc08,uc09,uc10,uc16,uc29,uc31 usecase
     class uc12,uc13,uc14,uc15 ai
-    class erp,aiAgent,rules external
+    class erp,status,mail,aiAgent,rules external
     style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
     style right fill:#fff,stroke:#bbb,stroke-dasharray:5 5
     style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
@@ -247,7 +261,7 @@ flowchart LR
     style system fill:#f8fbff,stroke:#1168bd,stroke-dasharray:5 5
 ```
 
-The AP Accountant reviews the batch, the Chief Accountant and the Payment Approver sign, and the System sends the signed batch to the ERP. The Administrator views the dashboard and the audit log; a Group Admin and an Entity Admin do the same because they inherit from the Administrator (see the actor diagram above, and the matrix for the scope).
+The AP Accountant reviews the batch, the Chief Accountant and the Payment Approver sign and can name a delegate, the Entity Admin sees and revokes delegations, and the System sends the signed batch to the ERP; the AP Accountant and the Chief Accountant can resend it by hand. All three finance roles receive notifications and reminders. The Administrator views the dashboard and the audit log; a Group Admin and an Entity Admin do the same because they inherit from the Administrator (see the actor diagram above, and the matrix for the scope).
 
 ```mermaid
 flowchart LR
@@ -257,6 +271,7 @@ flowchart LR
         ca["<span style='font-size:40px'>👤</span><br/><b>Chief Accountant</b>"]
         pa["<span style='font-size:40px'>👤</span><br/><b>Payment Approver</b>"]
         admin["<span style='font-size:40px'>👤</span><br/><b>Administrator</b>"]
+        entityAdmin["<span style='font-size:40px'>👤</span><br/><b>Entity Admin</b>"]
     end
 
     subgraph system["System Boundary"]
@@ -265,12 +280,14 @@ flowchart LR
             direction TB
             uc24["UC-24 Review Batch and Perform Sample Check"]
             uc25["UC-25 Sign Payment Requests"]
+            uc30["UC-30 Delegate Signing Authority"]
             uc26["UC-26 Send Signed Batch to ERP"]
         end
-        subgraph oversight["Oversight"]
+        subgraph oversight["Oversight and notifications"]
             direction TB
             uc27["UC-27 View Dashboard"]
             uc28["UC-28 View Audit Log"]
+            uc32["UC-32 Receive Notifications and Reminders"]
         end
     end
 
@@ -280,10 +297,13 @@ flowchart LR
         erp(["Entity ERP"])
     end
 
-    ap --> uc24 & uc27
-    ca --> uc25 & uc27 & uc28
-    pa --> uc25 & uc27
+    entityAdmin ==>|"«generalize»"| admin
+
+    ap --> uc24 & uc26 & uc27 & uc32
+    ca --> uc25 & uc26 & uc27 & uc28 & uc30 & uc32
+    pa --> uc25 & uc27 & uc30 & uc32
     admin --> uc27 & uc28
+    entityAdmin --> uc30
     uc24 & uc25 --> aiAgent
     uc26 --> erp
 
@@ -291,8 +311,8 @@ flowchart LR
     classDef usecase fill:#1168bd,color:#fff,stroke:#0b4f9e
     classDef ai fill:#7b3fbf,color:#fff,stroke:#5a2d8c
     classDef external fill:#666,color:#fff,stroke:#333
-    class ap,ca,pa,admin actor
-    class uc26,uc27,uc28 usecase
+    class ap,ca,pa,admin,entityAdmin actor
+    class uc26,uc27,uc28,uc30,uc32 usecase
     class uc24,uc25 ai
     class aiAgent,erp external
     style left fill:#fff,stroke:#bbb,stroke-dasharray:5 5
@@ -304,26 +324,29 @@ An Administrator is not a finance role and never signs or approves. For the acto
 
 #### 1.3.3 Roles and permissions
 
-| Capability | AP Accountant | Chief Accountant | Payment Approver | Entity Admin | Group Admin |
-|---|---|---|---|---|---|
-| Log in and out | Yes | Yes | Yes | Yes | Yes |
-| Upload XML invoices, manage recurring profiles | Own entity | No | No | No | No |
-| Resolve exceptions, send requests to suppliers, run the sample check | Own entity | No | No | No | No |
-| Decide on tax-risk holds | No | Own entity | No | No | No |
-| Approve a single exception | No | No | Own entity, own level | No | No |
-| Sign payment requests | No | Own entity, first | Own entity, own level, second | No | No |
-| View the invoice worklist and evidence | Own entity | Own entity (read-only) | Own entity (read-only) | No | No |
-| View the dashboard | Own entity | Own entity | Own entity | Own entity | Per-entity counts and rates |
-| View the audit log | No | Own entity | No | Own entity | Group events only |
-| Manage users and roles | No | No | No | Own entity | All entities |
-| Configure entity policy and approval matrix | No | No | No | Own entity | No |
-| Manage entities, group limits, and automation gates | No | No | No | No | Yes |
+| Capability | AP Accountant | Chief Accountant | Payment Approver | Requesting Department | Entity Admin | Group Admin |
+|---|---|---|---|---|---|---|
+| Log in and out | Yes | Yes | Yes | Yes | Yes | Yes |
+| Upload XML invoices, manage recurring profiles | Own entity | No | No | No | No | No |
+| Resolve exceptions, send requests to suppliers, run the sample check | Own entity | No | No | No | No | No |
+| Decide on tax-risk holds | No | Own entity | No | No | No | No |
+| Approve a single exception | No | No | Own entity, own level | No | No | No |
+| Confirm the acceptance of a service | No | No | No | Own entity | No | No |
+| Name a delegate for signing while absent | No | Own delegation | Own delegation | No | Own entity (view, revoke) | No |
+| Sign payment requests | No | Own entity, first | Own entity, own level, second | No | No | No |
+| Receive notifications and reminders | Own entity | Own entity | Own entity | No | No | No |
+| View the invoice worklist and evidence | Own entity | Own entity (read-only) | Own entity (read-only) | No | No | No |
+| View the dashboard | Own entity | Own entity | Own entity | No | Own entity | Per-entity counts and rates |
+| View the audit log | No | Own entity | No | No | Own entity | Group events only |
+| Manage users and roles | No | No | No | No | Own entity | All entities |
+| Configure entity policy and approval matrix | No | No | No | No | Own entity | No |
+| Manage entities, group limits, and automation gates | No | No | No | No | No | Yes |
 
 The Demo Operator, who plays the buyer and the warehouse keeper in the ERP simulator, appears only in the demo. The Rule Engine alone admits an invoice to a batch, from stored evidence and without an LLM; the AI supplies evidence and never decides. The server enforces roles and entity scope, and hiding a control in the screen serves only the user interface. The rules, including the lifecycles of invoices, exceptions, and batches, are in [Business rules](docs/requirements/business-rules.md).
 
 ## 2. Information Architecture, Screen Hierarchy, and UI/UX
 
-Step 3 (approved by the user) places the 26 active stories on 35 screens: 18 pages and 17 modals. SCR-13 and SCR-17 were removed by D-33 and their numbers are not reused. Each role has a left sidebar with only the pages it may open, and a top bar with the entity name, the user, and Log out. Pages are grouped into areas by the roles that use them, and decisions, confirmations, and forms are modals on their parent page. The Rule Engine's work and the other system behaviour has no screen of its own; its results appear on the invoice worklist, the invoice evidence, the batch review, the payment request, and the group overview.
+Step 3 (approved by the user) places the 26 stories of the earlier scope on 35 screens: 18 pages and 17 modals; the four stories added by D-88 (US-29..US-32) and the new criteria of existing stories are pending (Step 3 sync), see the [follow-up](docs/02-usecases-userstories/00-decisions.md#follow-up-in-steps-3-to-5). SCR-13 and SCR-17 were removed by D-33 and their numbers are not reused. Each role has a left sidebar with only the pages it may open, and a top bar with the entity name, the user, and Log out. Pages are grouped into areas by the roles that use them, and decisions, confirmations, and forms are modals on their parent page. The Rule Engine's work and the other system behaviour has no screen of its own; its results appear on the invoice worklist, the invoice evidence, the batch review, the payment request, and the group overview.
 
 ### 2.1 Information architecture
 
