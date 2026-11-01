@@ -65,3 +65,6 @@ a.btn { display: inline-flex; }
   .sidebar { position: static; height: auto; }
   .demo-panel { width: calc(100vw - 32px); }
 }
+
+/* The floating demo button must not cover the last row or the right-most column. */
+.page { padding-bottom: 76px; }

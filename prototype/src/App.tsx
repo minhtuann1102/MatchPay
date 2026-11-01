@@ -12,9 +12,23 @@ import { Recurring } from './pages/Recurring';
 import { Mailbox } from './pages/Mailbox';
 import { Batch } from './pages/Batch';
 import { Notifications } from './pages/Notifications';
+import { Acceptance } from './pages/Acceptance';
+import { Decisions } from './pages/Decisions';
+import { Signing } from './pages/Signing';
+import { RequestDetailPage } from './pages/RequestDetail';
+import { Delegations } from './pages/Delegations';
+import { Dashboard } from './pages/Dashboard';
+import { AuditLog } from './pages/AuditLog';
+import { Users } from './pages/Users';
+import { EntityPolicy } from './pages/EntityPolicy';
+import { ApprovalMatrix } from './pages/ApprovalMatrix';
+import { Group } from './pages/Group';
+import { Entities } from './pages/Entities';
+import { Gates } from './pages/Gates';
+import { ErpSimulator } from './pages/ErpSimulator';
 import { t } from './i18n/vi';
 
-// Phase 1 pages are real; every other route of 02-routes-and-permissions.md renders a placeholder.
+// Every route of 02-routes-and-permissions.md has a page; the placeholder stays as a fallback for a route without one.
 const PAGES: Record<string, ReactElement> = {
   '/invoices': <Invoices />,
   '/invoices/:id': <InvoiceDetailPage />,
@@ -22,6 +36,20 @@ const PAGES: Record<string, ReactElement> = {
   '/mailbox': <Mailbox />,
   '/batch': <Batch />,
   '/notifications': <Notifications />,
+  '/acceptance': <Acceptance />,
+  '/decisions': <Decisions />,
+  '/signing': <Signing />,
+  '/signing/requests/:id': <RequestDetailPage />,
+  '/delegations': <Delegations />,
+  '/dashboard': <Dashboard />,
+  '/audit-log': <AuditLog />,
+  '/users': <Users />,
+  '/entity/policy': <EntityPolicy />,
+  '/entity/approval-matrix': <ApprovalMatrix />,
+  '/group': <Group />,
+  '/group/entities': <Entities />,
+  '/group/gates': <Gates />,
+  '/demo/erp-simulator': <ErpSimulator />,
 };
 
 function Home() {

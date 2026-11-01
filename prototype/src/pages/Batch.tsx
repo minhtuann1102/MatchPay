@@ -91,7 +91,7 @@ function BatchView({ o, options, selected, onSelect, dlg, setDlg, close }: { o: 
         {STAGES.map((k, n) => (
           <li key={k} className={`${n < stage ? 'done' : ''}${n === stage ? ' cur' : ''}`} aria-current={n === stage ? 'step' : undefined}>
             <span className="dot">{n < stage ? <Icon name="check" /> : null}</span>
-            <span className="lab"><b>{t.batch.stages[k]}</b>{n === stage && <small>{t.batchState[b.state]}</small>}</span>
+            <span className="lab"><b>{t.batch.stages[k]}</b></span>
           </li>
         ))}
       </ol>

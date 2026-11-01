@@ -418,8 +418,8 @@ function Overview({ d, go }: { d: InvoiceDetail; go: (t: Tab) => void }) {
         <div className="sec-h"><h3>{t.detail.keyFacts}</h3><button type="button" className="btn btn-quiet btn-sm" onClick={() => go('documents')}>{t.detail.openDocuments}</button></div>
         <dl className="kf">
           <div><dt>{t.detail.invoiceDate}</dt><dd>{fmtDate(inv.invoiceDate)}</dd></div>
-          <div><dt>{t.detail.order}</dt><dd className="mono">{inv.poRef ?? t.detail.none}</dd></div>
-          <div><dt>{t.detail.receipt}</dt><dd className="mono">{inv.receiptRef ?? (inv.flow === 'SERVICES_WITH_ORDER' ? t.detail.noneService : t.detail.none)}</dd></div>
+          <div><dt>{t.detail.order}</dt><dd className={inv.poRef ? 'mono' : undefined}>{inv.poRef ?? t.detail.none}</dd></div>
+          <div><dt>{t.detail.receipt}</dt><dd className={inv.receiptRef ? 'mono' : undefined}>{inv.receiptRef ?? (inv.flow === 'SERVICES_WITH_ORDER' ? t.detail.noneService : t.detail.none)}</dd></div>
           <div><dt>{t.detail.trust}</dt><dd>{t.trust[inv.trust]}</dd></div>
           <div><dt>{t.detail.signatureCheck}</dt><dd><HandTag hand="RULE" /> {inv.authorityStatus ? t.detail.sigValid : t.detail.sigPending}</dd></div>
           <div><dt>{t.detail.lastSync}</dt><dd>{d.erpItems[0] ? fmtDateTime(d.erpItems[0].syncedAt) : t.detail.none}</dd></div>
@@ -559,7 +559,7 @@ function Documents({ d }: { d: InvoiceDetail }) {
           <dt>{t.detail.seriesNumber}</dt><dd className="mono">{i.series} / {i.number}</dd>
           <dt>{t.detail.buyerTaxCode}</dt><dd>{i.buyerTaxCode}</dd>
           <dt>{t.detail.buyerName}</dt><dd>{i.buyerName}</dd>
-          <dt>{t.detail.orderRef}</dt><dd className="mono">{i.poRef ?? t.detail.none}</dd>
+          <dt>{t.detail.orderRef}</dt><dd className={i.poRef ? "mono" : undefined}>{i.poRef ?? t.detail.none}</dd>
           <dt>{t.detail.storedHash}</dt><dd className="mono">{i.hash}</dd>
         </dl>
         <p className="evidence-note" style={{ padding: '0 16px 12px' }}>{t.detail.injectionNote}</p>

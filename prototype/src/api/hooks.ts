@@ -39,8 +39,8 @@ export const useDelegations = () => useQuery({ queryKey: ['delegations', sid()],
 
 export const useNotifications = (unreadOnly: boolean) => useQuery({ queryKey: ['notifications', sid(), unreadOnly], queryFn: () => rep.listNotifications({ unreadOnly }) });
 export const useUnreadCount = () => useQuery({ queryKey: ['unread', sid()], queryFn: rep.getUnreadNotificationCount, refetchInterval: 15000 });
-export const useDashboard = (period: string) => useQuery({ queryKey: ['dashboard', sid(), period], queryFn: () => rep.getDashboard({ period }) });
-export const useGroupDashboard = (period: string) => useQuery({ queryKey: ['groupDashboard', sid(), period], queryFn: () => rep.getGroupDashboard({ period }) });
+export const useDashboard = (period?: string) => useQuery({ queryKey: ['dashboard', sid(), period], queryFn: () => rep.getDashboard({ period }) });
+export const useGroupDashboard = (period?: string) => useQuery({ queryKey: ['groupDashboard', sid(), period], queryFn: () => rep.getGroupDashboard({ period }) });
 export const useAudit = (q: rep.AuditQuery) => useQuery({ queryKey: ['audit', sid(), q], queryFn: () => rep.listAuditEntries(q), placeholderData: keepPreviousData });
 
 export const useUsers = (q: { entityId?: string; role?: string }) => useQuery({ queryKey: ['users', sid(), q], queryFn: () => adm.listUsers(q as never) });
