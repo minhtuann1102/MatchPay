@@ -1342,6 +1342,16 @@ sequenceDiagram
 
 Source: [Runtime and Deployment](docs/07-architecture/07-runtime-and-deployment.md)
 
+## Interactive prototype
+
+A Vietnamese, clickable front end on mock data lives in [`prototype/`](prototype/README.md) (React, TypeScript, Vite, Ant Design 5; the mock API runs in the browser and follows the OpenAPI operation names). It sits next to the English wireframes, which stay the design reference. D-187 and D-197 are the user's decisions; D-188..D-196 and D-198..D-204 are calls that await the user's review: see [the UI/UX decisions](docs/04-uiux/00-decisions.md). Screenshots by role are in [`docs/images/prototype/`](docs/images/prototype/).
+
+```bash
+cd prototype
+npm install
+npm run dev
+```
+
 ## Documentation
 
 - Research: [Context and problem](docs/01-research/01-context-and-problem.md), [Goals and metrics](docs/01-research/02-goals-and-metrics.md), [Stakeholders](docs/01-research/03-stakeholders.md), [Similar products](docs/01-research/04-similar-products.md), [MVP scope](docs/01-research/05-scope.md), [Risks](docs/01-research/06-risks.md), [AI vs rule-based](docs/01-research/07-ai-vs-rule-based.md), [Glossary](docs/01-research/08-glossary.md), [Decisions](docs/01-research/00-decisions.md), [Future work](docs/01-research/09-future-work.md), [Regulatory context](docs/01-research/10-regulatory-context.md), [Invoice flows and data](docs/01-research/11-invoice-flows-and-data.md).
