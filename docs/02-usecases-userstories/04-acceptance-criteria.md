@@ -1,10 +1,10 @@
 # Acceptance Criteria
 
-> Design status: MVP — Step 2 of 9, draft for review
+> Design status: MVP — Step 2 of 9, approved
 >
 > Implementation status: NOT STARTED
 
-Format: *Given* (context) · *When* (action) · *Then* (observable result). Each story covers one use case and has its number: US-01 is UC-01. A bold line groups the criteria of one part of a story. The values are the demo configuration of the fictional Calderwood Group (DF-11, DF-12, DF-13): price tolerance ±2%, approval threshold VND 50,000,000, batch threshold VND 200,000,000, gate accuracy 98%, sample rate 10%. The real source documents are Vietnamese; the sample documents here are English equivalents. US-11 and US-22 were removed by D-33 and have no live criteria; a criterion that tested only removed behaviour reads "Removed (D-33)." and keeps its number. US-29..US-32 and the criteria added at the end of existing stories come from the sync to the feature mind map (D-88, D-89..D-99); they are calls awaiting user review.
+Format: *Given* (context) · *When* (action) · *Then* (observable result). Each story covers one use case and has its number: US-01 is UC-01. A bold line groups the criteria of one part of a story. The values are the demo configuration of the fictional Calderwood Group (DF-11, DF-12, DF-13): price tolerance ±2%, approval threshold VND 50,000,000, batch threshold VND 200,000,000, gate accuracy 98%, sample rate 10%. The real source documents are Vietnamese; the sample documents here are English equivalents. US-11 and US-22 were removed by D-33 and have no live criteria; a criterion that tested only removed behaviour reads "Removed (D-33)." and keeps its number. US-29..US-32 and the criteria added at the end of existing stories come from the sync to the feature mind map (D-88, D-89..D-99); they are calls approved by the user (2026-11-01).
 
 ## Evaluation sets and test suites
 

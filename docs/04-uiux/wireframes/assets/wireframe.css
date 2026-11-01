@@ -377,7 +377,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .modal, .modal-b > * { min-width: 0; } .modal-b div[aria-live] { min-width: 0; }
 
 /* =====================================================================
-   R1 layout patterns (UX redesign, draft for review). Old classes above stay working.
+   R1 layout patterns (UX redesign, approved). Old classes above stay working.
    P1 page header, P2 summary tiles, P3 view tabs, P4 toolbar, P5 compact table,
    P6 object page (stepper, attention card), P7 action panel, P8 disclosure,
    P9 drawer, P11 density.

@@ -1,6 +1,6 @@
 # ER Diagram
 
-> Design status: MVP — Step 5 of 9, draft for review
+> Design status: MVP — Step 5 of 9, approved
 >
 > Implementation status: NOT STARTED
 

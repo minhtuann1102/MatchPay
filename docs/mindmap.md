@@ -1,6 +1,6 @@
 # MatchPay Product Mind Map
 
-> Design status: MVP — Step 1 of 9, draft for review
+> Design status: MVP — Step 1 of 9, approved
 >
 > Implementation status: NOT STARTED
 

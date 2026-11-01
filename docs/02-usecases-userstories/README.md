@@ -1,6 +1,6 @@
 # 02 — Use Cases and User Stories
 
-> Design status: MVP — Step 2 of 9, draft for review
+> Design status: MVP — Step 2 of 9, approved
 >
 > Implementation status: NOT STARTED
 

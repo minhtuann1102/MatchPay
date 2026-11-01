@@ -12,11 +12,11 @@ The work is done in nine steps. A step is only approved when the user approves i
 
 | Step | Content | Status |
 |---|---|---|
-| 1 | Research and problem analysis | Draft for review |
-| 2 | Use cases and user stories (INVEST, acceptance criteria, business rules, MoSCoW) | Draft for review |
-| 3 | Information architecture (sitemap, routes and permissions, navigation, screen inventory, user flows, UI states) | Approved; the sync to the feature mind map (2026-11-01) is a draft for review |
-| 4 | UI/UX and wireframes (design system, screen notes, HTML wireframes with PNG exports) | Approved |
-| 5 | Database | Draft for review |
+| 1 | Research and problem analysis | Approved by the user (2026-11-01) |
+| 2 | Use cases and user stories (INVEST, acceptance criteria, business rules, MoSCoW) | Approved by the user (2026-11-01) |
+| 3 | Information architecture (sitemap, routes and permissions, navigation, screen inventory, user flows, UI states) | Approved (2026-10-31); the D-33 adjustments and the sync to the feature mind map (2026-11-01) are approved by the user (2026-11-01) |
+| 4 | UI/UX and wireframes (design system, screen notes, HTML wireframes with PNG exports) | Approved (2026-10-31); revision R1 and the mind map sync (2026-11-01) are approved by the user (2026-11-01) |
+| 5 | Database | Approved by the user (2026-11-01) |
 | 6 | API contract | Not started |
 | 7 | C4 architecture, tech stack, and LLM provider | Not started |
 | 8 | Code structure | Not started |
@@ -47,7 +47,7 @@ Start with the [Step 1 index](docs/01-research/README.md).
 
 #### 1.3.1 INVEST requirements
 
-The MVP backlog includes 30 user stories, one per use case and numbered like it (US-01 is UC-01). The user removed foreign invoices and the cash payment flag from the MVP (D-33), so UC-11, UC-22, US-11, and US-22 are removed and their numbers are not reused. On 2026-11-01 the user attached a feature mind map and asked to sync the documents to it (D-88), which added four Should stories, UC-29..UC-32 (service acceptance by the Requesting Department, signing delegation while absent, invoices by email, and notifications and reminders), and extended some existing ones; the readings behind them are calls awaiting user review (D-89..D-99). They cover access and configuration, source data, intake and AI understanding, exceptions, the batch with its sample check and signing, and oversight. Before a user story is ready for development, it is checked using the INVEST criteria.
+The MVP backlog includes 30 user stories, one per use case and numbered like it (US-01 is UC-01). The user removed foreign invoices and the cash payment flag from the MVP (D-33), so UC-11, UC-22, US-11, and US-22 are removed and their numbers are not reused. On 2026-11-01 the user attached a feature mind map and asked to sync the documents to it (D-88), which added four Should stories, UC-29..UC-32 (service acceptance by the Requesting Department, signing delegation while absent, invoices by email, and notifications and reminders), and extended some existing ones; the readings behind them are calls approved by the user (2026-11-01) (D-89..D-99). They cover access and configuration, source data, intake and AI understanding, exceptions, the batch with its sample check and signing, and oversight. Before a user story is ready for development, it is checked using the INVEST criteria.
 
 | Criterion | Meaning in MatchPay |
 |---|---|
@@ -346,7 +346,7 @@ The Demo Operator, who plays the buyer and the warehouse keeper in the ERP simul
 
 ## 2. Information Architecture, Screen Hierarchy, and UI/UX
 
-Step 3 (approved by the user, then synced to the feature mind map as a draft for review) places the 30 stories on 45 screens: 22 pages and 23 modals. The sync (D-88) added the seventh role, the Requesting Department, ten screens (the acceptance queue, the mailbox log, signing delegations, the notification list, and six modals), three flows, and a notification centre that reverses D-41. SCR-13 and SCR-17 were removed by D-33 and their numbers are not reused. Each role has a left sidebar with only the pages it may open, and a top bar with the entity name, the user, and Log out. Pages are grouped into areas by the roles that use them, and decisions, confirmations, and forms are modals on their parent page. The Rule Engine's work and the other system behaviour has no screen of its own; its results appear on the invoice worklist, the invoice evidence, the batch review, the payment request, and the group overview.
+Step 3 (approved by the user, then synced to the feature mind map as approved) places the 30 stories on 45 screens: 22 pages and 23 modals. The sync (D-88) added the seventh role, the Requesting Department, ten screens (the acceptance queue, the mailbox log, signing delegations, the notification list, and six modals), three flows, and a notification centre that reverses D-41. SCR-13 and SCR-17 were removed by D-33 and their numbers are not reused. Each role has a left sidebar with only the pages it may open, and a top bar with the entity name, the user, and Log out. Pages are grouped into areas by the roles that use them, and decisions, confirmations, and forms are modals on their parent page. The Rule Engine's work and the other system behaviour has no screen of its own; its results appear on the invoice worklist, the invoice evidence, the batch review, the payment request, and the group overview.
 
 ### 2.1 Information architecture
 
@@ -533,11 +533,11 @@ Login takes each role to its home page (DF-28, D-39, DF-44), as the table below 
 | Group Admin | Group Overview | Group overview, Automation gates, Entities and limits, Users, Dashboard, Audit log |
 | Demo Operator | ERP Simulator (demo only) | ERP simulator |
 
-Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with the diagram of areas and page cards. Routes and the page-permission table are in [Routes and Permissions](docs/03-information-architecture/02-routes-and-permissions.md), navigation in [Navigation](docs/03-information-architecture/03-navigation.md), screen IDs and the requirement-to-screen mapping in [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), flows in [Primary User Flows](docs/03-information-architecture/05-user-flows.md), and states in [UI/UX States and Accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md). The D-33 adjustments, the diagram presentation, and the mind map sync (D-100..D-107, DF-69..DF-72) await review in [Decisions and Defaults](docs/03-information-architecture/00-decisions.md).
+Source: [Sitemap by Role](docs/03-information-architecture/01-sitemap.md) with the diagram of areas and page cards. Routes and the page-permission table are in [Routes and Permissions](docs/03-information-architecture/02-routes-and-permissions.md), navigation in [Navigation](docs/03-information-architecture/03-navigation.md), screen IDs and the requirement-to-screen mapping in [Screen Inventory](docs/03-information-architecture/04-screen-inventory.md), flows in [Primary User Flows](docs/03-information-architecture/05-user-flows.md), and states in [UI/UX States and Accessibility](docs/03-information-architecture/06-ui-states-and-accessibility.md). The D-33 adjustments, the diagram presentation, and the mind map sync (D-100..D-107, DF-69..DF-72) are approved by the user (2026-11-01) in [Decisions and Defaults](docs/03-information-architecture/00-decisions.md).
 
 ### 2.3 UI wireframes
 
-Step 4 (approved by the user) draws the 45 active screens as 22 high-fidelity page files; modals are states of their parent page. The design concept is "three hands": what the **AI proposed** (dotted rail, round dashed tag), what the **Rule Engine decided** (double rail, square tag, six conditions with their values), and what a **person decided or signed** (solid rail, filled tag, signature record) are always distinguishable, in text and in shape. Only four core screens are shown here. Every screen and state, in every role, is in the wireframe gallery: open `docs/04-uiux/wireframes/index.html` in a browser from a local clone (GitHub shows `.html` files as source code). Revision R1 (2026-11-01) redesigned the layout of these screens (object pages with a stepper and tabs, lists with tiles and saved views, drawers for forms) and is a draft for review; the images below are the R1 exports and keep their paths. The mind map sync (D-88, 2026-11-01, draft for review) added four pages and six modals or drawers for the Requesting Department, the signing delegations, the mailbox log, and the notifications, and states on six existing pages; the new calls are D-108..D-117 and DF-73..DF-76.
+Step 4 (approved by the user) draws the 45 active screens as 22 high-fidelity page files; modals are states of their parent page. The design concept is "three hands": what the **AI proposed** (dotted rail, round dashed tag), what the **Rule Engine decided** (double rail, square tag, six conditions with their values), and what a **person decided or signed** (solid rail, filled tag, signature record) are always distinguishable, in text and in shape. Only four core screens are shown here. Every screen and state, in every role, is in the wireframe gallery: open `docs/04-uiux/wireframes/index.html` in a browser from a local clone (GitHub shows `.html` files as source code). Revision R1 (2026-11-01) redesigned the layout of these screens (object pages with a stepper and tabs, lists with tiles and saved views, drawers for forms) and is approved; the images below are the R1 exports and keep their paths. The mind map sync (D-88, 2026-11-01, approved) added four pages and six modals or drawers for the Requesting Department, the signing delegations, the mailbox log, and the notifications, and states on six existing pages; the new calls are D-108..D-117 and DF-73..DF-76.
 
 **Invoice worklist (AP Accountant, SCR-10):** every state chip, reasons with numbers, "Due soon", and the sync time.
 
@@ -567,7 +567,7 @@ Step 5 defines the persistence contract. The HTTP contract (4.2) follows in Step
 
 ### 4.1 Database diagrams
 
-The PostgreSQL model (assumed here, confirmed in Step 7) has 74 tables in twelve groups, including the tables added by the sync to the feature mind map (delegations, service acceptances, mailbox, authority status lookups, cancellation notices, sample expansions, batch reopenings, notifications; draft for review). Every business row carries its entity and the server enforces the scope; the only structure that sees the whole group is the unique index behind the exact-duplicate check. An invoice is stored with its original XML and hash, and every AI output (flow, identification, line match, anomaly finding) and every Rule Engine condition is a row with its numbers and its model and prompt version, so that a decision can be explained later. Exceptions, batches, payment requests, and signatures follow the lifecycles of BR-33, BR-34, and BR-35, a signature is bound to the version and the content hash of its request, and the audit log is append-only. Values that can be computed, such as the touchless rate and the badges, are not stored. The diagram below shows the tables that carry an invoice from upload to payment; the other groups are in the [ER diagram](docs/05-database/02-er-diagram.md), and the schema source is [matchpay.dbml](docs/05-database/matchpay.dbml).
+The PostgreSQL model (assumed here, confirmed in Step 7) has 74 tables in twelve groups, including the tables added by the sync to the feature mind map (delegations, service acceptances, mailbox, authority status lookups, cancellation notices, sample expansions, batch reopenings, notifications; approved). Every business row carries its entity and the server enforces the scope; the only structure that sees the whole group is the unique index behind the exact-duplicate check. An invoice is stored with its original XML and hash, and every AI output (flow, identification, line match, anomaly finding) and every Rule Engine condition is a row with its numbers and its model and prompt version, so that a decision can be explained later. Exceptions, batches, payment requests, and signatures follow the lifecycles of BR-33, BR-34, and BR-35, a signature is bound to the version and the content hash of its request, and the audit log is append-only. Values that can be computed, such as the touchless rate and the badges, are not stored. The diagram below shows the tables that carry an invoice from upload to payment; the other groups are in the [ER diagram](docs/05-database/02-er-diagram.md), and the schema source is [matchpay.dbml](docs/05-database/matchpay.dbml).
 
 ```mermaid
 erDiagram
@@ -652,16 +652,16 @@ Written in Step 6. Every story needs an API, and every API must use an entity fr
 
 ## Project Progress
 
-- [x] Define the problem, measurable goals, stakeholders, and user roles (draft for review)
-- [x] Compare similar products, define the MVP scope, risks, and AI vs rule-based reasoning (draft for review)
-- [x] Draw the product mind map (draft for review)
-- [x] Write the use cases and the use case diagram (draft for review)
-- [x] Write user stories following INVEST (draft for review)
-- [x] Write acceptance criteria (Given/When/Then) and business rules (draft for review)
-- [x] Prioritize the backlog with MoSCoW (draft for review)
+- [x] Define the problem, measurable goals, stakeholders, and user roles (approved)
+- [x] Compare similar products, define the MVP scope, risks, and AI vs rule-based reasoning (approved)
+- [x] Draw the product mind map (approved)
+- [x] Write the use cases and the use case diagram (approved)
+- [x] Write user stories following INVEST (approved)
+- [x] Write acceptance criteria (Given/When/Then) and business rules (approved)
+- [x] Prioritize the backlog with MoSCoW (approved)
 - [x] Design the information architecture, sitemap per role, and user flows (approved)
 - [x] Design the UI/UX wireframes, including AI states and a design system (approved)
-- [x] Design the database (draft for review)
+- [x] Design the database (approved)
 - [ ] Write the API documentation in OpenAPI 3.0
 - [ ] Design the C4 model and choose the tech stack and LLM provider
 - [ ] Design the code structure
