@@ -30,6 +30,7 @@ Enum user_role {
   AP_ACCOUNTANT
   CHIEF_ACCOUNTANT
   PAYMENT_APPROVER
+  REQUESTING_DEPARTMENT [note: 'Confirms or rejects a service acceptance of the own entity; one page, the acceptance queue (D-90, D-101, AC-02.9)']
   ENTITY_ADMIN
   GROUP_ADMIN [note: 'Belongs to the group, not to one entity (DF-14)']
   DEMO_OPERATOR [note: 'Demo only (D-12); belongs to the group and picks the entity in SCR-80']
@@ -53,7 +54,7 @@ Enum gate_state {
 Enum sync_status {
   RUNNING
   SUCCESS
-  FAILED [note: 'ERP unavailable; earlier data stays (AC-07.7)']
+  FAILED [note: 'ERP or mailbox unavailable; earlier data stays (AC-07.7, AC-31.7)']
 }
 
 Enum sync_record_type {
@@ -65,6 +66,7 @@ Enum sync_record_type {
   UNIT_CONVERSION
   ERP_USER
   TAX_RISK_ENTRY
+  AUTHORITY_STATUS [note: 'An entry of the simulated authority status feed without a key, status, or date is rejected and logged (AC-07.12, D-93)']
 }
 
 Enum order_kind {
@@ -130,15 +132,19 @@ Enum rejection_reason {
   BUYER_TAX_CODE_MISMATCH
   EXACT_DUPLICATE
   REJECTED_BY_PERSON [note: 'Rejected with a reason from an exception (AC-18.6, AC-21.4)']
+  CANCELLED_AT_AUTHORITY [note: 'Status Cancelled at the tax authority, at intake (V6) or found by a later refresh (V13, V21); the status date is on the lookup (BR-39, AC-10.12)']
+  REPLACED_AT_AUTHORITY [note: 'Status Replaced at the tax authority; the replacing invoice is named on the lookup (BR-39, AC-10.13)']
+  CANCELLED_BY_SELLER [note: 'A cancellation notice from the seller was recorded (V13, V21, BR-31, AC-18.13, AC-18.16)']
 }
 
 Enum run_trigger {
   UPLOAD
-  RE_RUN [note: 'AP Accountant re-runs after an AI failure (DF-08)']
+  RE_RUN [note: 'AP Accountant re-runs after an AI failure (DF-08), or runs the authority status lookup again (AC-10.15)']
   RESOLUTION [note: 'A person resolved a reason (AC-18.3)']
   ERP_SYNC [note: 'A receipt or corrected data arrived (BR-14)']
   FOLLOW_UP [note: 'A follow-up invoice is checked (UC-20)']
   RISK_LIST_CHANGE [note: 'BR-08']
+  ACCEPTANCE [note: 'The Requesting Department confirmed or rejected a service acceptance (UC-29, AC-29.2)']
 }
 
 Enum run_outcome {
@@ -242,6 +248,10 @@ Enum reason_code {
   WITHDRAWN_FROM_BATCH
   APPROVAL_DECLINED
   PAYMENT_FAILED
+  SERVICE_ACCEPTANCE_REJECTED [note: 'The Requesting Department rejected the acceptance; cannot be approved individually (D-31, D-90, AC-29.3)']
+  AUTHORITY_STATUS_UNAVAILABLE [note: 'The status lookup did not answer within 10 seconds; never admitted with an unknown status (BR-39, DF-64, AC-10.15)']
+  CANCELLED_AFTER_SIGNING [note: 'The invoice was cancelled while its request was Signed and not yet sent (V20, R9, AC-18.14)']
+  REQUEST_CANCELLED_OTHER_INVOICE [note: 'Its request was cancelled because another invoice in it was cancelled (V20, R9, AC-18.14)']
 }
 
 Enum wrong_entity_source {
@@ -320,6 +330,9 @@ Enum withdraw_reason {
   REMOVED_BY_SIGNER
   REQUEST_DECLINED
   RISK_LIST_CHANGE
+  CANCELLATION_NOTICE [note: 'The invoice was withdrawn, or its request line ended, because of a cancellation notice (V15, BR-31)']
+  REQUEST_CANCELLED [note: 'The request was cancelled by a cancellation notice for another of its invoices (R9, AC-18.14)']
+  BATCH_REOPENED [note: 'Ends the lines of the requests cancelled by a reopening (B7); the batch items stay, so the invoices stay In Batch (D-95)']
 }
 
 Enum sample_method {
@@ -353,6 +366,8 @@ Enum signature_state {
 Enum cancel_kind {
   DECLINED
   ALL_LINES_REMOVED
+  CANCELLATION_NOTICE [note: 'R9: a cancellation notice arrived before the request was sent (BR-31, D-94)']
+  BATCH_REOPENED [note: 'R6 through B7: the AP Accountant reopened the batch before any signature (D-95)']
 }
 
 Enum send_outcome {
@@ -436,6 +451,80 @@ Enum audit_event {
   ACCESS_DENIED
 }
 
+Enum acceptance_decision {
+  CONFIRMED [note: 'Counts as the independent acceptance source until an ERP acceptance exists (BR-17, BR-19, D-90)']
+  REJECTED [note: 'Opens the exception Service acceptance rejected (AC-29.3)']
+}
+
+Enum invoice_source {
+  UPLOAD
+  EMAIL [note: 'Read from an XML attachment of the entity mailbox (UC-31, D-92)']
+}
+
+Enum fetch_trigger {
+  SCHEDULED [note: 'Every 15 minutes (DF-63)']
+  FETCH_NOW [note: 'The AP Accountant pressed Fetch now (AC-31.8)']
+}
+
+Enum message_outcome {
+  PENDING [note: 'Stored by the fetch, attachments not all processed yet']
+  PROCESSED
+  NO_ATTACHMENT [note: 'Logged as No attachment; no invoice (AC-31.3)']
+}
+
+Enum attachment_outcome {
+  INVOICE_CREATED [note: 'An XML attachment became an invoice; the checks of US-10 may still reject it (AC-31.1, AC-31.6)']
+  REJECTED_NOT_XML [note: 'Only XML e-invoices are accepted in the MVP (BR-17, AC-31.2)']
+  REJECTED_TOO_LARGE [note: 'Over 10 MB (DF-63)']
+}
+
+Enum authority_status {
+  VALID
+  ADJUSTED [note: 'A warning only; the adjustment invoice is handled by BR-31 (AC-10.14)']
+  REPLACED [note: 'Stops the invoice at intake (V6, BR-39)']
+  CANCELLED [note: 'Stops the invoice at intake (V6) or starts a cancellation (BR-31, BR-39)']
+}
+
+Enum lookup_trigger {
+  INTAKE [note: 'After the signature check (BR-39)']
+  RE_RUN [note: 'The AP Accountant ran the lookup again (AC-10.15)']
+  SYNC_REFRESH [note: 'The ERP sync refreshed an invoice that is not yet sent (DF-64, AC-07.11)']
+}
+
+Enum lookup_outcome {
+  ANSWERED
+  UNAVAILABLE [note: 'No answer within 10 seconds; the invoice becomes an exception and intake never blocks (DF-64)']
+}
+
+Enum cancel_source {
+  SELLER [note: 'Recorded by the AP Accountant with a reference, a date, and a file (AC-18.13)']
+  AUTHORITY [note: 'Read from the simulated authority status (BR-39)']
+}
+
+Enum cancellation_effect {
+  REJECTED [note: 'Waiting for Goods or Exception: rejected at once (V13, V21, AC-18.16)']
+  WITHDRAWN_AND_REJECTED [note: 'In Batch in a request that is not signed: withdrawn and rejected in one action (AC-18.13)']
+  REQUEST_CANCELLED [note: 'Signed and not sent: the request is cancelled (R9, V20, AC-18.14)']
+  WARNING_ONLY [note: 'Sent or Paid: stored as a warning, no state changes (AC-18.15, D-67)']
+  NO_EFFECT [note: 'The invoice is already in a final state or has not been checked yet; the notice is stored']
+}
+
+Enum notification_kind {
+  BATCH_RELEASED [note: 'To the signers: payment requests wait for your signature (AC-32.1)']
+  SIGNATURE_WAITING [note: 'To the Payment Approver at the required level after the Chief Accountant signed (AC-32.1)']
+  EXCEPTION_OPENED [note: 'To the AP Accountant: a new exception (AC-32.2, AC-29.3)']
+  REQUEST_RETURNED [note: 'To the AP Accountant: a request declined or cancelled because every line was removed (AC-32.3)']
+  REQUEST_CANCELLED [note: 'To the AP Accountant and the Chief Accountant: a request cancelled by a cancellation notice (AC-18.14)']
+  REPLY_REMINDER [note: 'A correction request past 5 working days without a reply; repeats daily (DF-21, AC-32.4)']
+  SIGNATURE_REMINDER [note: 'A request past its due date still waits for the signer; repeats daily (DF-67, AC-32.5)']
+}
+
+Enum notification_object {
+  INVOICE [note: 'Opens SCR-12 (DF-70)']
+  BATCH [note: 'Opens SCR-50 for a batch released for signing (DF-70)']
+  PAYMENT_REQUEST [note: 'Opens SCR-51, or SCR-30 for the AP Accountant (DF-70)']
+}
+
 // ───────── Groups ─────────
 
 TableGroup group_and_access {
@@ -446,6 +535,7 @@ TableGroup group_and_access {
   entity_policies
   approval_tiers
   approval_tier_approvers
+  signing_delegations
 }
 
 TableGroup automation_gates {
@@ -475,6 +565,7 @@ TableGroup erp_simulator {
   sim_po_lines
   sim_receipts
   sim_receipt_lines
+  sim_authority_statuses
 }
 
 TableGroup accumulated_data {
@@ -491,6 +582,14 @@ TableGroup invoices_group {
   invoice_lines
   invoice_corrections
   invoice_receipts
+}
+
+TableGroup intake_sources_and_status {
+  mailbox_fetch_runs
+  mailbox_messages
+  mailbox_attachments
+  authority_status_lookups
+  cancellation_notices
 }
 
 TableGroup ai_and_rules {
@@ -514,6 +613,7 @@ TableGroup exceptions_group {
   correction_requests
   tax_risk_decisions
   individual_approvals
+  service_acceptances
 }
 
 TableGroup batch_and_signing {
@@ -525,6 +625,12 @@ TableGroup batch_and_signing {
   request_signatures
   ai_payment_summaries
   erp_send_attempts
+  sample_expansions
+  batch_reopenings
+}
+
+TableGroup in_app_notifications {
+  notifications
 }
 
 TableGroup audit {
@@ -627,7 +733,7 @@ Table users {
     `version >= 1` [name: 'ck_users_version']
   }
 
-  Note: 'Every account, one table for all six roles (US-01, US-02, BR-02, BR-09, D-13, DF-14, DF-32). Never deleted; deactivated instead (AC-02.5). Entity Admin cannot create administrator roles (AC-02.2): checked by the API.'
+  Note: 'Every account, one table for all seven roles (US-01, US-02, US-29, BR-02, BR-09, D-13, D-90, DF-14, DF-32). Never deleted; deactivated instead (AC-02.5). Entity Admin cannot create administrator roles (AC-02.2): checked by the API.'
 }
 
 Table entity_policies {
@@ -694,6 +800,37 @@ Table approval_tier_approvers {
   }
 
   Note: 'Payment Approvers assigned to each level (US-05, BR-03). The top tier needs at least one active approver (AC-05.3): checked by the API in the save transaction.'
+}
+
+Table signing_delegations {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  delegator_id bigint [not null, note: 'The absent Chief Accountant or Payment Approver, who also created the delegation (DF-62)']
+  delegate_id bigint [not null, note: 'An active Chief Accountant or Payment Approver of the same entity; the role is checked by the API, the entity by the composite foreign keys (D-48)']
+  delegated_role signer_role [not null, note: 'The role of the delegator when the delegation was made; the delegate signs in this role, at the approval level of the delegator (BR-38)']
+  valid_from date [not null, note: 'Today or later when saved: checked by the API, because a check constraint cannot read the clock (DF-62)']
+  valid_to date [not null, note: 'Inclusive']
+  reason varchar(300) [not null, note: 'For example Annual leave (AC-30.1)']
+  revoked_by bigint [note: 'The delegator or the Entity Admin (AC-30.9)']
+  revoked_at timestamptz [note: 'Signatures already given stay valid (DF-62)']
+  version integer [not null, default: 1, note: 'Conflict state of SCR-55 (D-56)']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (delegator_id, valid_from) [name: 'ix_delegations_delegator', note: 'No overlap per delegator: SQL adds EXCLUDE USING gist (delegator_id WITH =, daterange(valid_from, valid_to, \'[]\') WITH &&) WHERE (revoked_at IS NULL). It needs the btree_gist extension, and DBML cannot express it (DF-62, D-119)']
+    (entity_id, delegate_id, valid_from) [name: 'ix_delegations_delegate', note: 'the signing queue of a delegate']
+  }
+
+  checks {
+    `delegator_id <> delegate_id` [name: 'ck_delegations_people']
+    `valid_to >= valid_from` [name: 'ck_delegations_range']
+    `valid_to - valid_from <= 29` [name: 'ck_delegations_max_days', note: '30 days counting both ends (DF-62, DF-77)']
+    `(revoked_at IS NULL) = (revoked_by IS NULL)` [name: 'ck_delegations_revoked']
+    `version >= 1` [name: 'ck_delegations_version']
+  }
+
+  Note: 'Signing delegation while the delegator is absent (US-30, BR-38, BR-02, BR-36; D-91, DF-62; AC-30.1..AC-30.11). Scheduled, Active, Ended, and Revoked are computed from the dates and revoked_at (D-63). The delegate and the delegator belong to the same entity, enforced by composite foreign keys on (entity_id, delegator_id) and (entity_id, delegate_id) to users. Individual approvals are not delegated (D-119). Not the policy delegation of O-05. The legal validity of a delegated e-signature is Unverified (O-17).'
 }
 
 // ───────── Automation gates ─────────
@@ -1097,6 +1234,27 @@ Table sim_receipt_lines {
   Note: 'Quantities of a simulated receipt (US-08, BR-15). Demo only.'
 }
 
+Table sim_authority_statuses {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  seller_tax_code varchar(14) [note: 'Part of the invoice key; NULL only in an invalid entry that the sync rejects (AC-07.12)']
+  series varchar(20)
+  number varchar(20)
+  status authority_status [note: 'NULL only in an invalid entry']
+  status_date date [note: 'The date of the status, for example 2026-11-03; NULL only in an invalid entry']
+  replaced_by_series varchar(20) [note: 'For REPLACED: the replacing invoice (AC-10.13)']
+  replaced_by_number varchar(20)
+  answers boolean [not null, default: true, note: 'false = the simulator does not answer, to show AC-10.15']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`, note: 'The demo changes a status after intake, for example to Cancelled (AC-07.11)']
+
+  indexes {
+    (entity_id, seller_tax_code, series, number) [unique, name: 'ux_sim_authority_key', note: 'partial: WHERE seller_tax_code, series, and number are not NULL; one current status per invoice key']
+  }
+
+  Note: 'The simulated feed of invoice status at the tax authority (US-07, BR-39, D-93, DF-64, D-49). Demo only. Unlike the tax-risk feed it is a table, because the demo changes a status after the invoice was taken in (AC-07.11). There is no screen for it; the demo seed script changes it (D-120). A key with no entry is answered as Valid by the simulator (DF-78). The real connection point is W-13.'
+}
+
 // ───────── Accumulated data ─────────
 
 Table item_mappings {
@@ -1251,7 +1409,8 @@ Table invoices {
   rejection_note text [note: 'Reason typed by a person (required for REJECTED_BY_PERSON)']
   rejected_by bigint
   rejected_at timestamptz
-  uploaded_by bigint [not null]
+  source invoice_source [not null, default: 'UPLOAD', note: 'Upload by a person, or an XML attachment read from the entity mailbox (UC-31, DF-72); the attachment is in mailbox_attachments']
+  uploaded_by bigint [note: 'The person who uploaded it; NULL for source EMAIL, where the system took it in']
   received_at timestamptz [not null, default: `now()`]
   version integer [not null, default: 1, note: 'Concurrent-change detection (BR-37, DF-27)']
   created_at timestamptz [not null, default: `now()`]
@@ -1264,6 +1423,7 @@ Table invoices {
     (entity_id, supplier_id, total_amount) [name: 'ix_invoices_near_duplicate', note: 'near-duplicate lookup (DF-19)']
     (entity_id, due_date) [name: 'ix_invoices_due']
     (entity_id, order_id) [name: 'ix_invoices_order']
+    (entity_id, source) [name: 'ix_invoices_source', note: 'the Source filter of SCR-10 (DF-72)']
   }
 
   checks {
@@ -1274,9 +1434,10 @@ Table invoices {
     `total_amount IS NULL OR total_amount >= 0` [name: 'ck_invoices_total']
     `(flow_set_by IS NULL) = (flow_set_at IS NULL)` [name: 'ck_invoices_flow_set']
     `version >= 1` [name: 'ck_invoices_version']
+    `(source = 'UPLOAD') = (uploaded_by IS NOT NULL)` [name: 'ck_invoices_source']
   }
 
-  Note: 'An XML e-invoice and its state (US-10, US-12, US-13, US-16, US-17; BR-01, BR-11, BR-17, BR-31, BR-33, BR-37, DF-27). Fields are read from the stored XML. Only XML is accepted (D-33). Evidence of AI and Rule Engine decisions is in the tables that refer to it, not here.'
+  Note: 'An XML e-invoice and its state (US-10, US-12, US-13, US-16, US-17, US-31; BR-01, BR-11, BR-17, BR-31, BR-33, BR-37, BR-39, DF-27). The authority status, the service acceptance, and a cancellation notice are not columns here: they are read from authority_status_lookups, service_acceptances, and cancellation_notices. Fields are read from the stored XML. Only XML is accepted (D-33). Evidence of AI and Rule Engine decisions is in the tables that refer to it, not here.'
 }
 
 Table invoice_documents {
@@ -1354,7 +1515,152 @@ Table invoice_receipts {
     (invoice_id, receipt_id) [unique, name: 'ux_invoice_receipts_pair']
   }
 
-  Note: 'Receipts or acceptances matched to an invoice (US-13, BR-14, BR-19). An order can have several receipts after short deliveries. No row means Waiting for Goods.'
+  Note: 'Receipts or acceptances matched to an invoice (US-13, BR-14, BR-19). An order can have several receipts after short deliveries. No row means Waiting for Goods, unless a Requesting Department user confirmed the acceptance of a service invoice (service_acceptances).'
+}
+
+// ───────── Intake sources and invoice status ─────────
+
+Table mailbox_fetch_runs {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  trigger fetch_trigger [not null]
+  requested_by bigint [note: 'The AP Accountant who pressed Fetch now; NULL for a scheduled fetch']
+  started_at timestamptz [not null, default: `now()`]
+  finished_at timestamptz
+  status sync_status [not null, default: 'RUNNING']
+  messages_read integer [not null, default: 0]
+  messages_stored integer [not null, default: 0, note: 'New messages; one fetched before is not stored again (AC-31.4)']
+  error_message text [note: 'Technical cause of a failed fetch; shown to users only as a failure with the last successful fetch time (AC-31.7)']
+
+  indexes {
+    (entity_id, started_at) [name: 'ix_mailbox_fetch_runs_entity']
+  }
+
+  checks {
+    `(trigger = 'FETCH_NOW') = (requested_by IS NOT NULL)` [name: 'ck_mailbox_fetch_runs_requested']
+  }
+
+  Note: 'One row per read of the simulated entity mailbox (US-31, DF-63, D-92; AC-31.7, AC-31.8). The last successful fetch is the finished_at of the last SUCCESS run, and a later FAILED run raises the warning; both are computed when read, like the ERP sync.'
+}
+
+Table mailbox_messages {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  fetch_run_id bigint [not null, note: 'The fetch that stored it']
+  mailbox_address varchar(255) [not null, note: 'The simulated mailbox of the entity, for example invoices-foods@calderwood.example. The address is configuration decided in Step 7 (DF-55) and is copied here as read']
+  message_identifier varchar(255) [not null, note: 'The message identifier of the mail (Message-ID header); a message is processed once (DF-63, AC-31.4)']
+  sender_address varchar(255) [not null, note: 'Not trusted: the seller signature and the checks of US-10 decide (DF-63)']
+  subject varchar(300)
+  sent_at timestamptz [note: 'Time on the message']
+  received_at timestamptz [not null, default: `now()`, note: 'When the fetch stored it']
+  processed_at timestamptz [note: 'NULL while outcome is PENDING']
+  outcome message_outcome [not null, default: 'PENDING']
+
+  indexes {
+    (entity_id, message_identifier) [unique, name: 'ux_mailbox_messages_id', note: 'a message identifier is unique per entity, so the same message is never processed twice']
+    (entity_id, received_at) [name: 'ix_mailbox_messages_entity', note: 'the mailbox log of SCR-24']
+  }
+
+  checks {
+    `(outcome = 'PENDING') = (processed_at IS NULL)` [name: 'ck_mailbox_messages_processed']
+  }
+
+  Note: 'A message read from the simulated entity mailbox (US-31, UC-31, DF-63, D-92; AC-31.1, AC-31.3, AC-31.4). The mailbox never chooses an entity: a message belongs to the entity whose mailbox it was read from (BR-01, AC-31.6). The body is not stored.'
+}
+
+Table mailbox_attachments {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  message_id bigint [not null]
+  attachment_no smallint [not null, note: 'Position in the message']
+  file_name varchar(255) [not null]
+  content_type varchar(100)
+  byte_size integer [not null]
+  outcome attachment_outcome [not null]
+  reject_reason varchar(300) [note: 'For example "Only XML e-invoices are accepted in the MVP" (AC-31.2)']
+  invoice_id bigint [note: 'The invoice created from an XML attachment, also when the checks of US-10 then rejected it; the XML bytes are in invoice_documents']
+  processed_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (message_id, attachment_no) [unique, name: 'ux_mailbox_attachments_no']
+    invoice_id [unique, name: 'ux_mailbox_attachments_invoice', note: 'partial: WHERE invoice_id IS NOT NULL']
+  }
+
+  checks {
+    `(outcome = 'INVOICE_CREATED') = (invoice_id IS NOT NULL)` [name: 'ck_mailbox_attachments_invoice']
+    `(outcome = 'INVOICE_CREATED') = (reject_reason IS NULL)` [name: 'ck_mailbox_attachments_reason']
+    `byte_size >= 0` [name: 'ck_mailbox_attachments_size']
+  }
+
+  Note: 'The result of each attachment of a message (US-31, BR-17, BR-33; AC-31.1, AC-31.2, AC-31.5, AC-31.8). A rejected non-XML attachment is logged here and creates no invoice and keeps no bytes, like a non-XML upload (D-33). An invoice taken from email has invoices.source = EMAIL.'
+}
+
+Table authority_status_lookups {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null]
+  trigger lookup_trigger [not null]
+  seller_tax_code varchar(14) [not null, note: 'The invoice key as looked up, normalized (DF-59)']
+  series varchar(20) [not null]
+  number varchar(20) [not null]
+  outcome lookup_outcome [not null]
+  status authority_status [note: 'NULL when the lookup was UNAVAILABLE']
+  status_date date [note: 'The date of the status at the authority, shown with it (AC-10.12, AC-10.16)']
+  replaced_by_series varchar(20) [note: 'For REPLACED: the replacing invoice (AC-10.13)']
+  replaced_by_number varchar(20)
+  feed_entry_found boolean [not null, default: true, note: 'false = the simulated feed had no entry for the key and the simulator answered Valid (DF-78)']
+  looked_up_at timestamptz [not null, default: `now()`, note: 'Shown on the evidence (AC-10.16)']
+  error_message varchar(300) [note: 'For UNAVAILABLE, for example "No answer within 10 seconds"']
+  requested_by bigint [note: 'The AP Accountant who ran the lookup again; NULL for the system']
+  sync_run_id bigint [note: 'The sync that refreshed the status (AC-07.11)']
+  check_run_id bigint [note: 'The check run that used the answer']
+
+  indexes {
+    (invoice_id, looked_up_at) [name: 'ix_status_lookups_invoice', note: 'the latest row is the status shown and used']
+    (entity_id, looked_up_at) [name: 'ix_status_lookups_entity']
+  }
+
+  checks {
+    `(outcome = 'ANSWERED') = (status IS NOT NULL)` [name: 'ck_status_lookups_status']
+    `(outcome = 'ANSWERED') = (status_date IS NOT NULL)` [name: 'ck_status_lookups_date']
+    `(outcome = 'UNAVAILABLE') = (error_message IS NOT NULL)` [name: 'ck_status_lookups_error']
+    `(trigger = 'SYNC_REFRESH') = (sync_run_id IS NOT NULL)` [name: 'ck_status_lookups_sync']
+    `(trigger = 'RE_RUN') = (requested_by IS NOT NULL)` [name: 'ck_status_lookups_rerun']
+  }
+
+  Note: 'Every look-up of the status of an invoice at the tax authority, simulated (US-10, US-07, US-16, US-17, BR-12, BR-39; D-93, DF-64; AC-10.12..AC-10.16, AC-07.11). A lookup is a row with its outcome, also when it did not answer, so the evidence holds the status, its date, and the time of the lookup. Cancelled or Replaced stops the invoice (V6); Adjusted is a warning; an invoice with no answer is never admitted to a batch. The real connection is W-13.'
+}
+
+Table cancellation_notices {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null]
+  source cancel_source [not null]
+  notice_reference varchar(100) [note: 'The reference on the seller notice; required for source SELLER']
+  notice_date date [not null, note: 'The date of the notice, or the status date for source AUTHORITY']
+  file_name varchar(255) [note: 'The seller notice as a file, kept as evidence (AC-18.13)']
+  file_content bytea [note: 'Whether the bytes stay in PostgreSQL or move to file storage is decided in Step 7, as for invoice_documents']
+  file_sha256 char(64)
+  authority_status_lookup_id bigint [note: 'The lookup that read Cancelled, for source AUTHORITY']
+  recorded_by bigint [note: 'The AP Accountant, for source SELLER; NULL when the status feed caused it']
+  recorded_at timestamptz [not null, default: `now()`]
+  invoice_state invoice_state [not null, note: 'The state of the invoice when the notice arrived; it decides the effect (BR-31)']
+  effect cancellation_effect [not null]
+  request_id bigint [note: 'The payment request this notice cancelled (R9), when it did']
+
+  indexes {
+    (invoice_id, recorded_at) [name: 'ix_cancellation_notices_invoice', note: 'a stored notice is shown as a warning on a Sent or Paid invoice (AC-18.15)']
+    (entity_id, recorded_at) [name: 'ix_cancellation_notices_entity']
+  }
+
+  checks {
+    `(source = 'SELLER') = (recorded_by IS NOT NULL)` [name: 'ck_cancellations_recorded_by']
+    `(source = 'AUTHORITY') = (authority_status_lookup_id IS NOT NULL)` [name: 'ck_cancellations_lookup']
+    `source <> 'SELLER' OR (notice_reference IS NOT NULL AND file_name IS NOT NULL AND file_content IS NOT NULL AND file_sha256 IS NOT NULL)` [name: 'ck_cancellations_seller_evidence']
+    `(effect = 'REQUEST_CANCELLED') = (request_id IS NOT NULL)` [name: 'ck_cancellations_request']
+  }
+
+  Note: 'A cancellation of an invoice, from the seller or from the authority status (US-18, US-07, BR-31, BR-39; D-94; AC-18.13..AC-18.16). Written once and never changed (D-65). Before signing the invoice is withdrawn and rejected; after signing and before sending the request is cancelled and its invoices become exceptions; after Sent only the warning is stored, because an ERP failure after Sent is only mocked (D-67).'
 }
 
 // ───────── AI outputs and Rule Engine ─────────
@@ -1621,6 +1927,9 @@ Table exception_reasons {
   detail varchar(500) [not null, note: 'The reason with its numbers, for example "Price +2.5%, tolerance 2%" (AC-16.2)']
   condition_result_id bigint
   anomaly_finding_id bigint
+  service_acceptance_id bigint [note: 'For SERVICE_ACCEPTANCE_REJECTED: the rejection that opened the reason (AC-29.3)']
+  authority_status_lookup_id bigint [note: 'For AUTHORITY_STATUS_UNAVAILABLE: the lookup that did not answer (AC-10.15)']
+  cancellation_notice_id bigint [note: 'For CANCELLED_AFTER_SIGNING and REQUEST_CANCELLED_OTHER_INVOICE: the notice behind the reason (AC-18.14)']
   withdraw_reason withdraw_reason [note: 'For WITHDRAWN_FROM_BATCH: why and by whom it left the batch (AC-18.9)']
   recorded_by bigint [note: 'The person behind a withdrawal or a decline; NULL for the Rule Engine']
   created_at timestamptz [not null, default: `now()`]
@@ -1636,7 +1945,7 @@ Table exception_reasons {
     `resolved_by IS NULL OR resolved_at IS NOT NULL` [name: 'ck_exception_reasons_resolved']
   }
 
-  Note: 'The reasons of an exception (US-16, US-18, BR-05, BR-34; AC-16.2, AC-18.1, AC-18.9). Reasons are the plain text names shown on SCR-10 and SCR-12.'
+  Note: 'The reasons of an exception (US-16, US-18, US-29, BR-05, BR-34, BR-39; AC-16.2, AC-18.1, AC-18.9, AC-10.15, AC-18.14, AC-29.3). Reasons are the plain text names shown on SCR-10 and SCR-12.'
 }
 
 Table wrong_entity_reports {
@@ -1793,6 +2102,33 @@ Table individual_approvals {
   Note: 'Individual approval or decline of an exception at the approver level (US-23, BR-02, BR-03, BR-10, BR-36, BR-37, D-31, DF-03, D-54, D-69, D-70). An approval keeps the invoice In Batch as an individually approved item; its payment request is created when the batch is released and the Chief Accountant co-signs it. Linked split-order exceptions are decided together: one transaction writes a row for every exception of the split finding with one decision_action_id, checks the version of each (BR-37) and the separation of duties on each (BR-36), and writes nothing if any check fails. A deferred constraint trigger refuses a commit in which only some exceptions of a split_finding_id have a row for the action.'
 }
 
+Table service_acceptances {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  invoice_id bigint [not null]
+  order_id bigint [not null, note: 'The service order the invoice is identified with; its kind is SERVICE (checked by the API, AC-29.5)']
+  decision acceptance_decision [not null]
+  note text [note: 'Optional for CONFIRMED, required for REJECTED (AC-29.3, DF-71)']
+  decided_by bigint [not null, note: 'A Requesting Department user of the entity; not linked to the ERP user who created the order (BR-02, AC-29.6)']
+  decided_at timestamptz [not null, default: `now()`]
+  check_run_id bigint [note: 'The check run with trigger ACCEPTANCE that UC-16 started in the same action (AC-29.2)']
+  overridden_by_receipt_id bigint [note: 'The ERP acceptance (a SERVICE_ACCEPTANCE receipt) that exists for the order. When both sources exist the ERP wins and this row stays as history (BR-19, AC-29.4, D-121)']
+  overridden_at timestamptz
+
+  indexes {
+    invoice_id [unique, name: 'ux_service_acceptances_invoice', note: 'one decision per invoice']
+    (entity_id, decided_at) [name: 'ix_service_acceptances_entity']
+    decided_by [name: 'ix_service_acceptances_user', note: 'invoices a user processed (BR-36, D-89)']
+  }
+
+  checks {
+    `decision <> 'REJECTED' OR (note IS NOT NULL AND length(trim(note)) > 0)` [name: 'ck_service_acceptances_note']
+    `(overridden_by_receipt_id IS NULL) = (overridden_at IS NULL)` [name: 'ck_service_acceptances_overridden']
+  }
+
+  Note: 'The confirmation or rejection of a service acceptance by the Requesting Department (US-29, UC-29, BR-02, BR-17, BR-19, BR-33, BR-36, BR-37; D-89, D-90, DF-61, DF-71; AC-29.1..AC-29.9). A confirmation is the independent acceptance source of a service invoice only while the ERP holds none. A rejection opens the exception Service acceptance rejected, which cannot be approved individually (D-31). A goods invoice never has a row (AC-29.5).'
+}
+
 // ───────── Batch, signing, and ERP send ─────────
 
 Table payment_batches {
@@ -1807,7 +2143,7 @@ Table payment_batches {
   sample_prompt_version varchar(50)
   closed_by bigint [note: 'AP Accountant who closed it for review (B2)']
   closed_at timestamptz
-  released_by bigint [note: 'The user who prepared the batch; cannot sign it (BR-36)']
+  released_by bigint [note: 'The user who prepared the batch; cannot sign it (BR-36). Cleared by a reopening (B7); the earlier release is kept in batch_reopenings']
   released_at timestamptz
   version integer [not null, default: 1, note: 'BR-37, DF-27']
   created_at timestamptz [not null, default: `now()`]
@@ -1825,7 +2161,7 @@ Table payment_batches {
     `version >= 1` [name: 'ck_batches_version']
   }
 
-  Note: 'A payment batch of one entity for one calendar month (US-24, BR-05, BR-07, BR-35, BR-37, D-10, DF-06, DF-18, DF-29). Totals and counts are computed from batch_items.'
+  Note: 'A payment batch of one entity for one calendar month (US-24, BR-05, BR-07, BR-35, BR-37, D-10, DF-06, DF-18, DF-29, D-95). Totals and counts are computed from batch_items. The sample columns describe the original sample; later expansions are in sample_expansions.'
 }
 
 Table batch_items {
@@ -1864,6 +2200,7 @@ Table batch_sample_items {
   rank smallint [not null, note: 'Order of selection']
   reason sample_reason [not null]
   reason_text varchar(300) [not null, note: 'Why it was selected, shown next to the invoice (BR-07)']
+  expansion_id bigint [note: 'NULL for the original sample; the expansion that added the item (AC-24.12, D-95)']
   mark sample_mark [not null, default: 'PENDING']
   mark_reason text [note: 'Required for ERROR (AC-24.4)']
   marked_by bigint
@@ -1873,6 +2210,7 @@ Table batch_sample_items {
   indexes {
     (batch_id, batch_item_id) [unique, name: 'ux_sample_items_item']
     (entity_id, mark, marked_at) [name: 'ix_sample_items_mark', note: 'misplacement rate and gate alert']
+    expansion_id [name: 'ix_sample_items_expansion']
   }
 
   checks {
@@ -1880,7 +2218,7 @@ Table batch_sample_items {
     `(mark = 'PENDING') = (marked_at IS NULL)` [name: 'ck_sample_items_marked']
   }
 
-  Note: 'The sample check of a batch (US-24, BR-06, BR-07, DF-06, DF-29; AC-24.2..AC-24.8). The batch cannot be released until no row is PENDING. ERROR marks feed the misplacement rate (G-02) and the gate alert.'
+  Note: 'The sample check of a batch (US-24, BR-06, BR-07, DF-06, DF-29, DF-65; AC-24.2..AC-24.8, AC-24.12). The batch cannot be released until no row is PENDING, including the rows of an expansion. ERROR marks feed the misplacement rate (G-02) and the gate alert.'
 }
 
 Table payment_requests {
@@ -1918,13 +2256,13 @@ Table payment_requests {
 
   checks {
     `(state = 'CANCELLED') = (cancel_kind IS NOT NULL)` [name: 'ck_requests_cancel']
-    `cancel_kind IS NULL OR (cancel_reason IS NOT NULL AND cancelled_by IS NOT NULL AND cancelled_at IS NOT NULL)` [name: 'ck_requests_cancel_fields']
+    `cancel_kind IS NULL OR (cancel_reason IS NOT NULL AND cancelled_at IS NOT NULL AND (cancelled_by IS NOT NULL OR cancel_kind = 'CANCELLATION_NOTICE'))` [name: 'ck_requests_cancel_fields', note: 'cancelled_by may be NULL only for a cancellation notice, where the system acts on a notice or a status (R9, D-94)']
     `(state = 'PAID') = (payment_reference IS NOT NULL)` [name: 'ck_requests_paid']
     `total_amount >= 0` [name: 'ck_requests_total']
     `version >= 1` [name: 'ck_requests_version']
   }
 
-  Note: 'A consolidated payment request: this platform\'s own document, not the paper form 05-TT (US-24, US-25, US-26; BR-02, BR-03, BR-20, BR-35, BR-36, BR-37; D-19, DF-01, DF-02, DF-10). Created when the batch is released.'
+  Note: 'A consolidated payment request: this platform\'s own document, not the paper form 05-TT (US-24, US-25, US-26; BR-02, BR-03, BR-20, BR-35, BR-36, BR-37; D-19, DF-01, DF-02, DF-10). Created when the batch is released. Cancelled by a decline, the removal of every line, a cancellation notice before the send (R9), or the reopening of the batch (B7).'
 }
 
 Table payment_request_lines {
@@ -1935,7 +2273,7 @@ Table payment_request_lines {
   line_no smallint [not null]
   amount numeric(18,2) [not null, note: 'Invoice total at the time of release']
   ended_at timestamptz [note: 'NULL while the line is part of the request']
-  end_reason withdraw_reason [note: 'REMOVED_BY_SIGNER, WITHDRAWN_BY_AP, REQUEST_DECLINED, or RISK_LIST_CHANGE']
+  end_reason withdraw_reason [note: 'REMOVED_BY_SIGNER, WITHDRAWN_BY_AP, REQUEST_DECLINED, RISK_LIST_CHANGE, CANCELLATION_NOTICE, REQUEST_CANCELLED, or BATCH_REOPENED']
   ended_by bigint
   end_note text [note: 'Reason typed when a signer removes a line (AC-25.6)']
 
@@ -1965,6 +2303,8 @@ Table request_signatures {
   certificate_ref varchar(100) [not null, note: 'Simulated certificate used by the platform e-signature (DF-10)']
   reauthenticated_at timestamptz [not null, note: 'Password entered again (AC-25.3)']
   signing_action_id uuid [not null, note: 'Shared by the signatures of one multi-sign action (AC-25.4)']
+  on_behalf_of_user_id bigint [note: 'The delegator whose signature this is when a delegate signed it ("signed by Dan on behalf of Carol", AC-30.10); NULL when the signer signed for themselves']
+  delegation_id bigint [note: 'The delegation in force at signing (BR-38); set together with on_behalf_of_user_id']
   state signature_state [not null, default: 'VALID']
   voided_at timestamptz
   void_reason varchar(200)
@@ -1973,14 +2313,17 @@ Table request_signatures {
     (request_id, signer_id) [unique, name: 'ux_signatures_signer', note: 'partial: WHERE state = \'VALID\'; one record per request per signer (O-15)']
     (request_id, signer_role) [unique, name: 'ux_signatures_role', note: 'partial: WHERE state = \'VALID\'; one valid record per role']
     signing_action_id [name: 'ix_signatures_action']
+    delegation_id [name: 'ix_signatures_delegation']
   }
 
   checks {
     `(state = 'VOIDED') = (voided_at IS NOT NULL)` [name: 'ck_signatures_voided']
     `request_version >= 1` [name: 'ck_signatures_version']
+    `(on_behalf_of_user_id IS NULL) = (delegation_id IS NULL)` [name: 'ck_signatures_delegate']
+    `on_behalf_of_user_id IS NULL OR on_behalf_of_user_id <> signer_id` [name: 'ck_signatures_delegate_person']
   }
 
-  Note: 'Signature records, one per request and signer (US-25, BR-02, BR-12, BR-20, BR-36, BR-37, DF-01, DF-10, O-15). The AI never signs. A signature is voided, not deleted, when a line is removed (R5).'
+  Note: 'Signature records, one per request and signer (US-25, US-30, BR-02, BR-12, BR-20, BR-36, BR-37, BR-38, DF-01, DF-10, O-15). The AI never signs. A signature is voided, not deleted, when a line is removed (R5). A delegate signs in the role slot of the delegator and the record names both people; the unique index on the signer still stops one person from signing as both signers of a request (AC-30.3).'
 }
 
 Table ai_payment_summaries {
@@ -2009,7 +2352,9 @@ Table erp_send_attempts {
   id bigint [pk, increment]
   entity_id bigint [not null]
   request_id bigint [not null]
-  attempt_no smallint [not null, note: '1 to 3, 5 minutes apart (DF-24)']
+  attempt_no smallint [not null, note: '1 to 3 are automatic, 5 minutes apart (DF-24); a manual resend continues the numbering from 4 (DF-66)']
+  is_manual boolean [not null, default: false, note: 'true for a resend by a person after the 3 automatic attempts failed (D-96, AC-26.11)']
+  triggered_by bigint [note: 'The AP Accountant or Chief Accountant who pressed Resend; NULL for an automatic attempt']
   idempotency_key varchar(20) [not null, note: 'The request number; a second send never creates a second payment (DF-24)']
   content_hash_sent char(64) [not null]
   requested_at timestamptz [not null, default: `now()`]
@@ -2028,11 +2373,91 @@ Table erp_send_attempts {
   }
 
   checks {
-    `attempt_no BETWEEN 1 AND 3` [name: 'ck_send_attempts_no']
+    `attempt_no >= 1 AND (attempt_no > 3) = is_manual` [name: 'ck_send_attempts_no', note: 'automatic attempts are 1 to 3; a manual attempt is numbered 4 or more']
+    `is_manual = (triggered_by IS NOT NULL)` [name: 'ck_send_attempts_manual']
     `(reply = 'PAID') = (payment_reference IS NOT NULL)` [name: 'ck_send_attempts_paid']
   }
 
-  Note: 'Outbox of sends to the Entity ERP (US-26, BR-20, BR-25, BR-37; DF-24, DF-40; AC-26.1..AC-26.9, D-60). Written in the transaction that makes the request Signed; a worker sends after commit. Retry counts and the failed alert are computed from these rows. There is no payment method and no cash flag (D-33).'
+  Note: 'Outbox of sends to the Entity ERP (US-26, BR-20, BR-25, BR-37; DF-24, DF-40; AC-26.1..AC-26.9, AC-26.10..AC-26.14, D-60, D-96). Written in the transaction that makes the request Signed; a worker sends after commit. Retry counts and the failed alert are computed from the automatic rows. A manual resend is a further row with the same idempotency key, no new signature, and no automatic retry after it. There is no payment method and no cash flag (D-33).'
+}
+
+Table sample_expansions {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  batch_id bigint [not null]
+  expansion_no smallint [not null, note: '1, 2, and so on per batch; an expansion can be repeated (DF-65)']
+  expanded_by bigint [not null, note: 'The AP Accountant']
+  expanded_at timestamptz [not null, default: `now()`]
+  reason text [not null, note: 'What the AP Accountant typed (D-104)']
+  method sample_method [not null, note: 'WITHOUT_AI when the AI could not select and the highest-value invoices were taken (DF-29, AC-24.14)']
+  model_version varchar(50) [note: 'NULL when selected without AI']
+  prompt_version varchar(50)
+  items_added smallint [not null, note: 'At least the original sample size, or all that remain (DF-65)']
+
+  indexes {
+    (batch_id, expansion_no) [unique, name: 'ux_sample_expansions_no']
+  }
+
+  checks {
+    `items_added >= 1` [name: 'ck_sample_expansions_items']
+    `length(trim(reason)) > 0` [name: 'ck_sample_expansions_reason']
+    `(method = 'AI') = (model_version IS NOT NULL)` [name: 'ck_sample_expansions_model']
+  }
+
+  Note: 'An expansion of the sample of a batch after an error (US-24, BR-07, DF-65, D-95; AC-24.12..AC-24.14, AC-24.17). The added invoices are batch_sample_items rows that point here, with the reason of each; the original sample has no expansion. Saved with the name, the time, and the reason.'
+}
+
+Table batch_reopenings {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  batch_id bigint [not null]
+  reopened_by bigint [not null, note: 'The AP Accountant (B7)']
+  reopened_at timestamptz [not null, default: `now()`]
+  reason text [not null, note: 'What the AP Accountant typed (D-104, AC-24.15)']
+  requests_cancelled smallint [not null, note: 'The requests cancelled with the kind BATCH_REOPENED (R6)']
+  released_by bigint [not null, note: 'Who had released the batch; cleared on the batch by this reopening']
+  released_at timestamptz [not null, note: 'When the undone release happened']
+
+  indexes {
+    (batch_id, reopened_at) [name: 'ix_batch_reopenings_batch']
+  }
+
+  checks {
+    `requests_cancelled >= 1` [name: 'ck_batch_reopenings_requests']
+    `length(trim(reason)) > 0` [name: 'ck_batch_reopenings_reason']
+  }
+
+  Note: 'A batch that went back from In Signing to In Review while no request held a signature (US-24, BR-35 B7, R6; DF-66, D-95; AC-24.15..AC-24.17). A table and not columns, because a batch can be reopened more than once. The cancelled requests keep their rows and carry cancel_kind BATCH_REOPENED; the invoices stay In Batch; sample marks and recorded individual approvals are kept.'
+}
+
+// ───────── Notifications ─────────
+
+Table notifications {
+  id bigint [pk, increment]
+  entity_id bigint [not null]
+  recipient_id bigint [not null, note: 'An AP Accountant, Chief Accountant, or Payment Approver of the entity (AC-32.10); never a user of another entity (AC-32.7)']
+  kind notification_kind [not null]
+  object_type notification_object [not null]
+  object_id bigint [not null, note: 'The invoice, batch, or payment request the item opens. Not a foreign key, because it can be any of three tables, as with audit_log.subject_id']
+  summary varchar(300) [not null, note: 'The bold line, for example "4 payment requests wait for your signature" (AC-32.1)']
+  detail varchar(500) [note: 'The second line, for example the first reason or the reason of a decline']
+  created_at timestamptz [not null, default: `now()`]
+  read_at timestamptz [note: 'Set when the item is opened (AC-32.6); the unread count is computed']
+  reminder_key varchar(120) [note: 'Identifies the work a reminder is about, for example REPLY_DUE:correction_request:42; NULL for a notification that is not a reminder (DF-67)']
+  reminder_on date [note: 'The day of the reminder; one reminder per day']
+
+  indexes {
+    (recipient_id, created_at) [name: 'ix_notifications_recipient', note: 'the list, newest first (DF-70)']
+    (recipient_id, created_at) [name: 'ix_notifications_unread', note: 'partial: WHERE read_at IS NULL; the unread count in the top bar and the Unread only filter']
+    (recipient_id, reminder_key, reminder_on) [unique, name: 'ux_notifications_reminder', note: 'partial: WHERE reminder_key IS NOT NULL; a reminder repeats once a day and not twice on one day']
+  }
+
+  checks {
+    `(reminder_key IS NULL) = (reminder_on IS NULL)` [name: 'ck_notifications_reminder']
+    `(kind IN ('REPLY_REMINDER','SIGNATURE_REMINDER')) = (reminder_key IS NOT NULL)` [name: 'ck_notifications_kind_reminder']
+  }
+
+  Note: 'In-app notifications and reminders (US-32, UC-32; BR-12, BR-09; D-97, D-100, DF-67, DF-70; AC-32.1..AC-32.10). No email to staff. A notification that cannot be saved never stops the action that caused it; the audit log still fails closed (DF-30, AC-32.9). A reminder is created once a day until its work is done: the job that creates it looks at the correction request, the request, or the invoice and stops when the work is done.'
 }
 
 // ───────── Audit ─────────
@@ -2045,7 +2470,7 @@ Table audit_log {
   actor_user_id bigint [note: 'Set when a person acted']
   event_type audit_event [not null]
   is_group_event boolean [not null, default: false, note: 'Entities, limits, gates, and user events: the only entries the Group Admin sees (AC-28.5)']
-  subject_type varchar(40) [not null, note: 'For example INVOICE, EXCEPTION, BATCH, PAYMENT_REQUEST, GATE, POLICY, USER']
+  subject_type varchar(40) [not null, note: 'For example INVOICE, EXCEPTION, BATCH, PAYMENT_REQUEST, GATE, POLICY, USER, DELEGATION, MAILBOX_MESSAGE, SERVICE_ACCEPTANCE']
   subject_id bigint
   invoice_id bigint [note: 'For the Document filter and the decision history on SCR-12']
   task ai_task [note: 'For AI decisions']
@@ -2108,6 +2533,11 @@ Ref: approval_tier_approvers.entity_id > entities.id
 Ref: approval_tier_approvers.tier_id > approval_tiers.id
 Ref: approval_tier_approvers.user_id > users.id
 Ref: approval_tier_approvers.assigned_by > users.id
+
+Ref: signing_delegations.entity_id > entities.id
+Ref: signing_delegations.delegator_id > users.id
+Ref: signing_delegations.delegate_id > users.id
+Ref: signing_delegations.revoked_by > users.id
 
 Ref: supplier_gates.entity_id > entities.id
 Ref: supplier_gates.supplier_id > erp_suppliers.id
@@ -2184,6 +2614,8 @@ Ref: sim_receipt_lines.entity_id > entities.id
 Ref: sim_receipt_lines.receipt_id > sim_receipts.id
 Ref: sim_receipt_lines.po_line_id > sim_po_lines.id
 
+Ref: sim_authority_statuses.entity_id > entities.id
+
 Ref: item_mappings.entity_id > entities.id
 Ref: item_mappings.supplier_id > erp_suppliers.id
 Ref: item_mappings.item_id > erp_items.id
@@ -2231,6 +2663,28 @@ Ref: invoice_receipts.entity_id > entities.id
 Ref: invoice_receipts.invoice_id > invoices.id
 Ref: invoice_receipts.receipt_id > erp_receipts.id
 Ref: invoice_receipts.check_run_id > invoice_check_runs.id
+
+Ref: mailbox_fetch_runs.entity_id > entities.id
+Ref: mailbox_fetch_runs.requested_by > users.id
+
+Ref: mailbox_messages.entity_id > entities.id
+Ref: mailbox_messages.fetch_run_id > mailbox_fetch_runs.id
+
+Ref: mailbox_attachments.entity_id > entities.id
+Ref: mailbox_attachments.message_id > mailbox_messages.id
+Ref: mailbox_attachments.invoice_id > invoices.id
+
+Ref: authority_status_lookups.entity_id > entities.id
+Ref: authority_status_lookups.invoice_id > invoices.id
+Ref: authority_status_lookups.requested_by > users.id
+Ref: authority_status_lookups.sync_run_id > erp_sync_runs.id
+Ref: authority_status_lookups.check_run_id > invoice_check_runs.id
+
+Ref: cancellation_notices.entity_id > entities.id
+Ref: cancellation_notices.invoice_id > invoices.id
+Ref: cancellation_notices.authority_status_lookup_id > authority_status_lookups.id
+Ref: cancellation_notices.recorded_by > users.id
+Ref: cancellation_notices.request_id > payment_requests.id
 
 Ref: invoice_check_runs.entity_id > entities.id
 Ref: invoice_check_runs.invoice_id > invoices.id
@@ -2288,6 +2742,9 @@ Ref: exception_reasons.entity_id > entities.id
 Ref: exception_reasons.exception_id > exceptions.id
 Ref: exception_reasons.condition_result_id > rule_condition_results.id
 Ref: exception_reasons.anomaly_finding_id > anomaly_findings.id
+Ref: exception_reasons.service_acceptance_id > service_acceptances.id
+Ref: exception_reasons.authority_status_lookup_id > authority_status_lookups.id
+Ref: exception_reasons.cancellation_notice_id > cancellation_notices.id
 Ref: exception_reasons.recorded_by > users.id
 Ref: exception_reasons.resolved_by > users.id
 Ref: wrong_entity_reports.entity_id > entities.id
@@ -2325,6 +2782,13 @@ Ref: individual_approvals.approver_id > users.id
 Ref: individual_approvals.required_tier_id > approval_tiers.id
 Ref: individual_approvals.split_finding_id > anomaly_findings.id
 
+Ref: service_acceptances.entity_id > entities.id
+Ref: service_acceptances.invoice_id > invoices.id
+Ref: service_acceptances.order_id > erp_purchase_orders.id
+Ref: service_acceptances.decided_by > users.id
+Ref: service_acceptances.check_run_id > invoice_check_runs.id
+Ref: service_acceptances.overridden_by_receipt_id > erp_receipts.id
+
 Ref: payment_batches.entity_id > entities.id
 Ref: payment_batches.closed_by > users.id
 Ref: payment_batches.released_by > users.id
@@ -2341,6 +2805,7 @@ Ref: batch_sample_items.batch_id > payment_batches.id
 Ref: batch_sample_items.batch_item_id > batch_items.id
 Ref: batch_sample_items.invoice_id > invoices.id
 Ref: batch_sample_items.marked_by > users.id
+Ref: batch_sample_items.expansion_id > sample_expansions.id
 
 Ref: payment_requests.entity_id > entities.id
 Ref: payment_requests.batch_id > payment_batches.id
@@ -2358,12 +2823,27 @@ Ref: payment_request_lines.ended_by > users.id
 Ref: request_signatures.entity_id > entities.id
 Ref: request_signatures.request_id > payment_requests.id
 Ref: request_signatures.signer_id > users.id
+Ref: request_signatures.on_behalf_of_user_id > users.id
+Ref: request_signatures.delegation_id > signing_delegations.id
 
 Ref: ai_payment_summaries.entity_id > entities.id
 Ref: ai_payment_summaries.request_id > payment_requests.id
 
 Ref: erp_send_attempts.entity_id > entities.id
 Ref: erp_send_attempts.request_id > payment_requests.id
+Ref: erp_send_attempts.triggered_by > users.id
+
+Ref: sample_expansions.entity_id > entities.id
+Ref: sample_expansions.batch_id > payment_batches.id
+Ref: sample_expansions.expanded_by > users.id
+
+Ref: batch_reopenings.entity_id > entities.id
+Ref: batch_reopenings.batch_id > payment_batches.id
+Ref: batch_reopenings.reopened_by > users.id
+Ref: batch_reopenings.released_by > users.id
+
+Ref: notifications.entity_id > entities.id
+Ref: notifications.recipient_id > users.id
 
 Ref: audit_log.entity_id > entities.id
 Ref: audit_log.actor_user_id > users.id

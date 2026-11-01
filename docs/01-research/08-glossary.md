@@ -9,17 +9,20 @@
 | Group | The set of companies served by one MatchPay installation. The sample group is the fictional Calderwood Group (D-05). |
 | Legal entity / Entity | One company in the group that is a separate legal person. Every document belongs to exactly one entity (BR-01). |
 | AP Accountant | The accounts payable accountant of one entity; the main user (D-03). |
-| Chief Accountant | The accountant who decides tax-risk holds and co-signs payment requests. |
+| Chief Accountant | The accountant who decides tax-risk holds and signs payment requests first. |
 | Payment Approver | A department head or CFO with authority to approve payment; signs consolidated requests and approves single exceptions. |
 | Administrator | A user who configures the system. **Group Admin** works across the group (adds entities, sets group limits, manages AI and automation gates). **Entity Admin** works in one entity (approval matrix, tolerance, batch threshold, users) inside the group limits. |
 | AI Agent | The AI components that classify, read, match, and detect anomalies. It provides evidence and never decides or signs. |
 | Rule Engine | The part of the System that checks the six batch conditions with transparent rules, without an LLM, and decides whether an invoice joins a batch (D-08). |
 | Entity ERP | The ERP of one entity; the source of truth for purchase orders, receipts, acceptances, suppliers, and master data. Simulated in the MVP. |
+| Requesting Department | The using department of an entity (the mind map's "using department"). Its users confirm or reject the acceptance of a service in MatchPay when the ERP holds none (D-90). |
 | Demo Operator | A demo-only role that plays buyer, warehouse keeper, and acceptance personas in the ERP simulator (D-12). |
-| Invoice Status Lookup Service | An external service that returns the status of an invoice at the tax authority (Advanced). |
+| Invoice Status Lookup Service | A service that returns the status of an invoice at the tax authority: Valid, Adjusted, Replaced, or Cancelled. Simulated in the MVP (BR-39, D-93); the real connection point is Advanced (W-13). |
 | Purchase order, PO | The entity's order to a supplier. |
 | Goods receipt note, GRN | The record, made by the warehouse keeper from the quantity actually received, that goods arrived (BR-13). |
-| Service acceptance record | A confirmation in the system that a service was delivered. |
+| Service acceptance record | A confirmation that a service was delivered, from the acceptor in the ERP or, when the ERP holds none, from the Requesting Department in MatchPay (BR-19, D-90). |
+| Signing delegation | A date range in which a named delegate signs with a signer's level while the signer is absent. The signature says "on behalf of". It is not a policy delegation (O-05); its validity is Unverified (O-17, BR-38). |
+| Entity mailbox | The simulated mailbox of an entity from which XML attachments are fetched and checked like an upload (UC-31, D-92). |
 | Recurring profile | A record of a recurring invoice source (electricity, water, rent, fixed-price subscription): contract, supplier, entity, location, period, and fixed or usage-based price (BR-24). |
 | Payment batch | The set of invoices an entity has admitted for payment in a period, awaiting signature. In the MVP there is one open batch per entity per period (D-10). |
 | Consolidated payment request | One payment request for one supplier that lists every invoice of that supplier in the batch. It is the platform's own document, not the paper form 05-TT (D-19). The grouping mode (by supplier, or per invoice) is set per entity (BR-20). |

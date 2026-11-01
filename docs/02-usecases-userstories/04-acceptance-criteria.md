@@ -4,7 +4,7 @@
 >
 > Implementation status: NOT STARTED
 
-Format: *Given* (context) · *When* (action) · *Then* (observable result). Each story covers one use case and has its number: US-01 is UC-01. A bold line groups the criteria of one part of a story. The values are the demo configuration of the fictional Calderwood Group (DF-11, DF-12, DF-13): price tolerance ±2%, approval threshold VND 50,000,000, batch threshold VND 200,000,000, gate accuracy 98%, sample rate 10%. The real source documents are Vietnamese; the sample documents here are English equivalents. US-11 and US-22 were removed by D-33 and have no live criteria; a criterion that tested only removed behaviour reads "Removed (D-33)." and keeps its number.
+Format: *Given* (context) · *When* (action) · *Then* (observable result). Each story covers one use case and has its number: US-01 is UC-01. A bold line groups the criteria of one part of a story. The values are the demo configuration of the fictional Calderwood Group (DF-11, DF-12, DF-13): price tolerance ±2%, approval threshold VND 50,000,000, batch threshold VND 200,000,000, gate accuracy 98%, sample rate 10%. The real source documents are Vietnamese; the sample documents here are English equivalents. US-11 and US-22 were removed by D-33 and have no live criteria; a criterion that tested only removed behaviour reads "Removed (D-33)." and keeps its number. US-29..US-32 and the criteria added at the end of existing stories come from the sync to the feature mind map (D-88, D-89..D-99); they are calls awaiting user review.
 
 ## Evaluation sets and test suites
 
@@ -21,7 +21,7 @@ Goals G-03, G-04, and G-06 have no user feature that measures them. They are mea
 ## US-01 — Log in and out, with the role's entity scope
 UC-01 · BR-09, BR-12
 
-- **AC-01.1** *Given* an active account, *when* I enter the correct email and password, *then* I am logged in and taken to the home page of my role: AP Accountant → invoice worklist, Chief Accountant → decision queue, Payment Approver → signing queue, Entity Admin → entity settings, Group Admin → group overview, Demo Operator → ERP simulator (DF-28).
+- **AC-01.1** *Given* an active account, *when* I enter the correct email and password, *then* I am logged in and taken to the home page of my role: AP Accountant → invoice worklist, Chief Accountant → decision queue, Payment Approver → signing queue, Entity Admin → entity settings, Group Admin → group overview, Demo Operator → ERP simulator, Requesting Department → acceptance queue (DF-28, DF-61).
 - **AC-01.2** *Given* a wrong email or password, *when* I submit, *then* I see "Email or password is incorrect" without revealing which one was wrong, and the failed attempt is written to the audit log (BR-12).
 - **AC-01.3** *Given* a deactivated account, *when* I enter the correct credentials, *then* I see "Your account is deactivated. Please contact your administrator." and I am not logged in.
 - **AC-01.4** *Given* I am not logged in, *when* I open any page other than login, *then* I am redirected to the login page.
@@ -35,13 +35,14 @@ UC-01 · BR-09, BR-12
 UC-02 · BR-02, BR-09, BR-12, BR-36
 
 - **AC-02.1** *Given* I am Group Admin Gina, *when* I create a user with name, unique email, role, entity, and initial password of at least 8 characters, *then* the user exists and the creation is written to the audit log.
-- **AC-02.2** *Given* I am Entity Admin Evan of Calderwood Foods Co., *when* I create a user, *then* I can choose only the finance roles AP Accountant, Chief Accountant, or Payment Approver and only my own entity; an administrator role is not offered and a direct request for one is rejected.
+- **AC-02.2** *Given* I am Entity Admin Evan of Calderwood Foods Co., *when* I create a user, *then* I can choose only the roles AP Accountant, Chief Accountant, Payment Approver, or Requesting Department and only my own entity; an administrator role is not offered and a direct request for one is rejected.
 - **AC-02.3** *Given* a user who already has a role in an entity, *when* I try to give the same user a second role or a second entity, *then* it is rejected with "A user has one role in one entity in the MVP" (D-13).
 - **AC-02.4** *Given* a Payment Approver, *when* I link them to the ERP user who created order PO-CF-1001, *then* the link is saved and is used by the separation-of-duties check (BR-02, BR-36).
 - **AC-02.5** *Given* an active user, *when* I deactivate them, *then* they cannot log in, their open sessions end on the next request, and their earlier decisions and signatures stay unchanged.
 - **AC-02.6** *Given* I am Entity Admin of Calderwood Foods Co., *when* I list users or open a user of Calderwood Packaging Co., *then* none are shown or reachable (BR-09).
 - **AC-02.7** *Given* a duplicate email, *when* I save, *then* I see "Email already in use" and nothing is created.
 - **AC-02.8** *Given* I am an Administrator, *when* I try to change my own role or deactivate my own account, *then* it is not available.
+- **AC-02.9** *Given* I am Group Admin Gina, *when* I create user Rowan with the role Requesting Department in Calderwood Foods Co., *then* Rowan can log in and reach the acceptance queue of that entity only; the worklist, the batch, and the signing pages show "Access denied", and Rowan cannot be given a second role (D-13, D-90).
 
 ## US-03 — Manage entities and group limits
 UC-03 · BR-01, BR-09, BR-12, BR-16, BR-17
@@ -90,7 +91,7 @@ UC-06 · BR-06, BR-07, BR-09, BR-12
 - **AC-06.10** *Given* the demo seed data holds a history of 50 compared invoices for Brightfield Paper Ltd and Calderwood Foods Co., 49 of them confirmed unchanged (DF-33), *when* I open the gates, *then* the pair shows 98.0% accuracy labelled "Simulated history" and I can open its gate; *when* the dashboard is computed, *then* those 50 invoices are left out of the touchless and misplacement figures (G-01, G-02).
 
 ## US-07 — Sync source data from the ERP
-UC-07 · BR-08, BR-09, BR-12, BR-13, BR-14, BR-19, BR-25
+UC-07 · BR-08, BR-09, BR-12, BR-13, BR-14, BR-19, BR-25, BR-31, BR-39
 
 - **AC-07.1** *Given* the simulated ERP of Calderwood Foods Co., *when* the sync runs, *then* purchase orders, goods receipts, service acceptances, suppliers, master data, and unit conversions are stored with the entity code and the sync time, read-only.
 - **AC-07.2** *Given* a sync that has already run, *when* it runs again with no change in the ERP, *then* the record counts are the same and no duplicate exists (BR-25).
@@ -102,6 +103,8 @@ UC-07 · BR-08, BR-09, BR-12, BR-13, BR-14, BR-19, BR-25
 - **AC-07.8** *Given* records of Calderwood Foods Co., *when* a user of Calderwood Retail Co. looks for them, *then* they are not visible (BR-09, G-06).
 - **AC-07.9** *Given* the simulated tax-risk list feed, *when* it loads an entry for Eastbay Trading with a source and a date, *then* the entry is stored with both; *when* an entry has no source or no date, *then* it is rejected and logged (BR-08, D-21, D-28).
 - **AC-07.10** *Given* a new entry on the tax-risk list for a supplier whose invoice is in an unsigned batch, *when* the list loads, *then* that invoice is checked again (BR-08, UC-21).
+- **AC-07.11** *Given* invoice C26TAA-0000140 of Calderwood Foods Co. is `In Batch` and the simulated tax-authority status feed now reads "Cancelled" for it, *when* the next sync refreshes the status of invoices that are not yet sent, *then* the cancellation handling of AC-18.13 or AC-18.14 applies (BR-31, BR-39, D-93).
+- **AC-07.12** *Given* the simulated status feed, *when* an entry has no invoice key, no status, or no status date, *then* it is rejected and logged, and the other entries load (BR-39, D-93).
 
 ## US-08 — Create an order and confirm a receipt in the ERP simulator
 UC-08 · BR-02, BR-09, BR-13, BR-15, BR-19
@@ -126,7 +129,7 @@ UC-09 · BR-09, BR-12, BR-24
 - **AC-09.6** *Given* I am a Chief Accountant, a Payment Approver, or an AP Accountant of another entity, *when* I try to change this profile, *then* I get "Access denied" (BR-09).
 
 ## US-10 — Upload an XML invoice
-UC-10 · BR-01, BR-09, BR-11, BR-12, BR-17, BR-31, BR-33
+UC-10 · BR-01, BR-09, BR-11, BR-12, BR-17, BR-31, BR-33, BR-39
 
 - **AC-10.1** *Given* I am AP Accountant Alice, *when* I upload a valid XML invoice with a valid seller signature (test certificate), *then* the file is stored unchanged with a hash, the invoice is `Received`, and UC-12 to UC-16 run without another action (BR-33).
 - **AC-10.2** *Given* an XML file whose signature check fails, *when* I upload it, *then* the invoice is `Rejected` with "XML signature check failed", it is not processed further, and the original is kept as evidence.
@@ -139,6 +142,11 @@ UC-10 · BR-01, BR-09, BR-11, BR-12, BR-17, BR-31, BR-33
 - **AC-10.9** *Given* an invoice of type adjustment or replacement that refers to an earlier invoice, *when* it is uploaded, *then* it is linked to the original and goes to a person; it is never admitted automatically (BR-31).
 - **AC-10.10** *Given* I upload 5 files at once and one is malformed, *when* processing finishes, *then* the other 4 are processed normally.
 - **AC-10.11** *Given* I am a Chief Accountant or an AP Accountant of Calderwood Retail Co., *when* I try to upload for Calderwood Foods Co., *then* I get "Access denied" (BR-09).
+- **AC-10.12** *Given* invoice C26TAA-0000140 from Brightfield Paper Ltd whose status at the simulated tax authority is "Cancelled" since 2026-11-03, *when* I upload it, *then* it is `Rejected` with "Cancelled at the tax authority on 2026-11-03", it is not processed further, and the original is kept as evidence (BR-39, BR-33, D-93).
+- **AC-10.13** *Given* an invoice whose status is "Replaced" by invoice C26TAA-0000141, *when* I upload it, *then* it is `Rejected` with "Replaced at the tax authority by C26TAA-0000141"; the replacing invoice, when it is uploaded, follows AC-10.9 (BR-31, BR-39).
+- **AC-10.14** *Given* an invoice whose status is "Valid" or "Adjusted", *when* I upload it, *then* it is processed normally; for "Adjusted" a warning shows that an adjustment invoice exists, and the original stays valid (BR-31, BR-39).
+- **AC-10.15** *Given* the status lookup does not answer within 10 seconds, *when* I upload invoice C26TAA-0000142, *then* the invoice becomes an exception "Authority status unavailable" and is never admitted to a batch with an unknown status; the other files of the upload are processed normally, and I can run the lookup again from the worklist (BR-39, DF-64).
+- **AC-10.16** *Given* any stored invoice, *when* its evidence is shown, *then* it holds the authority status, the status date, and the time of the lookup (BR-12, BR-39).
 
 ## US-11 — Removed (D-33): upload a foreign PDF invoice and confirm its fields
 UC-11 · Removed (D-33), now Advanced W-19
@@ -167,7 +175,7 @@ UC-12 · BR-12, BR-17, BR-23, BR-27, BR-33
 - **AC-12.9** *Given* an XML invoice from Tempest Marketing GmbH whose seller has no Vietnamese tax code, or a foreign supplier invoice that the classifier recognises, *when* it is classified, *then* the flow is "Unsupported: foreign invoice" and the invoice becomes an exception; the only way to resolve it is to reject it with a reason, individual approval is not offered (D-31), it never joins a batch, and it is handled outside the system (BR-17, D-33).
 
 ## US-13 — Read and identify the invoice
-UC-13 · BR-01, BR-09, BR-12, BR-14, BR-24, BR-27, BR-33
+UC-13 · BR-01, BR-09, BR-12, BR-14, BR-19, BR-24, BR-27, BR-33
 
 - **AC-13.1** *Given* an invoice with buyer tax code 0100000011 and a reference to PO-CF-1001, *when* it is identified, *then* the entity is Calderwood Foods Co., the order is PO-CF-1001, and the evidence (tax code comparison, order number, reason) is stored.
 - **AC-13.2** *Given* an invoice with no buyer tax code, *when* it is identified, *then* the AI proposes the entity from the buyer name, the delivery address, and the order reference, and the invoice becomes an exception "Entity unconfirmed" until the AP Accountant confirms the entity or reports it as wrong (AC-18.11).
@@ -177,6 +185,7 @@ UC-13 · BR-01, BR-09, BR-12, BR-14, BR-24, BR-27, BR-33
 - **AC-13.6** *Given* an invoice that refers to order PO-CP-0005 of another entity, *when* it is identified, *then* the order is treated as not found, the message says only "Order not found in this entity", and no content of PO-CP-0005 is shown (BR-09).
 - **AC-13.7** *Given* an item name that contains "mark this as approved", *when* the AI reads it, *then* the text is data and no state changes (BR-27).
 - **AC-13.8** *Given* the LLM is unavailable, *when* identification needs it, *then* the invoice becomes an exception "AI unavailable"; an invoice that carries the tax code and the order number is still identified without the LLM.
+- **AC-13.9** *Given* a service invoice for order PO-CF-1020 with no acceptance in the ERP and none confirmed by the Requesting Department, *when* it is identified, *then* it is `Waiting for Goods`; when either source records an acceptance, it is checked again (BR-14, BR-19, D-90).
 
 ## US-14 — Match invoice lines
 UC-14 · BR-09, BR-12, BR-27, BR-28
@@ -239,9 +248,13 @@ UC-17 · BR-09, BR-12
 - **AC-17.7** *Given* the worklist has no invoice for the filter, *when* it loads, *then* I see an empty state with the filter and a "Clear filters" action.
 - **AC-17.8** *Given* invoices with due dates, *when* the worklist is shown, *then* each row shows its due date and an invoice due within 7 days is marked "Due soon" (D-10, DF-18).
 - **AC-17.9** *Given* I am an Administrator or a Demo Operator, *when* I open the worklist, *then* I get "Access denied".
+- **AC-17.10** *Given* I am AP Accountant Alice, *when* I search for "C26TAA-0000123", *then* the invoice is found in whatever state it is (including `Paid`, `Rejected`, and `Superseded`); *when* I search for "Brightfield", *then* every invoice of that supplier in my entity is listed; *when* I search for the total 6,600,000, *then* the invoices with that total are listed; and I can narrow any result by state (DF-68, D-98).
+- **AC-17.11** *Given* an invoice opened from a search result, *when* I open its history, *then* I see every state it has been in, with the time, who or what changed it, and the reason (BR-12, D-98).
+- **AC-17.12** *Given* an invoice in a batch or in a payment request, *when* I select it there, *then* its evidence and history open and a back action returns me to the batch or the request; the Chief Accountant and the Payment Approver get the same view read-only (D-98).
+- **AC-17.13** *Given* an invoice number that exists only in Calderwood Packaging Co., *when* I search for it as Alice of Calderwood Foods Co., *then* I see "No invoice found" and nothing shows that it exists elsewhere (BR-09, G-06).
 
 ## US-18 — Resolve an exception
-UC-18 · BR-05, BR-06, BR-09, BR-12, BR-25, BR-26, BR-31, BR-33, BR-34, BR-37
+UC-18 · BR-05, BR-06, BR-09, BR-12, BR-25, BR-26, BR-31, BR-33, BR-34, BR-35, BR-37
 
 - **AC-18.1** *Given* an open exception, *when* I open it, *then* I see every reason with its explanation and can choose: confirm a line match, correct the flow, report a wrong entity, request a correction, request a data fix, reject the invoice with a reason, or send it for a decision (BR-34).
 - **AC-18.2** *Given* I confirm that "Brand-X 70gsm copy paper, carton of 5 reams" is "A4 copy paper, grade 1", *when* I save, *then* the pair is stored in the mapping table of my entity with my name and the time, and the next invoice with that text matches without an LLM call (G-07).
@@ -255,6 +268,10 @@ UC-18 · BR-05, BR-06, BR-09, BR-12, BR-25, BR-26, BR-31, BR-33, BR-34, BR-37
 - **AC-18.10** *Given* I am a Chief Accountant, a Payment Approver, or an AP Accountant of another entity, *when* I try to resolve this exception, *then* I get "Access denied".
 - **AC-18.11** *Given* invoice C26TAA-0000123 in Calderwood Foods Co. that I think belongs to another entity, *when* I choose "Report wrong entity" and write a note, *then* the invoice stays in Calderwood Foods Co. and is never moved to another entity; the system shows where the mismatch comes from (the buyer tax code on the XML against the tax code of the entity, the buyer name, the order reference, the ERP data), and the report is saved with my name, the time, my note, and the traced source (BR-09, D-68).
 - **AC-18.12** *Given* a wrong entity report, *when* it is saved, *then* the invoice is an exception with the reason "Wrong buyer tax code" if the buyer tax code on the XML is missing or differs from the tax code of the entity, and "Wrong entity reported" otherwise; I can then ask the supplier for a correction or reissue (UC-19) or reject the invoice with a reason, and I cannot send it for an individual approval (D-31, D-68).
+- **AC-18.13** *Given* invoice C26TAA-0000140 is `In Batch` and its request is not yet signed, *when* I record a cancellation notice from Brightfield Paper Ltd (reference, date, file), *then* the invoice is withdrawn from the batch and `Rejected` with "Cancelled by the seller" in one action, its exception closes with the outcome Rejected, and the total and the approval level of its request are recomputed and any earlier signature on it is voided (BR-31, BR-33, BR-35, AC-25.5, D-94).
+- **AC-18.14** *Given* invoice C26TAA-0000140 is `Signed` in request PR-CF-2026-0017 that is not yet sent, *when* a cancellation notice is recorded or the status refresh reads "Cancelled", *then* the request is `Cancelled` and nothing is sent; all its invoices become exceptions, the cancelled one with "Cancelled after signing" and the others with "Request cancelled: another invoice was cancelled"; the AP Accountant and the Chief Accountant are told, and a new request needs new signatures (BR-31, BR-35, BR-37, D-94).
+- **AC-18.15** *Given* an invoice that is `Sent` or `Paid`, *when* a cancellation notice is recorded, *then* no state changes; the notice is stored on the invoice and shown as a warning, and the case is handled outside the system, because an ERP failure after `Sent` is only mocked (BR-31, D-67, D-94).
+- **AC-18.16** *Given* an invoice that is `Waiting for Goods`, *when* a cancellation notice is recorded, *then* the invoice is `Rejected` at once with "Cancelled by the seller" and is no longer re-checked when the goods arrive (BR-31, BR-33, D-94).
 
 ## US-19 — Send a correction request or a data-fix notice
 UC-19 · BR-01, BR-09, BR-25, BR-26, BR-27, BR-31
@@ -262,7 +279,7 @@ UC-19 · BR-01, BR-09, BR-25, BR-26, BR-27, BR-31
 - **AC-19.1** *Given* an exception "Quantity above received" for invoice C26TAA-0000123 (105 reams invoiced, 100 received), *when* I choose "Request correction", *then* the AI drafts a request to Brightfield Paper Ltd from an approved template with the order number, the invoice number, the quantities, and the difference, and I can edit it.
 - **AC-19.2** *Given* a draft, *when* I have not pressed Send, *then* nothing is sent; only my Send action sends it, and the sender and the time are written to the audit log (BR-26).
 - **AC-19.3** *Given* an exception caused by ERP data, such as a missing receipt, *when* I choose "Data-fix notice", *then* the AI drafts a notice to the responsible internal team, and after the team fixes the ERP and the next sync runs, the exception is checked again (BR-25).
-- **AC-19.4** *Given* a request was sent, *when* 5 working days pass with no reply, *then* a reminder appears for me inside the system, and nothing is sent to the supplier automatically (DF-21).
+- **AC-19.4** *Given* a request was sent, *when* 5 working days pass with no reply, *then* a reminder appears for me inside the system and as a notification (US-32), and nothing is sent to the supplier automatically (DF-21).
 - **AC-19.5** *Given* the invoice has a wrong buyer tax code, *when* I choose the reissue request, *then* the draft asks for an adjustment or replacement invoice, following the BR-31 path (BR-01).
 - **AC-19.6** *Given* the Email Service fails, *when* I press Send, *then* the status is "Not sent", the exception does not change state, and I can retry.
 - **AC-19.7** *Given* the LLM is unavailable, *when* I ask for a draft, *then* I get the blank approved template and can write the request myself.
@@ -315,7 +332,7 @@ UC-23 · BR-02, BR-03, BR-09, BR-10, BR-30, BR-34, BR-35, BR-36, BR-37
 - **AC-23.1** *Given* I am Department Head Dan, *when* I open the approval queue, *then* I see only exceptions of Calderwood Foods Co. whose amount is under VND 50,000,000; the CFO sees those from VND 50,000,000 (BR-03).
 - **AC-23.2** *Given* an exception "Gate closed" of VND 6,600,000, *when* I approve it, *then* my approval is recorded at once, the invoice is `In Batch`, and the exception closes with the outcome Approved individually; *when* the batch is released, a single-invoice payment request is created for it (BR-35 R1) and goes straight to the Chief Accountant's co-signature (R4, DF-03, D-69).
 - **AC-23.3** *Given* the three split-order invoices of VND 20,000,000, 18,000,000, and 15,000,000 (combined VND 53,000,000), *when* Department Head Dan opens them, *then* Dan cannot approve any of the three, and CFO Fiona can, because the level is set by the combined amount (BR-10, D-70).
-- **AC-23.4** *Given* an exception of the kind "Tax-risk hold", "Exact duplicate", "XML signature failed", "Wrong buyer tax code", "Wrong entity reported", or "Unsupported: foreign invoice", *when* it is shown, *then* no individual approval is offered, because each has its own decision path (D-31).
+- **AC-23.4** *Given* an exception of the kind "Tax-risk hold", "Exact duplicate", "XML signature failed", "Wrong buyer tax code", "Wrong entity reported", "Service acceptance rejected", or "Unsupported: foreign invoice", *when* it is shown, *then* no individual approval is offered, because each has its own decision path (D-31).
 - **AC-23.5** *Given* I decline an exception, *when* I save without a reason, *then* it is refused; with a reason it returns to the AP Accountant.
 - **AC-23.6** *Given* I am linked to the ERP user who created the order of the invoice, *when* I open its exception, *then* approving is blocked with "You created the order for this invoice" (BR-02, BR-36).
 - **AC-23.7** *Given* an invoice from a new supplier or with a changed bank account, *when* I approve it, *then* the signing screen later flags the change on its request (BR-30).
@@ -324,6 +341,7 @@ UC-23 · BR-02, BR-03, BR-09, BR-10, BR-30, BR-34, BR-35, BR-36, BR-37
 - **AC-23.10** *Given* an individually approved exception, *when* the batch is released, *then* its request waits for the Chief Accountant's co-signature (DF-01, DF-03).
 - **AC-23.11** *Given* the three linked split-order exceptions (combined VND 53,000,000), *when* CFO Fiona approves, *then* all three are approved in one action, the three invoices are `In Batch`, and all three exceptions close with the outcome Approved individually; *when* CFO Fiona declines with a reason, all three return to the AP Accountant; the screen offers no way to approve or decline only one of them (BR-10, D-70).
 - **AC-23.12** *Given* the three linked split-order exceptions, *when* I am blocked on one of them (I created its order, BR-36), or one of them was changed by someone else after I opened them (BR-37), *then* I cannot approve or decline any of the three, nothing changes, and the screen says which invoice causes it (D-70).
+- **AC-23.13** *Given* Alice resolved the exception of invoice C26TAA-0000123 as AP Accountant and was later given the role Payment Approver (UC-02), *when* Alice opens an exception that holds that invoice, *then* approving is blocked with "You processed this invoice"; the same holds for an invoice whose service acceptance Alice confirmed or whose sample check Alice marked (BR-36, D-89).
 
 ## US-24 — Review the batch and perform the sample check
 UC-24 · BR-05, BR-06, BR-07, BR-09, BR-14, BR-30, BR-35, BR-37
@@ -339,6 +357,12 @@ UC-24 · BR-05, BR-06, BR-07, BR-09, BR-14, BR-30, BR-35, BR-37
 - **AC-24.9** *Given* the batch holds no invoice, *when* I open it, *then* releasing is disabled with "No invoices in this batch".
 - **AC-24.10** *Given* another AP Accountant changed the batch after I opened it, *when* I release it, *then* nothing changes and I am asked to reload (BR-37).
 - **AC-24.11** *Given* I am a Chief Accountant, a Payment Approver, or an AP Accountant of another entity, *when* I try to review this batch, *then* I get "Access denied" (BR-09).
+- **AC-24.12** *Given* a batch of 25 invoices with a sample of 3 in which I marked one invoice as Error, *when* I choose "Expand sample", *then* the AI selects at least 3 more invoices from those not yet in the sample, in the same order of risk as AC-24.3, each with the reason; the batch cannot be released until they are marked; the expansion is saved with my name, the time, and the reason, and I can expand again (BR-07, DF-65, D-95).
+- **AC-24.13** *Given* only 2 invoices are not yet in the sample, *when* I expand, *then* both are selected; *given* none is left, *then* "Expand sample" is disabled with "Every invoice is already in the sample" (DF-65).
+- **AC-24.14** *Given* the AI cannot select, *when* I expand the sample, *then* the highest-value invoices not yet selected are taken and the new part is labelled "selected without AI" (DF-29, DF-65).
+- **AC-24.15** *Given* a batch that is `In Signing` with 4 requests, all `Awaiting Chief Accountant` and none signed, *when* I choose "Reopen for review" with a reason, *then* the batch is `In Review`, the 4 requests are `Cancelled`, the invoices stay `In Batch`, the sample marks are kept, and an approval recorded for an individually approved exception is kept; I can withdraw invoices or expand the sample and release the batch again, which creates new requests (BR-35 B7, DF-66, D-95).
+- **AC-24.16** *Given* at least one request of the batch holds a signature, *when* I try to reopen the batch, *then* it is refused with "A request in this batch is already signed"; I can still withdraw an invoice (AC-24.7) or a signer can decline the request (BR-35, D-95).
+- **AC-24.17** *Given* another AP Accountant changed the batch after I opened it, *when* I expand the sample or reopen the batch, *then* nothing changes and I am asked to reload (BR-37).
 
 ## US-25 — Sign payment requests
 UC-25 · BR-02, BR-03, BR-09, BR-12, BR-20, BR-30, BR-35, BR-36, BR-37
@@ -358,6 +382,8 @@ UC-25 · BR-02, BR-03, BR-09, BR-12, BR-20, BR-30, BR-35, BR-36, BR-37
 - **AC-25.13** *Given* the AI summary fails, *when* I open a request, *then* a message says the summary is unavailable and I can still sign using the evidence.
 - **AC-25.14** *Given* I am an AP Accountant or an Administrator, *when* I open the signing queue, *then* I get "Access denied"; *given* I am Payment Approver of another entity, *then* I cannot see these requests (BR-09).
 - **AC-25.15** *Given* any invoice in a signed request, *when* I open its evidence, *then* I see the request and the signature records that approved it (BR-20).
+- **AC-25.16** *Given* Alice resolved the exception of invoice C26TAA-0000123 as AP Accountant and was later given the role Payment Approver (UC-02), *when* Alice opens a request that holds that invoice, *then* signing is blocked with "You processed an invoice in this request" and the invoice is named; the same holds for an invoice whose sample check Alice marked or whose service acceptance Alice confirmed (BR-36, D-89).
+- **AC-25.17** *Given* Chief Accountant Carol released the tax-risk hold of invoice C26TAA-0000160 (UC-21), *when* Carol opens the request that holds it, *then* signing is not blocked and the hold decision is shown in the evidence; the tax-risk decision is not processing the invoice for this rule (D-89).
 
 ## US-26 — Send the signed batch to the ERP
 UC-26 · BR-09, BR-12, BR-20, BR-25, BR-33, BR-35, BR-37
@@ -371,6 +397,11 @@ UC-26 · BR-09, BR-12, BR-20, BR-25, BR-33, BR-35, BR-37
 - **AC-26.7** *Given* the content of a signed request differs from its signed hash, *when* UC-26 runs, *then* it is not sent and an alert appears (BR-37).
 - **AC-26.8** *Given* a request of Calderwood Foods Co., *when* it is sent, *then* it goes only to the ERP of Calderwood Foods Co. (BR-09).
 - **AC-26.9** *Given* a send or a paid status, *when* it happens, *then* it is written to the audit log (BR-12).
+- **AC-26.10** *Given* request PR-CF-2026-0017 is `Signed` and the 3 automatic attempts failed, *when* I am AP Accountant Alice or Chief Accountant Carol of Calderwood Foods Co., *then* a "Resend" action is offered on the request; it is not offered while automatic attempts are still running, for a request that is not `Signed`, or to a Payment Approver (DF-66, D-96).
+- **AC-26.11** *Given* I press "Resend", *when* the send runs, *then* the same request number is used as the idempotency key, no new signature is asked, the hash of the signed content is checked first (AC-26.7), and the attempt is saved as a manual attempt with my name and the time; when the ERP accepts it, the request follows AC-26.2 (DF-24, DF-66).
+- **AC-26.12** *Given* the ERP had in fact received an earlier attempt, *when* I resend with the same request number, *then* no second payment is created (DF-24, BR-25).
+- **AC-26.13** *Given* the ERP returned a payment failure (AC-26.6), *when* I open the request, *then* "Resend" is not offered, because the invoices are exceptions and a new request needs new signatures (BR-33, D-67).
+- **AC-26.14** *Given* I am an AP Accountant or Chief Accountant of another entity, *when* I try to resend this request, *then* I get "Access denied" (BR-09).
 
 ## US-27 — View the dashboard
 UC-27 · BR-05, BR-07, BR-09, BR-23
@@ -395,5 +426,60 @@ UC-28 · BR-06, BR-09, BR-12
 - **AC-28.5** *Given* I am Entity Admin Evan, *when* I open the log, *then* I see only the entries of my entity; *given* I am Group Admin Gina, *then* I see group-level events (entities, limits, gates, users) and no invoice-level entries (BR-09).
 - **AC-28.6** *Given* I am an AP Accountant, a Payment Approver, or a Demo Operator, *when* I open the log, *then* I get "Access denied".
 - **AC-28.7** *Given* an audit entry cannot be written, *when* a user action needs it, *then* the action does not complete and the user sees an error (DF-30).
+
+## US-29 — Confirm service acceptance
+UC-29 · BR-02, BR-09, BR-12, BR-14, BR-17, BR-19, BR-33, BR-37
+
+- **AC-29.1** *Given* service invoice C26TAA-0000150 from Lakeside Facility Services Ltd for order PO-CF-1020 (VND 12,000,000) with no acceptance in the ERP, so that it is `Waiting for Goods` (BR-14), *when* I am Requesting Department user Rowan of Calderwood Foods Co. and open the acceptance queue, *then* I see the invoice with its order, service lines, amount, and due date.
+- **AC-29.2** *Given* that invoice, *when* I confirm the acceptance with the note "Cleaning done 3 to 7 Nov, signed off on site", *then* the acceptance is saved with my name, the time, and the note, it counts as the independent acceptance source, and UC-16 runs again in the same action; if all six conditions hold the invoice is `In Batch` (BR-17, BR-19, D-90).
+- **AC-29.3** *Given* that invoice, *when* I reject the acceptance without a note, *then* it is refused; *when* I reject it with the note "Only 2 of 5 days delivered", *then* the invoice becomes an exception "Service acceptance rejected", the AP Accountant is told, and the exception cannot be approved individually (D-31, D-90).
+- **AC-29.4** *Given* the ERP also holds a confirmed acceptance for PO-CF-1020, *when* the two sources exist, *then* the ERP acceptance is the one used, the queue no longer offers the invoice, and my confirmation stays in the history (BR-19).
+- **AC-29.5** *Given* a goods invoice for order PO-CF-1001, *when* I open the queue, *then* it is not listed, because the quantity of goods comes from the goods receipt and not from an acceptance (BR-19).
+- **AC-29.6** *Given* I am linked to the ERP user who created order PO-CF-1020, *when* I try to confirm the acceptance, *then* it is blocked with "You created the order for this invoice" (BR-02).
+- **AC-29.7** *Given* the AP Accountant changed the invoice after I opened it, *when* I confirm, *then* nothing changes and I am asked to reload (BR-37).
+- **AC-29.8** *Given* I am Rowan of Calderwood Foods Co., *when* I request an invoice of Calderwood Retail Co. by its identifier, *then* I get "Access denied"; *given* I am an AP Accountant, a Chief Accountant, a Payment Approver, or an Administrator, *when* I try to confirm an acceptance, *then* I get "Access denied" (BR-09).
+- **AC-29.9** *Given* a confirmation or a rejection, *when* it is saved, *then* it is written to the audit log with the invoice, the order, the user, and the note (BR-12).
+
+## US-30 — Delegate signing authority
+UC-30 · BR-02, BR-03, BR-09, BR-12, BR-20, BR-36, BR-37, BR-38
+
+- **AC-30.1** *Given* I am Chief Accountant Carol, *when* I name Department Head Dan as my delegate from 2026-11-10 to 2026-11-14 with the reason "Annual leave", *then* the delegation is saved with the delegator, the delegate, the dates, and the reason, and the creation is written to the audit log (BR-38, BR-12).
+- **AC-30.2** *Given* the delegation is active on 2026-11-11, *when* Dan opens the signing queue, *then* Dan sees the requests that wait for the Chief Accountant marked "On behalf of Carol" and can sign them after entering Dan's own password again; the signature record holds Dan as the signer, Carol as the person represented, the request version, and the content hash (BR-20, BR-37, BR-38, DF-10).
+- **AC-30.3** *Given* Dan signed a request as the delegate of the Chief Accountant, *when* Dan tries to sign the same request as the Payment Approver, *then* the second signature is refused, because the two signatures must come from two different people (BR-02, BR-36).
+- **AC-30.4** *Given* the dates 2026-11-09 and 2026-11-15, which are outside the range, *when* Dan opens the queue, *then* Dan sees no request on behalf of Carol and cannot sign one (BR-38).
+- **AC-30.5** *Given* Dan is linked to the ERP user who created the order of an invoice in the request, or Dan processed that invoice (BR-36), *when* Dan tries to sign as the delegate, *then* signing is blocked as for any signer (BR-02, BR-36).
+- **AC-30.6** *Given* a user of Calderwood Retail Co., an Administrator, or an AP Accountant, *when* I choose them as my delegate, *then* it is rejected with "A delegate must be an active Chief Accountant or Payment Approver of the same entity" (DF-62).
+- **AC-30.7** *Given* a range of 45 days, *when* I save, *then* it is rejected with "Maximum 30 days"; an end date before the start date, a start date in the past, and a range that overlaps another delegation of mine are rejected too (DF-62).
+- **AC-30.8** *Given* the delegation is active, *when* Carol opens the signing queue, *then* Carol's own signing action is disabled with "You delegated signing until 2026-11-14", and Carol can revoke the delegation to sign again (DF-62).
+- **AC-30.9** *Given* I am Entity Admin Evan of Calderwood Foods Co., *when* I open the delegations, *then* I see every delegation of my entity with its state (Scheduled, Active, Ended, Revoked) and can revoke one; after the revocation Dan can no longer sign on behalf of Carol, and signatures already given stay valid; I cannot create a delegation or sign (BR-38, BR-12).
+- **AC-30.10** *Given* a request signed by a delegate, *when* I open the request or the evidence of one of its invoices, *then* I see both names, "signed by Dan on behalf of Carol" (BR-20, BR-38).
+- **AC-30.11** *Given* I am a Group Admin, an AP Accountant, or a Payment Approver of another entity, *when* I try to open or change this delegation, *then* I get "Access denied" (BR-09).
+
+## US-31 — Receive invoices by email
+UC-31 · BR-01, BR-09, BR-11, BR-12, BR-17, BR-33
+
+- **AC-31.1** *Given* the simulated mailbox of Calderwood Foods Co. (invoices-foods@calderwood.example) holds a message from Brightfield Paper Ltd with one signed XML attachment, *when* the fetch runs, *then* the message is logged with its identifier, sender, and time, and the XML goes through the same checks as an upload (AC-10.1): stored unchanged with a hash, `Received`, then UC-12 to UC-16, with the source "Email" (BR-17, BR-33, DF-63, D-92).
+- **AC-31.2** *Given* a message with one PDF and one XML attachment, *when* the fetch runs, *then* the PDF is logged and rejected with "Only XML e-invoices are accepted in the MVP" and no invoice is created for it, and the XML is processed normally (BR-17, AC-10.8).
+- **AC-31.3** *Given* a message with no attachment, *when* the fetch runs, *then* it is logged as "No attachment" and no invoice is created.
+- **AC-31.4** *Given* a message that was fetched before, *when* the next fetch sees it, *then* it is not processed again; *given* an XML with the same seller, series, and number as an existing invoice, *then* it is `Rejected` as in AC-10.7 (BR-11).
+- **AC-31.5** *Given* a message with 3 attachments of which one is malformed, *when* the fetch runs, *then* the other 2 are processed normally (AC-10.10).
+- **AC-31.6** *Given* an XML in the mailbox of Calderwood Foods Co. whose buyer tax code is 0100000022, *when* it is fetched, *then* it is `Rejected` as in AC-10.6; the mailbox never chooses another entity (BR-01).
+- **AC-31.7** *Given* the mailbox is unavailable, *when* the fetch fails, *then* earlier data stays, the failure and the last successful fetch time are shown, and the next scheduled fetch tries again (DF-63).
+- **AC-31.8** *Given* I am AP Accountant Alice, *when* I open the mailbox log, *then* I see the messages of Calderwood Foods Co. only, with the result of each attachment, and a "Fetch now" action starts a fetch at once; *given* I am a Chief Accountant, a Payment Approver, an Administrator, or an AP Accountant of another entity, *then* I get "Access denied" (BR-09).
+- **AC-31.9** *Given* a fetch and the result for each attachment, *when* they happen, *then* they are written to the audit log (BR-12).
+
+## US-32 — Receive notifications and reminders
+UC-32 · BR-09, BR-12, BR-26, BR-34, BR-35
+
+- **AC-32.1** *Given* the March batch of Calderwood Foods Co. is released for signing with 4 payment requests, *when* it is released, *then* Chief Accountant Carol gets a notification "4 payment requests wait for your signature" with a link to the signing queue; after Carol signs a request, the Payment Approver at its required level gets a notification for it (BR-35, D-97).
+- **AC-32.2** *Given* an upload of 5 files in which 2 invoices become exceptions, *when* the exceptions are created, *then* AP Accountant Alice gets 2 notifications, each with the invoice and the first reason, linking to the exception (BR-34).
+- **AC-32.3** *Given* Department Head Dan declines request PR-CF-2026-0017 with the reason "Price differs from the contract", *when* it is saved, *then* Alice gets a notification "Request returned" with the reason; a request cancelled because every line was removed gives the same notice (BR-35).
+- **AC-32.4** *Given* a correction request was sent on 2026-11-02 and 5 working days passed with no reply, *when* the day ends, *then* Alice gets a reminder; the reminder repeats once a day until a reply is recorded or a follow-up invoice is linked, and nothing is sent to the supplier (DF-21, BR-26).
+- **AC-32.5** *Given* request PR-CF-2026-0018 whose earliest invoice due date is 2026-11-10, *when* 2026-11-11 comes and it still waits for a signature, *then* the signer whose signature it waits for gets a reminder once a day until the request is signed or cancelled (DF-67).
+- **AC-32.6** *Given* the notification list, *when* I open an item, *then* I go to its object and the item is marked read; the count of unread items is shown, and an item whose work is done no longer reminds me.
+- **AC-32.7** *Given* a notification about an object of Calderwood Foods Co., *when* a user of Calderwood Retail Co. looks for it, *then* it is never created for them and never shown (BR-09, G-06).
+- **AC-32.8** *Given* any notification, *when* it is created, *then* no email is sent to staff; the notification exists inside the system only (D-97).
+- **AC-32.9** *Given* a notification cannot be saved, *when* the batch is released, *then* the release still completes and the failure is logged; the fail-closed rule of DF-30 applies to audit entries and not to notifications (BR-12).
+- **AC-32.10** *Given* I am an Entity Admin, a Group Admin, a Demo Operator, or a Requesting Department user, *when* I open the notification list, *then* I get "Access denied" (BR-09).
 
 **Related:** [Step index](README.md)

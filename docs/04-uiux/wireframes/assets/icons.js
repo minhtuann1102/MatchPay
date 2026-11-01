@@ -40,7 +40,9 @@
     menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
     hash: '<path d="M5 9h14M5 15h14M10 4l-2 16M16 4l-2 16"/>',
     dots: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
-    undo: '<path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/>'
+    undo: '<path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/>',
+    bell: '<path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15z"/><path d="M10 21a2 2 0 0 0 4 0"/>',
+    handover: '<path d="M4 8h14M14 4l4 4-4 4"/><path d="M20 16H6M10 12l-4 4 4 4"/>'
   };
   var out = '<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">';
   Object.keys(icons).forEach(function (k) {

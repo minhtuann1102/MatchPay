@@ -13,7 +13,7 @@ Every incoming invoice is first classified into a flow. An invoice with no purch
 | # | Flow | Matched against | Scope |
 |---|---|---|---|
 | F-01 | Domestic goods | Purchase order + goods receipt note | MVP |
-| F-02 | Domestic services | Purchase order + service acceptance record (confirmed in the system) | MVP |
+| F-02 | Domestic services | Purchase order + service acceptance record (confirmed in the ERP or, when the ERP holds none, by the Requesting Department in MatchPay, D-90) | MVP |
 | F-03 | Software subscription | Subscription profile + card transaction. When the card is charged first, the invoice is confirmed afterwards and a wrong charge leads to a refund request. | Advanced. In the MVP a fixed-price subscription follows a recurring profile (F-06). |
 | F-04 | Foreign invoice (PDF; Advanced, D-33) | As F-01 or F-02 by type. A person confirms every field. Imported goods need the customs declaration and the proof of paying import-stage VAT. A service needs foreign contractor tax handled before payment. | Advanced (W-19, W-20). The user removed it from the MVP (D-33); the brief had it as "level A". In the MVP a PDF is rejected at upload, and a foreign invoice that still arrives is an "Unsupported: foreign invoice" exception (BR-17). |
 | F-05 | Travel and hotel booked through agents | Approved booking request + trip confirmation | Advanced |

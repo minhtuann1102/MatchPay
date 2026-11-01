@@ -633,3 +633,44 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .shot-card details.states > summary::before { content: "+"; display: inline-block; width: 14px; text-align: center; font-weight: 600; }
 .shot-card details.states[open] > summary::before { content: "\2212"; }
 .shot-card details.states .state-links { margin-top: var(--s2); max-height: 220px; overflow-y: auto; }
+
+/* =====================================================================
+   Mind map sync (D-88, Step 4 sync): notification bell and unread badge, notification list item,
+   "On behalf of" marker, authority-status tag, and source tag. Only existing tokens are used.
+   ===================================================================== */
+.bell { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--line-2); border-radius: var(--r-control); background: var(--surface); color: var(--ink); font-size: var(--fs-sm); font-weight: 500; text-decoration: none; }
+.bell:hover { background: #f6f6f8; }
+.bell[aria-current="page"] { border-color: var(--ink); }
+.unread-badge { min-width: 20px; padding: 0 6px; border-radius: 999px; background: var(--ink); color: #fff; font-size: var(--fs-xs); font-weight: 600; line-height: 1.6; text-align: center; }
+/* Notification list item: a mark, the text, the time, and one link. Unread is told apart by the word "Unread" and a filled mark, never by colour alone. */
+.notif-list { list-style: none; margin: 0; padding: 0; }
+.notif { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: var(--s3); align-items: start; padding: 12px var(--s4); border-bottom: 1px solid var(--line); }
+.notif:last-child { border-bottom: 0; }
+.notif .n-mark { width: 10px; height: 10px; margin-top: 6px; box-sizing: border-box; border: 1.5px solid var(--ink-3); border-radius: 50%; }
+.notif.is-unread { background: #fbfbfd; }
+.notif.is-unread .n-mark { background: var(--ink); border-color: var(--ink); }
+.notif .n-text { min-width: 0; }
+.notif .n-text b { display: block; font-weight: 600; }
+.notif:not(.is-unread) .n-text b { font-weight: 500; }
+.notif .n-text > span { display: block; color: var(--ink-2); font-size: var(--fs-sm); }
+.notif .n-meta { display: grid; justify-items: end; gap: 4px; font-size: var(--fs-xs); color: var(--ink-3); white-space: nowrap; }
+.n-kind { display: inline-block; margin-right: 6px; padding: 0 6px; border: 1px solid var(--rule-line); border-radius: var(--r-tag); background: var(--rule-wash); color: var(--rule); font-size: 11.5px; font-weight: 500; }
+.n-flag { display: inline-block; padding: 0 6px; border: 1px solid var(--ink); border-radius: 999px; font-size: 11.5px; font-weight: 600; color: var(--ink); }
+/* "On behalf of Carol": a delegate acts for the delegator (Person hand, so it keeps the ink border and the warm wash). */
+.obo { display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; border: 1.5px solid var(--person); border-radius: 999px; background: var(--person-wash); color: var(--person); font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; }
+/* Authority status from the simulated tax authority (document data, so a square grey tag; the word carries the meaning). */
+.auth-tag { display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; border: 1px solid var(--line-2); border-radius: var(--r-tag); background: #f6f6f8; color: var(--ink-2); font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.auth-ok { border-color: #8fc6a5; background: var(--ok-wash); color: var(--ok); }
+.auth-warn { border-color: var(--warn); background: var(--warn-wash); color: var(--warn); }
+.auth-bad { border-color: var(--err); background: var(--err-wash); color: var(--err); }
+.auth-na { border-style: dashed; }
+/* Source of an invoice: Upload or Email. */
+.src-tag { display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; border: 1px solid var(--line-2); border-radius: var(--r-tag); background: var(--surface); color: var(--ink-2); font-size: 11.5px; font-weight: 500; white-space: nowrap; }
+.top-user .bell { margin-right: var(--s2); }
+.mbx-msg td { background: #f6f6f8; font-weight: 600; font-size: var(--fs-xs); color: var(--ink-2); height: 32px !important; }
+.sum-box { display: grid; gap: var(--s2); padding: var(--s3) var(--s4); border: 1px solid var(--line); border-radius: var(--r-surface); background: #fbfbfd; font-size: var(--fs-sm); }
+/* A list with a Source column keeps one line per row: narrower flow and note columns. */
+.tbl.has-source .flow { width: 108px; max-width: 108px; }
+.tbl.has-source td .sub { max-width: 150px; }
+.tbl.has-source .clip { max-width: 170px; }
+.tbl.has-source td, .tbl.has-source th { padding-left: 6px; padding-right: 6px; }
