@@ -1456,7 +1456,7 @@ print('  components: %d; operations owned once: %d of %d; jobs: %d; tables owned
 if s7: fail('Architecture architecture checks')
 
 print('\n== CHECK: README Mermaid blocks match their source documents ==')
-_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None, 'docs/05-database/02-er-diagram.md': None, 'docs/07-architecture/02-container.md': None}
+_src = {'docs/02-usecases-userstories/01-use-cases.md': None, 'docs/03-information-architecture/01-sitemap.md': None, 'docs/mindmap.md': None, 'docs/05-database/02-er-diagram.md': None, 'docs/07-architecture/02-container.md': None, 'docs/07-architecture/01-system-context.md': None, 'docs/07-architecture/03-component.md': None, 'docs/07-architecture/04-code.md': None, 'docs/07-architecture/07-runtime-and-deployment.md': None}
 _pool = []
 for _p in _src:
     _pool += re.findall(r'```mermaid\n(.*?)```', open(_p, encoding='utf-8').read(), re.S)
