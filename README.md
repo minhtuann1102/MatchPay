@@ -680,6 +680,16 @@ erDiagram
 
 The API (draft for review) writes one HTTP contract for the web application in [`openapi.yaml`](docs/06-api/openapi.yaml): OpenAPI 3.0.4, 121 operations on 104 paths in 24 tags, and it is the source of truth for paths, bodies, roles, and errors (D-130). Every operation names its user stories, business rules, screens, and database tables (`x-stories`, `x-rules`, `x-screens`, `x-tables`), so the [API cross-check](docs/06-api/01-api-traceability.md) shows that every active story has an operation and every operation uses tables of the schema above. The conventions: a server-side session in an HttpOnly cookie with a CSRF header, the entity taken from the session and never from a path, errors as Problem Details with a stable `errorCode`, money as decimal strings, optimistic concurrency with `version`, an `Idempotency-Key` on signing, release, and resend, and 202 with a run id for work that continues in the background. The AI checks, the ERP sync, the mailbox fetch, the status lookups, the ERP send, and the reminders are jobs, not operations. The contract lints clean with Redocly. Every decision of the API contract awaits the user's review. Read the [API index](docs/06-api/README.md) and the [decisions](docs/06-api/00-decisions.md).
 
+## Interactive prototype
+
+A Vietnamese, clickable front end on mock data lives in [`prototype/`](prototype/README.md) (React, TypeScript, Vite; the mock API runs in the browser and follows the OpenAPI operation names). It sits next to the English wireframes, which stay the design reference. Decisions D-187..D-196 are calls that await the user's review: see [the UI/UX decisions](docs/04-uiux/00-decisions.md). Screenshots by role are in [`docs/images/prototype/`](docs/images/prototype/).
+
+```bash
+cd prototype
+npm install
+npm run dev
+```
+
 ## Documentation
 
 - Research: [Context and problem](docs/01-research/01-context-and-problem.md), [Goals and metrics](docs/01-research/02-goals-and-metrics.md), [Stakeholders](docs/01-research/03-stakeholders.md), [Similar products](docs/01-research/04-similar-products.md), [MVP scope](docs/01-research/05-scope.md), [Risks](docs/01-research/06-risks.md), [AI vs rule-based](docs/01-research/07-ai-vs-rule-based.md), [Glossary](docs/01-research/08-glossary.md), [Decisions](docs/01-research/00-decisions.md), [Future work](docs/01-research/09-future-work.md), [Regulatory context](docs/01-research/10-regulatory-context.md), [Invoice flows and data](docs/01-research/11-invoice-flows-and-data.md).

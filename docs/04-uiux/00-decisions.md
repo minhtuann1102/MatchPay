@@ -169,3 +169,61 @@ The new numbers continue after D-107 and DF-72. Approved text above is unchanged
 | 2 | The information architecture does not say where the bell is. | Draws a bell in the top bar and a sidebar item. | D-111. |
 | 3 | SCR-33 says the sample can run out of invoices to add, and SCR-18 has a variant for AC-23.13. | Not drawn. The default and error states of both are drawn. | The two variants add no new element. Record if the reviewer wants them. |
 | 4 | Information architecture lists six exception states. | The `authority-unavailable` state of SCR-10 shows the sidebar badge as 7, one more than the other states. | AC-10.16 creates a seventh exception reason. |
+
+## Interactive prototype in Vietnamese (2026-11-01)
+
+The user wrote on 2026-11-01: "now I want to switch the interface to Vietnamese, an interface that can be interacted with like a real system with mock data, not just plain HTML" (translated from Vietnamese). The assistant read this as a request for a second, clickable front end next to the static English wireframes. The wireframes are not replaced. The prototype is in [`prototype/`](../../prototype/README.md) and its screenshots are in [`../images/prototype/`](../images/prototype/).
+
+The numbering continues from the architecture (decisions end at D-186, defaults end at DF-93).
+
+### Decision of the user
+
+| ID | Decision | Why | Status |
+|---|---|---|---|
+| D-187 | **The interface is Vietnamese, and it is interactive on mock data.** Every screen of the 22 pages and 23 modals and drawers is a working page: lists filter and sort, actions change data, and a change on one screen shows on the others. No real backend. | The user's own request, quoted above. | Decided by the user (2026-11-01) |
+
+### Calls made while building the prototype
+
+| ID | Call | Why | Status |
+|---|---|---|---|
+| D-188 | **Folder and stack.** The code is in `prototype/`, outside any future production folder. React 18, TypeScript in strict mode, Vite, React Router, and TanStack Query, with plain CSS ported from `wireframes/assets/wireframe.css`. No UI component library and no chart library (charts are CSS and SVG). | It follows the stack that [the architecture](../07-architecture/05-tech-stack.md) already proposes for the web client, so the prototype can be read as a first slice of it. A plain port of the wireframe CSS keeps the look of the approved wireframes. | Call, awaiting user review |
+| D-189 | **The router is HashRouter, not history mode.** Routes are exactly the routes of [the routes and permissions page](../03-information-architecture/02-routes-and-permissions.md), written after `#`, for example `#/invoices/inv-140`. | The built `dist/` folder then works from any static host or from a file, with no rewrite rule on the server. | Call, awaiting user review |
+| D-190 | **The mock API runs in the browser and is named after the OpenAPI operationIds** (`listInvoices`, `closeBatchForReview`, `signPaymentRequests`, and so on). Data is kept in `localStorage` (key `matchpay-proto-v1`) and can be reset from the demo toolbar. Each call waits 200 to 500 ms. It answers 401 with no session, 403 for a role that may not call the operation (and writes an audit entry), 404 for a record outside the caller's entity (the same answer whether or not the record exists, as in [the access-denied page](02-screen-notes.md)), and 409 when the version the user saw is out of date (BR-37). It applies BR-03, BR-33, BR-34, BR-35, and BR-36, writes audit entries and notifications, and returns the same error codes that the screens show. | Screens can then show loading, empty, error, and conflict states for real. Naming it after the contract keeps the later swap to the real API small. | Call, awaiting user review |
+| D-191 | **Vietnamese copy lives only in `prototype/src/i18n/`, and Vietnamese free text only in `prototype/src/mock/`.** All other files, comments, and names are English. This differs from the rule that every file is English: the interface the user asked for is Vietnamese, so it cannot be English. The exception is limited to one folder for the interface copy and one for seed text that a person would type (notes, mail subjects, reasons). Enum values in data stay English and a label map translates them. Money is written `12.500.000 ₫`, dates dd/MM/yyyy, times in 24 hours, and the page has `lang="vi"`. | A single folder is easy to review and to check by a script (D-196). Keeping data values in English keeps the data shapes equal to the OpenAPI contract. | Call, awaiting user review |
+| D-192 | **The static English wireframes stay as the design reference.** The prototype does not replace them, and the PNGs of the wireframes stay English. The prototype screenshots go to a separate folder, `docs/images/prototype/<role folder>/`, with the same role folder names and the same file names as the wireframe PNGs (D-46), taken at 1440 by 900 pixels. | The wireframes are approved and the gallery and screen notes point at them. A separate folder cannot overwrite an approved export. | Call, awaiting user review |
+| D-193 | **Persona login and a demo toolbar.** The login page lists the eight demo people (one per role, and both approval levels). A floating "demo tools" button opens a toolbar that switches the persona, resets the data, forces a page state (loading, empty, server error, AI error, version conflict), and shows the one-time re-authentication code for signing, which is `246810` (a fixed code, not a security feature). | A reviewer can walk through every role in minutes and can see every documented state without breaking the data. | Call, awaiting user review |
+| D-194 | **Seed data differs from the wireframes in places.** (1) The wireframes give tax codes only for Brightfield Paper, Harbor Cartons, Eastbay Trading, and the entities. The tax codes of Sunrise Electric Utility, CloudDesk Software, Lakeside Facility Services, Greenleaf Landscaping, Pinecrest Training, and Skyline are invented. (2) A second batch, November 2026, is open with five invoices, next to the October batch that is in signing, so that a reviewer can close, sample, and release a batch without losing the signing pages. (3) The three split-order invoices are numbered 0000191, 0000192, and 0000193, because the wireframes use 0000160 and 0000161 for both the split orders and other invoices. Where two wireframes disagree, the worklist wireframe wins. (4) Calderwood Packaging Co. and Calderwood Retail Co. have a few invoices, users (Mina, Kai, Rhea, Theo), a batch, and gates that the wireframes do not draw. (5) The delegation from Carol to Fiona is scheduled (03/11/2026 to 14/11/2026), not active, so that Carol can sign from the first login and the delegation still shows on SCR-55. | The prototype needs data for every state of every role, and the wireframes draw only the states they show. Each change is listed so that a reviewer can tell invented data from drawn data. | Call, awaiting user review |
+| D-195 | **The demo clock is fixed at 31/10/2026 10:30** and moves forward one minute for each change. Times are stored as local strings, with no time zone. | Dates such as "due within 7 days", "3 days old", and "starts in the future" then give the same result on every day the prototype is opened. | Call, awaiting user review |
+| D-196 | **A check keeps the Vietnamese letters in two folders.** `tools/check_docs.py` scans `prototype/src/**/*.ts`, `*.tsx`, and `*.css` and fails if a Vietnamese letter appears outside `prototype/src/i18n/` and `prototype/src/mock/`. The scan of documents skips `node_modules` and `dist`. | It turns D-191 from a habit into a rule that fails when it is broken. | Call, awaiting user review |
+
+### Defaults of the prototype
+
+| ID | Default | Status |
+|---|---|---|
+| DF-94 | **Vietnamese terms.** The terms are listed in `prototype/src/i18n/vi.ts` and are the worker's choice, with no source. Plain-accounting wording is used: invoice is "Hoa don dau vao", batch is "Lo thanh toan", payment request is "De nghi thanh toan", sign is "Ky", tax code is "Ma so thue" (written here without diacritics because documents carry none). Role names follow the same style, for example "Ke toan phai tra" for the AP Accountant and "Nguoi duyet chi" for the Payment Approver. The names "Rule Engine", "AI", "CFO", "ERP", and "XML" stay in English. | Default, pending confirmation |
+| DF-95 | **Screenshot rules.** The script `prototype/scripts/screenshots.mjs` starts every role in a fresh browser, so the data is the seed data. It hides the demo button, takes one full-page PNG per page per role that may open it, and a viewport PNG of a modal or drawer named `<nn><letter>-<slug>-<state>.png` (D-46). The set is 50 files (the upload drawer, reject, close batch, sampled batch, release, tax-risk decision, sign with re-authentication, new delegation, open gate, and the purchase order form). | Default, pending confirmation |
+| DF-96 | **Chips in table cells wrap** to a second line instead of running into the next column, and the page keeps a bottom margin so that the demo button never covers a table. | Default, pending confirmation |
+| DF-97 | **File inputs in the upload drawer are simulated.** The drawer offers sample file names (for example one that is not XML, one with a bad signature, one duplicate) and a file name picks the mock result. A real file picker also works, and the result depends on the file name only. | Default, pending confirmation |
+
+### Known gaps
+
+The prototype was driven in headless Chromium by two scripts (a click path of the AP Accountant, and a sweep that logs in as each of the seven roles, opens every sidebar item, and runs the main actions: a tax-risk decision, an individual approval, a batch release, signing with the code, a refused code, a decline, a failed ERP send and its resend, a delegation created and revoked, a policy edit, a gate closed, and a purchase order). Both finished with no console error. The gaps below are known and are not decided.
+
+- **BR-02 ERP-user check in signing is not built.** The signing check covers the signer order, the approval level, delegation, the user who prepared or released the batch, and the invoices a user processed (BR-36). It does not yet compare the signer's ERP user with the user who created the purchase order or confirmed the receipt. The seed has no signer who processed an invoice, so that block is reached only after an Entity Admin changes a role.
+- **The approval matrix editor keeps two levels.** It edits the boundary between them and the approvers of each level. Adding or removing a level is not built.
+- **SCR-16 and SCR-18 are modals on the decision queue,** not separate pages.
+- **The audit log has no filter by person.** It filters by date, document, and event type.
+- **The AI summary of a payment request is fixed text,** and the AI steps of the pipeline are simulated by the seed data and the file name rules.
+- **The copy has not been read by a native Vietnamese reader.** Unverified: wording, tone, and legal terms. A reader should confirm DF-94 first.
+- **Layouts below 1180 px are not tested.** The CSS has narrow-screen rules from the wireframes. Unverified until opened on a phone or a narrow window.
+- **Only Chromium was used.** Unverified in Firefox, Safari, and on a touch device.
+- **Keyboard use and screen readers were built in (focus trap, Esc, labels, roles) but were not tested with a screen reader.** Unverified.
+- **No production concerns:** passwords are not checked beyond length, the re-authentication code is fixed, and nothing leaves the browser.
+
+### Effect on earlier decisions
+
+| Earlier decision | Effect | Status |
+|---|---|---|
+| D-42 | The static pages stay the design reference. The prototype is a second front end, not a replacement. | Call, awaiting user review |
+| D-46 | The prototype screenshots use the same role folder names, under `docs/images/prototype/`. | Call, awaiting user review |
+| CLAUDE.md rule "all files are English" | One limited exception, D-191, written down here. The rule file itself is not edited. | Call, awaiting user review |

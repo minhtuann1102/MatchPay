@@ -3,6 +3,7 @@ import os, re, sys, urllib.parse
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))).replace(os.sep, '/')
 files = []
 for dp, dn, fn in os.walk(ROOT):
+    dn[:] = [d for d in dn if d not in ('node_modules', 'dist', '.git')]  # dependencies and build output are not project documents
     for f in fn:
         if f.endswith('.md') and not f.startswith('Brief'):
             files.append(os.path.join(dp, f))
@@ -946,11 +947,17 @@ for f_, t_ in text.items():
 print('  PNG and HTML links in Markdown checked: %d; broken: %s' % (n_links, broken or 'none'))
 if broken: fail('broken PNG or HTML link')
 imgs = sorted(rel(os.path.join(dp, f_)) for dp, dn, fn in os.walk(ROOT + '/docs/images') for f_ in fn if f_.endswith('.png')) if os.path.isdir(ROOT + '/docs/images') else []
+proto_imgs = [i_ for i_ in imgs if i_.startswith('docs/images/prototype/')]  # Vietnamese prototype screenshots, checked below
+imgs = [i_ for i_ in imgs if not i_.startswith('docs/images/prototype/')]
 role_dirs = {'common', 'ap-accountant', 'chief-accountant', 'payment-approver', 'entity-admin', 'group-admin', 'demo-operator', 'requesting-department'}
 bad_dirs = [i_ for i_ in imgs if i_.split('/')[2] not in role_dirs and not i_.startswith('docs/images/source/')]  # docs/images/source/ holds source images, not wireframe exports
 big = sum(os.path.getsize(ROOT + '/' + i_) for i_ in imgs)
 print('  PNG exports: %d, %.1f MB; outside the role folders: %s' % (len(imgs), big / 1e6, bad_dirs or 'none'))
 if bad_dirs or big > 15e6: fail('PNG folders or size')
+proto_bad = [i_ for i_ in proto_imgs if i_.split('/')[3] not in role_dirs]
+proto_big = sum(os.path.getsize(ROOT + '/' + i_) for i_ in proto_imgs)
+print('  prototype screenshots: %d, %.1f MB; outside the role folders: %s' % (len(proto_imgs), proto_big / 1e6, proto_bad or 'none'))
+if proto_bad or len(proto_imgs) > 70 or proto_big > 15e6: fail('prototype PNG folders or size')
 # (d) local assets only
 remote = []
 missing_asset = []
@@ -1464,5 +1471,21 @@ _rd = re.findall(r'```mermaid\n(.*?)```', open('README.md', encoding='utf-8').re
 _drift = [i_ + 1 for i_, b_ in enumerate(_rd) if b_ not in _pool]
 print('  README diagrams: %d; not identical to a source block: %s' % (len(_rd), _drift or 'none'))
 if _drift: fail('README diagram drift')
+
+# ---------------------------------------------------------------- CHECK: prototype Vietnamese letters
+print('\n== CHECK: prototype source keeps Vietnamese letters in src/i18n and src/mock only ==')
+proto_root = ROOT + '/prototype/src'
+proto_hits, proto_files = [], 0
+for dp, dn, fn in os.walk(proto_root):
+    dn[:] = [d for d in dn if d not in ('node_modules', 'dist')]
+    for f_ in fn:
+        if not f_.endswith(('.ts', '.tsx', '.css')): continue
+        proto_files += 1
+        path_ = os.path.join(dp, f_).replace(os.sep, '/')
+        if '/prototype/src/i18n/' in path_ or '/prototype/src/mock/' in path_: continue
+        for i_, line_ in enumerate(open(path_, encoding='utf-8').read().split('\n'), 1):
+            if pat.search(line_): proto_hits.append((rel(path_), i_))
+print('  source files scanned: %d; Vietnamese letters outside src/i18n and src/mock: %s' % (proto_files, proto_hits[:10] or 'none'))
+if proto_hits: fail('Vietnamese letters in prototype source outside src/i18n and src/mock')
 
 print('\nRESULT:', 'ALL CHECKS PASSED' if not failures else '%d FAILURE(S): %s' % (len(failures), failures))

@@ -4,7 +4,7 @@ Shared platform for a group of legal entities: AI reads and matches incoming inv
 
 ## Rules
 
-- **All files are 100% English.** The only exception is the Vietnamese brief at the repo root, which is the source document. Never edit it. Write legal references without diacritics (QD-TCT, ND-CP). UI copy in wireframes is also English.
+- **All files are 100% English.** The only exception is the Vietnamese brief at the repo root, which is the source document. Never edit it. Write legal references without diacritics (QD-TCT, ND-CP). UI copy in the static wireframes is also English. The interactive prototype in `prototype/` has a Vietnamese UI at the user's request (D-187): Vietnamese text lives only in `prototype/src/i18n/` (UI copy) and `prototype/src/mock/` (sample free text); code, comments, and docs stay English.
 - **Talk to the user in Vietnamese.** Documents stay in English.
 - **Work in the fixed step order** (see the handoff). Stop and report after each step. A step is approved only when the user says so; until then its status is `draft for review`.
 - **Never present a call you made as the user's decision.** Record it in the step's `00-decisions.md` as awaiting review.

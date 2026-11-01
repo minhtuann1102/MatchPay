@@ -23,7 +23,7 @@ import type {
   User,
 } from '../api/types';
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 export const DEMO_START = '2026-10-31T10:30:00';
 
 const FOODS = 'ent-foods';
@@ -422,7 +422,7 @@ A('gate-harbor-foods', 'Harbor Cartons Ltd / Calderwood Foods Co.', '2026-10-12T
 A('group', 'Group', '2026-10-30T15:12:00', 'PERSON', 'Gina', 'EV_LIMITS_SEED', {}, { objectType: 'GROUP', eventType: 'CONFIGURATION_CHANGE', entityId: null });
 A('u-dan', 'Dan', '2026-10-29T09:00:00', 'PERSON', 'Evan', 'EV_USER_ROLE_SET', { role: 'PAYMENT_APPROVER', level: 'DEPARTMENT_HEAD' }, { objectType: 'USER', eventType: 'USER_CHANGE' });
 A('ent-retail', 'Calderwood Retail Co.', '2026-10-12T10:00:00', 'PERSON', 'Gina', 'EV_ENTITY_ADDED', { taxCode: '0100000033' }, { objectType: 'ENTITY', eventType: 'CONFIGURATION_CHANGE', entityId: null });
-A('del-1', 'Carol - Fiona', '2026-10-30T09:00:00', 'PERSON', 'Carol', 'EV_DELEGATION_CREATED', { to: 'Fiona', from: '30/10/2026', until: '14/11/2026' }, { objectType: 'DELEGATION', eventType: 'DELEGATION' });
+A('del-1', 'Carol - Fiona', '2026-10-30T09:00:00', 'PERSON', 'Carol', 'EV_DELEGATION_CREATED', { to: 'Fiona', from: '03/11/2026', until: '14/11/2026' }, { objectType: 'DELEGATION', eventType: 'DELEGATION' });
 A('MSG-0418', 'MSG-0418', '2026-10-31T09:30:00', 'SYSTEM', null, 'EV_MAILBOX_FETCH', { messages: 2 }, { objectType: 'MAILBOX', eventType: 'MAILBOX' });
 audit.sort((a, b) => a.at.localeCompare(b.at));
 
@@ -471,7 +471,7 @@ const requests: PaymentRequest[] = [
 ];
 
 const delegations: Delegation[] = [
-  { id: 'del-1', entityId: FOODS, delegatorId: 'u-carol', delegateId: 'u-fiona', from: '2026-10-30', to: '2026-11-14', reason: 'Nghỉ phép năm', revokedAt: null },
+  { id: 'del-1', entityId: FOODS, delegatorId: 'u-carol', delegateId: 'u-fiona', from: '2026-11-03', to: '2026-11-14', reason: 'Nghỉ phép năm', revokedAt: null },
   { id: 'del-2', entityId: FOODS, delegatorId: 'u-carol', delegateId: 'u-dan', from: '2026-10-12', to: '2026-10-16', reason: 'Dự hội nghị', revokedAt: null },
   { id: 'del-3', entityId: FOODS, delegatorId: 'u-dan', delegateId: 'u-fiona', from: '2026-10-05', to: '2026-10-07', reason: 'Đi đào tạo', revokedAt: '2026-10-04T16:00:00' },
   { id: 'del-4', entityId: FOODS, delegatorId: 'u-fiona', delegateId: 'u-dan', from: '2026-11-20', to: '2026-11-24', reason: 'Đi công tác', revokedAt: null },

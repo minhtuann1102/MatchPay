@@ -68,3 +68,8 @@ a.btn { display: inline-flex; }
 
 /* The floating demo button must not cover the last row or the right-most column. */
 .page { padding-bottom: 76px; }
+
+/* Chips inside table cells wrap instead of running into the next column. */
+.tbl .chip { white-space: normal; max-width: 100%; align-items: flex-start; text-align: left; border-radius: 12px; line-height: 1.4; padding-top: 2px; padding-bottom: 2px; }
+.tbl .chip::before { margin-top: 4px; }
+.tbl td { overflow-wrap: anywhere; }
