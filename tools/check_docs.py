@@ -57,12 +57,10 @@ US_S3 = list(US)  # the stories Step 3 covers: every active story
 N_S3 = len(US_S3)
 US_DB = [u for u in US if u not in PEND]  # the stories Step 5 covers until its sync
 N_DB = len(US_DB)
-# D-88 sync of Step 3 added ten screens. Their wireframes belong to the Step 4 sync, so Check 7 lets exactly these have none until then.
-WF_PENDING = ['SCR-19', 'SCR-22', 'SCR-23', 'SCR-24', 'SCR-33', 'SCR-34', 'SCR-55', 'SCR-56', 'SCR-57', 'SCR-62']
 N_MUST, N_SHOULD = 20, 10
 W_MAX = 21
-D_MAX = 107  # D-100..D-107 are the Step 3 calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the Step 4 R1 redesign; D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
-DF_MAX = 72  # DF-69..DF-72 are the Step 3 defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
+D_MAX = 117  # D-108..D-117 are the Step 4 calls of the mind map sync; D-100..D-107 are the Step 3 calls of the mind map sync; D-88 is the user's sync to the feature mind map and D-89..D-99 are calls made while applying it; D-73..D-87 are the Step 4 R1 redesign; D-33 is the scope decision; Step 3 calls are D-34..D-41; Step 4 calls are D-42..D-46; Step 5 calls are D-47..D-66; D-67..D-72 are user decisions on Step 5 gaps
+DF_MAX = 76  # DF-73..DF-76 are the Step 4 defaults of the mind map sync; DF-69..DF-72 are the Step 3 defaults of the mind map sync; DF-61..DF-68 are the mind map sync defaults; DF-34..DF-44 are the Step 3 defaults; DF-45..DF-52 are the Step 4 defaults; DF-53..DF-60 are the Step 5 defaults
 # Rules whose whole text is Advanced or removed after D-33 and that no active story may cite.
 BR_NO_STORY = {'BR-18': 'Advanced', 'BR-21': RM, 'BR-32': RM}
 BR = ['BR-%02d' % n for n in range(1, 40)]
@@ -656,8 +654,6 @@ else:
     if dup_scr: fail('duplicate SCR rows')
     n_pages_, n_modals_ = sum(1 for v in scr.values() if v['page']), sum(1 for v in scr.values() if v['modal'])
     if (len(scr), n_pages_, n_modals_) != (45, 22, 23) or sorted(scr_removed) != ['SCR-13', 'SCR-17']: fail('expected 45 active screens (22 pages, 23 modals) and the removed rows SCR-13 and SCR-17')
-    new_scr_ = [x for x in WF_PENDING if x not in scr]
-    if new_scr_: fail('the screens added by the mind map sync are missing from the inventory: %s' % new_scr_)
     undefined_scr = sorted({(f, x) for f, t in text.items() for x in re.findall(r'\bSCR-\d\d\b', t) if x not in scr and x not in scr_removed})
     # a removed screen may be named only on a line that says it is removed (D-33), never live
     live_removed = sorted({(f, x) for f, t in text.items() for l in t.split('\n') for x in re.findall(r'\bSCR-\d\d\b', l)
@@ -920,13 +916,12 @@ for f_, t_ in pages.items():
 no_wf = []
 for sid, v in scr.items():
     if v['page']:
-        if sid not in page_scr and sid not in WF_PENDING: no_wf.append(sid)
-    elif sid not in WF_PENDING:
+        if sid not in page_scr: no_wf.append(sid)
+    else:
         parents = [x.strip() for x in v['from']]
         if sid not in modal_scr or not any(page_scr.get(pp) in modal_scr[sid] for pp in parents): no_wf.append(sid)
 removed_wf = [sid for sid in scr_removed if sid in page_scr or sid in modal_scr or any(sid in t_ for t_ in pages.values())]
-wf_pending_have = [sid for sid in WF_PENDING if sid in page_scr or sid in modal_scr]
-print('  active screens: %d, with a wireframe (page file or modal state in the parent page): %d; missing: %s; screens of the mind map sync still waiting for the Step 4 sync: %d' % (len(scr), len(scr) - len(no_wf) - len(WF_PENDING) + len(wf_pending_have), no_wf or 'none', len(WF_PENDING) - len(wf_pending_have)))
+print('  active screens: %d, with a wireframe (page file or modal state in the parent page): %d; missing: %s' % (len(scr), len(scr) - len(no_wf), no_wf or 'none'))
 print('  removed screens (SCR-13, SCR-17) with a wireframe: %s' % (removed_wf or 'none'))
 if no_wf: fail('screens without a wireframe: %s' % no_wf)
 if removed_wf: fail('removed screens have a wireframe')
@@ -952,7 +947,7 @@ for f_, t_ in text.items():
 print('  PNG and HTML links in Markdown checked: %d; broken: %s' % (n_links, broken or 'none'))
 if broken: fail('broken PNG or HTML link')
 imgs = sorted(rel(os.path.join(dp, f_)) for dp, dn, fn in os.walk(ROOT + '/docs/images') for f_ in fn if f_.endswith('.png')) if os.path.isdir(ROOT + '/docs/images') else []
-role_dirs = {'common', 'ap-accountant', 'chief-accountant', 'payment-approver', 'entity-admin', 'group-admin', 'demo-operator'}
+role_dirs = {'common', 'ap-accountant', 'chief-accountant', 'payment-approver', 'entity-admin', 'group-admin', 'demo-operator', 'requesting-department'}
 bad_dirs = [i_ for i_ in imgs if i_.split('/')[2] not in role_dirs]
 big = sum(os.path.getsize(ROOT + '/' + i_) for i_ in imgs)
 print('  PNG exports: %d, %.1f MB; outside the role folders: %s' % (len(imgs), big / 1e6, bad_dirs or 'none'))

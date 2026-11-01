@@ -5,6 +5,8 @@
 > Implementation status: NOT STARTED
 >
 > Revision R1 (UX redesign, 2026-11-01): draft for review
+>
+> Mind map sync (D-88): components added, draft for review
 
 Source of truth: [`wireframes/assets/wireframe.css`](wireframes/assets/wireframe.css). Step 9 reuses these tokens. The concept is a call awaiting user review (D-44).
 
@@ -126,6 +128,12 @@ Revision R1 (draft for review, D-73..D-81) changes how the pages are laid out, n
 | Attention card | A left-ruled card (amber for a blocking exception, green for a clean item) with one line per blocker, in plain words, and a link to the tab with the evidence. It holds no action. |
 | Settings layout | `.settings`: a sub-navigation of sections on the left, sections on the right, and a sticky save bar ("Unsaved changes", Discard, Save). |
 | Tooltip mark | A small "i" mark with a `title` for text that is not needed to act. The text is the Step 4 text. It does not show in a PNG or on a touch screen (D-85). |
+| Notification bell (mind map sync) | `.bell` in the top bar of the AP Accountant, Chief Accountant, and Payment Approver: a bell icon, the word "Notifications", and an unread badge. It opens SCR-62. The page it opens carries `aria-current`. The Requesting Department, Entity Admin, Group Admin, and Demo Operator have no bell (D-111). |
+| Unread badge | `.unread-badge`: a dark pill with the count. It is left out when the count is zero (states `empty` and `all-read` of SCR-62). The count in the wireframes is 3 (DF-74). |
+| Notification list item | `.notif`: a round mark (filled when unread), a kind tag, one bold line, one line of detail, the time, and a link to the object. Unread rows have a light wash; read rows use regular weight. No colour judges a person (D-109). |
+| On-behalf-of marker | `.obo`: a pill in the Person colour with the text "On behalf of Carol", shown on the rows and cards a delegate may sign during an active delegation. The delegate signs with their own password (D-117). |
+| Authority status tag | `.auth-tag` with `-ok` (Valid), `-warn` (Adjusted, Replaced), `-bad` (Cancelled), and `-na` (unavailable). Each variant carries a word, never a colour alone (DF-51, D-114). |
+| Source tag | `.src-tag`: "Upload" or "Email", next to the state chips of SCR-12 and in the Source column of SCR-10 (D-114, D-115). |
 
 ### Rules for the layout
 
