@@ -3,6 +3,8 @@
 > Design status: MVP — Step 4 of 9, approved
 >
 > Implementation status: NOT STARTED
+>
+> Revision R1 (UX redesign, 2026-11-01): draft for review
 
 Source of truth: [`wireframes/assets/wireframe.css`](wireframes/assets/wireframe.css). Step 9 reuses these tokens. The concept is a call awaiting user review (D-44).
 
@@ -89,6 +91,49 @@ Spacing steps: 4, 8, 12, 16, 24, 32, 48 px. Radius follows the hands: surfaces 8
 | Skeleton | Grey bars with a slow shimmer that stops under `prefers-reduced-motion`; the shell and sidebar stay. |
 | Tables | Light header, 10 px cell padding, an amber left rule for a row that needs attention, a total row in the footer. Under 760 px the list tables turn into cards with a label for each value. |
 | Conflict and audit-write-failure notices | "This item was changed by someone else. Reload to see the change." with **Reload**, and "Action not completed. The audit log could not be written. Try again." with **Retry**. Input is kept. |
+
+## Layout patterns (R1)
+
+Revision R1 (draft for review, D-73..D-81) changes how the pages are laid out, not what they say. The tokens, the three hands, and the components above are kept. The patterns below are in the same stylesheet (`wireframes/assets/wireframe.css`, block "R1") and the same script (`states.js`). Where a value below differs from the one above (the page title is 22 px, not 24 px), the R1 value applies to the redesigned pages.
+
+### Patterns P1 to P11
+
+| ID | Pattern | Class and behavior | Used on |
+|---|---|---|---|
+| P1 | **Page header** | `.ph`: breadcrumb, title row (title, state chip, key amount on the right), a one-line meta or a row of key facts, and an action group on the right with at most one primary button. Anything else goes into a **More** menu (`<details class="menu">`, works without script, closes on an outside click). | Every page except SCR-01 and SCR-90 |
+| P2 | **Summary strip** | `.kpis` with 3 to 5 `.tile`: label, value, one small sub-line. On SCR-10 a tile is a button that jumps to the matching tab (`data-tile-tab`). A warning tile has an amber left rule. | SCR-10, SCR-30, SCR-40, SCR-50, SCR-60, SCR-75, SCR-78 |
+| P3 | **View tabs with counts** | `.tabs` with `role="tablist"`, a `.pill` count on each tab, `data-tab` and `data-panel`. On a list the tabs are **saved views** of one table (`data-filter` hides rows, `data-count` and `data-total` feed the footer). On an object page they are sections of the evidence. A tab is a view and not a state: it is not in the control bar and does not use `data-show`. `?tab=<id>` selects one. | SCR-10, SCR-12, SCR-20, SCR-40, SCR-50, SCR-51 |
+| P4 | **Toolbar** | `.toolbar`: a search field with an icon, a **Filters** button with the number of active filters, removable `.fchip` chips for the active filters, and the result count on the right. The filter form (`.filter-panel`) is hidden until the button is pressed; `?filters=1` opens it for a PNG. | SCR-10, SCR-40, SCR-50, SCR-61, SCR-70, SCR-80 |
+| P5 | **Compact table** | `.tbl.compact`: one line per row (44 to 48 px), sticky header, no wrapping, a muted second line in the first column only, at most one reason tag and a "+N" pill with a tooltip, a chevron or one real action at the right (a text button only when it is an action, never to open), row hover, and a footer (`.tbl-foot`, `.pagin`) with "Showing 1-6 of 6". `.grp-row` and `.sub-row` give a group heading and a subtotal. | Every list |
+| P6 | **Object page** | `.stepper` (horizontal lifecycle: done, current, next; the current step may carry a warning mark or an error mark), an **attention card** (`.attn-card`: what blocks the item, in one line each, with a link to the tab that holds the evidence), tabs (P3), and `.obj-grid` with the evidence on the left and the sticky `.obj-act` column on the right. | SCR-12, SCR-51; the stepper alone on SCR-30 |
+| P7 | **Action panel** | `.actpanel`: header "You decide" with the Person tag; one `.nextstep` card with one primary button; other resolutions as compact `.alt` rows (title, one-line hint, secondary button); a footer `.ap-foot` with the destructive action as a quiet danger link or in a More menu; a `.tip` mark for explanations (tooltip); `.ro-note` for the read-only roles. Focused forms replace the next-step card. | SCR-12, SCR-51 |
+| P8 | **Progressive disclosure** | `<details>`: passed Rule Engine conditions (`.passed`, "N passed"), the AI reasoning (`.why-ai`, "Why the AI proposed this"), history older than the latest three (`.hist-more`), and an expanding audit row (`.rd`). Failed items are open by default. | SCR-12, SCR-51 (the AI summary folds), SCR-61 |
+| P9 | **Drawer** | `.drawer-back` and `.drawer`: right side, 480 px, full width under 900 px, a sticky header and footer, `Escape` closes, focus returns to the control that opened it. For forms with more than 3 fields. Short confirmations stay centered modals. | SCR-21, SCR-71, SCR-77, SCR-81, SCR-82 |
+| P10 | **Empty, loading, error** | The same blocks as above (empty block, skeleton, error notice with **Retry**), restyled to the new components; the header and the tabs stay while the body loads. | Every page |
+| P11 | **Density and width** | Content at most 1320 px wide; page padding 24 px; card padding 16 px; table cells 8 by 12 px; body 14 px, tables 13 px; page title 22 px / 600. Default view of a page fits about one screen at 1440 px (900 px, and 1100 px for SCR-12 and SCR-51). | Every page |
+
+### New components
+
+| Component | Notes |
+|---|---|
+| Stepper | A row of dots joined by a line. Done: filled dot with a check. Current: ring, bold label, optional sub-line (the exception state, a time, a name). Warning mark for an exception, error mark for a failed send. Next: hollow dot. The label is always text, so the state survives a black-and-white print. A sub-line never repeats its label. |
+| KPI tile | A label, a figure (22 to 24 px, tabular), and a sub-line. Counts are links to the list with the same count (AC-27.6). No colour judges a person. |
+| Saved-view tabs | Underlined tabs with a count pill. The selected tab is bold with an ink underline; the pill of a tab that needs action is amber. The counts follow the rows that the active role can see. |
+| Toolbar and filter chips | A search field, a **Filters** button, and chips such as "State: Exception" or "Reminder due" with a remove control. "No results" still names the chips and offers **Clear filters** (AC-17.7). |
+| Menu (overflow) | A quiet "More" button that opens a short list; destructive items in red text. Native `<details>`, so it works without script. |
+| Drawer | A panel over a dimmed page, 480 px, title, form, and a footer with a quiet Cancel and one primary action named by its effect. States of the parent page (`form`, `form-error`, `create`, `edit`, `add`, and the like). |
+| Sticky action bar | At the foot of the signing queue: "N selected, VND x" and **Sign selected**. It stays at the foot of the view while the table scrolls. |
+| Attention card | A left-ruled card (amber for a blocking exception, green for a clean item) with one line per blocker, in plain words, and a link to the tab with the evidence. It holds no action. |
+| Settings layout | `.settings`: a sub-navigation of sections on the left, sections on the right, and a sticky save bar ("Unsaved changes", Discard, Save). |
+| Tooltip mark | A small "i" mark with a `title` for text that is not needed to act. The text is the Step 4 text. It does not show in a PNG or on a touch screen (D-85). |
+
+### Rules for the layout
+
+1. **One primary action per view.** The header and the panel never repeat an action (D-82). A text button is for a real action; opening a row is a chevron or the link on the first column.
+2. **What blocks comes first.** On an object page the first screen shows what the item is, where it is in its life, what blocks it, and the next step.
+3. **Hide detail, never remove it.** Folded and tabbed content stays in the page, with a count or a label that says it is there ("3 passed", "Checks 3 failed", "History 5").
+4. **Tabs are views.** They never change the state of the item and they are not listed in the control bar. A PNG that is about a tab is exported with `?tab=<id>`.
+5. **Three hands survive the new layout.** Every folded block, tab body, drawer, and tile that carries AI or Rule Engine content keeps its rail and its tag (D-44).
 
 ## Chart rules (dashboard)
 

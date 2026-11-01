@@ -9,7 +9,7 @@
 | 1 | Research ([docs/01-research](../01-research/README.md)) | Draft for review |
 | 2 | Use cases and user stories ([docs/02-usecases-userstories](../02-usecases-userstories/README.md)), [business rules](../requirements/business-rules.md), [traceability](../traceability/master-traceability.md) | Draft for review |
 | 3 | Information architecture ([docs/03-information-architecture](../03-information-architecture/README.md)); the Screen column of the [traceability matrix](../traceability/master-traceability.md) is filled | **Approved by the user** ("Step 3 looks good", 2026-10-31), then adjusted for D-33; the adjustments await review |
-| 4 | UI/UX ([docs/04-uiux](../04-uiux/README.md)): design system, screen notes, 18 HTML page files for the 35 active screens, PNG exports by role | **Approved by the user** ("OK, that's it", 2026-10-31) |
+| 4 | UI/UX ([docs/04-uiux](../04-uiux/README.md)): design system, screen notes, 18 HTML page files for the 35 active screens, PNG exports by role | **Approved by the user** ("OK, that's it", 2026-10-31). **Revision R1 (UX redesign, 2026-11-01): draft for review** |
 | 5 | Database ([docs/05-database](../05-database/README.md)): DBML with 63 tables, data model, ER diagrams; the Database column of the [traceability matrix](../traceability/master-traceability.md) is filled | **Draft for review.** Step 6 waits for the user's review of Step 5 |
 | 6..9 | Not started | Next: Step 6 (API), after the user reviews Step 5 |
 
@@ -102,6 +102,17 @@ These are in [Step 4 decisions](../04-uiux/00-decisions.md) (D-42..D-46, DF-45..
 - DF-46 and DF-49: sample numbers (October 2026 batch of VND 70,050,000, gate history, request numbers). Step 5 seed data can reuse them.
 - The eight differences: a "Choose another item" action, an "Add sector" control, the XML signature check labelled Rule Engine, and similar details that Steps 1 to 3 do not define. Step 6 should decide them before it writes the API.
 - The wireframe PNGs were made with a throwaway script outside the repository (headless browser, 1440 px, 256-colour reduction). Regenerate them after any change to a page.
+
+### Step 4 revision R1 (UX redesign, draft for review)
+
+On 2026-11-01 the user said the wireframes only displayed content, with no UX: too much content, screens too long, messy. Revision R1 changed layout, hierarchy, and disclosure and nothing else: page files, `?state=` names, `?role=`, IDs, sample data, and rules are the same. What changed:
+
+- **Shared files:** `wireframes/assets/wireframe.css` (block "R1"), `states.js` (tabs, `?tab=`, `?filters=1`, menus), `icons.js` (one icon).
+- **Pages:** SCR-12 and SCR-51 are object pages (header, stepper, tabs, action panel); the lists (SCR-10, 20, 40, 50, 61, 70, 75, 78) have tiles, saved-view tabs, a toolbar, and one-line rows; forms with more than three fields are drawers (SCR-21, 71, 77, 81, 82); SCR-73 and SCR-74 are settings pages with a save bar; SCR-30 is grouped by supplier; the gallery `index.html` is grouped by area with role filters.
+- **Docs:** [Layout patterns (R1)](../04-uiux/01-design-system.md#layout-patterns-r1) in the design system, a Layout (R1) line for every page and the new SCR-10 note 8 in the screen notes, and the decisions D-73..D-87 in [Step 4 decisions](../04-uiux/00-decisions.md#ux-redesign-r1-requested-by-the-user-2026-11-01). D-73..D-81 are the redesign; D-82..D-87 are calls the worker made alone and await the user's review. D-42..D-46 and DF-45..DF-52 keep their approved text.
+- **PNGs:** all 81 files under `docs/images/` were exported again with the same names, at 1440 px, full page, `?shot=1`, 256 colours. The script is still outside the repository (D-42): it reads the state and role of each PNG from the links in `02-screen-notes.md`, opens the page with `?state=`, `?role=` (the role of the folder), and `?shot=1`, takes a full-page screenshot with headless Chromium (Playwright), and reduces it to 256 colours with Pillow. Regenerate every PNG after any change to a page. Nothing needs `?tab=` for the PNGs (D-87).
+- **Not checked:** the layouts below 1180 px were not re-tested (DF-45, Unverified).
+- **Next:** the user reviews R1. Step 5 does not depend on it (no data changes).
 
 ## Open items only people can close
 

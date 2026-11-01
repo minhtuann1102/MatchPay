@@ -3,6 +3,10 @@
 // Markup hooks:
 //   data-show="a b"   visible only in the listed states     data-hide="a b"  hidden in the listed states
 //   data-roles="ap chief"  visible only for the listed roles
+//   Tabs (R1): <div class="tabgroup"><div role="tablist"><button role="tab" data-tab="id" aria-selected="true">..</button></div><div data-panel="id">..</div></div>
+//     ?tab=<id> selects a tab (for PNG export). Tabs are saved views or evidence sections, not wf-bar states.
+//     A tablist with data-filter filters rows that carry data-view="id id2" ("all" shows every row) and updates [data-count] / [data-total].
+//     [data-goto-tab="id"] switches to that tab. [data-toggle="elementId"] shows or hides an element. ?filters=1 opens [data-open-param="filters"].
 //   body[data-nav]    id of the sidebar item that is current   body[data-default-role]  role when ?role= is absent
 (function () {
   var params = new URLSearchParams(location.search);
@@ -104,6 +108,73 @@
     var h = a.getAttribute('href');
     if (!/\.html(\?|$)/.test(h) || /^https?:/.test(h) || /role=/.test(h)) return;
     a.setAttribute('href', h + (h.indexOf('?') === -1 ? '?' : '&') + 'role=' + role);
+  });
+
+  // ---- Tabs and saved views (R1) ----
+  var tabParam = params.get('tab');
+  var groupOf = function (el) { return el.closest('.tabgroup') || document; };
+  function selectTab(list, id) {
+    var group = groupOf(list);
+    var tabs = list.querySelectorAll('[role="tab"]');
+    var found = false;
+    tabs.forEach(function (t) { if (t.getAttribute('data-tab') === id) found = true; });
+    if (!found) return false;
+    tabs.forEach(function (t) {
+      var on = t.getAttribute('data-tab') === id;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+    });
+    group.querySelectorAll('[data-panel]').forEach(function (p) {
+      if (groupOf(p.parentElement) !== group) return;
+      p.hidden = p.getAttribute('data-panel') !== id;
+    });
+    if (list.hasAttribute('data-filter')) {
+      var shown = 0, total = 0;
+      group.querySelectorAll('[data-view]').forEach(function (r) {
+        var ok = id === 'all' || has(r.getAttribute('data-view'), id);
+        r.hidden = !ok;
+        if (r.parentElement.closest('[hidden]')) return;
+        if (ok) shown++; total++;
+      });
+      group.querySelectorAll('[data-count]').forEach(function (c) { c.textContent = shown; });
+      group.querySelectorAll('[data-total]').forEach(function (c) { c.textContent = total; });
+    }
+    return true;
+  }
+  document.querySelectorAll('[role="tablist"]').forEach(function (list) {
+    if (list.closest('[hidden]')) return;
+    var start = list.querySelector('[role="tab"][aria-selected="true"]');
+    if (!(tabParam && selectTab(list, tabParam)) && start) selectTab(list, start.getAttribute('data-tab'));
+    list.addEventListener('click', function (e) {
+      var t = e.target.closest('[role="tab"]'); if (t) selectTab(list, t.getAttribute('data-tab'));
+    });
+    list.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+      var i = tabs.indexOf(document.activeElement); if (i < 0) return;
+      var n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      selectTab(list, n.getAttribute('data-tab')); n.focus();
+    });
+  });
+  document.querySelectorAll('[data-goto-tab]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      var group = groupOf(a), id = a.getAttribute('data-goto-tab');
+      var list = group.querySelector('[role="tablist"]'); if (list) selectTab(list, id);
+    });
+  });
+  // Show or hide an element (filter panel). ?filters=1 opens it for review and export.
+  document.querySelectorAll('[data-toggle]').forEach(function (b) {
+    var target = document.getElementById(b.getAttribute('data-toggle'));
+    if (!target) return;
+    var sync = function () { b.setAttribute('aria-expanded', target.hidden ? 'false' : 'true'); };
+    b.addEventListener('click', function () { target.hidden = !target.hidden; sync(); });
+    if (params.get('filters') === '1' && target.hasAttribute('data-open-param')) target.hidden = false;
+    sync();
+  });
+  // Close an open "More" menu on an outside click.
+  document.addEventListener('click', function (e) {
+    document.querySelectorAll('details.menu[open]').forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute('open'); });
   });
 
   var mb = document.querySelector('.menu-btn');
