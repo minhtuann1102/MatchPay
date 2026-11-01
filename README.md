@@ -509,7 +509,7 @@ AI evidence, the six conditions with values, line matches, the decision history,
 
 #### Batch review (SCR-30)
 
-![Batch review](docs/images/prototype/ap-accountant/30c-batch-review-sample.png)
+![Batch review](docs/images/prototype/ap-accountant/30c-batch-review-sampled.png)
 
 The AI-selected sample that the AP Accountant marks before release.
 
