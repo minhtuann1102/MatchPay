@@ -15,4 +15,4 @@ Step 5 turns the [business rules](../requirements/business-rules.md), the [use c
 | [02-er-diagram.md](02-er-diagram.md) | Overview diagram, enums with their UI labels, and detailed ER diagrams by group |
 | [matchpay.dbml](matchpay.dbml) | Schema source of truth in DBML; paste it into dbdiagram.io to view it |
 
-**Related:** [README](../../README.md) · [Previous: UI/UX wireframes](../04-uiux/README.md) · [Master traceability](../traceability/master-traceability.md)
+**Related:** [README](../../README.md) · [Previous: UI/UX wireframes](../04-uiux/README.md) · [Next: API contract](../06-api/README.md) · [Master traceability](../traceability/master-traceability.md)
