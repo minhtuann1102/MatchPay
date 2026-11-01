@@ -24,12 +24,12 @@ async function newRole(browser, persona) {
   await p.goto(`${BASE}/login`);
   await p.evaluate(() => localStorage.clear()); // reset demo data
   await p.reload();
-  await p.waitForSelector('.register-row');
-  // Screenshots should not show the floating demo button over the content.
-  await p.addStyleTag({ content: '.demo-fab { display: none !important; } .sidebar { height: auto !important; position: static !important; align-self: stretch !important; } .shell { align-items: stretch; }' });
+  await p.getByRole('button', { name: /Đăng nhập: / }).first().waitFor();
+  // Full-page shots: let the sider grow with the page instead of sticking to the first 900 px, and hide the floating demo button.
+  await p.addStyleTag({ content: '.sider { position: static !important; height: auto !important; min-height: 100vh; } .ant-float-btn-group { display: none !important; }' });
   if (persona) {
-    await p.locator('.register-row', { hasText: persona }).first().getByRole('button').click();
-    await p.waitForSelector('nav a');
+    await p.getByRole('button', { name: new RegExp(`Đăng nhập: ${persona}`) }).click();
+    await p.waitForSelector('.side-menu a');
   }
   return { ctx, p };
 }
@@ -37,7 +37,20 @@ async function newRole(browser, persona) {
 async function shot(p, folder, name, { full = true } = {}) {
   const dir = path.join(OUT, folder);
   mkdirSync(dir, { recursive: true });
-  await p.screenshot({ path: path.join(dir, `${name}.png`), fullPage: full });
+  await p.mouse.move(0, 0);
+  await p.waitForTimeout(400); // let hover shadows and the sider transition finish
+  if (full) {
+    // Grow the viewport to the page height instead of using fullPage, which resizes the window in a way that
+    // briefly trips the sider's responsive collapse on some pages.
+    const h = await p.evaluate(() => Math.max(document.documentElement.scrollHeight, 900));
+    await p.setViewportSize({ width: VIEWPORT.width, height: h });
+    await p.waitForTimeout(500);
+    await p.mouse.move(0, 0);
+    await p.screenshot({ path: path.join(dir, `${name}.png`) });
+    await p.setViewportSize(VIEWPORT);
+  } else {
+    await p.screenshot({ path: path.join(dir, `${name}.png`) });
+  }
   count += 1;
   console.log(`${folder}/${name}.png`);
 }
@@ -92,7 +105,7 @@ const browser = await chromium.launch();
       ['12b-invoice-detail-reject', '/invoices/inv-tm0415', async (p) => {
         const b = p.getByRole('button', { name: 'Từ chối hóa đơn' }).first();
         if (await b.count()) await b.click();
-        else { await p.getByRole('button', { name: /Cách xử lý khác/ }).first().click(); await p.getByRole('menuitem', { name: 'Từ chối hóa đơn' }).click(); }
+        else { await p.getByRole('button', { name: /Cách xử lý khác|Thao tác khác/ }).first().click(); await p.getByRole('menuitem', { name: 'Từ chối hóa đơn' }).click(); }
       }],
       ['30b-batch-review-close', '/batch', async (p) => { await p.getByRole('button', { name: 'Đóng lô để rà soát' }).first().click(); }],
     ],
@@ -130,11 +143,12 @@ const browser = await chromium.launch();
       ['62-notifications', '/notifications'],
     ],
     [
-      ['40b-decision-queue-tax-risk', '/decisions', async (p) => { await p.locator('tbody tr').first().getByRole('button', { name: 'Xem xét' }).click(); }],
+      ['40b-decision-queue-tax-risk', '/decisions', async (p) => { await p.locator('tbody tr.ant-table-row').first().getByRole('button', { name: 'Xem xét' }).click(); }],
       ['50b-signing-queue-sign', '/signing', async (p) => {
         await p.getByRole('checkbox', { name: /PR-0042/ }).check();
-        await p.getByRole('button', { name: /^Ký 1 đề nghị/ }).click();
-        await dlg(p).locator('input[type=password]').fill('246810');
+        await p.getByRole('button', { name: /Ký 1 đề nghị/ }).click();
+        await dlg(p).locator('.ant-otp input').first().click();
+        await p.keyboard.type('246810');
       }],
       ['55b-signing-delegations-new', '/delegations', async (p) => { await p.getByRole('button', { name: 'Ủy quyền mới' }).first().click(); }],
     ],
@@ -143,8 +157,9 @@ const browser = await chromium.launch();
   await p.goto(`${BASE}/signing`);
   await settle(p);
   await p.getByRole('checkbox', { name: /PR-0042/ }).check();
-  await p.getByRole('button', { name: /^Ký 1 đề nghị/ }).click();
-  await dlg(p).locator('input[type=password]').fill('246810');
+  await p.getByRole('button', { name: /Ký 1 đề nghị/ }).click();
+  await dlg(p).locator('.ant-otp input').first().click();
+  await p.keyboard.type('246810');
   await dlg(p).getByRole('button', { name: 'Ký', exact: true }).click();
   await dlg(p).locator('.seal-stamp').waitFor();
   await settle(p, 700);

@@ -1,31 +1,32 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import type { ReactElement } from 'react';
+import { lazy, Suspense, type ReactElement } from 'react';
+import { Loading } from './components/Async';
 import { RequireAuth, RequireRole } from './auth/Guards';
 import { ROUTE_ROLES, homeOf } from './auth/nav';
 import { useAuth } from './auth/AuthContext';
 import { Login } from './pages/Login';
 import { AccessDenied } from './pages/AccessDenied';
 import { Placeholder } from './pages/Placeholder';
-import { Invoices } from './pages/Invoices';
-import { InvoiceDetailPage } from './pages/InvoiceDetail';
-import { Recurring } from './pages/Recurring';
-import { Mailbox } from './pages/Mailbox';
-import { Batch } from './pages/Batch';
-import { Notifications } from './pages/Notifications';
-import { Acceptance } from './pages/Acceptance';
-import { Decisions } from './pages/Decisions';
-import { Signing } from './pages/Signing';
-import { RequestDetailPage } from './pages/RequestDetail';
-import { Delegations } from './pages/Delegations';
-import { Dashboard } from './pages/Dashboard';
-import { AuditLog } from './pages/AuditLog';
-import { Users } from './pages/Users';
-import { EntityPolicy } from './pages/EntityPolicy';
-import { ApprovalMatrix } from './pages/ApprovalMatrix';
-import { Group } from './pages/Group';
-import { Entities } from './pages/Entities';
-import { Gates } from './pages/Gates';
-import { ErpSimulator } from './pages/ErpSimulator';
+const Invoices = lazy(() => import('./pages/Invoices').then((m) => ({ default: m.Invoices })));
+const InvoiceDetailPage = lazy(() => import('./pages/InvoiceDetail').then((m) => ({ default: m.InvoiceDetailPage })));
+const Recurring = lazy(() => import('./pages/Recurring').then((m) => ({ default: m.Recurring })));
+const Mailbox = lazy(() => import('./pages/Mailbox').then((m) => ({ default: m.Mailbox })));
+const Batch = lazy(() => import('./pages/Batch').then((m) => ({ default: m.Batch })));
+const Notifications = lazy(() => import('./pages/Notifications').then((m) => ({ default: m.Notifications })));
+const Acceptance = lazy(() => import('./pages/Acceptance').then((m) => ({ default: m.Acceptance })));
+const Decisions = lazy(() => import('./pages/Decisions').then((m) => ({ default: m.Decisions })));
+const Signing = lazy(() => import('./pages/Signing').then((m) => ({ default: m.Signing })));
+const RequestDetailPage = lazy(() => import('./pages/RequestDetail').then((m) => ({ default: m.RequestDetailPage })));
+const Delegations = lazy(() => import('./pages/Delegations').then((m) => ({ default: m.Delegations })));
+const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
+const AuditLog = lazy(() => import('./pages/AuditLog').then((m) => ({ default: m.AuditLog })));
+const Users = lazy(() => import('./pages/Users').then((m) => ({ default: m.Users })));
+const EntityPolicy = lazy(() => import('./pages/EntityPolicy').then((m) => ({ default: m.EntityPolicy })));
+const ApprovalMatrix = lazy(() => import('./pages/ApprovalMatrix').then((m) => ({ default: m.ApprovalMatrix })));
+const Group = lazy(() => import('./pages/Group').then((m) => ({ default: m.Group })));
+const Entities = lazy(() => import('./pages/Entities').then((m) => ({ default: m.Entities })));
+const Gates = lazy(() => import('./pages/Gates').then((m) => ({ default: m.Gates })));
+const ErpSimulator = lazy(() => import('./pages/ErpSimulator').then((m) => ({ default: m.ErpSimulator })));
 import { t } from './i18n/vi';
 
 // Every route of 02-routes-and-permissions.md has a page; the placeholder stays as a fallback for a route without one.
@@ -60,6 +61,7 @@ function Home() {
 
 export function App() {
   return (
+    <Suspense fallback={<Loading rows={8} />}>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<Home />} />
@@ -77,5 +79,6 @@ export function App() {
       <Route path="/403" element={<RequireAuth><AccessDenied /></RequireAuth>} />
       <Route path="*" element={<RequireAuth><AccessDenied /></RequireAuth>} />
     </Routes>
+    </Suspense>
   );
 }

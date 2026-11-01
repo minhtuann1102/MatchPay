@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { Alert, Button, Card, Col, Descriptions, List, Row, Space, Statistic, Steps, Table, Tag, Typography } from 'antd';
+import type { TableColumnsType } from 'antd';
+import { EditOutlined, SwapOutlined, LockOutlined, WarningOutlined, SendOutlined } from '@ant-design/icons';
 import { resendToErp } from '../api/batch';
 import { declineRequest, removeRequestLine, type RequestDetail as Detail } from '../api/signing';
 import { useRequest } from '../api/hooks';
 import { Async, useForced } from '../components/Async';
-import { Notice, InvNo, ReqNo, SealStamp } from '../components/Bits';
-import { Chip, HandTag, RequestBadge, StateBadge } from '../components/Chips';
-import { ConfirmDialog } from '../components/ConfirmDialog';
-import { Icon } from '../components/Icon';
-import { ReasonModal } from '../components/ReasonModal';
+import { InvNo, Notice, PageHeader, ReqNo, SealStamp } from '../components/Bits';
+import { HandTag, RequestBadge, StateBadge } from '../components/Tags';
+import { ActionModal, ReasonModal } from '../components/Dialogs';
 import { fmtDate, fmtDateTime, fmtMoney, interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { signReasonText, SignModal } from './Signing';
@@ -20,12 +21,7 @@ const STEPS = ['AWAITING_CHIEF_ACCOUNTANT', 'AWAITING_PAYMENT_APPROVER', 'SIGNED
 export function RequestDetailPage() {
   const { id = '' } = useParams();
   const q = useRequest(id);
-  return (
-    <>
-      <p className="crumbs"><Link to="/signing">{t.request.back}</Link></p>
-      <Async q={q} skeletonRows={8}>{(d) => <Body d={d} />}</Async>
-    </>
-  );
+  return <Async q={q} skeletonRows={8}>{(d) => <Body d={d} />}</Async>;
 }
 
 type Dlg = null | 'sign' | 'decline' | 'resend' | { remove: string };
@@ -41,156 +37,177 @@ function Body({ d }: { d: Detail }) {
   const blocked = awaiting && !r.sign.canSign;
   const summaryOk = d.summary && forced !== 'ai-error';
 
+  const invCols: TableColumnsType<Detail['invoices'][number]> = [
+    { title: t.request.colInvoice, key: 'i', render: (_, i) => <><Link to={`/invoices/${i.id}`}><InvNo value={i.invoiceNumber} /></Link><br /><Typography.Text type="secondary" className="xs">{i.sellerName}</Typography.Text></> },
+    { title: t.request.colDue, key: 'd', render: (_, i) => fmtDate(i.dueDate) },
+    { title: t.request.colTotal, key: 't', align: 'right', render: (_, i) => fmtMoney(i.totalAmount) },
+    { title: t.request.colState, key: 's', render: (_, i) => <StateBadge state={i.state} /> },
+    { title: <span className="sr">{t.request.colAction}</span>, key: 'a', fixed: 'right', width: 130, render: (_, i) => (awaiting ? <Button size="small" onClick={() => setDlg({ remove: i.id })}>{t.request.remove}</Button> : null) },
+  ];
+
   return (
     <>
-      <section className="ph obj-head" aria-label={t.request.titleFallback}>
-        <div className="ph-top">
-          <div className="ph-title">
-            <h1><ReqNo value={r.id} /></h1>
-            <RequestBadge state={r.state} />
-          </div>
-          <div className="ph-amount">{fmtMoney(r.total)}</div>
-        </div>
-        {(r.signatures.length > 0 && !cancelled) || awaiting || d.canResend || r.sign.canSign ? (
-          <div className="ph-reasons spread">
-            <div className="seals" aria-label={t.request.sigTitle}>
-              {!cancelled && r.signatures.map((s) => (
-                <div className="stamped" key={s.step}>
-                  <SealStamp role={s.role} at={s.at} small />
-                  <div><b>{s.name}</b><div className="small muted">{t.roles[s.role]}, {fmtDateTime(s.at)}</div></div>
-                </div>
-              ))}
-            </div>
-            <div className="ph-actions">
-              {awaiting && <button type="button" className="btn" onClick={() => setDlg('decline')}>{t.request.decline}</button>}
-              {d.canResend && <button type="button" className="btn" onClick={() => setDlg('resend')}>{t.request.resend}</button>}
-              {r.sign.canSign && <button type="button" className="btn btn-primary" onClick={() => setDlg('sign')}><Icon name="pen" />{t.request.signCta}</button>}
-            </div>
-          </div>
-        ) : null}
-      </section>
+      <PageHeader
+        crumbs={[{ label: t.nav.signing, to: '/signing' }, { label: <ReqNo value={r.id} /> }]}
+        title={<ReqNo value={r.id} />}
+        extra={<RequestBadge state={r.state} />}
+        actions={
+          <>
+            {awaiting && <Button onClick={() => setDlg('decline')}>{t.request.decline}</Button>}
+            {d.canResend && <Button icon={<SendOutlined />} onClick={() => setDlg('resend')}>{t.request.resend}</Button>}
+            {r.sign.canSign && <Button type="primary" icon={<EditOutlined />} onClick={() => setDlg('sign')}>{t.request.signCta}</Button>}
+          </>
+        }
+      />
 
-      {cancelled && r.declineReason && <Notice kind="err" icon="alert">{interpolate(t.request.cancelledNote, { r: r.declineReason, who: r.declinedByName ?? '' })}</Notice>}
-      {d.canResend && <Notice kind="warn" title={interpolate(t.batch.sendFailed, { r: r.id })} action={<button type="button" className="btn btn-sm" onClick={() => setDlg('resend')}>{t.request.resend}</button>}>{t.batch.sendFailedText}</Notice>}
-      {d.delegatedUntil && awaiting && <Notice kind="info" icon="handover">{interpolate(t.request.delegatedAway, { date: fmtDate(d.delegatedUntil) })}</Notice>}
-      {r.sign.onBehalfOf && r.sign.canSign && <Notice kind="info" icon="handover">{interpolate(t.request.onBehalfNote, { who: r.sign.onBehalfOf })}</Notice>}
-      {blocked && (
-        <Notice kind="warn" icon="lock" title={t.request.blockedHeading}>{signReasonText(r.sign.reason)}</Notice>
-      )}
+      <Card aria-label={t.request.titleFallback}>
+        <Row gutter={[24, 16]} align="middle">
+          <Col xs={24} md={10}><Statistic title={t.signing.colTotal} value={fmtMoney(r.total)} valueStyle={{ fontSize: 28, fontWeight: 600 }} /></Col>
+          <Col xs={24} md={14}>
+            {!cancelled && r.signatures.length > 0 ? (
+              <div className="seals" aria-label={t.request.sigTitle} style={{ justifyContent: 'flex-start' }}>
+                {r.signatures.map((s) => (
+                  <div className="stamped" key={s.step}>
+                    <SealStamp role={s.role} at={s.at} small />
+                    <div><b>{s.name}</b><br /><Typography.Text type="secondary">{t.roles[s.role]}, {fmtDateTime(s.at)}</Typography.Text></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Descriptions size="small" column={1} items={[
+                { key: 's', label: t.request.supplier, children: r.supplierName },
+                { key: 'l', label: t.request.level, children: t.approvalLevel[r.level] },
+              ]} />
+            )}
+          </Col>
+        </Row>
+      </Card>
+
+      {cancelled && r.declineReason && <Notice kind="err">{interpolate(t.request.cancelledNote, { r: r.declineReason, who: r.declinedByName ?? '' })}</Notice>}
+      {d.canResend && <Notice kind="warn" title={interpolate(t.batch.sendFailed, { r: r.id })} action={<Button size="small" onClick={() => setDlg('resend')}>{t.request.resend}</Button>}>{t.batch.sendFailedText}</Notice>}
+      {d.delegatedUntil && awaiting && <Notice kind="info" icon={<SwapOutlined />}>{interpolate(t.request.delegatedAway, { date: fmtDate(d.delegatedUntil) })}</Notice>}
+      {r.sign.onBehalfOf && r.sign.canSign && <Notice kind="info" icon={<SwapOutlined />}>{interpolate(t.request.onBehalfNote, { who: r.sign.onBehalfOf })}</Notice>}
+      {blocked && <Notice kind="warn" icon={<LockOutlined />} title={t.request.blockedHeading}>{signReasonText(r.sign.reason)}</Notice>}
 
       {!cancelled && (
-        <ol className="stepper" aria-label={t.request.steps[r.state as keyof typeof t.request.steps] ?? ''}>
-          {STEPS.map((k, n) => (
-            <li key={k} className={`${n < stepIdx ? 'done' : ''}${n === stepIdx ? ' cur' : ''}`} aria-current={n === stepIdx ? 'step' : undefined}>
-              <span className="dot">{n < stepIdx ? <Icon name="check" /> : null}</span>
-              <span className="lab"><b>{t.request.steps[k]}</b>{k === 'AWAITING_CHIEF_ACCOUNTANT' && r.signatures[0] && <small>{r.signatures[0].name}, {fmtDateTime(r.signatures[0].at)}</small>}{k === 'AWAITING_PAYMENT_APPROVER' && r.signatures[1] && <small>{r.signatures[1].name}, {fmtDateTime(r.signatures[1].at)}</small>}{k === 'SENT' && n === stepIdx && r.sendStatus === 'IN_ERP' && <small>{t.sendStatus(r)}</small>}</span>
-            </li>
-          ))}
-        </ol>
+        <Card size="small" aria-label={t.request.steps[r.state as keyof typeof t.request.steps] ?? ''}>
+          <Steps
+            size="small"
+            current={stepIdx}
+            items={STEPS.map((k, n) => ({
+              title: t.request.steps[k],
+              description: k === 'AWAITING_CHIEF_ACCOUNTANT' && r.signatures[0] ? `${r.signatures[0].name}, ${fmtDateTime(r.signatures[0].at)}`
+                : k === 'AWAITING_PAYMENT_APPROVER' && r.signatures[1] ? `${r.signatures[1].name}, ${fmtDateTime(r.signatures[1].at)}`
+                : k === 'SENT' && n === stepIdx && r.sendStatus === 'IN_ERP' ? t.sendStatus(r) : undefined,
+            }))}
+          />
+        </Card>
       )}
 
-      <div className="split">
-        <div className="stack-lg">
-          <section className="card">
-            <div className="card-h"><h2>{t.request.invoicesTitle}</h2><span className="xs muted">{t.request.openInvoice}</span></div>
-            <div className="tbl-wrap">
-              <table className="tbl compact">
-                <caption className="sr">{t.request.invoicesTitle}</caption>
-                <thead><tr><th>{t.request.colInvoice}</th><th>{t.request.colDue}</th><th className="money">{t.request.colTotal}</th><th>{t.request.colState}</th><th><span className="sr">{t.request.colAction}</span></th></tr></thead>
-                <tbody>
-                  {d.invoices.map((i) => (
-                    <tr key={i.id}>
-                      <td><Link to={`/invoices/${i.id}`}><InvNo value={i.invoiceNumber} /></Link><span className="sub">{i.sellerName}</span></td>
-                      <td>{fmtDate(i.dueDate)}</td>
-                      <td className="money">{fmtMoney(i.totalAmount)}</td>
-                      <td><StateBadge state={i.state} /></td>
-                      <td className="row-act">{awaiting && <button type="button" className="btn btn-sm btn-quiet" onClick={() => setDlg({ remove: i.id })}>{t.request.remove}</button>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot><tr><td colSpan={2}>{t.request.invoices}: {d.invoices.length}</td><td className="money">{fmtMoney(r.total)}</td><td colSpan={2} /></tr></tfoot>
-              </table>
-            </div>
-          </section>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={16}>
+          <div className="stack">
+            <Card title={t.request.invoicesTitle} extra={<Typography.Text type="secondary" className="xs">{t.request.openInvoice}</Typography.Text>} styles={{ body: { padding: 0 } }}>
+              <Table
+                size="middle"
+                rowKey="id"
+                columns={invCols}
+                dataSource={d.invoices}
+                pagination={false}
+                scroll={{ x: 600 }}
+                summary={() => (
+                  <Table.Summary.Row>
+                    <Table.Summary.Cell index={0} colSpan={2}>{t.request.invoices}: {d.invoices.length}</Table.Summary.Cell>
+                    <Table.Summary.Cell index={1} align="right"><b>{fmtMoney(r.total)}</b></Table.Summary.Cell>
+                    <Table.Summary.Cell index={2} colSpan={2} />
+                  </Table.Summary.Row>
+                )}
+              />
+            </Card>
 
-          <section className="card">
-            <div className="card-h"><h2>{t.request.summaryTitle}</h2></div>
-            <div className="card-b">
-              {summaryOk ? (
-                <div className="blk blk-ai"><div className="blk-h"><HandTag hand="AI" /></div><p className="small">{interpolate(t.request.summaryText, { n: d.invoices.length })}</p></div>
-              ) : (
-                <Notice kind="ai">{t.request.summaryUnavailable}</Notice>
-              )}
-              <div className="blk blk-rule" style={{ marginTop: 12 }}>
-                <div className="blk-h"><HandTag hand="RULE" /><h3>{t.request.totalsTitle}</h3></div>
-                <dl className="dl">
-                  <dt>{t.request.byEntity}</dt><dd>{d.summary?.byEntity.map((x) => `${x.name}: ${fmtMoney(x.total)}`).join('; ') ?? fmtMoney(r.total)}</dd>
-                  <dt>{t.request.bySupplier}</dt><dd>{d.summary?.bySupplier.map((x) => `${x.name}: ${fmtMoney(x.total)}`).join('; ') ?? `${r.supplierName}: ${fmtMoney(r.total)}`}</dd>
-                  <dt>{t.request.largeInvoices}</dt><dd>{d.largeInvoices.length ? d.largeInvoices.join(', ') : t.request.none}</dd>
-                  {d.summary && d.summary.sampleTotal > 0 && <><dt>{t.request.sample}</dt><dd>{interpolate(t.request.sampleValue, { ok: d.summary.sampleOk, total: d.summary.sampleTotal })}</dd></>}
-                </dl>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <aside className="stack-lg">
-          <section className="card">
-            <div className="card-h"><h2>{t.request.signHeading}</h2></div>
-            <div className="card-b stack">
-              <dl className="dl">
-                <dt>{t.request.supplier}</dt><dd>{r.supplierName}</dd>
-                <dt>{t.request.level}</dt><dd>{interpolate(r.level === 'CFO' ? t.request.levelRule : t.request.levelRuleLow, { level: t.approvalLevel[r.level] })}</dd>
-                <dt>{t.request.flags}</dt>
-                <dd>
-                  {r.flags.bankChanged || r.flags.newSupplier ? <span className="stack" style={{ gap: 4 }}>{r.flags.bankChanged && <Chip kind="exc">{t.request.flagBank}</Chip>}{r.flags.newSupplier && <Chip kind="exc">{t.request.flagNew}</Chip>}</span> : interpolate(t.request.noFlags, { s: r.supplierName })}
-                </dd>
-              </dl>
-              {r.sign.canSign ? (
-                <button type="button" className="btn btn-primary" onClick={() => setDlg('sign')}><Icon name="pen" />{t.request.signCta}</button>
-              ) : (
-                <p className="small muted">{awaiting ? signReasonText(r.sign.reason) : cancelled ? '' : t.request.readOnlyNote}</p>
-              )}
-            </div>
-          </section>
-
-          <section className="card">
-            <div className="card-h"><h2>{t.request.sigTitle}</h2></div>
-            <div className="card-b stack">
-              {([1, 2] as const).map((step) => {
-                const s = r.signatures.find((x) => x.step === step);
-                if (r.individuallyApproved && step === 2) return null;
-                return s ? (
-                  <div className="sig" key={step}>
-                    <span className="seal">{s.name.slice(0, 1)}</span>
-                    <div><b>{s.name}</b>{s.onBehalfOfName && <> <span className="obo">{interpolate(t.request.sigOnBehalf, { who: s.onBehalfOfName })}</span></>}<div className="meta">{t.roles[s.role]}, {fmtDateTime(s.at)}</div><div className="meta mono">{t.request.hash}: {s.contentHash}</div></div>
-                  </div>
+            <Card title={t.request.summaryTitle}>
+              <div className="stack">
+                {summaryOk ? (
+                  <Card size="small" className="hand-card hand-card-ai" title={<HandTag hand="AI" />}>{interpolate(t.request.summaryText, { n: d.invoices.length })}</Card>
                 ) : (
-                  <div className="sig sig-pending" key={step}>
-                    <span className="seal">{step}</span>
-                    <div><b>{step === 1 ? t.roles.CHIEF_ACCOUNTANT : `${t.roles.PAYMENT_APPROVER}, ${t.approvalLevel[r.level]}`}</b><div className="meta">{t.request.sigWaiting}</div></div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+                  <Alert type="info" showIcon message={t.request.summaryUnavailable} />
+                )}
+                <Card size="small" className="hand-card hand-card-rule" title={<Space><HandTag hand="RULE" />{t.request.totalsTitle}</Space>}>
+                  <Descriptions size="small" column={1} items={[
+                    { key: 'e', label: t.request.byEntity, children: d.summary?.byEntity.map((x) => `${x.name}: ${fmtMoney(x.total)}`).join('; ') ?? fmtMoney(r.total) },
+                    { key: 's', label: t.request.bySupplier, children: d.summary?.bySupplier.map((x) => `${x.name}: ${fmtMoney(x.total)}`).join('; ') ?? `${r.supplierName}: ${fmtMoney(r.total)}` },
+                    { key: 'l', label: t.request.largeInvoices, children: d.largeInvoices.length ? d.largeInvoices.join(', ') : t.request.none },
+                    ...(d.summary && d.summary.sampleTotal > 0 ? [{ key: 'a', label: t.request.sample, children: interpolate(t.request.sampleValue, { ok: d.summary.sampleOk, total: d.summary.sampleTotal }) }] : []),
+                  ]} />
+                </Card>
+              </div>
+            </Card>
+          </div>
+        </Col>
 
-          <section className="card">
-            <div className="card-h"><h2>{t.request.erpTitle}</h2></div>
-            <div className="card-b stack">
-              <p className="small">{r.state === 'CANCELLED' ? '' : t.sendStatus(r)}</p>
-              {r.paymentRef && <p className="small">{t.request.paymentRef}: <span className="mono">{r.paymentRef}</span></p>}
-              {d.attempts.length === 0 ? <p className="small muted">{t.request.noAttempts}</p> : (
-                <ul className="reason-list" aria-label={t.request.erpAttempts}>
-                  {d.attempts.map((a) => (
-                    <li key={a.no}>{interpolate(t.request.attemptNo, { n: a.no })}: {t.request.attemptResult[a.result]}, {fmtDateTime(a.at)}{a.manual ? `. ${interpolate(t.request.attemptManual, { who: a.byName ?? '' })}` : ''}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
-        </aside>
-      </div>
+        <Col xs={24} lg={8}>
+          <div className="stack">
+            <Card title={t.request.signHeading} className="act-card">
+              <div className="stack">
+                <Descriptions size="small" column={1} items={[
+                  { key: 's', label: t.request.supplier, children: r.supplierName },
+                  { key: 'l', label: t.request.level, children: interpolate(r.level === 'CFO' ? t.request.levelRule : t.request.levelRuleLow, { level: t.approvalLevel[r.level] }) },
+                  {
+                    key: 'f', label: t.request.flags,
+                    children: r.flags.bankChanged || r.flags.newSupplier
+                      ? <Space direction="vertical" size={4}>{r.flags.bankChanged && <Tag color="warning" icon={<WarningOutlined />}>{t.request.flagBank}</Tag>}{r.flags.newSupplier && <Tag color="warning" icon={<WarningOutlined />}>{t.request.flagNew}</Tag>}</Space>
+                      : interpolate(t.request.noFlags, { s: r.supplierName }),
+                  },
+                ]} />
+                {r.sign.canSign ? (
+                  <Button type="primary" icon={<EditOutlined />} onClick={() => setDlg('sign')}>{t.request.signCta}</Button>
+                ) : (
+                  <Typography.Text type="secondary">{awaiting ? signReasonText(r.sign.reason) : cancelled ? '' : t.request.readOnlyNote}</Typography.Text>
+                )}
+              </div>
+            </Card>
+
+            <Card title={t.request.sigTitle}>
+              <div className="stack">
+                {([1, 2] as const).map((step) => {
+                  const s = r.signatures.find((x) => x.step === step);
+                  if (r.individuallyApproved && step === 2) return null;
+                  return s ? (
+                    <div className="sig" key={step}>
+                      <span className="sig-mark">{s.name.slice(0, 1)}</span>
+                      <div>
+                        <b>{s.name}</b>{s.onBehalfOfName && <> <Tag color="error">{interpolate(t.request.sigOnBehalf, { who: s.onBehalfOfName })}</Tag></>}
+                        <br /><Typography.Text type="secondary" className="xs">{t.roles[s.role]}, {fmtDateTime(s.at)}</Typography.Text>
+                        <br /><Typography.Text type="secondary" className="xs mono hash">{t.request.hash}: {s.contentHash}</Typography.Text>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="sig sig-pending" key={step}>
+                      <span className="sig-mark">{step}</span>
+                      <div><b>{step === 1 ? t.roles.CHIEF_ACCOUNTANT : `${t.roles.PAYMENT_APPROVER}, ${t.approvalLevel[r.level]}`}</b><br /><Typography.Text type="secondary" className="xs">{t.request.sigWaiting}</Typography.Text></div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
+            <Card title={t.request.erpTitle}>
+              <div className="stack" style={{ gap: 8 }}>
+                <Typography.Text>{r.state === 'CANCELLED' ? '' : t.sendStatus(r)}</Typography.Text>
+                {r.paymentRef && <Typography.Text>{t.request.paymentRef}: <span className="mono">{r.paymentRef}</span></Typography.Text>}
+                {d.attempts.length === 0 ? <Typography.Text type="secondary">{t.request.noAttempts}</Typography.Text> : (
+                  <List
+                    size="small"
+                    aria-label={t.request.erpAttempts}
+                    dataSource={d.attempts}
+                    renderItem={(a) => <List.Item>{interpolate(t.request.attemptNo, { n: a.no })}: {t.request.attemptResult[a.result]}, {fmtDateTime(a.at)}{a.manual ? `. ${interpolate(t.request.attemptManual, { who: a.byName ?? '' })}` : ''}</List.Item>}
+                  />
+                )}
+              </div>
+            </Card>
+          </div>
+        </Col>
+      </Row>
 
       {dlg === 'sign' && <SignModal items={[r]} onClose={close} />}
       {dlg === 'decline' && <DeclineModal d={d} onClose={close} />}
@@ -204,23 +221,23 @@ function RemoveModal({ d, invoiceId, onClose }: { d: Detail; invoiceId: string; 
   const inv = d.invoices.find((i) => i.id === invoiceId)!;
   const act = useAction((reason: string) => removeRequestLine(d.request.id, { invoiceId, reason, version: d.request.version }), { success: t.request.removed, onSuccess: onClose });
   return (
-    <ReasonModal title={interpolate(t.request.removeTitle, { n: inv.invoiceNumber })} intro={<p className="small">{t.request.removeText}</p>} label={t.request.removeReason} confirmLabel={t.request.remove} danger pending={act.pending} error={act.error} rawError={act.rawError} onSubmit={(x) => void act.run(x)} onClose={onClose} />
+    <ReasonModal title={interpolate(t.request.removeTitle, { n: inv.invoiceNumber })} intro={<Typography.Paragraph>{t.request.removeText}</Typography.Paragraph>} label={t.request.removeReason} confirmLabel={t.request.remove} danger pending={act.pending} error={act.error} rawError={act.rawError} onSubmit={(x) => void act.run(x)} onClose={onClose} />
   );
 }
 
 function DeclineModal({ d, onClose }: { d: Detail; onClose: () => void }) {
   const act = useAction((reason: string) => declineRequest(d.request.id, { reason, version: d.request.version }), { success: t.request.declined, onSuccess: onClose });
   return (
-    <ReasonModal title={interpolate(t.request.declineTitle, { r: d.request.id })} intro={<p className="small">{t.request.declineText}</p>} label={t.request.declineReason} confirmLabel={t.request.decline} danger pending={act.pending} error={act.error} rawError={act.rawError} onSubmit={(x) => void act.run(x)} onClose={onClose} />
+    <ReasonModal title={interpolate(t.request.declineTitle, { r: d.request.id })} intro={<Typography.Paragraph>{t.request.declineText}</Typography.Paragraph>} label={t.request.declineReason} confirmLabel={t.request.decline} danger pending={act.pending} error={act.error} rawError={act.rawError} onSubmit={(x) => void act.run(x)} onClose={onClose} />
   );
 }
 
 function ResendConfirm({ d, onClose }: { d: Detail; onClose: () => void }) {
   const act = useAction(() => resendToErp(d.request.id, { version: d.request.version }), { success: t.request.resent, onSuccess: onClose });
   return (
-    <ConfirmDialog title={interpolate(t.request.resendTitle, { r: d.request.id })} confirmLabel={t.request.resend} pending={act.pending} error={act.error} onCancel={onClose} onConfirm={() => void act.run(undefined)}>
-      <p className="small">{t.request.resendText}</p>
-    </ConfirmDialog>
+    <ActionModal title={interpolate(t.request.resendTitle, { r: d.request.id })} okText={t.request.resend} pending={act.pending} error={act.error} rawError={act.rawError} onClose={onClose} onOk={() => void act.run(undefined)}>
+      <Typography.Paragraph>{t.request.resendText}</Typography.Paragraph>
+    </ActionModal>
   );
 }
 

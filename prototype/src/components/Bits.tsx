@@ -1,8 +1,10 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { Alert, Breadcrumb, Button, Dropdown, Empty, Space, Tag, Typography } from 'antd';
+import type { MenuProps } from 'antd';
+import { ClockCircleOutlined, EllipsisOutlined, LockOutlined } from '@ant-design/icons';
 import { fmtDate, fmtDateTime, fmtMoney } from '../lib/format';
 import { t } from '../i18n/vi';
-import { Icon, type IconName } from './Icon';
 import type { Role } from '../api/types';
 
 /** An e-invoice number the way it prints: the series (ky hieu) small and muted, then the number in weight 600. */
@@ -13,11 +15,7 @@ export function InvNo({ value }: { value: string }) {
 }
 
 /** A payment request number: PR- muted, then the number. */
-export function ReqNo({ value }: { value: string }) {
-  const i = value.indexOf('-');
-  if (i < 0) return <span className="invno"><span className="invno-n">{value}</span></span>;
-  return <span className="invno"><span className="invno-s">{value.slice(0, i + 1)}</span><span className="invno-n">{value.slice(i + 1)}</span></span>;
-}
+export const ReqNo = InvNo;
 
 /** The company seal (con dau do): red, round, stamped on a request once a person has signed. */
 export function SealStamp({ role, at, fresh, small, large }: { role: Role; at: string; fresh?: boolean; small?: boolean; large?: boolean }) {
@@ -42,134 +40,93 @@ export function SealStamp({ role, at, fresh, small, large }: { role: Role; at: s
 
 export const Money = ({ value }: { value: number }) => <span className="nowrap">{fmtMoney(value)}</span>;
 export const DateText = ({ value, time }: { value: string | null | undefined; time?: boolean }) => <span className="nowrap">{time ? fmtDateTime(value) : fmtDate(value)}</span>;
-export const DueSoon = () => <span className="due-soon"><Icon name="clock" small />{t.common.dueSoon}</span>;
+export const DueSoon = () => <Tag color="warning" icon={<ClockCircleOutlined />} style={{ marginInlineEnd: 0 }}>{t.common.dueSoon}</Tag>;
 
-export function Skeleton({ rows = 6, label }: { rows?: number; label?: string }) {
-  const widths = [100, 92, 96, 88, 94, 90];
+/** A notice on a page or in a dialog. `err` is announced as an alert. */
+export function Notice({ kind = 'info', title, children, action, icon, className }: { kind?: 'err' | 'warn' | 'ok' | 'info' | 'ai' | 'rule'; title?: ReactNode; children?: ReactNode; action?: ReactNode; icon?: ReactNode; className?: string }) {
+  const type = kind === 'err' ? 'error' : kind === 'warn' ? 'warning' : kind === 'ok' ? 'success' : 'info';
   return (
-    <div className="card-b" role="status" aria-busy="true">
-      <div className="stack">{Array.from({ length: rows }, (_, i) => <span key={i} className="sk" style={{ width: `${widths[i % widths.length]}%` }} />)}</div>
-      <p className="xs muted" style={{ marginTop: 12 }}>{label ?? t.common.loading}</p>
-    </div>
+    <Alert
+      className={className}
+      type={type}
+      showIcon
+      icon={icon}
+      message={title ?? children}
+      description={title && children ? children : undefined}
+      action={action}
+      role={kind === 'err' ? 'alert' : 'status'}
+    />
   );
 }
 
-export function EmptyState({ icon = 'file', title, text, action }: { icon?: IconName; title: string; text?: string; action?: ReactNode }) {
+export function EmptyState({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
   return (
-    <div className="empty">
-      <span className="empty-icon"><Icon name={icon} /></span>
-      <h2>{title}</h2>
-      {text && <p>{text}</p>}
+    <Empty className="empty-state" image={Empty.PRESENTED_IMAGE_SIMPLE} description={<><Typography.Text strong>{title}</Typography.Text>{text && <><br /><Typography.Text type="secondary">{text}</Typography.Text></>}</>}>
       {action}
-    </div>
+    </Empty>
   );
 }
 
 export function ErrorState({ text, onRetry }: { text?: string; onRetry?: () => void }) {
   return (
-    <div className="notice n-err" role="alert" style={{ margin: 16 }}>
-      <Icon name="alert" />
-      <div className="grow"><b>{text ?? t.errors.LOAD_FAILED}</b><span>{t.errors.LOAD_FAILED_HINT}</span></div>
-      {onRetry && <button type="button" className="btn btn-sm" onClick={onRetry}>{t.common.retry}</button>}
+    <div className="pad">
+      <Alert
+        type="error"
+        showIcon
+        role="alert"
+        message={text ?? t.errors.LOAD_FAILED}
+        description={t.errors.LOAD_FAILED_HINT}
+        action={onRetry ? <Button size="small" onClick={onRetry}>{t.common.retry}</Button> : undefined}
+      />
     </div>
   );
 }
 
-type NoticeKind = 'err' | 'warn' | 'ok' | 'ai' | 'rule' | 'info';
-export function Notice({ kind = 'info', icon, title, children, action }: { kind?: NoticeKind; icon?: IconName; title?: string; children?: ReactNode; action?: ReactNode }) {
-  const ic: IconName = icon ?? (kind === 'err' || kind === 'warn' ? 'alert' : kind === 'ok' ? 'check' : kind === 'ai' ? 'ai' : kind === 'rule' ? 'rule' : 'info');
-  return (
-    <div className={`notice n-${kind}`} role={kind === 'err' ? 'alert' : 'status'}>
-      <Icon name={ic} />
-      <div className="grow">{title && <b>{title}</b>}{children && <span>{children}</span>}</div>
-      {action}
-    </div>
-  );
-}
-
-export function Field({ label, htmlFor, hint, error, children, wide }: { label: string; htmlFor: string; hint?: string; error?: string | null; children: ReactNode; wide?: boolean }) {
-  return (
-    <div className={`field${wide ? ' wide' : ''}`}>
-      <label htmlFor={htmlFor}>{label}</label>
-      {children}
-      {hint && !error && <span className="hint">{hint}</span>}
-      {error && <span className="err-msg" id={`${htmlFor}-err`}><Icon name="alert" small />{error}</span>}
-    </div>
-  );
-}
-
-/** Overflow menu (progressive disclosure). Closes on an outside click and on Esc. */
-export function Menu({ label, items }: { label?: string; items: { label: string; onClick?: () => void; to?: string; danger?: boolean; disabled?: boolean; separatorBefore?: boolean }[] }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const down = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
-    const key = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('mousedown', down);
-    document.addEventListener('keydown', key);
-    return () => {
-      document.removeEventListener('mousedown', down);
-      document.removeEventListener('keydown', key);
-    };
-  }, [open]);
+export function MoreMenu({ items, label }: { items: { label: string; onClick?: () => void; to?: string; danger?: boolean; disabled?: boolean; separatorBefore?: boolean }[]; label?: string }) {
   const visible = items.filter((i) => i.label);
   if (!visible.length) return null;
+  const menuItems: MenuProps['items'] = visible.flatMap((it, i) => {
+    const entry = {
+      key: String(i),
+      label: it.to ? <Link to={it.to}>{it.label}</Link> : it.label,
+      danger: it.danger,
+      disabled: it.disabled,
+      onClick: () => it.onClick?.(),
+    };
+    return it.separatorBefore ? [{ type: 'divider' as const, key: `d${i}` }, entry] : [entry];
+  });
   return (
-    <div className="menu" ref={ref}>
-      <button type="button" className="btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <Icon name="dots" />
-        {label ?? t.common.moreActions}
-      </button>
-      {open && (
-        <div className="menu-list" role="menu">
-          {visible.map((it, i) => (
-            <div key={i}>
-              {it.separatorBefore && <hr />}
-              {it.to ? (
-                <Link to={it.to} role="menuitem" onClick={() => setOpen(false)}>{it.label}</Link>
-              ) : (
-                <button type="button" role="menuitem" className={it.danger ? 'danger' : ''} disabled={it.disabled} onClick={() => { setOpen(false); it.onClick?.(); }}>{it.label}</button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <Dropdown menu={{ items: menuItems }} trigger={['click']}>
+      <Button icon={<EllipsisOutlined />}>{label ?? t.common.moreActions}</Button>
+    </Dropdown>
   );
 }
 
-export function PageHeader({ title, meta, actions, readOnly }: { title: ReactNode; meta?: ReactNode; actions?: ReactNode; readOnly?: boolean }) {
+export function PageHeader({ title, meta, actions, readOnly, crumbs, extra }: {
+  title: ReactNode;
+  meta?: ReactNode;
+  actions?: ReactNode;
+  readOnly?: boolean;
+  crumbs?: { label: ReactNode; to?: string }[];
+  extra?: ReactNode;
+}) {
   return (
     <header className="ph">
+      {crumbs && (
+        <Breadcrumb
+          className="ph-crumbs"
+          items={crumbs.map((c) => ({ title: c.to ? <Link to={c.to}>{c.label}</Link> : c.label }))}
+        />
+      )}
       <div className="ph-top">
         <div className="ph-title">
-          <h1>{title}</h1>
-          {readOnly && <span className="ro-tag"><Icon name="lock" small />{t.common.readOnly}</span>}
+          <Typography.Title level={3} style={{ margin: 0 }}>{title}</Typography.Title>
+          {readOnly && <Tag icon={<LockOutlined />} style={{ marginInlineEnd: 0 }}>{t.common.readOnly}</Tag>}
+          {extra}
         </div>
-        {actions && <div className="ph-actions">{actions}</div>}
+        {actions && <Space wrap>{actions}</Space>}
       </div>
-      {meta && <p className="ph-meta">{meta}</p>}
+      {meta && <Typography.Text type="secondary" className="ph-meta">{meta}</Typography.Text>}
     </header>
-  );
-}
-
-export function Tabs<T extends string>({ tabs, value, onChange, label }: { tabs: { id: T; label: string; count?: number; tone?: 'warn' | 'err' }[]; value: T; onChange: (id: T) => void; label: string }) {
-  const onKey = (e: React.KeyboardEvent) => {
-    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-    const i = tabs.findIndex((x) => x.id === value);
-    const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]!;
-    onChange(n.id);
-    requestAnimationFrame(() => document.getElementById(`tab-${n.id}`)?.focus());
-  };
-  return (
-    <div className="tabs in-card" role="tablist" aria-label={label} onKeyDown={onKey}>
-      {tabs.map((x) => (
-        <button key={x.id} id={`tab-${x.id}`} className="tab" role="tab" type="button" aria-selected={x.id === value} tabIndex={x.id === value ? 0 : -1} onClick={() => onChange(x.id)}>
-          {x.label}
-          {x.count !== undefined && <span className={`pill${x.tone ? ` p-${x.tone}` : ''}`}>{x.count}</span>}
-        </button>
-      ))}
-    </div>
   );
 }

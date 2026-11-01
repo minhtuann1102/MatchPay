@@ -1,6 +1,9 @@
-import { useState, type ReactNode } from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Avatar, Badge, Button, Drawer, Dropdown, Grid, Layout, List, Menu, Popover, Space, Tag, Typography } from 'antd';
+import type { MenuProps } from 'antd';
+import { BellOutlined, DownOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined } from '@ant-design/icons';
 import { useAuth } from '../auth/AuthContext';
 import { NAV } from '../auth/nav';
 import { getSessionUserId } from '../api/client';
@@ -9,10 +12,13 @@ import * as sign from '../api/signing';
 import * as acc from '../api/acceptance';
 import * as inv from '../api/invoices';
 import * as adm from '../api/admin';
-import { useUnreadCount } from '../api/hooks';
+import { useNotifications, useUnreadCount } from '../api/hooks';
+import { usePersonaSwitch } from '../lib/usePersonaSwitch';
+import { fmtDateTime } from '../lib/format';
 import { t } from '../i18n/vi';
-import { Icon } from './Icon';
 import { DemoToolbar } from './DemoToolbar';
+
+const { Sider, Header, Content } = Layout;
 
 function useNavCounts(): Record<string, number | undefined> {
   const { session } = useAuth();
@@ -33,84 +39,159 @@ function useNavCounts(): Record<string, number | undefined> {
   };
 }
 
+function NavMenu({ collapsed, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
+  const { session } = useAuth();
+  const { pathname } = useLocation();
+  const counts = useNavCounts();
+  if (!session) return null;
+  const items = NAV[session.role];
+  const selected = items
+    .filter((it) => pathname === it.to || pathname.startsWith(`${it.to}/`))
+    .sort((a, b) => b.to.length - a.to.length)[0];
+  const menuItems: MenuProps['items'] = items.map((it) => {
+    const c = it.badge ? counts[it.badge] : undefined;
+    return {
+      key: it.id,
+      icon: collapsed && c ? <Badge count={c} size="small" offset={[6, -2]}>{it.icon}</Badge> : it.icon,
+      label: (
+        <Link to={it.to} onClick={onNavigate} className="nav-link">
+          <span>{it.label}</span>
+          {c ? <Badge count={c} overflowCount={99} className="nav-count" title={`${t.shell.count} ${c}`} /> : null}
+        </Link>
+      ),
+    };
+  });
+  return <Menu mode="inline" aria-label={t.shell.mainNav} selectedKeys={selected ? [selected.id] : []} items={menuItems} className="side-menu" />;
+}
+
 function Bell() {
-  const q = useUnreadCount();
-  const n = q.data ?? 0;
+  const nav = useNavigate();
+  const [open, setOpen] = useState(false);
+  const unread = useUnreadCount();
+  const latest = useNotifications(false);
+  const n = unread.data ?? 0;
+  const items = (latest.data ?? []).slice(0, 5);
+  const content = (
+    <div className="bell-pop">
+      <List
+        size="small"
+        dataSource={items}
+        locale={{ emptyText: t.shell.noNotifications }}
+        renderItem={(it) => (
+          <List.Item>
+            <List.Item.Meta
+              avatar={<Badge dot={!it.read}><Avatar size="small" icon={<BellOutlined />} /></Badge>}
+              title={<span style={{ fontWeight: it.read ? 400 : 600 }}>{t.notifications.kinds[it.kind]}</span>}
+              description={<><span>{t.notification(it)}</span><br /><Typography.Text type="secondary" className="xs">{fmtDateTime(it.at)}</Typography.Text></>}
+            />
+          </List.Item>
+        )}
+      />
+      <Button type="link" block onClick={() => { setOpen(false); nav('/notifications'); }}>{t.shell.viewAll}</Button>
+    </div>
+  );
   return (
-    <NavLink className="bell" to="/notifications" aria-label={n ? t.shell.bellUnread.replace('{n}', String(n)) : t.shell.bell}>
-      <Icon name="bell" />
-      <span className="btn-label">{t.nav.notifications}</span>
-      {n > 0 && <span className="unread-badge" aria-hidden="true">{n}</span>}
-    </NavLink>
+    <Popover open={open} onOpenChange={setOpen} trigger="click" placement="bottomRight" title={t.shell.latest} content={content}>
+      <Button type="text" aria-label={n ? t.shell.bellUnread.replace('{n}', String(n)) : t.shell.bell}>
+        <Badge count={n} size="small" overflowCount={99}><BellOutlined style={{ fontSize: 18 }} /></Badge>
+      </Button>
+    </Popover>
+  );
+}
+
+function UserMenu() {
+  const { session, signOut } = useAuth();
+  const nav = useNavigate();
+  const { personas, current, switchTo } = usePersonaSwitch();
+  if (!session) return null;
+  const items: MenuProps['items'] = [
+    {
+      key: 'switch',
+      icon: <SwapOutlined />,
+      label: t.shell.switchPersona,
+      children: personas.map((p) => ({
+        key: `p-${p.id}`,
+        label: `${p.fullName}, ${t.roles[p.role]}${p.approvalLevel ? ` (${t.approvalLevel[p.approvalLevel]})` : ''}`,
+        disabled: p.id === current,
+        onClick: () => void switchTo(p.id),
+      })),
+    },
+    { type: 'divider' },
+    { key: 'logout', icon: <LogoutOutlined />, label: t.shell.logout, danger: true, onClick: () => { void signOut().then(() => nav('/login')); } },
+  ];
+  return (
+    <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
+      <Button type="text" className="user-btn" aria-label={`${t.shell.account}: ${session.fullName}`}>
+        <Space size={8}>
+          <Avatar size="small" style={{ background: '#ECE9F6', color: '#4A3A8C' }}>{session.fullName.slice(0, 1)}</Avatar>
+          <span className="who"><b>{session.fullName}</b><span className="who-role">{t.roles[session.role]}{session.approvalLevel ? ` (${t.approvalLevel[session.approvalLevel]})` : ''}</span></span>
+          <DownOutlined style={{ fontSize: 10 }} />
+        </Space>
+      </Button>
+    </Dropdown>
   );
 }
 
 export function Shell({ children }: { children: ReactNode }) {
-  const { session, signOut } = useAuth();
-  const [open, setOpen] = useState(false);
-  const counts = useNavCounts();
-  const navigate = useNavigate();
+  const { session } = useAuth();
+  const screens = Grid.useBreakpoint();
+  const [drawer, setDrawer] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  // Collapse to icons under the lg breakpoint, expand again above it; the header button toggles by hand.
+  const wide = screens.lg;
+  useEffect(() => { if (wide !== undefined) setCollapsed(!wide); }, [wide]);
   if (!session) return null;
-  const items = NAV[session.role];
+  const mobile = screens.md === false;
   const demo = session.role === 'DEMO_OPERATOR';
   const finance = ['AP_ACCOUNTANT', 'CHIEF_ACCOUNTANT', 'PAYMENT_APPROVER'].includes(session.role);
-  return (
-    <div className="shell">
-      <a className="skip-link" href="#main">{t.shell.skip}</a>
-      {open && <button type="button" className="scrim" aria-label={t.shell.closeMenu} tabIndex={-1} onClick={() => setOpen(false)} />}
-      <aside className={`sidebar${open ? ' open' : ''}`} id="side-nav">
-        <div className="brand">
-          <span className="brand-name">MatchPay</span>
-        </div>
-        <div className="side-entity">
-          <b>{session.entityName}</b>
-          {session.entityTaxCode && <span>{t.shell.mst} {session.entityTaxCode}</span>}
-        </div>
-        <nav aria-label={t.shell.mainNav}>
-          <ul className="nav">
-            {items.map((it) => {
-              const c = it.badge ? counts[it.badge] : undefined;
-              return (
-                <li key={it.id}>
-                  <NavLink to={it.to} end={it.to === '/group'} onClick={() => setOpen(false)}>
-                    <Icon name={it.icon} />
-                    <span>{it.label}</span>
-                    {c ? <span className="count"><span className="sr">{t.shell.count} </span>{c}</span> : null}
-                  </NavLink>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      </aside>
-      <div className="main">
-        <header className="topbar">
-          <div className="top-left">
-          <button className="menu-btn" type="button" aria-label={t.shell.menu} aria-expanded={open} aria-controls="side-nav" onClick={() => setOpen((o) => !o)}>
-            <Icon name="menu" />
-            <span>{t.shell.menu}</span>
-          </button>
-          <div className="top-entity">
-            <span className="entity-name">{session.entityName}</span>
-            {session.entityTaxCode && <span className="entity-mst">{t.shell.mst} {session.entityTaxCode}</span>}
-            {demo && <span className="demo-mark">{t.shell.demoOnly}</span>}
-          </div>
-          </div>
-          <div className="top-user">
-            {finance && <Bell />}
-            <span className="avatar" aria-hidden="true" title={session.fullName}>{session.fullName.slice(0, 1)}</span>
-            <span className="who"><b>{session.fullName}</b>, {t.roles[session.role]}{session.approvalLevel ? ` (${t.approvalLevel[session.approvalLevel]})` : ''}</span>
-            <button type="button" className="btn btn-quiet btn-sm" onClick={() => { void signOut().then(() => navigate('/login')); }}>
-              <Icon name="logout" small />
-              <span className="btn-label">{t.shell.logout}</span>
-            </button>
-          </div>
-        </header>
-        <main id="main" className="page" tabIndex={-1}>{children}</main>
-      </div>
-      <DemoToolbar />
+  const entity = (
+    <div className="side-entity">
+      <b>{session.entityName}</b>
+      {session.entityTaxCode && <span>{t.shell.mst} {session.entityTaxCode}</span>}
     </div>
   );
+  return (
+    <Layout className="shell">
+      <a className="skip-link" href="#main">{t.shell.skip}</a>
+      {!mobile && (
+        <Sider
+          className="sider"
+          width={248}
+          collapsedWidth={64}
+          collapsible
+          collapsed={collapsed}
+          trigger={null}
+          theme="light"
+        >
+          <div className={collapsed ? 'brand brand-mark' : 'brand'}>{collapsed ? <span aria-label="MatchPay" role="img">M</span> : 'MatchPay'}</div>
+          {!collapsed && entity}
+          <NavMenu collapsed={collapsed} />
+        </Sider>
+      )}
+      {mobile && (
+        <Drawer open={drawer} onClose={() => setDrawer(false)} placement="left" width={280} title="MatchPay" closeIcon={undefined} styles={{ body: { padding: 0 } }} aria-label={t.shell.mainNav}>
+          {entity}
+          <NavMenu onNavigate={() => setDrawer(false)} />
+        </Drawer>
+      )}
+      <Layout>
+        <Header className="topbar">
+          <div className="top-left">
+            <Button type="text" icon={mobile || collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} aria-label={mobile ? t.shell.menu : t.shell.collapse} aria-expanded={mobile ? drawer : !collapsed} onClick={() => (mobile ? setDrawer(true) : setCollapsed(!collapsed))} />
+            <div className="top-entity">
+              <span className="entity-name">{session.entityName}</span>
+              {session.entityTaxCode && <Typography.Text type="secondary" className="entity-mst">{t.shell.mst} {session.entityTaxCode}</Typography.Text>}
+              {demo && <Tag color="warning" style={{ marginInlineEnd: 0 }}>{t.shell.demoOnly}</Tag>}
+            </div>
+          </div>
+          <Space size={4}>
+            {finance && <Bell />}
+            <UserMenu />
+          </Space>
+        </Header>
+        <Content id="main" className="page" tabIndex={-1}>{children}</Content>
+      </Layout>
+      <DemoToolbar />
+    </Layout>
+  );
 }
-
-export const HomeLink = ({ to, children }: { to: string; children: ReactNode }) => <Link className="btn btn-primary" to={to}>{children}</Link>;

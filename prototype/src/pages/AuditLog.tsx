@@ -1,70 +1,78 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Button, Card, DatePicker, Descriptions, Drawer, Form, Input, Select, Space, Table, Typography } from 'antd';
+import type { TableColumnsType } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import type { Dayjs } from 'dayjs';
 import type { AuditEntry, AuditEventType } from '../api/types';
 import { useAudit } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { EmptyState, Field, PageHeader } from '../components/Bits';
-import { DataTable, Pager, type Col } from '../components/DataTable';
-import { Drawer } from '../components/Modal';
-import { fmtDateTime, parseDate } from '../lib/format';
+import { EmptyState, PageHeader } from '../components/Bits';
+import { HandTag } from '../components/Tags';
+import { fmtDateTime } from '../lib/format';
 import { t } from '../i18n/vi';
 
-const HANDS: Record<AuditEntry['hand'], string> = t.hands;
 const TYPES = Object.keys(t.auditEventType) as AuditEventType[];
 
 export const eventText = (a: AuditEntry): string => t.event(a.event.code, a.event.params);
 
+interface Filters { range?: [Dayjs, Dayjs] | null; document?: string; eventType?: AuditEventType }
+
 /** SCR-61 Audit Log: read only, filtered by date, document and event type, with a detail drawer. */
 export function AuditLog() {
   const { session } = useAuth();
-  const [draft, setDraft] = useState({ from: '', to: '', document: '', eventType: '' as '' | AuditEventType });
-  const [applied, setApplied] = useState(draft);
+  const [form] = Form.useForm<Filters>();
+  const [applied, setApplied] = useState<Filters>({});
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState<AuditEntry | null>(null);
-  const from = draft.from ? parseDate(draft.from) : '';
-  const to = draft.to ? parseDate(draft.to) : '';
-  const badFrom = !!draft.from && !from;
-  const badTo = !!draft.to && !to;
   const q = useAudit({
-    from: applied.from ? parseDate(applied.from) : undefined, to: applied.to ? parseDate(applied.to) : undefined,
-    document: applied.document || undefined, eventType: applied.eventType, page, pageSize: 15,
+    from: applied.range?.[0]?.format('YYYY-MM-DD'), to: applied.range?.[1]?.format('YYYY-MM-DD'),
+    document: applied.document || undefined, eventType: applied.eventType ?? '', page, pageSize: 15,
   });
-  const filtered = !!(applied.from || applied.to || applied.document || applied.eventType);
-  const clear = () => { const e = { from: '', to: '', document: '', eventType: '' as const }; setDraft(e); setApplied(e); setPage(1); };
+  const filtered = !!(applied.range || applied.document || applied.eventType);
+  const clear = () => { form.resetFields(); setApplied({}); setPage(1); };
 
-  const cols: Col<AuditEntry>[] = [
-    { key: 'at', label: t.audit.colTime, header: t.audit.colTime, render: (a) => <span className="nowrap">{fmtDateTime(a.at)}</span> },
-    { key: 'hand', label: t.audit.colHand, header: t.audit.colHand, render: (a) => <span className={`au au-${a.hand === 'AI' ? 'ai' : a.hand === 'RULE' ? 'rule' : a.hand === 'PERSON' ? 'person' : 'data'}`}>{HANDS[a.hand]}</span> },
-    { key: 'who', label: t.audit.colActor, header: t.audit.colActor, render: (a) => a.actorName ?? <span className="muted">{t.audit.system}</span> },
-    { key: 'type', label: t.audit.colType, header: t.audit.colType, render: (a) => t.auditEventType[a.eventType] },
-    { key: 'obj', label: t.audit.colObject, header: t.audit.colObject, render: (a) => <span className="mono">{a.objectLabel}</span> },
-    { key: 'ev', label: t.audit.colEvent, header: t.audit.colEvent, render: (a) => <>{eventText(a)}{a.note && <span className="sub">"{a.note}"</span>}</> },
+  const cols: TableColumnsType<AuditEntry> = [
+    { title: t.audit.colTime, key: 'at', width: 150, render: (_, a) => <span className="nowrap">{fmtDateTime(a.at)}</span> },
+    { title: t.audit.colHand, key: 'hand', width: 170, render: (_, a) => <HandTag hand={a.hand} /> },
+    { title: t.audit.colActor, key: 'who', width: 170, responsive: ['md'], render: (_, a) => a.actorName ?? <Typography.Text type="secondary">{t.audit.system}</Typography.Text> },
+    { title: t.audit.colType, key: 'type', width: 200, responsive: ['lg'], render: (_, a) => t.auditEventType[a.eventType] },
+    { title: t.audit.colObject, key: 'obj', width: 150, render: (_, a) => <span className="mono">{a.objectLabel}</span> },
+    { title: t.audit.colEvent, key: 'ev', width: 320, render: (_, a) => <>{eventText(a)}{a.note && <><br /><Typography.Text type="secondary" className="xs">"{a.note}"</Typography.Text></>}</> },
   ];
 
   return (
     <>
       <PageHeader title={t.audit.title} readOnly meta={t.audit.intro} />
-      <section className="card">
-        <form className="filters" role="search" aria-label={t.audit.filters} onSubmit={(e) => { e.preventDefault(); if (badFrom || badTo) return; setApplied(draft); setPage(1); }} style={{ alignItems: 'flex-start' }}>
-          <Field label={t.audit.from} htmlFor="au-from" error={badFrom ? t.audit.badDate : null}><input id="au-from" className={`input${badFrom ? ' invalid' : ''}`} placeholder="dd/MM/yyyy" value={draft.from} onChange={(e) => setDraft({ ...draft, from: e.target.value })} /></Field>
-          <Field label={t.audit.to} htmlFor="au-to" error={badTo ? t.audit.badDate : null}><input id="au-to" className={`input${badTo ? ' invalid' : ''}`} placeholder="dd/MM/yyyy" value={draft.to} onChange={(e) => setDraft({ ...draft, to: e.target.value })} /></Field>
-          <Field label={t.audit.document} htmlFor="au-doc"><input id="au-doc" className="input" placeholder={t.audit.documentPlaceholder} value={draft.document} onChange={(e) => setDraft({ ...draft, document: e.target.value })} /></Field>
-          <Field label={t.audit.eventType} htmlFor="au-type">
-            <select id="au-type" className="select" value={draft.eventType} onChange={(e) => setDraft({ ...draft, eventType: e.target.value as '' | AuditEventType })}>
-              <option value="">{t.audit.allTypes}</option>
-              {TYPES.map((k) => <option key={k} value={k}>{t.auditEventType[k]}</option>)}
-            </select>
-          </Field>
-          <div className="row" style={{ alignSelf: 'flex-end' }}>
-            <button type="submit" className="btn btn-primary">{t.audit.apply}</button>
-            {filtered && <button type="button" className="btn btn-quiet" onClick={clear}>{t.common.clearFilters}</button>}
-          </div>
-        </form>
-        <Async q={q} isEmpty={(d) => d.total === 0} empty={filtered ? <EmptyState icon="search" title={t.audit.noMatch} action={<button type="button" className="btn" onClick={clear}>{t.common.clearFilters}</button>} /> : <EmptyState icon="book" title={t.audit.emptyTitle} text={t.audit.emptyText} />}>
-          {(d) => <DataTable columns={cols} rows={d.items} rowKey={(a) => a.id} caption={t.audit.title} onRowClick={setOpen} footer={<Pager total={d.total} page={d.page} pageSize={d.pageSize} onPage={setPage} />} />}
+      <Card styles={{ body: { padding: 0 } }}>
+        <Form form={form} layout="inline" className="filter-bar" role="search" aria-label={t.audit.filters} onFinish={(v) => { setApplied(v); setPage(1); }}>
+          <Form.Item name="range" label={t.audit.range}><DatePicker.RangePicker format="DD/MM/YYYY" placeholder={[t.audit.from, t.audit.to]} /></Form.Item>
+          <Form.Item name="document" label={t.audit.document}><Input allowClear prefix={<SearchOutlined />} placeholder={t.audit.documentPlaceholder} style={{ width: 220 }} /></Form.Item>
+          <Form.Item name="eventType" label={t.audit.eventType}>
+            <Select allowClear placeholder={t.audit.allTypes} style={{ minWidth: 220 }} options={TYPES.map((k) => ({ value: k, label: t.auditEventType[k] }))} />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">{t.audit.apply}</Button>
+              {filtered && <Button onClick={clear}>{t.common.clearFilters}</Button>}
+            </Space>
+          </Form.Item>
+        </Form>
+        <Async q={q} isEmpty={(d) => d.total === 0} empty={filtered ? <EmptyState title={t.audit.noMatch} action={<Button onClick={clear}>{t.common.clearFilters}</Button>} /> : <EmptyState title={t.audit.emptyTitle} text={t.audit.emptyText} />}>
+          {(d) => (
+            <Table<AuditEntry>
+              size="middle"
+              rowKey="id"
+              columns={cols}
+              dataSource={d.items}
+              scroll={{ x: 760 }}
+              onRow={(a) => ({ onClick: () => setOpen(a), style: { cursor: 'pointer' } })}
+              pagination={{ current: d.page, pageSize: d.pageSize, total: d.total, showSizeChanger: false, showTotal: (total, [f, to]) => t.common.showing.replace('{from}', String(f)).replace('{to}', String(to)).replace('{total}', String(total)), onChange: setPage }}
+            />
+          )}
         </Async>
-      </section>
+      </Card>
       {open && <EntryDrawer a={open} canOpen={session?.role === 'CHIEF_ACCOUNTANT'} onClose={() => setOpen(null)} />}
     </>
   );
@@ -72,21 +80,32 @@ export function AuditLog() {
 
 function EntryDrawer({ a, canOpen, onClose }: { a: AuditEntry; canOpen: boolean; onClose: () => void }) {
   return (
-    <Drawer title={t.audit.detailTitle} onClose={onClose} footer={<button type="button" className="btn" onClick={onClose}>{t.common.close}</button>}>
-      <dl className="dl">
-        <dt>{t.audit.id}</dt><dd className="mono">{a.id}</dd>
-        <dt>{t.audit.time}</dt><dd>{fmtDateTime(a.at)}</dd>
-        <dt>{t.audit.hand}</dt><dd>{HANDS[a.hand]}</dd>
-        <dt>{t.audit.actor}</dt><dd>{a.actorName ?? t.audit.system}</dd>
-        <dt>{t.audit.type}</dt><dd>{t.auditEventType[a.eventType]}</dd>
-        <dt>{t.audit.object}</dt><dd className="mono">{a.objectLabel}</dd>
-        <dt>{t.audit.event}</dt><dd>{eventText(a)}</dd>
-        {a.note && <><dt>{t.audit.note}</dt><dd>"{a.note}"</dd></>}
-        {a.model && <><dt>{t.audit.model}</dt><dd className="mono">{a.model}</dd></>}
-        {a.task && <><dt>{t.audit.task}</dt><dd className="mono">{a.task}</dd></>}
-      </dl>
-      {canOpen && a.objectType === 'INVOICE' && a.objectId.startsWith('inv-') && <p><Link to={`/invoices/${a.objectId}`}>{t.audit.openInvoice}</Link></p>}
-      <p className="xs muted" style={{ marginTop: 16 }}>{t.audit.readOnlyNote}</p>
+    <Drawer open title={t.audit.detailTitle} width={480} onClose={onClose} destroyOnHidden footer={<Button onClick={onClose}>{t.common.close}</Button>}>
+      <div className="stack">
+        <Descriptions
+          size="small"
+          column={1}
+          bordered
+          items={[
+            { key: 'id', label: t.audit.id, children: <span className="mono">{a.id}</span> },
+            { key: 'time', label: t.audit.time, children: fmtDateTime(a.at) },
+            { key: 'hand', label: t.audit.hand, children: <HandTag hand={a.hand} /> },
+            { key: 'actor', label: t.audit.actor, children: a.actorName ?? t.audit.system },
+            { key: 'type', label: t.audit.type, children: t.auditEventType[a.eventType] },
+            { key: 'obj', label: t.audit.object, children: <span className="mono">{a.objectLabel}</span> },
+            { key: 'event', label: t.audit.event, children: eventText(a) },
+            ...(a.note ? [{ key: 'note', label: t.audit.note, children: `"${a.note}"` }] : []),
+            ...(a.model ? [{ key: 'model', label: t.audit.model, children: <span className="mono">{a.model}</span> }] : []),
+            ...(a.task ? [{ key: 'task', label: t.audit.task, children: <span className="mono">{a.task}</span> }] : []),
+          ]}
+        />
+        <div>
+          <Typography.Text strong>{t.audit.raw}</Typography.Text>
+          <pre className="json-block">{JSON.stringify({ id: a.id, at: a.at, hand: a.hand, eventType: a.eventType, object: `${a.objectType}:${a.objectId}`, event: a.event }, null, 2)}</pre>
+        </div>
+        {canOpen && a.objectType === 'INVOICE' && a.objectId.startsWith('inv-') && <Link to={`/invoices/${a.objectId}`}>{t.audit.openInvoice}</Link>}
+        <Typography.Text type="secondary" className="xs">{t.audit.readOnlyNote}</Typography.Text>
+      </div>
     </Drawer>
   );
 }

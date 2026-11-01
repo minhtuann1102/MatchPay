@@ -1,13 +1,15 @@
 import { useState } from 'react';
+import { Button, Card, Checkbox, Descriptions, Form, Input, Modal, Select, Space, Table, Typography } from 'antd';
+import type { TableColumnsType } from 'antd';
+import { CheckCircleOutlined, ClockCircleOutlined, FieldTimeOutlined, LockOutlined } from '@ant-design/icons';
 import type { AcceptanceRow } from '../api/acceptance';
 import { decideServiceAcceptance } from '../api/acceptance';
 import { useAcceptanceQueue, useSuppliers } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { DueSoon, EmptyState, Field, Notice, PageHeader, InvNo } from '../components/Bits';
-import { DataTable, type Col } from '../components/DataTable';
-import { Modal } from '../components/Modal';
-import { ActionError } from '../components/ReasonModal';
+import { DueSoon, EmptyState, Notice, PageHeader, InvNo } from '../components/Bits';
+import { ActionError } from '../components/Dialogs';
+import { Kpi, KpiRow } from '../components/Kpi';
 import { fmtDate, fmtMoney, interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
@@ -25,42 +27,50 @@ export function Acceptance() {
   const items = all.data?.items ?? [];
   const oldest = [...items].sort((a, b) => a.invoice.receivedAt.localeCompare(b.invoice.receivedAt))[0];
   const dueCount = items.filter((i) => i.dueSoon).length;
+  const clear = () => { setSupplierId(''); setDueSoon(false); };
 
-  const cols: Col<AcceptanceRow>[] = [
-    { key: 'inv', label: t.acceptance.colInvoice, header: t.acceptance.colInvoice, render: (r) => <><InvNo value={r.invoice.invoiceNumber} /><span className="sub">{r.invoice.sellerName}</span></> },
-    { key: 'po', label: t.acceptance.colOrder, header: t.acceptance.colOrder, render: (r) => <span className="mono">{r.poRef}</span> },
-    { key: 'lines', label: t.acceptance.colLines, header: t.acceptance.colLines, render: (r) => r.serviceLines },
-    { key: 'amt', label: t.acceptance.colAmount, header: t.acceptance.colAmount, className: 'money', sort: (r) => r.invoice.totalAmount, render: (r) => fmtMoney(r.invoice.totalAmount) },
-    { key: 'due', label: t.acceptance.colDue, header: t.acceptance.colDue, sort: (r) => r.invoice.dueDate, render: (r) => <>{fmtDate(r.invoice.dueDate)}{r.dueSoon && <> <DueSoon /></>}</> },
-    { key: 'act', label: '', header: <span className="sr">{t.common.actions}</span>, className: 'row-act', render: (r) => <button type="button" className="btn btn-sm" onClick={(e) => { e.stopPropagation(); setOpen(r); }}>{t.acceptance.review}</button> },
+  const cols: TableColumnsType<AcceptanceRow> = [
+    { title: t.acceptance.colInvoice, key: 'inv', width: 230, render: (_, r) => <><InvNo value={r.invoice.invoiceNumber} /><br /><Typography.Text type="secondary" className="xs">{r.invoice.sellerName}</Typography.Text></> },
+    { title: t.acceptance.colOrder, key: 'po', width: 130, render: (_, r) => <span className="mono">{r.poRef}</span> },
+    { title: t.acceptance.colLines, key: 'lines', width: 90, responsive: ['md'], render: (_, r) => r.serviceLines },
+    { title: t.acceptance.colAmount, key: 'amt', align: 'right', width: 150, sorter: (a, b) => a.invoice.totalAmount - b.invoice.totalAmount, render: (_, r) => <span className="nowrap">{fmtMoney(r.invoice.totalAmount)}</span> },
+    { title: t.acceptance.colDue, key: 'due', width: 170, sorter: (a, b) => a.invoice.dueDate.localeCompare(b.invoice.dueDate), render: (_, r) => <Space size={8} wrap>{fmtDate(r.invoice.dueDate)}{r.dueSoon && <DueSoon />}</Space> },
+    { title: <span className="sr">{t.common.actions}</span>, key: 'act', fixed: 'right', width: 110, render: (_, r) => <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); setOpen(r); }}>{t.acceptance.review}</Button> },
   ];
 
   return (
     <>
       <PageHeader title={t.acceptance.title} meta={interpolate(t.acceptance.intro, { entity: session?.entityName ?? '' })} />
       {all.data && items.length > 0 && (
-        <div className="kpis">
-          <div className="tile"><span className="t-lbl">{t.acceptance.kWaiting}</span><span className="t-val">{items.length}</span><span className="t-sub">{fmtMoney(items.reduce((s, i) => s + i.invoice.totalAmount, 0))}</span></div>
-          <div className="tile"><span className="t-lbl">{t.acceptance.kDue}</span><span className="t-val">{dueCount}</span><span className="t-sub">{items.filter((i) => i.dueSoon).map((i) => i.invoice.invoiceNumber).join(', ') || t.acceptance.kDueNone}</span></div>
-          {oldest && <div className="tile"><span className="t-lbl">{t.acceptance.kOldest}</span><span className="t-val">{fmtDate(oldest.invoice.receivedAt)}</span><span className="t-sub">{oldest.invoice.invoiceNumber}</span></div>}
-        </div>
+        <KpiRow span={8}>
+          {[
+            <Kpi key="w" title={t.acceptance.kWaiting} value={items.length} icon={<ClockCircleOutlined />} color="#8A5E0F" sub={fmtMoney(items.reduce((s, i) => s + i.invoice.totalAmount, 0))} />,
+            <Kpi key="d" title={t.acceptance.kDue} value={dueCount} icon={<FieldTimeOutlined />} sub={items.filter((i) => i.dueSoon).map((i) => i.invoice.invoiceNumber).join(', ') || t.acceptance.kDueNone} />,
+            oldest ? <Kpi key="o" title={t.acceptance.kOldest} value={fmtDate(oldest.invoice.receivedAt)} icon={<CheckCircleOutlined />} sub={oldest.invoice.invoiceNumber} /> : null,
+          ]}
+        </KpiRow>
       )}
-      <section className="card">
-        <div className="filters" role="group" aria-label={t.acceptance.savedViews}>
-          <div className="field">
-            <label htmlFor="acc-sup" className="sr">{t.acceptance.supplier}</label>
-            <select id="acc-sup" className="select" value={supplierId} onChange={(e) => setSupplierId(e.target.value)}>
-              <option value="">{t.acceptance.allSuppliers}</option>
-              {suppliers.data?.filter((s) => items.some((i) => i.invoice.supplierId === s.id)).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
-          <label className="row" style={{ gap: 6 }}><input type="checkbox" checked={dueSoon} onChange={(e) => setDueSoon(e.target.checked)} />{t.acceptance.dueOnly}</label>
-          {filtered && <button type="button" className="btn btn-quiet btn-sm" onClick={() => { setSupplierId(''); setDueSoon(false); }}>{t.common.clearFilters}</button>}
+      <Card styles={{ body: { padding: 0 } }}>
+        <div className="toolbar" role="group" aria-label={t.acceptance.savedViews}>
+          <Select
+            aria-label={t.acceptance.supplier}
+            style={{ minWidth: 240 }}
+            value={supplierId}
+            onChange={setSupplierId}
+            options={[{ value: '', label: t.acceptance.allSuppliers }, ...(suppliers.data?.filter((s) => items.some((i) => i.invoice.supplierId === s.id)).map((s) => ({ value: s.id, label: s.name })) ?? [])]}
+          />
+          <Checkbox checked={dueSoon} onChange={(e) => setDueSoon(e.target.checked)}>{t.acceptance.dueOnly}</Checkbox>
+          {filtered && <Button type="link" size="small" onClick={clear}>{t.common.clearFilters}</Button>}
         </div>
-        <Async q={q} isEmpty={(d) => d.items.length === 0} empty={filtered && q.data?.totalAll ? <EmptyState icon="search" title={t.acceptance.noMatch} action={<button type="button" className="btn" onClick={() => { setSupplierId(''); setDueSoon(false); }}>{t.common.clearFilters}</button>} /> : <EmptyState icon="checkcircle" title={t.acceptance.emptyTitle} text={t.acceptance.emptyText} />}>
-          {(d) => <DataTable columns={cols} rows={d.items} rowKey={(r) => r.id} caption={t.acceptance.title} onRowClick={setOpen} footer={<div className="tbl-foot"><span>{interpolate(t.acceptance.counted, { n: d.items.length })}</span></div>} />}
+        <Async q={q} isEmpty={(d) => d.items.length === 0} empty={filtered && q.data?.totalAll ? <EmptyState title={t.acceptance.noMatch} action={<Button onClick={clear}>{t.common.clearFilters}</Button>} /> : <EmptyState title={t.acceptance.emptyTitle} text={t.acceptance.emptyText} />}>
+          {(d) => (
+            <>
+              <Table<AcceptanceRow> size="middle" rowKey="id" columns={cols} dataSource={d.items} pagination={false} scroll={{ x: 760 }} onRow={(r) => ({ onClick: () => setOpen(r), style: { cursor: 'pointer' } })} />
+              <Typography.Text type="secondary" className="xs" style={{ display: 'block', padding: '8px 16px 12px' }}>{interpolate(t.acceptance.counted, { n: d.items.length })}</Typography.Text>
+            </>
+          )}
         </Async>
-      </section>
+      </Card>
       {open && <DecideModal item={open} onClose={() => setOpen(null)} />}
     </>
   );
@@ -85,29 +95,36 @@ function DecideModal({ item, onClose }: { item: AcceptanceRow; onClose: () => vo
   };
   return (
     <Modal
+      open
       title={t.acceptance.modalTitle}
-      onClose={onClose}
-      dismissable={!run.pending}
+      onCancel={onClose}
+      maskClosable={!run.pending}
+      keyboard={!run.pending}
+      destroyOnHidden
       footer={
-        <>
-          <button type="button" className="btn" onClick={onClose} disabled={run.pending}>{t.common.cancel}</button>
-          <button type="button" className="btn btn-danger" onClick={() => submit('REJECT')} disabled={run.pending}>{t.acceptance.reject}</button>
-          <button type="button" className="btn btn-primary" onClick={() => submit('CONFIRM')} disabled={run.pending}>{run.pending && <span className="spin" />}{t.acceptance.confirm}</button>
-        </>
+        <Space wrap>
+          <Button onClick={onClose} disabled={run.pending}>{t.common.cancel}</Button>
+          <Button danger onClick={() => submit('REJECT')} disabled={run.pending}>{t.acceptance.reject}</Button>
+          <Button type="primary" loading={run.pending} onClick={() => submit('CONFIRM')}>{t.acceptance.confirm}</Button>
+        </Space>
       }
     >
-      {creator && <Notice kind="warn" icon="lock">{t.acceptance.creatorBlocked}</Notice>}
-      <dl className="dl">
-        <dt>{t.acceptance.invoice}</dt><dd><InvNo value={item.invoice.invoiceNumber} />, {item.invoice.sellerName}</dd>
-        <dt>{t.acceptance.order}</dt><dd className="mono">{item.poRef}</dd>
-        <dt>{t.acceptance.lines}</dt><dd>{item.serviceLines}</dd>
-        <dt>{t.acceptance.amount}</dt><dd>{fmtMoney(item.invoice.totalAmount)}</dd>
-        <dt>{t.acceptance.due}</dt><dd>{fmtDate(item.invoice.dueDate)}</dd>
-      </dl>
-      <Field label={t.acceptance.note} htmlFor="acc-note" hint={t.acceptance.noteHint} error={noteBad ? t.acceptance.noteRequired : null}>
-        <textarea id="acc-note" className={`textarea${noteBad ? ' invalid' : ''}`} value={note} onChange={(e) => setNote(e.target.value)} data-autofocus />
-      </Field>
-      {!creator && <ActionError error={run.error} raw={run.rawError} />}
+      <div className="modal-body">
+        {creator && <Notice kind="warn" icon={<LockOutlined />}>{t.acceptance.creatorBlocked}</Notice>}
+        <Descriptions size="small" column={1} items={[
+          { key: 'i', label: t.acceptance.invoice, children: <><InvNo value={item.invoice.invoiceNumber} />, {item.invoice.sellerName}</> },
+          { key: 'o', label: t.acceptance.order, children: <span className="mono">{item.poRef}</span> },
+          { key: 'l', label: t.acceptance.lines, children: item.serviceLines },
+          { key: 'a', label: t.acceptance.amount, children: fmtMoney(item.invoice.totalAmount) },
+          { key: 'd', label: t.acceptance.due, children: fmtDate(item.invoice.dueDate) },
+        ]} />
+        <Form layout="vertical">
+          <Form.Item label={t.acceptance.note} extra={t.acceptance.noteHint} validateStatus={noteBad ? 'error' : undefined} help={noteBad ? t.acceptance.noteRequired : undefined}>
+            <Input.TextArea rows={3} maxLength={500} showCount autoFocus value={note} onChange={(e) => setNote(e.target.value)} aria-label={t.acceptance.note} />
+          </Form.Item>
+        </Form>
+        {!creator && <ActionError error={run.error} raw={run.rawError} />}
+      </div>
     </Modal>
   );
 }

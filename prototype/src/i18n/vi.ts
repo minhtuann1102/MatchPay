@@ -438,6 +438,7 @@ export const t = {
   shell: {
     skip: 'Chuyển đến nội dung chính', menu: 'Menu', mainNav: 'Điều hướng chính', count: 'Số lượng:', demoOnly: 'Chỉ dùng để demo', logout: 'Đăng xuất', bell: 'Thông báo',
     bellUnread: 'Thông báo, {n} chưa đọc', mst: 'MST', closeMenu: 'Đóng menu',
+    viewAll: 'Xem tất cả', latest: 'Thông báo mới nhất', noNotifications: 'Chưa có thông báo', switchPersona: 'Đổi vai trò', account: 'Tài khoản', collapse: 'Thu gọn menu',
   },
   nav: {
     invoices: 'Hóa đơn đầu vào', batch: 'Lô thanh toán', mailbox: 'Hộp thư hóa đơn', recurring: 'Hợp đồng định kỳ', notifications: 'Thông báo', dashboard: 'Bảng điều khiển',
@@ -455,7 +456,7 @@ export const t = {
   login: {
     title: 'MatchPay', subtitle: 'Đối chiếu hóa đơn đầu vào, đưa hóa đơn sạch vào lô thanh toán và để người có thẩm quyền ký đề nghị chi cho Tập đoàn Calderwood.', entities: 'Ba pháp nhân của tập đoàn', pickPersona: 'Chọn một người để đăng nhập (dữ liệu mẫu)', signIn: 'Đăng nhập', signingIn: 'Đang đăng nhập...',
     useEmail: 'Đăng nhập bằng email và mật khẩu', usePersona: 'Chọn vai trò mẫu', email: 'Email', password: 'Mật khẩu', passwordHint: 'Mật khẩu có ít nhất 8 ký tự. Bản mẫu chấp nhận mọi mật khẩu đủ dài.',
-    wrong: 'Email hoặc mật khẩu không đúng', deactivated: 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.', ended: 'Phiên đăng nhập đã hết.', endedHint: 'Đăng nhập lại để tiếp tục.',
+    wrong: 'Email hoặc mật khẩu không đúng', emailInvalid: 'Email chưa đúng định dạng.', deactivated: 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.', ended: 'Phiên đăng nhập đã hết.', endedHint: 'Đăng nhập lại để tiếp tục.',
     footer: 'Sau khi đăng nhập, bạn vào trang chủ của vai trò. Dữ liệu mẫu hư cấu của Tập đoàn Calderwood, lưu trong trình duyệt.',
   },
 
@@ -468,6 +469,7 @@ export const t = {
     countOf: '{n} trên {total} hóa đơn', countAnyState: '{n} hóa đơn ở mọi trạng thái', narrowByState: 'Thu hẹp theo trạng thái', anyState: 'Mọi trạng thái',
     fState: 'Trạng thái', fSupplier: 'Nhà cung cấp', fFlow: 'Luồng', fSource: 'Nguồn', allStates: 'Mọi trạng thái', allSuppliers: 'Mọi nhà cung cấp', allFlows: 'Mọi luồng', allSources: 'Mọi nguồn',
     reminderDue: 'Đến hạn nhắc', figure: 'Chỉ số',
+    colActions: 'Mở', filterTitle: 'Bộ lọc hóa đơn', openInvoice: 'Mở hóa đơn',
     colInvoice: 'Hóa đơn', colFlow: 'Luồng', colSource: 'Nguồn', colDue: 'Hạn thanh toán', colState: 'Trạng thái', colReasons: 'Lý do và ghi chú', colTotal: 'Tổng tiền',
     noneFound: 'Không tìm thấy hóa đơn', noneFoundHint: 'Thử một phần số hóa đơn, tên nhà cung cấp hoặc đúng tổng tiền có VAT.', noMatch: 'Không có hóa đơn nào khớp bộ lọc.',
     emptyTitle: 'Chưa có hóa đơn nào', emptyApText: 'Tải lên hóa đơn điện tử XML để bắt đầu. Mỗi tệp được kiểm tra khi nhận và hiện ở đây.',
@@ -681,7 +683,7 @@ export const t = {
     eventType: 'Loại sự kiện', allTypes: 'Tất cả loại', apply: 'Áp dụng', colTime: 'Thời gian', colHand: 'Bên thực hiện', colActor: 'Người', colType: 'Loại', colObject: 'Đối tượng', colEvent: 'Sự kiện',
     emptyTitle: 'Chưa có mục nào trong nhật ký', emptyText: 'Mục mới được ghi mỗi khi có quyết định hoặc thay đổi.', noMatch: 'Không có mục nào khớp bộ lọc', badDate: 'Ngày không hợp lệ. Dùng dd/MM/yyyy.',
     detailTitle: 'Chi tiết mục nhật ký', id: 'Mã mục', time: 'Thời gian', hand: 'Bên thực hiện', actor: 'Người thực hiện', type: 'Loại sự kiện', object: 'Đối tượng', event: 'Sự kiện', note: 'Ghi chú của người thực hiện', model: 'Mô hình AI', task: 'Tác vụ',
-    system: 'Hệ thống', openInvoice: 'Mở hóa đơn', readOnlyNote: 'Mục nhật ký không thể sửa hay xóa.',
+    system: 'Hệ thống', openInvoice: 'Mở hóa đơn', readOnlyNote: 'Mục nhật ký không thể sửa hay xóa.', raw: 'Dữ liệu sự kiện (JSON)', range: 'Khoảng ngày',
   },
   users: {
     title: 'Người dùng', introEntity: 'Người dùng ({entity}). Vô hiệu hóa chỉ tắt đăng nhập, không xóa lịch sử.', introGroup: 'Người dùng của mọi pháp nhân trong tập đoàn.', add: 'Thêm người dùng', savedViews: 'Bộ lọc', roleFilter: 'Vai trò', allRoles: 'Tất cả vai trò', entityFilter: 'Pháp nhân', allEntities: 'Tất cả pháp nhân',

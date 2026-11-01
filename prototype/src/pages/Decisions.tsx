@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Alert, Button, Descriptions, Form, Input, List, Modal, Select, Skeleton, Space, Table, Tag, Typography } from 'antd';
+import type { TableColumnsType } from 'antd';
+import { ClockCircleOutlined, DollarOutlined, FileSearchOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import type { DecisionRow } from '../api/decisions';
 import { decideIndividualApproval, decideTaxRiskHold } from '../api/decisions';
 import { useDecisionQueue, useInvoice } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { EmptyState, Field, Notice, PageHeader, Skeleton, InvNo } from '../components/Bits';
-import { Chip } from '../components/Chips';
-import { DataTable, type Col } from '../components/DataTable';
-import { Modal } from '../components/Modal';
-import { ActionError } from '../components/ReasonModal';
+import { EmptyState, Notice, PageHeader, InvNo } from '../components/Bits';
+import { ActionError } from '../components/Dialogs';
+import { Kpi, KpiRow } from '../components/Kpi';
+import { HandTag } from '../components/Tags';
 import { fmtDate, fmtDateTime, fmtMoney, interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
+import { Card } from 'antd';
 
 type Kind = DecisionRow['kind'];
 
@@ -26,19 +29,22 @@ export function Decisions() {
   const rows = (q.data ?? []).filter((r) => !kind || r.kind === kind);
 
   const age = (n: number) => (n <= 0 ? t.decisions.ageToday : interpolate(t.decisions.ageDays, { n }));
-  const cols: Col<DecisionRow>[] = [
+  const cols: TableColumnsType<DecisionRow> = [
     {
-      key: 'inv', label: t.decisions.colInvoice, header: t.decisions.colInvoice,
-      render: (r) => <><InvNo value={r.invoice.invoiceNumber} /><span className="sub">{r.invoice.sellerName}</span>{r.groupSize > 1 && <span className="sub">{interpolate(t.decisions.groupOf, { n: r.groupSize })}</span>}</>,
+      title: t.decisions.colInvoice, key: 'inv', width: 230,
+      render: (_, r) => <><InvNo value={r.invoice.invoiceNumber} /><br /><Typography.Text type="secondary" className="xs">{r.invoice.sellerName}</Typography.Text>{r.groupSize > 1 && <><br /><Typography.Text type="secondary" className="xs">{interpolate(t.decisions.groupOf, { n: r.groupSize })}</Typography.Text></>}</>,
     },
     {
-      key: 'why', label: t.decisions.colReasons, header: t.decisions.colReasons,
-      render: (r) => <span className="stack" style={{ gap: 2 }}>{r.invoice.exception?.reasons.map((x, i) => <span key={i}>{t.reason(x.code, x.params)}</span>)}</span>,
+      title: t.decisions.colReasons, key: 'why', width: 260,
+      render: (_, r) => <Space direction="vertical" size={2}>{r.invoice.exception?.reasons.map((x, i) => <span key={i}>{t.reason(x.code, x.params)}</span>)}</Space>,
     },
-    ...(isChief ? [] : [{ key: 'lvl', label: t.decisions.colLevel, header: t.decisions.colLevel, render: (r: DecisionRow) => (r.level ? <Chip kind="wait">{t.approvalLevel[r.level]}</Chip> : '') } as Col<DecisionRow>]),
-    { key: 'amt', label: t.decisions.colAmount, header: t.decisions.colAmount, className: 'money', sort: (r) => r.amount, render: (r) => fmtMoney(r.amount) },
-    { key: 'age', label: t.decisions.colAge, header: t.decisions.colAge, sort: (r) => r.ageDays, render: (r) => <>{age(r.ageDays)}<span className="sub">{interpolate(t.decisions.sent, { t: fmtDateTime(r.sentAt) })}</span></> },
-    { key: 'act', label: '', header: <span className="sr">{t.decisions.colAction}</span>, className: 'row-act', render: (r) => <button type="button" className="btn btn-sm btn-primary" onClick={(e) => { e.stopPropagation(); setOpen(r); }}>{t.decisions.review}</button> },
+    ...(isChief ? [] : [{ title: t.decisions.colLevel, key: 'lvl', width: 150, render: (_: unknown, r: DecisionRow) => (r.level ? <Tag color="warning">{t.approvalLevel[r.level]}</Tag> : '') } as TableColumnsType<DecisionRow>[number]]),
+    { title: t.decisions.colAmount, key: 'amt', align: 'right', width: 150, sorter: (a, b) => a.amount - b.amount, render: (_, r) => <span className="nowrap">{fmtMoney(r.amount)}</span> },
+    {
+      title: t.decisions.colAge, key: 'age', width: 170, sorter: (a, b) => a.ageDays - b.ageDays, defaultSortOrder: 'descend',
+      render: (_, r) => <>{age(r.ageDays)}<br /><Typography.Text type="secondary" className="xs">{interpolate(t.decisions.sent, { t: fmtDateTime(r.sentAt) })}</Typography.Text></>,
+    },
+    { title: <span className="sr">{t.decisions.colAction}</span>, key: 'act', fixed: 'right', width: 110, render: (_, r) => <Button type="primary" size="small" onClick={(e) => { e.stopPropagation(); setOpen(r); }}>{t.decisions.review}</Button> },
   ];
 
   const all = q.data ?? [];
@@ -50,29 +56,41 @@ export function Decisions() {
         meta={isChief ? t.decisions.introChief : interpolate(t.decisions.introApprover, { level: session?.approvalLevel ? t.approvalLevel[session.approvalLevel] : '' })}
       />
       {all.length > 0 && (
-        <div className="kpis">
-          <div className="tile t-warn"><span className="t-lbl">{t.decisions.kWaiting}</span><span className="t-val">{all.length}</span><span className="t-sub">{[...new Set(all.map((r) => t.decisions.kinds[r.kind]))].join(', ')}</span></div>
-          <div className="tile"><span className="t-lbl">{t.decisions.kAmount}</span><span className="t-val">{fmtMoney(all.reduce((s, r) => s + r.amount, 0))}</span></div>
-          {oldest && <div className="tile"><span className="t-lbl">{t.decisions.kOldest}</span><span className="t-val">{age(oldest.ageDays)}</span><span className="t-sub">{interpolate(t.decisions.sent, { t: fmtDateTime(oldest.sentAt) })}</span></div>}
-        </div>
+        <KpiRow span={8}>
+          {[
+            <Kpi key="w" title={t.decisions.kWaiting} value={all.length} icon={<FileSearchOutlined />} color="#8A5E0F" sub={[...new Set(all.map((r) => t.decisions.kinds[r.kind]))].join(', ')} />,
+            <Kpi key="a" title={t.decisions.kAmount} value={fmtMoney(all.reduce((s, r) => s + r.amount, 0))} icon={<DollarOutlined />} color="#4A3A8C" />,
+            oldest ? <Kpi key="o" title={t.decisions.kOldest} value={age(oldest.ageDays)} icon={<ClockCircleOutlined />} sub={interpolate(t.decisions.sent, { t: fmtDateTime(oldest.sentAt) })} /> : null,
+          ]}
+        </KpiRow>
       )}
-      <section className="card">
+      <Card styles={{ body: { padding: 0 } }}>
         {all.length > 0 && (
-          <div className="filters">
-            <div className="field">
-              <label htmlFor="dec-kind" className="sr">{t.decisions.kindFilter}</label>
-              <select id="dec-kind" className="select" value={kind} onChange={(e) => setKind(e.target.value as '' | Kind)}>
-                <option value="">{t.decisions.kindFilter}: {t.decisions.allKinds}</option>
-                {(['TAX_RISK_HOLD', 'INDIVIDUAL_APPROVAL'] as Kind[]).filter((k) => all.some((r) => r.kind === k)).map((k) => <option key={k} value={k}>{t.decisions.kinds[k]}</option>)}
-              </select>
-            </div>
-            <span className="xs muted">{t.decisions.onlyYours}</span>
+          <div className="toolbar">
+            <Select
+              aria-label={t.decisions.kindFilter}
+              style={{ minWidth: 260 }}
+              value={kind}
+              onChange={setKind}
+              options={[{ value: '', label: `${t.decisions.kindFilter}: ${t.decisions.allKinds}` }, ...(['TAX_RISK_HOLD', 'INDIVIDUAL_APPROVAL'] as Kind[]).filter((k) => all.some((r) => r.kind === k)).map((k) => ({ value: k, label: t.decisions.kinds[k] }))]}
+            />
+            <Typography.Text type="secondary" className="xs">{t.decisions.onlyYours}</Typography.Text>
           </div>
         )}
-        <Async q={q} isEmpty={(d) => d.length === 0} empty={<EmptyState icon="scale" title={t.decisions.emptyTitle} text={t.decisions.emptyText} />}>
-          {() => (rows.length === 0 ? <EmptyState icon="search" title={t.decisions.noMatch} action={<button type="button" className="btn" onClick={() => setKind('')}>{t.common.clearFilters}</button>} /> : <DataTable columns={cols} rows={rows} rowKey={(r) => r.invoice.id} caption={t.screens['/decisions']!} onRowClick={setOpen} initialSort={{ key: 'age', dir: 'desc' }} />)}
+        <Async q={q} isEmpty={(d) => d.length === 0} empty={<EmptyState title={t.decisions.emptyTitle} text={t.decisions.emptyText} />}>
+          {() => (rows.length === 0 ? <EmptyState title={t.decisions.noMatch} action={<Button onClick={() => setKind('')}>{t.common.clearFilters}</Button>} /> : (
+            <Table<DecisionRow>
+              size="middle"
+              rowKey={(r) => r.invoice.id}
+              columns={cols}
+              dataSource={rows}
+              pagination={false}
+              scroll={{ x: 760 }}
+              onRow={(r) => ({ onClick: () => setOpen(r), style: { cursor: 'pointer' } })}
+            />
+          ))}
         </Async>
-      </section>
+      </Card>
       {open && <DecideModal row={open} chief={isChief} onClose={() => setOpen(null)} />}
     </>
   );
@@ -84,7 +102,8 @@ function DecideModal({ row, chief, onClose }: { row: DecisionRow; chief: boolean
   const [reason, setReason] = useState('');
   const [touched, setTouched] = useState(false);
   const [which, setWhich] = useState<string>('');
-  const reasonBad = touched && !reason.trim();
+  const needReason = chief || which === 'DECLINE';
+  const reasonBad = touched && !reason.trim() && needReason;
   const run = useAction(
     async (decision: string): Promise<void> => {
       if (chief) await decideTaxRiskHold(inv.id, { decision: decision as 'RELEASE' | 'REJECT', reason: reason.trim(), version: inv.version });
@@ -103,49 +122,69 @@ function DecideModal({ row, chief, onClose }: { row: DecisionRow; chief: boolean
   const failed = inv.conditions.filter((c) => c.result === 'FAIL');
   return (
     <Modal
+      open
       title={chief ? t.decisions.taxTitle : t.decisions.approveTitle}
-      onClose={onClose}
-      dismissable={!run.pending}
-      large
+      width={680}
+      onCancel={onClose}
+      maskClosable={!run.pending}
+      keyboard={!run.pending}
+      destroyOnHidden
       footer={
-        <>
-          <Link className="btn btn-quiet" to={`/invoices/${inv.id}`} onClick={onClose}>{t.decisions.openInvoice}</Link>
-          <span className="grow" />
-          <button type="button" className="btn" onClick={onClose} disabled={run.pending}>{t.common.cancel}</button>
-          <button type="button" className="btn btn-danger" onClick={() => submit(chief ? 'REJECT' : 'DECLINE')} disabled={run.pending}>{chief ? t.decisions.reject : t.decisions.decline}</button>
-          <button type="button" className="btn btn-primary" onClick={() => submit(chief ? 'RELEASE' : 'APPROVE')} disabled={run.pending}>{run.pending && <span className="spin" />}{chief ? t.decisions.release : t.decisions.approve}</button>
-        </>
+        <div className="dec-footer">
+          <Link to={`/invoices/${inv.id}`} onClick={onClose}><Button type="link">{t.decisions.openInvoice}</Button></Link>
+          <Space wrap>
+            <Button onClick={onClose} disabled={run.pending}>{t.common.cancel}</Button>
+            <Button danger onClick={() => submit(chief ? 'REJECT' : 'DECLINE')} disabled={run.pending}>{chief ? t.decisions.reject : t.decisions.decline}</Button>
+            <Button type="primary" loading={run.pending} onClick={() => submit(chief ? 'RELEASE' : 'APPROVE')}>{chief ? t.decisions.release : t.decisions.approve}</Button>
+          </Space>
+        </div>
       }
     >
-      {detail.isPending ? <Skeleton rows={3} /> : (
-        <>
-          <section aria-label={t.decisions.evidence}>
-            <dl className="dl">
-              <dt>{t.decisions.colInvoice}</dt><dd><InvNo value={inv.invoiceNumber} /></dd>
-              <dt>{t.decisions.supplier}</dt><dd>{inv.sellerName}</dd>
-              <dt>{t.decisions.amount}</dt><dd>{fmtMoney(inv.totalAmount)}</dd>
-              <dt>{t.decisions.due}</dt><dd>{fmtDate(inv.dueDate)}</dd>
-              {detail.data?.requiredLevel && <><dt>{t.decisions.colLevel}</dt><dd>{t.approvalLevel[detail.data.requiredLevel]}</dd></>}
-              <dt>{t.decisions.reasons}</dt><dd>{inv.exception?.reasons.map((x) => t.reason(x.code, x.params)).join('; ')}</dd>
-            </dl>
-          </section>
-          {chief && detail.data?.tax && <Notice kind="rule" title={t.decisions.taxTitle}>{interpolate(t.decisions.taxText, { supplier: inv.sellerName, date: fmtDate(detail.data.tax.listedAt) })}</Notice>}
-          {failed.length > 0 && (
-            <ul className="reason-list" aria-label={t.decisions.checks}>
-              {failed.map((c) => <li key={c.no}><b>{t.conditionTitle[c.no]}</b>: {t.condition(c.detail)}</li>)}
-            </ul>
-          )}
-          {group.length > 1 && (
-            <Notice kind="warn" title={t.decisions.combinedNote}>
-              {group.map((g) => `${g.invoiceNumber} (${fmtMoney(g.totalAmount)})`).join(', ')}. {interpolate(t.decisions.combined, { total: fmtMoney(group.reduce((s, g) => s + g.totalAmount, 0)) })}
-            </Notice>
-          )}
-        </>
-      )}
-      <Field label={chief ? `${t.decisions.reason} ${t.common.required}` : t.decisions.reason} htmlFor="dec-reason" hint={chief ? t.decisions.reasonHint : undefined} error={reasonBad && (chief || which === 'DECLINE') ? t.decisions.reasonRequired : null}>
-        <textarea id="dec-reason" className={`textarea${reasonBad && (chief || which === 'DECLINE') ? ' invalid' : ''}`} value={reason} onChange={(e) => setReason(e.target.value)} data-autofocus />
-      </Field>
-      {(run.rawError as { code?: string } | null)?.code === 'PROCESSED_BY_YOU' ? <Notice kind="warn" icon="lock">{t.decisions.processedByYou}</Notice> : <ActionError error={run.error} raw={run.rawError} />}
+      <div className="modal-body">
+        {detail.isPending ? <Skeleton active paragraph={{ rows: 3 }} /> : (
+          <>
+            <section aria-label={t.decisions.evidence}>
+              <Descriptions size="small" column={1} items={[
+                { key: 'i', label: t.decisions.colInvoice, children: <InvNo value={inv.invoiceNumber} /> },
+                { key: 's', label: t.decisions.supplier, children: inv.sellerName },
+                { key: 'a', label: t.decisions.amount, children: fmtMoney(inv.totalAmount) },
+                { key: 'd', label: t.decisions.due, children: fmtDate(inv.dueDate) },
+                ...(detail.data?.requiredLevel ? [{ key: 'l', label: t.decisions.colLevel, children: t.approvalLevel[detail.data.requiredLevel] }] : []),
+                { key: 'r', label: t.decisions.reasons, children: inv.exception?.reasons.map((x) => t.reason(x.code, x.params)).join('; ') },
+              ]} />
+            </section>
+            {chief && detail.data?.tax && (
+              <Alert type="info" showIcon icon={<SafetyCertificateOutlined />} message={<Space>{t.decisions.taxTitle}<HandTag hand="RULE" /></Space>} description={interpolate(t.decisions.taxText, { supplier: inv.sellerName, date: fmtDate(detail.data.tax.listedAt) })} />
+            )}
+            {failed.length > 0 && (
+              <List
+                size="small"
+                bordered
+                aria-label={t.decisions.checks}
+                dataSource={failed}
+                renderItem={(c) => <List.Item><span><b>{t.conditionTitle[c.no]}</b>: {t.condition(c.detail)}</span></List.Item>}
+              />
+            )}
+            {group.length > 1 && (
+              <Notice kind="warn" title={t.decisions.combinedNote}>
+                {group.map((g) => `${g.invoiceNumber} (${fmtMoney(g.totalAmount)})`).join(', ')}. {interpolate(t.decisions.combined, { total: fmtMoney(group.reduce((s, g) => s + g.totalAmount, 0)) })}
+              </Notice>
+            )}
+          </>
+        )}
+        <Form layout="vertical">
+          <Form.Item
+            label={t.decisions.reason}
+            required={chief}
+            extra={chief ? t.decisions.reasonHint : undefined}
+            validateStatus={reasonBad ? 'error' : undefined}
+            help={reasonBad ? t.decisions.reasonRequired : undefined}
+          >
+            <Input.TextArea rows={3} maxLength={500} showCount autoFocus value={reason} onChange={(e) => setReason(e.target.value)} aria-label={t.decisions.reason} />
+          </Form.Item>
+        </Form>
+        {(run.rawError as { code?: string } | null)?.code === 'PROCESSED_BY_YOU' ? <Notice kind="warn">{t.decisions.processedByYou}</Notice> : <ActionError error={run.error} raw={run.rawError} />}
+      </div>
     </Modal>
   );
 }

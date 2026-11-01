@@ -1,5 +1,10 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import {
+  Alert, Badge, Button, Card, Col, Collapse, Descriptions, Form, Row, Select, Space, Statistic, Steps, Table, Tabs, Tag, Timeline, Typography,
+} from 'antd';
+import type { TableColumnsType } from 'antd';
+import { CheckCircleFilled, CloseCircleFilled, ExclamationCircleFilled, MinusCircleOutlined, UserOutlined } from '@ant-design/icons';
 import type { Condition, InvoiceDetail, InvoiceFlow } from '../api/types';
 import {
   confirmLineMatch, correctFlow, rejectInvoice, reportWrongEntity, rerunChecks, sendForDecision, takeException, withdrawInvoiceFromBatch, type CancellationResult,
@@ -7,12 +12,9 @@ import {
 import { useInvoice } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { DueSoon, Menu, Notice, InvNo, ReqNo } from '../components/Bits';
-import { ExceptionBadge, HandTag, RequestBadge, StateBadge } from '../components/Chips';
-import { ConfirmDialog } from '../components/ConfirmDialog';
-import { Icon } from '../components/Icon';
-import { Modal } from '../components/Modal';
-import { ActionError, ReasonModal } from '../components/ReasonModal';
+import { DueSoon, MoreMenu, Notice, InvNo, ReqNo, PageHeader } from '../components/Bits';
+import { ExceptionBadge, HandTag, RequestBadge, StateBadge } from '../components/Tags';
+import { ActionModal, ReasonModal } from '../components/Dialogs';
 import { fmtDate, fmtDateTime, fmtMoney, fmtDecimal } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
@@ -46,24 +48,28 @@ function stepIndex(d: InvoiceDetail): { cur: number; kind: 'normal' | 'exc' | 'b
   }
 }
 
-function Stepper({ d }: { d: InvoiceDetail }) {
+/** The lifecycle of one invoice as antd Steps: finish, process, or error for an exception or a rejection. */
+function Lifecycle({ d }: { d: InvoiceDetail }) {
   const s = stepIndex(d);
   const i = d.invoice;
   return (
-    <ol className="stepper" aria-label={t.detail.progress}>
-      {STEPS.map((k, n) => {
-        const done = n < s.cur;
-        const cur = n === s.cur;
-        const label = cur && s.label ? s.label : k === 'outcome' ? (i.state === 'EXCEPTION' ? t.invoiceState.EXCEPTION : t.invoiceState.IN_BATCH) : t.detail.steps[k];
-        const small = cur && k === 'received' ? fmtDateTime(i.receivedAt) : cur && i.state === 'EXCEPTION' && i.exception ? t.exceptionState[i.exception.state] : cur && i.state === 'IN_BATCH' && d.batch ? d.batch.label : '';
-        return (
-          <li key={k} className={`${done ? 'done' : ''}${cur ? ` cur${s.kind === 'exc' ? ' exc' : s.kind === 'bad' ? ' bad' : ''}` : ''}`} aria-current={cur ? 'step' : undefined}>
-            <span className="dot">{done ? <Icon name="check" /> : cur && s.kind === 'exc' ? <Icon name="alert" /> : cur && s.kind === 'bad' ? <Icon name="x" /> : null}</span>
-            <span className="lab"><b>{label}</b>{small && <small>{small}</small>}</span>
-          </li>
-        );
-      })}
-    </ol>
+    <Card size="small" aria-label={t.detail.progress}>
+      <Steps
+        size="small"
+        current={s.cur}
+        status={s.kind === 'bad' ? 'error' : s.kind === 'exc' ? 'error' : 'process'}
+        items={STEPS.map((k, n) => {
+          const cur = n === s.cur;
+          const title = cur && s.label ? s.label : k === 'outcome' ? (i.state === 'EXCEPTION' ? t.invoiceState.EXCEPTION : t.invoiceState.IN_BATCH) : t.detail.steps[k];
+          const desc = cur && k === 'received' ? fmtDateTime(i.receivedAt) : cur && i.state === 'EXCEPTION' && i.exception ? t.exceptionState[i.exception.state] : cur && i.state === 'IN_BATCH' && d.batch ? d.batch.label : undefined;
+          return {
+            title,
+            description: desc,
+            icon: cur && s.kind === 'exc' ? <ExclamationCircleFilled style={{ color: '#8A5E0F' }} /> : undefined,
+          };
+        })}
+      />
+    </Card>
   );
 }
 
@@ -101,27 +107,27 @@ function Detail({ d }: { d: InvoiceDetail }) {
     primaryKey = 'take';
     nextTitle = t.detail.nextTake;
     nextText = t.detail.nextTakeText;
-    primary = <button type="button" className="btn btn-primary" onClick={() => void take.run(undefined)} disabled={take.pending}>{take.pending && <span className="spin" />}{t.detail.take}</button>;
+    primary = <Button type="primary" block loading={take.pending} onClick={() => void take.run(undefined)}>{t.detail.take}</Button>;
   } else if (inv.aiAvailable === false && a.rerunChecks) {
     primaryKey = 'rerun';
     nextTitle = t.detail.nextRerun;
     nextText = t.detail.nextRerunText;
-    primary = <button type="button" className="btn btn-primary" onClick={() => void rerun.run(undefined)} disabled={rerun.pending}>{rerun.pending && <span className="spin" />}{t.detail.rerun}</button>;
+    primary = <Button type="primary" block loading={rerun.pending} onClick={() => void rerun.run(undefined)}>{t.detail.rerun}</Button>;
   } else if (a.confirmLine && doubtLine) {
     primaryKey = 'line';
     nextTitle = t.detail.nextLine.replace('{n}', String(doubtLine.lineNo));
     nextText = t.detail.nextLineText.replace('{item}', doubtLine.matchedItem ?? '');
-    primary = <button type="button" className="btn btn-primary" onClick={() => setDlg('confirmLine')}>{t.detail.confirmLine}</button>;
+    primary = <Button type="primary" block onClick={() => setDlg('confirmLine')}>{t.detail.confirmLine}</Button>;
   } else if (exc && !waitingDecision && inv.flow === 'UNSUPPORTED_FOREIGN') {
     primaryKey = 'foreign';
     nextTitle = t.detail.nextForeign;
     nextText = t.detail.nextForeignText;
-    primary = <button type="button" className="btn btn-danger-solid" onClick={() => setDlg('reject')}>{t.detail.reject}</button>;
+    primary = <Button type="primary" danger block onClick={() => setDlg('reject')}>{t.detail.reject}</Button>;
   } else if (a.requestCorrection) {
     primaryKey = 'correction';
     nextTitle = t.detail.nextCorrection;
     nextText = t.detail.nextCorrectionText;
-    primary = <button type="button" className="btn btn-primary" onClick={() => setDlg('correction')}>{t.detail.requestCorrection}</button>;
+    primary = <Button type="primary" block onClick={() => setDlg('correction')}>{t.detail.requestCorrection}</Button>;
   }
 
   const menu = ([
@@ -136,127 +142,120 @@ function Detail({ d }: { d: InvoiceDetail }) {
     { key: 'foreign', show: a.reject, label: t.detail.reject, onClick: () => setDlg('reject'), danger: true },
   ] as { key: string; show: boolean; label: string; onClick: () => void; separatorBefore?: boolean; danger?: boolean }[]).filter((m) => m.show && m.key !== primaryKey);
 
-  const tabs: { id: Tab; label: string; badge?: string }[] = [
-    { id: 'overview', label: t.detail.tabs.overview },
-    { id: 'lines', label: t.detail.tabs.lines, badge: String(inv.lines.length) },
-    { id: 'checks', label: t.detail.tabs.checks, badge: failed ? t.detail.failedN.replace('{n}', String(failed)) : notEval ? t.detail.notEvalN.replace('{n}', String(notEval)) : inv.conditions.length ? t.detail.passedAll : undefined },
-    { id: 'documents', label: t.detail.tabs.documents },
-    { id: 'anomalies', label: t.detail.tabs.anomalies },
-    { id: 'history', label: t.detail.tabs.history, badge: String(d.history.length) },
+  const tabBadge = (n: ReactNode, tone?: 'err') => <Badge count={n} color={tone === 'err' ? '#B3261E' : '#9a9fb0'} style={{ marginInlineStart: 6 }} />;
+  const tabItems: { key: Tab; label: ReactNode; children: ReactNode }[] = [
+    { key: 'overview', label: t.detail.tabs.overview, children: <Overview d={d} go={setTab} /> },
+    { key: 'lines', label: <>{t.detail.tabs.lines}{tabBadge(inv.lines.length)}</>, children: <Lines d={d} /> },
+    {
+      key: 'checks',
+      label: <>{t.detail.tabs.checks}{failed ? tabBadge(t.detail.failedN.replace('{n}', String(failed)), 'err') : notEval ? tabBadge(t.detail.notEvalN.replace('{n}', String(notEval))) : inv.conditions.length ? tabBadge(t.detail.passedAll) : null}</>,
+      children: <Checks d={d} />,
+    },
+    { key: 'documents', label: t.detail.tabs.documents, children: <Documents d={d} /> },
+    { key: 'anomalies', label: t.detail.tabs.anomalies, children: <Anomalies d={d} /> },
+    { key: 'history', label: <>{t.detail.tabs.history}{tabBadge(d.history.length)}</>, children: <History d={d} /> },
   ];
 
   const showPanel = !d.readOnly || a.decideTaxRisk || a.decideApproval;
   const actionErr = take.error ?? rerun.error;
 
   return (
-    <div className="obj">
-      <nav className="crumbs" aria-label={t.detail.breadcrumb}>
-        <Link to="/invoices">{t.nav.invoices}</Link>
-        <Icon name="chevronr" small />
-        <span aria-current="page"><InvNo value={inv.invoiceNumber} /></span>
-      </nav>
+    <>
+      <PageHeader
+        crumbs={[{ label: t.nav.invoices, to: '/invoices' }, { label: <InvNo value={inv.invoiceNumber} /> }]}
+        title={<InvNo value={inv.invoiceNumber} />}
+        readOnly={d.readOnly}
+        extra={
+          <Space size={8} wrap>
+            <StateBadge state={inv.state} />
+            {exc && <ExceptionBadge state={exc.state} />}
+            {exc?.route && <Typography.Text type="secondary">{t.detail.waitingFor.replace('{who}', exc.route === 'CHIEF_ACCOUNTANT' ? t.roles.CHIEF_ACCOUNTANT : t.roles.PAYMENT_APPROVER)}</Typography.Text>}
+            {d.batch && inv.state === 'IN_BATCH' && <Tag bordered>{d.batch.label}</Tag>}
+            <Tag bordered>{t.source[inv.source]}</Tag>
+          </Space>
+        }
+      />
 
       {notice}
       {actionErr && <Notice kind="err">{actionErr}</Notice>}
 
-      <section className="ph obj-head" aria-label={t.detail.summary}>
-        <div className="ph-top">
-          <div className="ph-title">
-            <h1><InvNo value={inv.invoiceNumber} /></h1>
-            <StateBadge state={inv.state} />
-            {exc && <ExceptionBadge state={exc.state} />}
-            {exc?.route && <span className="muted small">{t.detail.waitingFor.replace('{who}', exc.route === 'CHIEF_ACCOUNTANT' ? t.roles.CHIEF_ACCOUNTANT : t.roles.PAYMENT_APPROVER)}</span>}
-            {d.batch && inv.state === 'IN_BATCH' && <span className="tagx">{d.batch.label}</span>}
-            <span className="src-tag">{t.source[inv.source]}</span>
-            {d.readOnly && <span className="ro-tag"><Icon name="lock" small />{t.common.readOnly}</span>}
-          </div>
-          <div className="ph-amount">{fmtMoney(inv.totalAmount)}</div>
-        </div>
-        <dl className="facts">
-          <div><dt>{t.detail.supplier}</dt><dd>{d.supplierName}{inv.sellerTaxCode ? ` ${inv.sellerTaxCode}` : <span className="muted"> {t.detail.noVnTax}</span>}</dd></div>
-          <div><dt>{t.detail.entity}</dt><dd>{d.entityName} <span className="mono muted">{inv.buyerTaxCode}</span></dd></div>
-          <div><dt>{t.detail.dueDate}</dt><dd>{fmtDate(inv.dueDate)}{d.dueSoon && <DueSoon />}</dd></div>
-          <div><dt>{t.detail.flow}</dt><dd>{t.flow[inv.flow]} {inv.flowConfidence !== null && <HandTag hand="AI" />}</dd></div>
-          {d.requiredLevel && <div><dt>{t.detail.approvalLevel}</dt><dd>{t.approvalLevel[d.requiredLevel]}</dd></div>}
-          <div><dt>{t.detail.authority}</dt><dd>{inv.authorityStatus ? t.authority[inv.authorityStatus] : t.detail.notChecked}{inv.authorityCheckedAt && <span className="muted"> {t.detail.lookedUp.replace('{time}', fmtDateTime(inv.authorityCheckedAt))}</span>}</dd></div>
-        </dl>
+      <Card aria-label={t.detail.summary}>
+        <Row gutter={[24, 16]}>
+          <Col xs={24} lg={17}>
+            <Descriptions
+              size="small"
+              layout="vertical"
+              column={{ xs: 1, sm: 2, xl: 3 }}
+              items={[
+                { key: 'sup', label: t.detail.supplier, children: <>{d.supplierName}{inv.sellerTaxCode ? ` ${inv.sellerTaxCode}` : <Typography.Text type="secondary"> {t.detail.noVnTax}</Typography.Text>}</> },
+                { key: 'ent', label: t.detail.entity, children: <>{d.entityName} <Typography.Text type="secondary" className="mono">{inv.buyerTaxCode}</Typography.Text></> },
+                { key: 'due', label: t.detail.dueDate, children: <span>{fmtDate(inv.dueDate)} {d.dueSoon && <DueSoon />}</span> },
+                { key: 'flow', label: t.detail.flow, children: <span>{t.flow[inv.flow]} {inv.flowConfidence !== null && <HandTag hand="AI" />}</span> },
+                ...(d.requiredLevel ? [{ key: 'lvl', label: t.detail.approvalLevel, children: t.approvalLevel[d.requiredLevel] }] : []),
+                { key: 'auth', label: t.detail.authority, children: <>{inv.authorityStatus ? t.authority[inv.authorityStatus] : t.detail.notChecked}{inv.authorityCheckedAt && <Typography.Text type="secondary"> {t.detail.lookedUp.replace('{time}', fmtDateTime(inv.authorityCheckedAt))}</Typography.Text>}</> },
+              ]}
+            />
+          </Col>
+          <Col xs={24} lg={7}>
+            <Statistic title={t.invoices.colTotal} value={fmtMoney(inv.totalAmount)} valueStyle={{ fontSize: 26, fontWeight: 600 }} />
+          </Col>
+        </Row>
         {exc && (
-          <div className="ph-reasons">
-            <span className="lbl">{t.detail.reasons}</span>
-            {exc.reasons.map((r, n) => <span key={n} className="reason">{t.reason(r.code, r.params)}</span>)}
-          </div>
+          <Alert
+            style={{ marginTop: 12 }}
+            type="warning"
+            showIcon
+            message={t.detail.reasons}
+            description={<ul className="plain-list">{exc.reasons.map((r, n) => <li key={n}>{t.reason(r.code, r.params)}</li>)}</ul>}
+          />
         )}
         {inv.rejection && (
-          <div className="ph-reasons">
-            <span className="lbl">{t.detail.rejectedBecause}</span>
-            <span className="reason">{t.rejection[inv.rejection.code]}</span>
-            {inv.rejection.note && <span className="small">{inv.rejection.note}</span>}
-          </div>
+          <Alert
+            style={{ marginTop: 12 }}
+            type="error"
+            showIcon
+            message={t.detail.rejectedBecause}
+            description={<>{t.rejection[inv.rejection.code]}{inv.rejection.note && <><br />{inv.rejection.note}</>}</>}
+          />
         )}
-      </section>
+      </Card>
 
-      <Stepper d={d} />
+      <Lifecycle d={d} />
 
-      <div className="obj-grid">
-        <div className="d-ev" style={{ display: 'grid', gap: 12 }}>
-          <div className="tabs" role="tablist" aria-label={t.detail.sections}>
-            {tabs.map((x) => (
-              <button key={x.id} id={`dtab-${x.id}`} className="tab" role="tab" type="button" aria-selected={tab === x.id} aria-controls={`dpanel-${x.id}`} tabIndex={tab === x.id ? 0 : -1} onClick={() => setTab(x.id)}
-                onKeyDown={(e) => {
-                  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-                  const i = tabs.findIndex((y) => y.id === tab);
-                  const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]!;
-                  setTab(n.id);
-                  requestAnimationFrame(() => document.getElementById(`dtab-${n.id}`)?.focus());
-                }}>
-                {x.label}
-                {x.badge && <span className={`pill${x.id === 'checks' && failed ? ' p-err' : ''}`}>{x.badge}</span>}
-              </button>
-            ))}
-          </div>
-          <div id={`dpanel-${tab}`} role="tabpanel" aria-labelledby={`dtab-${tab}`} className="tab-body">
-            {tab === 'overview' && <Overview d={d} go={setTab} />}
-            {tab === 'lines' && <Lines d={d} />}
-            {tab === 'checks' && <Checks d={d} />}
-            {tab === 'documents' && <Documents d={d} />}
-            {tab === 'anomalies' && <Anomalies d={d} />}
-            {tab === 'history' && <History d={d} />}
-          </div>
-        </div>
-
-        <aside className="obj-act" aria-label={t.detail.actionPanel}>
-          {showPanel ? (
-            <section className="actpanel">
-              <div className="ap-h"><h2>{t.detail.resolve}</h2><span className="au au-person"><Icon name="seal" />{t.hands.PERSON}</span></div>
-              {primary ? (
-                <div className="nextstep">
-                  <h3>{nextTitle}</h3>
-                  <p>{nextText}</p>
-                  <div className="actions">{primary}</div>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={{ span: 17, order: 1 }} xl={18}>
+          <Card styles={{ body: { paddingTop: 0 } }}>
+            <Tabs aria-label={t.detail.sections} activeKey={tab} onChange={(k) => setTab(k as Tab)} items={tabItems} />
+          </Card>
+        </Col>
+        <Col xs={24} lg={{ span: 7, order: 2 }} xl={6}>
+          <aside aria-label={t.detail.actionPanel} className="side-sticky">
+            {showPanel ? (
+              <Card className="act-card" title={t.detail.resolve}>
+                <div className="stack">
+                  <div><HandTag hand="PERSON" /></div>
+                  {primary ? (
+                    <div className="stack" style={{ gap: 8 }}>
+                      <Typography.Text strong>{nextTitle}</Typography.Text>
+                      <Typography.Text type="secondary">{nextText}</Typography.Text>
+                      {primary}
+                    </div>
+                  ) : (
+                    <Typography.Text type="secondary">{panelMessage(d, session?.role)}</Typography.Text>
+                  )}
+                  {a.withdraw && <Button block onClick={() => setDlg('withdraw')}>{t.detail.withdraw}</Button>}
+                  {menu.length > 0 && <MoreMenu label={t.detail.otherActions} items={menu} />}
+                  {(a.decideTaxRisk || a.decideApproval) && <Link to="/decisions"><Button type="primary" block>{t.detail.openDecisions}</Button></Link>}
                 </div>
-              ) : (
-                <div style={{ padding: 16 }} className="small muted">{panelMessage(d, session?.role)}</div>
-              )}
-              {(menu.length > 0 || a.withdraw) && (
-                <div style={{ padding: '0 16px 16px' }} className="actions">
-                  {a.withdraw && <button type="button" className="btn" onClick={() => setDlg('withdraw')}>{t.detail.withdraw}</button>}
-                  {menu.length > 0 && <Menu label={t.detail.otherActions} items={menu} />}
-                </div>
-              )}
-              {(a.decideTaxRisk || a.decideApproval) && (
-                <div style={{ padding: '0 16px 16px' }}>
-                  <Link className="btn btn-primary" to="/decisions">{t.detail.openDecisions}</Link>
-                </div>
-              )}
-            </section>
-          ) : (
-            <section className="actpanel">
-              <div className="ap-h"><h2>{t.detail.noAction}</h2></div>
-              <p className="small muted" style={{ padding: 16 }}>{panelMessage(d, session?.role)}</p>
-            </section>
-          )}
-        </aside>
-      </div>
+              </Card>
+            ) : (
+              <Card title={t.detail.noAction}>
+                <Typography.Text type="secondary">{panelMessage(d, session?.role)}</Typography.Text>
+              </Card>
+            )}
+          </aside>
+        </Col>
+      </Row>
 
       {(dlg === 'correction' || dlg === 'datafix') && (
         <CorrectionModal detail={d} initialKind={dlg === 'datafix' ? 'DATA_FIX_NOTICE' : 'CORRECTION_REQUEST'} onClose={close} />
@@ -265,7 +264,7 @@ function Detail({ d }: { d: InvoiceDetail }) {
       {dlg === 'reject' && (
         <ReasonModal
           title={t.reject.title}
-          intro={<p className="small">{t.reject.intro.replace('{n}', inv.invoiceNumber)}{inv.flow === 'UNSUPPORTED_FOREIGN' ? ` ${t.reject.foreign}` : ''}</p>}
+          intro={<Typography.Paragraph>{t.reject.intro.replace('{n}', inv.invoiceNumber)}{inv.flow === 'UNSUPPORTED_FOREIGN' ? ` ${t.reject.foreign}` : ''}</Typography.Paragraph>}
           label={t.reject.reason}
           placeholder={t.reject.placeholder}
           confirmLabel={t.reject.confirm}
@@ -280,7 +279,7 @@ function Detail({ d }: { d: InvoiceDetail }) {
       {dlg === 'withdraw' && (
         <ReasonModal
           title={t.detail.withdrawTitle}
-          intro={<p className="small">{t.detail.withdrawIntro}</p>}
+          intro={<Typography.Paragraph>{t.detail.withdrawIntro}</Typography.Paragraph>}
           label={t.detail.withdrawReason}
           confirmLabel={t.detail.withdraw}
           pending={withdraw.pending}
@@ -304,19 +303,19 @@ function Detail({ d }: { d: InvoiceDetail }) {
         />
       )}
       {dlg === 'confirmLine' && doubtLine && (
-        <ConfirmDialog title={t.detail.confirmLineTitle.replace('{n}', String(doubtLine.lineNo))} confirmLabel={t.detail.confirmLineSave} pending={confirmLine.pending} error={confirmLine.error} onCancel={close} onConfirm={() => void confirmLine.run(doubtLine.lineNo)}>
-          <p>{t.detail.confirmLineText.replace('{text}', doubtLine.text).replace('{item}', doubtLine.matchedItem ?? '')}</p>
-          <p className="small muted">{t.detail.confirmLineHint}</p>
-        </ConfirmDialog>
+        <ActionModal title={t.detail.confirmLineTitle.replace('{n}', String(doubtLine.lineNo))} okText={t.detail.confirmLineSave} pending={confirmLine.pending} error={confirmLine.error} rawError={confirmLine.rawError} onClose={close} onOk={() => void confirmLine.run(doubtLine.lineNo)}>
+          <Typography.Paragraph>{t.detail.confirmLineText.replace('{text}', doubtLine.text).replace('{item}', doubtLine.matchedItem ?? '')}</Typography.Paragraph>
+          <Typography.Text type="secondary">{t.detail.confirmLineHint}</Typography.Text>
+        </ActionModal>
       )}
       {dlg === 'sendDecision' && (
-        <ConfirmDialog title={t.detail.sendTitle} confirmLabel={t.detail.sendForDecision} pending={decide.pending} error={decide.error} onCancel={close} onConfirm={() => void decide.run(undefined)}>
-          <p>{exc?.reasons.some((r) => r.code === 'TAX_RISK_HOLD') ? t.detail.sendToChief : t.detail.sendToApprover}</p>
-          {inv.exception?.linkedGroup && <p className="small muted">{t.detail.sendGroup.replace('{n}', String(d.linkedGroup.length))}</p>}
-        </ConfirmDialog>
+        <ActionModal title={t.detail.sendTitle} okText={t.detail.sendForDecision} pending={decide.pending} error={decide.error} rawError={decide.rawError} onClose={close} onOk={() => void decide.run(undefined)}>
+          <Typography.Paragraph>{exc?.reasons.some((r) => r.code === 'TAX_RISK_HOLD') ? t.detail.sendToChief : t.detail.sendToApprover}</Typography.Paragraph>
+          {inv.exception?.linkedGroup && <Typography.Text type="secondary">{t.detail.sendGroup.replace('{n}', String(d.linkedGroup.length))}</Typography.Text>}
+        </ActionModal>
       )}
-      {dlg === 'flow' && <FlowModal current={inv.flow} pending={flow.pending} error={flow.error} onSave={(f) => void flow.run(f)} onClose={close} />}
-    </div>
+      {dlg === 'flow' && <FlowModal current={inv.flow} pending={flow.pending} error={flow.error} rawError={flow.rawError} onSave={(f) => void flow.run(f)} onClose={close} />}
+    </>
   );
 }
 
@@ -340,46 +339,43 @@ function CancelNotice({ r }: { r: CancellationResult }) {
 
 function WrongEntityTrace({ d }: { d: InvoiceDetail }) {
   const i = d.invoice;
-  const rows: [string, string, boolean][] = [
-    [t.detail.buyerTaxCode, i.buyerTaxCode, true],
-    [t.detail.buyerName, i.buyerName, i.buyerName === d.entityName],
-    [t.detail.orderRef, i.poRef ?? '-', true],
+  const rows: { k: string; v: string; same: boolean }[] = [
+    { k: t.detail.buyerTaxCode, v: i.buyerTaxCode, same: true },
+    { k: t.detail.buyerName, v: i.buyerName, same: i.buyerName === d.entityName },
+    { k: t.detail.orderRef, v: i.poRef ?? '-', same: true },
   ];
   return (
-    <div className="stack-sm">
-      <p className="small">{t.detail.wrongEntityIntro}</p>
-      <table className="tbl compact">
-        <tbody>
-          {rows.map(([k, v, same]) => (
-            <tr key={k}><td>{k}</td><td>{v}</td><td>{same ? <span className="tagx tagx-ok">{t.detail.same}</span> : <span className="tagx tagx-warn">{t.detail.differs}</span>}</td></tr>
-          ))}
-        </tbody>
-      </table>
-      <p className="small muted">{t.detail.wrongEntityHint.replace('{entity}', d.entityName)}</p>
+    <div className="stack" style={{ gap: 8 }}>
+      <Typography.Text>{t.detail.wrongEntityIntro}</Typography.Text>
+      <Table
+        size="small"
+        pagination={false}
+        showHeader={false}
+        rowKey="k"
+        dataSource={rows}
+        columns={[
+          { dataIndex: 'k' },
+          { dataIndex: 'v' },
+          { key: 's', render: (_, r) => (r.same ? <Tag color="success">{t.detail.same}</Tag> : <Tag color="warning">{t.detail.differs}</Tag>) },
+        ]}
+      />
+      <Typography.Text type="secondary">{t.detail.wrongEntityHint.replace('{entity}', d.entityName)}</Typography.Text>
     </div>
   );
 }
 
-function FlowModal({ current, pending, error, onSave, onClose }: { current: InvoiceFlow; pending: boolean; error: string | null; onSave: (f: InvoiceFlow) => void; onClose: () => void }) {
+function FlowModal({ current, pending, error, rawError, onSave, onClose }: { current: InvoiceFlow; pending: boolean; error: string | null; rawError: unknown; onSave: (f: InvoiceFlow) => void; onClose: () => void }) {
   const [f, setF] = useState<InvoiceFlow>(current);
   const options: InvoiceFlow[] = ['GOODS_WITH_ORDER', 'SERVICES_WITH_ORDER', 'RECURRING', 'EMPLOYEE_EXPENSE', 'OTHER'];
   return (
-    <Modal
-      title={t.detail.correctFlow}
-      onClose={onClose}
-      dismissable={!pending}
-      onSubmit={() => onSave(f)}
-      footer={<><button type="button" className="btn" onClick={onClose} disabled={pending}>{t.common.cancel}</button><button type="submit" className="btn btn-primary" disabled={pending}>{pending && <span className="spin" />}{t.detail.saveFlow}</button></>}
-    >
-      <p className="small">{t.detail.flowHint}</p>
-      <div className="field">
-        <label htmlFor="flow-sel">{t.detail.flow}</label>
-        <select id="flow-sel" className="select" value={f} onChange={(e) => setF(e.target.value as InvoiceFlow)} data-autofocus>
-          {options.map((o) => <option key={o} value={o}>{t.flow[o]}</option>)}
-        </select>
-      </div>
-      <ActionError error={error} />
-    </Modal>
+    <ActionModal title={t.detail.correctFlow} okText={t.detail.saveFlow} pending={pending} error={error} rawError={rawError} onClose={onClose} onOk={() => onSave(f)}>
+      <Typography.Paragraph>{t.detail.flowHint}</Typography.Paragraph>
+      <Form layout="vertical">
+        <Form.Item label={t.detail.flow}>
+          <Select aria-label={t.detail.flow} value={f} onChange={setF} options={options.map((o) => ({ value: o, label: t.flow[o] }))} />
+        </Form.Item>
+      </Form>
+    </ActionModal>
   );
 }
 
@@ -396,217 +392,291 @@ function Overview({ d, go }: { d: InvoiceDetail; go: (t: Tab) => void }) {
   const notEval = inv.conditions.filter((c) => c.result === 'NOT_EVALUATED');
   const title = allPass ? t.detail.allSixHold : failing.length ? t.detail.failedOfSix.replace('{n}', String(failing.length)) : notEval.length ? t.detail.notEvaluated.replace('{n}', String(notEval.length)) : '';
   return (
-    <>
+    <div className="stack">
       {total > 0 && (
-        <section className={`attn-card${allPass ? ' ok' : ''}`} aria-label={t.detail.ruleResult}>
-          <div className="attn-h"><h2><Icon name={allPass ? 'check' : 'alert'} />{title}</h2><HandTag hand="RULE" /></div>
-          {failing.map((c) => (
-            <div className="attn-row" key={c.no}>
-              <span className="no">{c.no}</span>
-              <div><b>{condTitle(c)}</b><div className="why">{t.condition(c.detail)}</div></div>
-              <button type="button" className="btn btn-quiet btn-sm" onClick={() => go('checks')}>{t.detail.viewInChecks}</button>
+        <Alert
+          type={allPass ? 'success' : 'warning'}
+          showIcon
+          aria-label={t.detail.ruleResult}
+          message={<Space wrap>{title}<HandTag hand="RULE" /></Space>}
+          description={
+            <div className="stack" style={{ gap: 8 }}>
+              {failing.map((c) => (
+                <div key={c.no} className="attn-row">
+                  <div><b>{c.no}. {condTitle(c)}</b><br />{t.condition(c.detail)}</div>
+                  <Button size="small" onClick={() => go('checks')}>{t.detail.viewInChecks}</Button>
+                </div>
+              ))}
+              {allPass && inv.note && <span>{t.note(inv.note)}</span>}
+              {!allPass && failing.length > 0 && <Typography.Text type="secondary">{t.detail.passedList.replace('{list}', inv.conditions.filter((c) => c.result === 'PASS').map((c) => c.no).join(', ')).replace('{x}', '')}</Typography.Text>}
+              {notEval.length > 0 && failing.length === 0 && <span>{t.condition(notEval[0]!.detail)}</span>}
             </div>
-          ))}
-          {allPass && inv.note && <div className="attn-note">{t.note(inv.note)}</div>}
-          {!allPass && failing.length > 0 && <div className="attn-note">{t.detail.passedList.replace('{list}', inv.conditions.filter((c) => c.result === 'PASS').map((c) => c.no).join(', ')).replace('{x}', '')}</div>}
-          {notEval.length > 0 && failing.length === 0 && <div className="attn-note">{t.condition(notEval[0]!.detail)}</div>}
-        </section>
+          }
+        />
       )}
 
-      <section className="card">
-        <div className="sec-h"><h3>{t.detail.keyFacts}</h3><button type="button" className="btn btn-quiet btn-sm" onClick={() => go('documents')}>{t.detail.openDocuments}</button></div>
-        <dl className="kf">
-          <div><dt>{t.detail.invoiceDate}</dt><dd>{fmtDate(inv.invoiceDate)}</dd></div>
-          <div><dt>{t.detail.order}</dt><dd className={inv.poRef ? 'mono' : undefined}>{inv.poRef ?? t.detail.none}</dd></div>
-          <div><dt>{t.detail.receipt}</dt><dd className={inv.receiptRef ? 'mono' : undefined}>{inv.receiptRef ?? (inv.flow === 'SERVICES_WITH_ORDER' ? t.detail.noneService : t.detail.none)}</dd></div>
-          <div><dt>{t.detail.trust}</dt><dd>{t.trust[inv.trust]}</dd></div>
-          <div><dt>{t.detail.signatureCheck}</dt><dd><HandTag hand="RULE" /> {inv.authorityStatus ? t.detail.sigValid : t.detail.sigPending}</dd></div>
-          <div><dt>{t.detail.lastSync}</dt><dd>{d.erpItems[0] ? fmtDateTime(d.erpItems[0].syncedAt) : t.detail.none}</dd></div>
-        </dl>
-      </section>
+      <Card size="small" title={t.detail.keyFacts} extra={<Button type="link" size="small" onClick={() => go('documents')}>{t.detail.openDocuments}</Button>}>
+        <Descriptions
+          size="small"
+          layout="vertical"
+          column={{ xs: 1, md: 2, xl: 3 }}
+          items={[
+            { key: 'd', label: t.detail.invoiceDate, children: fmtDate(inv.invoiceDate) },
+            { key: 'o', label: t.detail.order, children: inv.poRef ? <span className="mono">{inv.poRef}</span> : t.detail.none },
+            { key: 'r', label: t.detail.receipt, children: inv.receiptRef ? <span className="mono">{inv.receiptRef}</span> : inv.flow === 'SERVICES_WITH_ORDER' ? t.detail.noneService : t.detail.none },
+            { key: 't', label: t.detail.trust, children: t.trust[inv.trust] },
+            { key: 's', label: t.detail.signatureCheck, children: <Space size={6}><HandTag hand="RULE" />{inv.authorityStatus ? t.detail.sigValid : t.detail.sigPending}</Space> },
+            { key: 'l', label: t.detail.lastSync, children: d.erpItems[0] ? fmtDateTime(d.erpItems[0].syncedAt) : t.detail.none },
+          ]}
+        />
+      </Card>
 
       {inv.flowConfidence !== null && inv.flowReason && (
-        <section className="blk blk-ai card">
-          <div className="blk-h"><HandTag hand="AI" /><h3>{t.detail.flowIdent}</h3></div>
-          <p className="small">{t.flow[inv.flow]}, {t.detail.confidence} <span className="mono">{fmtDecimal(inv.flowConfidence)}</span>. {t.flowReason(inv.flowReason)}</p>
-          <p className="xs muted">{t.detail.versions}: model 2026.10 - prompt v14</p>
-        </section>
+        <Card size="small" className="hand-card hand-card-ai" title={<Space><HandTag hand="AI" />{t.detail.flowIdent}</Space>}>
+          <Typography.Paragraph style={{ marginBottom: 4 }}>{t.flow[inv.flow]}, {t.detail.confidence} <span className="mono">{fmtDecimal(inv.flowConfidence)}</span>. {t.flowReason(inv.flowReason)}</Typography.Paragraph>
+          <Typography.Text type="secondary" className="xs">{t.detail.versions}: model 2026.10 - prompt v14</Typography.Text>
+        </Card>
       )}
 
       {inv.serviceAcceptance && (
-        <section className="card">
-          <div className="sec-h"><h3>{t.detail.acceptance}</h3></div>
-          <dl className="kf">
-            <div><dt>{t.detail.source}</dt><dd>{t.roles.REQUESTING_DEPARTMENT}</dd></div>
-            <div><dt>{t.detail.confirmedBy}</dt><dd>{inv.serviceAcceptance.by}, {fmtDateTime(inv.serviceAcceptance.at)}</dd></div>
-            <div><dt>{t.detail.note}</dt><dd>{inv.serviceAcceptance.note || t.detail.none}</dd></div>
-          </dl>
-        </section>
+        <Card size="small" title={t.detail.acceptance}>
+          <Descriptions
+            size="small"
+            column={{ xs: 1, md: 3 }}
+            items={[
+              { key: 's', label: t.detail.source, children: t.roles.REQUESTING_DEPARTMENT },
+              { key: 'c', label: t.detail.confirmedBy, children: `${inv.serviceAcceptance.by}, ${fmtDateTime(inv.serviceAcceptance.at)}` },
+              { key: 'n', label: t.detail.note, children: inv.serviceAcceptance.note || t.detail.none },
+            ]}
+          />
+        </Card>
       )}
 
       {d.tax && (
-        <section className="card blk blk-rule">
-          <div className="blk-h"><HandTag hand="RULE" /><h3>{t.detail.taxRisk}</h3></div>
-          <p className="small">{t.detail.taxRiskText.replace('{supplier}', d.supplierName).replace('{date}', fmtDate(d.tax.listedAt))}</p>
-        </section>
+        <Card size="small" className="hand-card hand-card-rule" title={<Space><HandTag hand="RULE" />{t.detail.taxRisk}</Space>}>
+          {t.detail.taxRiskText.replace('{supplier}', d.supplierName).replace('{date}', fmtDate(d.tax.listedAt))}
+        </Card>
       )}
 
       {d.linkedGroup.length > 1 && (
-        <section className="card">
-          <div className="sec-h"><h3>{t.detail.linked}</h3><HandTag hand="AI" /></div>
-          <div className="tbl-wrap">
-            <table className="tbl compact">
-              <thead><tr><th>{t.invoices.colInvoice}</th><th>{t.detail.order}</th><th className="money">{t.invoices.colTotal}</th></tr></thead>
-              <tbody>
-                {d.linkedGroup.map((l) => (
-                  <tr key={l.id}><td>{l.id === inv.id ? <><InvNo value={l.invoiceNumber} /> <span className="muted">{t.detail.thisPage}</span></> : <Link to={`/invoices/${l.id}`}><InvNo value={l.invoiceNumber} /></Link>}</td><td className="mono">{l.poRef}</td><td className="money">{fmtMoney(l.totalAmount)}</td></tr>
-                ))}
-              </tbody>
-              <tfoot><tr><td colSpan={2}>{t.detail.combined}</td><td className="money">{fmtMoney(d.linkedGroup.reduce((s, l) => s + l.totalAmount, 0))}</td></tr></tfoot>
-            </table>
-          </div>
-        </section>
+        <Card size="small" title={<Space>{t.detail.linked}<HandTag hand="AI" /></Space>}>
+          <Table
+            size="small"
+            pagination={false}
+            rowKey="id"
+            dataSource={d.linkedGroup}
+            columns={[
+              { title: t.invoices.colInvoice, key: 'n', render: (_, l) => (l.id === inv.id ? <><InvNo value={l.invoiceNumber} /> <Typography.Text type="secondary">{t.detail.thisPage}</Typography.Text></> : <Link to={`/invoices/${l.id}`}><InvNo value={l.invoiceNumber} /></Link>) },
+              { title: t.detail.order, dataIndex: 'poRef', className: 'mono' },
+              { title: t.invoices.colTotal, key: 't', align: 'right', render: (_, l) => fmtMoney(l.totalAmount) },
+            ]}
+            summary={() => (
+              <Table.Summary.Row>
+                <Table.Summary.Cell index={0} colSpan={2}>{t.detail.combined}</Table.Summary.Cell>
+                <Table.Summary.Cell index={1} align="right"><b>{fmtMoney(d.linkedGroup.reduce((s, l) => s + l.totalAmount, 0))}</b></Table.Summary.Cell>
+              </Table.Summary.Row>
+            )}
+          />
+        </Card>
       )}
 
       {d.request ? (
-        <section className="card">
-          <div className="sec-h"><h3>{t.detail.paymentRequest}</h3><RequestBadge state={d.request.state} /></div>
-          <div style={{ padding: '8px 16px 16px', display: 'grid', gap: 8 }}>
-            <p className="small"><ReqNo value={d.request.id} />, {fmtMoney(d.request.total)}, {t.approvalLevel[d.request.level]}</p>
-            {d.request.signatures.length === 0 && <p className="small muted">{t.detail.noSignatures}</p>}
+        <Card size="small" title={t.detail.paymentRequest} extra={<RequestBadge state={d.request.state} />}>
+          <div className="stack" style={{ gap: 8 }}>
+            <span><ReqNo value={d.request.id} />, {fmtMoney(d.request.total)}, {t.approvalLevel[d.request.level]}</span>
+            {d.request.signatures.length === 0 && <Typography.Text type="secondary">{t.detail.noSignatures}</Typography.Text>}
             {d.request.signatures.map((s) => (
               <div className="sig" key={s.userId + s.step}>
-                <span className="seal">{s.name.slice(0, 1)}</span>
-                <div><b>{s.onBehalfOfName ? t.detail.signedOnBehalf.replace('{who}', s.name).replace('{for}', s.onBehalfOfName) : t.detail.signedBy.replace('{who}', s.name)}</b><div className="meta">{fmtDateTime(s.at)} - <span className="mono">{s.contentHash}</span></div></div>
+                <span className="sig-mark">{s.name.slice(0, 1)}</span>
+                <div><b>{s.onBehalfOfName ? t.detail.signedOnBehalf.replace('{who}', s.name).replace('{for}', s.onBehalfOfName) : t.detail.signedBy.replace('{who}', s.name)}</b><br /><Typography.Text type="secondary" className="xs">{fmtDateTime(s.at)} - <span className="mono">{s.contentHash}</span></Typography.Text></div>
               </div>
             ))}
           </div>
-        </section>
+        </Card>
       ) : (
-        <p className="small muted">{t.detail.noRequest}</p>
+        <Typography.Text type="secondary">{t.detail.noRequest}</Typography.Text>
       )}
-      {inv.paymentRef && <p className="small">{t.detail.paymentRef}: <span className="mono">{inv.paymentRef}</span></p>}
+      {inv.paymentRef && <Typography.Text>{t.detail.paymentRef}: <span className="mono">{inv.paymentRef}</span></Typography.Text>}
       {d.cancellation && (
-        <section className="card"><div className="sec-h"><h3>{t.detail.cancellationNotice}</h3></div><dl className="kf"><div><dt>{t.cancel.reference}</dt><dd>{d.cancellation.reference}</dd></div><div><dt>{t.cancel.date}</dt><dd>{fmtDate(d.cancellation.noticeDate)}</dd></div><div><dt>{t.cancel.file}</dt><dd>{d.cancellation.fileName ?? t.detail.none}</dd></div></dl></section>
+        <Card size="small" title={t.detail.cancellationNotice}>
+          <Descriptions
+            size="small"
+            column={{ xs: 1, md: 3 }}
+            items={[
+              { key: 'r', label: t.cancel.reference, children: d.cancellation.reference },
+              { key: 'd', label: t.cancel.date, children: fmtDate(d.cancellation.noticeDate) },
+              { key: 'f', label: t.cancel.file, children: d.cancellation.fileName ?? t.detail.none },
+            ]}
+          />
+        </Card>
       )}
-    </>
+    </div>
   );
 }
 
 function Lines({ d }: { d: InvoiceDetail }) {
   const inv = d.invoice;
-  if (!inv.lines.length) return <div className="card"><p className="small muted" style={{ padding: 16 }}>{inv.aiAvailable ? t.detail.noLines : t.detail.aiMissing}</p></div>;
+  if (!inv.lines.length) return <Typography.Text type="secondary">{inv.aiAvailable ? t.detail.noLines : t.detail.aiMissing}</Typography.Text>;
+  const cols: TableColumnsType<(typeof inv.lines)[number]> = [
+    { title: '#', dataIndex: 'lineNo', width: 48 },
+    { title: t.detail.lineText, dataIndex: 'text', ellipsis: true, width: 200 },
+    {
+      title: t.detail.lineMatched, key: 'm', width: 200,
+      render: (_, l) => <>{l.matchedItem ?? t.detail.none}{l.confirmedBy && <><br /><Typography.Text type="secondary" className="xs">{t.detail.confirmedByName.replace('{who}', l.confirmedBy)}</Typography.Text></>}</>,
+    },
+    { title: t.detail.lineMethod, key: 'me', width: 170, render: (_, l) => (l.method ? t.method[l.method] : '') },
+    {
+      title: t.detail.lineProb, key: 'p', width: 200,
+      render: (_, l) => (
+        <>
+          {l.probability !== null && <Tag color={l.probability < 0.9 ? 'warning' : 'success'} icon={l.probability < 0.9 ? <ExclamationCircleFilled /> : <CheckCircleFilled />}>{fmtDecimal(l.probability)} {l.probability < 0.9 ? t.detail.doubtful : t.detail.matched}</Tag>}
+          {l.doubtNote && <><br /><Typography.Text type="secondary" className="xs">{t.doubt[l.doubtNote as 'UNIT_UNKNOWN'] ?? l.doubtNote}</Typography.Text></>}
+        </>
+      ),
+    },
+    { title: t.detail.lineTotal, key: 'a', align: 'right', width: 140, render: (_, l) => fmtMoney(l.amount) },
+  ];
   return (
-    <section className="blk blk-ai card" style={{ padding: 0 }}>
-      <div className="blk-h" style={{ padding: '12px 16px 0' }}><HandTag hand="AI" /><h3>{t.detail.lineMatches}</h3></div>
-      <div className="tbl-wrap">
-        <table className="tbl compact lines">
-          <thead><tr><th>#</th><th>{t.detail.lineText}</th><th>{t.detail.lineMatched}</th><th>{t.detail.lineMethod}</th><th>{t.detail.lineProb}</th><th className="money">{t.detail.lineTotal}</th></tr></thead>
-          <tbody>
-            {inv.lines.map((l) => (
-              <tr key={l.lineNo}>
-                <td>{l.lineNo}</td><td>{l.text}</td>
-                <td>{l.matchedItem ?? t.detail.none}{l.confirmedBy && <span className="sub">{t.detail.confirmedByName.replace('{who}', l.confirmedBy)}</span>}</td>
-                <td>{l.method ? t.method[l.method] : ''}</td>
-                <td>{l.probability !== null && <span className={`line-prob${l.probability < 0.9 ? ' low' : ''}`}>{fmtDecimal(l.probability)} {l.probability < 0.9 ? t.detail.doubtful : t.detail.matched}</span>}{l.doubtNote && <span className="sub">{t.doubt[l.doubtNote as 'UNIT_UNKNOWN'] ?? l.doubtNote}</span>}</td>
-                <td className="money">{fmtMoney(l.amount)}</td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot><tr><td colSpan={5}>{t.detail.vat}: {fmtMoney(inv.vatAmount)}</td><td className="money">{t.detail.totalWithVat} {fmtMoney(inv.totalAmount)}</td></tr></tfoot>
-        </table>
-      </div>
-    </section>
+    <div className="stack" style={{ gap: 8 }}>
+      <Space><HandTag hand="AI" /><Typography.Text strong>{t.detail.lineMatches}</Typography.Text></Space>
+      <Table
+        size="small"
+        rowKey="lineNo"
+        columns={cols}
+        dataSource={inv.lines}
+        pagination={false}
+        scroll={{ x: 900 }}
+        summary={() => (
+          <Table.Summary.Row>
+            <Table.Summary.Cell index={0} colSpan={5}>{t.detail.vat}: {fmtMoney(inv.vatAmount)}</Table.Summary.Cell>
+            <Table.Summary.Cell index={1} align="right"><b>{t.detail.totalWithVat} {fmtMoney(inv.totalAmount)}</b></Table.Summary.Cell>
+          </Table.Summary.Row>
+        )}
+      />
+    </div>
+  );
+}
+
+/** The six conditions of BR-05 as vertical Steps: Pass is a green check, Fail a red cross, with the value. */
+function ConditionSteps({ list }: { list: Condition[] }) {
+  return (
+    <Steps
+      direction="vertical"
+      size="small"
+      items={list.map((c) => ({
+        status: c.result === 'PASS' ? 'finish' : c.result === 'FAIL' ? 'error' : 'wait',
+        icon: c.result === 'PASS' ? <CheckCircleFilled style={{ color: '#2E6A55' }} /> : c.result === 'FAIL' ? <CloseCircleFilled style={{ color: '#B3261E' }} /> : <MinusCircleOutlined />,
+        title: <Space wrap size={8}>{c.no}. {condTitle(c)}<Tag color={c.result === 'PASS' ? 'success' : c.result === 'FAIL' ? 'error' : 'default'} style={{ marginInlineEnd: 0 }}>{t.conditionResult[c.result]}</Tag></Space>,
+        description: t.condition(c.detail),
+      }))}
+    />
   );
 }
 
 function Checks({ d }: { d: InvoiceDetail }) {
   const cs = d.invoice.conditions;
-  if (!cs.length) return <div className="card"><p className="small muted" style={{ padding: 16 }}>{t.detail.noChecks}</p></div>;
+  if (!cs.length) return <Typography.Text type="secondary">{t.detail.noChecks}</Typography.Text>;
   const shown = cs.filter((c) => c.result !== 'PASS');
   const passed = cs.filter((c) => c.result === 'PASS');
-  const row = (c: Condition) => (
-    <div className={`chk${c.result === 'FAIL' ? ' fail' : ''}`} key={c.no}>
-      <span className="no">{c.no}</span>
-      <span>{condTitle(c)}</span>
-      <span className="val">{t.condition(c.detail)}</span>
-      <span className={`res res-${c.result === 'PASS' ? 'pass' : c.result === 'FAIL' ? 'fail' : 'skip'}`}>{t.conditionResult[c.result]}</span>
-    </div>
-  );
   return (
-    <section className="blk blk-rule card" style={{ padding: 0 }}>
-      <div className="blk-h" style={{ padding: '12px 16px 0' }}><HandTag hand="RULE" /><h3>{t.detail.sixConditions}</h3></div>
-      {shown.map(row)}
+    <div className="stack" style={{ gap: 12 }}>
+      <Space><HandTag hand="RULE" /><Typography.Text strong>{t.detail.sixConditions}</Typography.Text></Space>
+      {shown.length > 0 && <ConditionSteps list={shown} />}
       {passed.length > 0 && (
-        <details className="passed" open={shown.length === 0}>
-          <summary>{t.detail.passedSummary.replace('{n}', String(passed.length)).replace('{list}', passed.map((c) => c.no).join(', '))}</summary>
-          {passed.map(row)}
-        </details>
+        <Collapse
+          size="small"
+          defaultActiveKey={shown.length === 0 ? ['p'] : []}
+          items={[{ key: 'p', label: t.detail.passedSummary.replace('{n}', String(passed.length)).replace('{list}', passed.map((c) => c.no).join(', ')), children: <ConditionSteps list={passed} /> }]}
+        />
       )}
-    </section>
+    </div>
   );
 }
 
 function Documents({ d }: { d: InvoiceDetail }) {
   const i = d.invoice;
   return (
-    <>
-      <section className="card">
-        <div className="sec-h"><h3>{t.detail.sourceDocument}</h3><span className="au au-data">{t.detail.documentData}</span></div>
-        <dl className="dl" style={{ padding: 16 }}>
-          <dt>{t.detail.seller}</dt><dd>{i.sellerName}{i.sellerTaxCode ? `, ${t.detail.taxCode} ${i.sellerTaxCode}` : ''}</dd>
-          <dt>{t.detail.seriesNumber}</dt><dd className="mono">{i.series} / {i.number}</dd>
-          <dt>{t.detail.buyerTaxCode}</dt><dd>{i.buyerTaxCode}</dd>
-          <dt>{t.detail.buyerName}</dt><dd>{i.buyerName}</dd>
-          <dt>{t.detail.orderRef}</dt><dd className={i.poRef ? "mono" : undefined}>{i.poRef ?? t.detail.none}</dd>
-          <dt>{t.detail.storedHash}</dt><dd className="mono">{i.hash}</dd>
-        </dl>
-        <p className="evidence-note" style={{ padding: '0 16px 12px' }}>{t.detail.injectionNote}</p>
-      </section>
-      <section className="card">
-        <div className="sec-h"><h3>{t.detail.erpData}</h3><span className="au au-data">{t.detail.erpDataTag}</span></div>
-        {d.erpItems.length === 0 ? <p className="small muted" style={{ padding: 16 }}>{t.detail.noErp}</p> : (
-          <div className="tbl-wrap">
-            <table className="tbl compact">
-              <thead><tr><th>{t.detail.erpDoc}</th><th>{t.detail.erpItem}</th><th>{t.detail.erpQty}</th><th>{t.detail.erpPrice}</th><th>{t.detail.lastSync}</th></tr></thead>
-              <tbody>{d.erpItems.map((e, n) => <tr key={n}><td className="mono">{e.doc}</td><td>{e.item}</td><td>{e.quantity}</td><td>{e.price ? fmtMoney(Number(e.price)) : ''}</td><td>{fmtDateTime(e.syncedAt)}</td></tr>)}</tbody>
-            </table>
-          </div>
+    <div className="stack">
+      <Card size="small" title={t.detail.sourceDocument} extra={<Tag className="hand hand-data">{t.detail.documentData}</Tag>}>
+        <Descriptions
+          size="small"
+          column={{ xs: 1, md: 2 }}
+          items={[
+            { key: 'se', label: t.detail.seller, children: `${i.sellerName}${i.sellerTaxCode ? `, ${t.detail.taxCode} ${i.sellerTaxCode}` : ''}` },
+            { key: 'sn', label: t.detail.seriesNumber, children: <span className="mono">{i.series} / {i.number}</span> },
+            { key: 'bt', label: t.detail.buyerTaxCode, children: i.buyerTaxCode },
+            { key: 'bn', label: t.detail.buyerName, children: i.buyerName },
+            { key: 'or', label: t.detail.orderRef, children: i.poRef ? <span className="mono">{i.poRef}</span> : t.detail.none },
+            { key: 'h', label: t.detail.storedHash, children: <span className="mono hash">{i.hash}</span> },
+          ]}
+        />
+        <Typography.Text type="secondary" className="xs">{t.detail.injectionNote}</Typography.Text>
+      </Card>
+      <Card size="small" title={t.detail.erpData} extra={<Tag className="hand hand-data">{t.detail.erpDataTag}</Tag>}>
+        {d.erpItems.length === 0 ? <Typography.Text type="secondary">{t.detail.noErp}</Typography.Text> : (
+          <Table
+            size="small"
+            pagination={false}
+            rowKey={(e) => `${e.doc}-${e.item}`}
+            dataSource={d.erpItems}
+            scroll={{ x: 600 }}
+            columns={[
+              { title: t.detail.erpDoc, dataIndex: 'doc', className: 'mono' },
+              { title: t.detail.erpItem, dataIndex: 'item' },
+              { title: t.detail.erpQty, dataIndex: 'quantity' },
+              { title: t.detail.erpPrice, key: 'p', render: (_, e) => (e.price ? fmtMoney(Number(e.price)) : '') },
+              { title: t.detail.lastSync, key: 's', render: (_, e) => fmtDateTime(e.syncedAt) },
+            ]}
+          />
         )}
-      </section>
-    </>
+      </Card>
+    </div>
   );
 }
 
 function Anomalies({ d }: { d: InvoiceDetail }) {
   const list = d.invoice.anomalies;
   return (
-    <section className="blk blk-ai card">
-      <div className="blk-h"><HandTag hand="AI" /><h3>{t.detail.anomalyNumbers}</h3></div>
-      {list.length === 0 ? <p className="small muted">{t.detail.noAnomalies}</p> : (
-        <dl className="dl">
-          {list.map((a, n) => (<div key={n} style={{ display: 'contents' }}><dt>{t.anomalyTitle(a.code)}</dt><dd>{t.anomaly(a)} {a.flagged && <span className="tagx tagx-err">{t.detail.flagged}</span>}</dd></div>))}
-        </dl>
+    <div className="stack" style={{ gap: 12 }}>
+      <Space><HandTag hand="AI" /><Typography.Text strong>{t.detail.anomalyNumbers}</Typography.Text></Space>
+      {list.length === 0 ? <Typography.Text type="secondary">{t.detail.noAnomalies}</Typography.Text> : (
+        <Descriptions
+          size="small"
+          bordered
+          column={1}
+          items={list.map((a, n) => ({ key: n, label: t.anomalyTitle(a.code), children: <Space wrap>{t.anomaly(a)}{a.flagged && <Tag color="error">{t.detail.flagged}</Tag>}</Space> }))}
+        />
       )}
-    </section>
+    </div>
   );
 }
 
 function History({ d }: { d: InvoiceDetail }) {
   return (
-    <section className="card">
-      <div className="sec-h"><h3>{t.detail.history}</h3><span className="muted xs">{t.detail.historyHint}</span></div>
-      {d.history.length === 0 ? <p className="small muted" style={{ padding: 16 }}>{t.detail.noHistory}</p> : (
-        <div className="timeline">
-          {d.history.map((h) => (
-            <div className="tl tl-c" key={h.id}>
-              <time dateTime={h.at}>{fmtDateTime(h.at)}</time>
-              <span>{h.hand === 'AI' || h.hand === 'RULE' || h.hand === 'PERSON' ? <HandTag hand={h.hand} /> : <span className="au au-data">{t.hands[h.hand]}</span>}{h.hand === 'PERSON' && h.actorName ? <b style={{ marginLeft: 6 }}>{h.actorName}</b> : null}</span>
-              <span>{t.event(h.event.code, h.event.params)}{h.note ? <> <q className="muted">{h.note}</q></> : null}</span>
-            </div>
-          ))}
-        </div>
+    <div className="stack" style={{ gap: 12 }}>
+      <Typography.Text type="secondary">{t.detail.historyHint}</Typography.Text>
+      {d.history.length === 0 ? <Typography.Text type="secondary">{t.detail.noHistory}</Typography.Text> : (
+        <Timeline
+          items={d.history.map((h) => ({
+            key: h.id,
+            color: h.hand === 'PERSON' ? '#B3261E' : h.hand === 'AI' ? '#4A3A8C' : 'gray',
+            dot: h.hand === 'PERSON' ? <UserOutlined /> : undefined,
+            children: (
+              <div>
+                <time dateTime={h.at}><Typography.Text type="secondary" className="xs">{fmtDateTime(h.at)}</Typography.Text></time>
+                <div>
+                  <Space size={6} wrap>
+                    {h.hand === 'AI' || h.hand === 'RULE' || h.hand === 'PERSON' ? <HandTag hand={h.hand} /> : <HandTag hand={h.hand} />}
+                    {h.hand === 'PERSON' && h.actorName ? <b>{h.actorName}</b> : null}
+                    <span>{t.event(h.event.code, h.event.params)}</span>
+                    {h.note ? <q style={{ color: '#545A6E' }}>{h.note}</q> : null}
+                  </Space>
+                </div>
+              </div>
+            ),
+          }))}
+        />
       )}
-    </section>
+    </div>
   );
 }

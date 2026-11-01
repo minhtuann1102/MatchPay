@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Button, Card, Col, Form, Input, InputNumber, Row, Slider, Space, Table, Tag, Typography } from 'antd';
+import type { TableColumnsType } from 'antd';
+import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import { addSector, createEntity, listSectors, removeSector, updateGroupLimits } from '../api/admin';
 import { getSessionUserId } from '../api/client';
 import { useEntities, useGroup } from '../api/hooks';
 import type { Entity } from '../api/types';
 import { Async } from '../components/Async';
-import { EmptyState, Field, Notice, PageHeader } from '../components/Bits';
-import { DataTable, type Col } from '../components/DataTable';
-import { Icon } from '../components/Icon';
-import { Modal } from '../components/Modal';
-import { ActionError } from '../components/ReasonModal';
+import { EmptyState, Notice, PageHeader } from '../components/Bits';
+import { ActionError, ActionModal } from '../components/Dialogs';
+import { MoneyInput } from '../components/Inputs';
 import { fmtMoney, interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
@@ -18,26 +19,26 @@ import { t } from '../i18n/vi';
 export function Entities() {
   const q = useEntities();
   const [adding, setAdding] = useState(false);
-  const cols: Col<Entity>[] = [
-    { key: 'n', label: t.entities.colName, header: t.entities.colName, sort: (e) => e.name, render: (e) => <b>{e.name}</b> },
-    { key: 'tax', label: t.entities.colTax, header: t.entities.colTax, render: (e) => <span className="mono">{e.taxCode}</span> },
-    { key: 'tol', label: t.entities.colTol, header: t.entities.colTol, render: (e) => `${e.priceTolerance}%` },
-    { key: 'thr', label: t.entities.colThr, header: t.entities.colThr, className: 'money', render: (e) => fmtMoney(e.batchThreshold) },
-    { key: 'rate', label: t.entities.colSample, header: t.entities.colSample, render: (e) => `${e.sampleRate}%` },
-    { key: 'mb', label: t.entities.colMailbox, header: t.entities.colMailbox, render: (e) => e.mailbox },
+  const cols: TableColumnsType<Entity> = [
+    { title: t.entities.colName, key: 'n', width: 260, sorter: (a, b) => a.name.localeCompare(b.name, 'vi'), render: (_, e) => <b>{e.name}</b> },
+    { title: t.entities.colTax, key: 'tax', width: 130, render: (_, e) => <span className="mono">{e.taxCode}</span> },
+    { title: t.entities.colTol, key: 'tol', width: 110, render: (_, e) => `${e.priceTolerance}%` },
+    { title: t.entities.colThr, key: 'thr', align: 'right', width: 160, render: (_, e) => fmtMoney(e.batchThreshold) },
+    { title: t.entities.colSample, key: 'rate', width: 110, render: (_, e) => `${e.sampleRate}%` },
+    { title: t.entities.colMailbox, key: 'mb', width: 240, responsive: ['md'], render: (_, e) => e.mailbox },
   ];
   return (
     <>
-      <PageHeader title={t.entities.title} meta={t.entities.intro} actions={<button type="button" className="btn btn-primary" onClick={() => setAdding(true)}><Icon name="plus" />{t.entities.add}</button>} />
-      <section className="card">
-        <Async q={q} isEmpty={(d) => d.length === 0} empty={<EmptyState icon="building" title={t.entities.emptyTitle} action={<button type="button" className="btn btn-primary" onClick={() => setAdding(true)}>{t.entities.add}</button>} />}>
-          {(d) => <DataTable columns={cols} rows={d} rowKey={(e) => e.id} caption={t.entities.title} />}
+      <PageHeader title={t.entities.title} meta={t.entities.intro} actions={<Button type="primary" icon={<PlusOutlined />} onClick={() => setAdding(true)}>{t.entities.add}</Button>} />
+      <Card styles={{ body: { padding: 0 } }}>
+        <Async q={q} isEmpty={(d) => d.length === 0} empty={<EmptyState title={t.entities.emptyTitle} action={<Button type="primary" onClick={() => setAdding(true)}>{t.entities.add}</Button>} />}>
+          {(d) => <Table<Entity> size="middle" rowKey="id" columns={cols} dataSource={d} pagination={false} scroll={{ x: 760 }} />}
         </Async>
-      </section>
-      <div className="grid-2">
-        <Limits />
-        <Sectors />
-      </div>
+      </Card>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={12}><Limits /></Col>
+        <Col xs={24} lg={12}><Sectors /></Col>
+      </Row>
       {adding && <AddEntity onClose={() => setAdding(false)} />}
     </>
   );
@@ -46,36 +47,40 @@ export function Entities() {
 function Limits() {
   const q = useGroup();
   return (
-    <section className="card" aria-labelledby="lim-h">
-      <div className="card-h"><h2 id="lim-h">{t.entities.limitsTitle}</h2></div>
+    <Card title={t.entities.limitsTitle} aria-labelledby="lim-h" style={{ height: '100%' }}>
       <Async q={q} skeletonRows={3}>{(g) => <LimitsForm key={g.version} g={g} />}</Async>
-    </section>
+    </Card>
   );
 }
 
 function LimitsForm({ g }: { g: { maxPriceTolerance: number; maxBatchThreshold: number; version: number } }) {
-  const [tol, setTol] = useState(String(g.maxPriceTolerance));
-  const [thr, setThr] = useState(String(g.maxBatchThreshold));
+  const [tol, setTol] = useState<number | null>(g.maxPriceTolerance);
+  const [thr, setThr] = useState<number | null>(g.maxBatchThreshold);
   const [touched, setTouched] = useState(false);
   const [lowered, setLowered] = useState<string | null>(null);
-  const tolN = Number(tol.replace(',', '.'));
-  const thrN = Number(thr.replace(/[^\d]/g, ''));
-  const bad = { tol: !(tolN > 0), thr: !(thrN > 0) };
-  const dirty = tolN !== g.maxPriceTolerance || thrN !== g.maxBatchThreshold;
-  const save = useAction(() => updateGroupLimits({ maxPriceTolerance: tolN, maxBatchThreshold: thrN, version: g.version }), {
+  const bad = { tol: !(tol !== null && tol > 0), thr: !(thr !== null && thr > 0) };
+  const dirty = tol !== g.maxPriceTolerance || thr !== g.maxBatchThreshold;
+  const save = useAction(() => updateGroupLimits({ maxPriceTolerance: tol!, maxBatchThreshold: thr!, version: g.version }), {
     success: t.entities.limitsSaved,
     onSuccess: (r) => setLowered(r.lowered.length ? interpolate(t.entities.lowered, { names: r.lowered.map((x) => x.name).join(', '), to: r.lowered[0]!.to }) : null),
   });
   return (
-    <form className="card-b stack" noValidate onSubmit={(e) => { e.preventDefault(); setTouched(true); if (bad.tol || bad.thr) return; void save.run(undefined); }}>
-      <Field label={t.entities.maxTol} htmlFor="lim-tol" error={touched && bad.tol ? t.errors.LIMIT_INVALID : null}><input id="lim-tol" className={`input${touched && bad.tol ? ' invalid' : ''}`} inputMode="decimal" value={tol} onChange={(e) => setTol(e.target.value)} /></Field>
-      <Field label={t.entities.maxThr} htmlFor="lim-thr" hint={t.entities.limitsHint} error={touched && bad.thr ? t.errors.LIMIT_INVALID : null}><input id="lim-thr" className={`input${touched && bad.thr ? ' invalid' : ''}`} inputMode="numeric" value={thr} onChange={(e) => setThr(e.target.value)} /></Field>
+    <Form layout="vertical" onFinish={() => { setTouched(true); if (bad.tol || bad.thr) return; void save.run(undefined); }}>
+      <Form.Item label={t.entities.maxTol} validateStatus={touched && bad.tol ? 'error' : undefined} help={touched && bad.tol ? t.errors.LIMIT_INVALID : undefined}>
+        <InputNumber<number> aria-label={t.entities.maxTol} min={0} max={100} step={0.5} addonAfter="%" style={{ width: '100%' }} value={tol} onChange={setTol} />
+        <Slider min={0} max={30} step={0.5} value={Math.min(tol ?? 0, 30)} onChange={setTol} />
+      </Form.Item>
+      <Form.Item label={t.entities.maxThr} extra={t.entities.limitsHint} validateStatus={touched && bad.thr ? 'error' : undefined} help={touched && bad.thr ? t.errors.LIMIT_INVALID : undefined}>
+        <MoneyInput aria-label={t.entities.maxThr} value={thr} onChange={setThr} />
+      </Form.Item>
       {lowered && <Notice kind="warn">{lowered}</Notice>}
       <ActionError error={save.error} raw={save.rawError} />
-      <div><button type="submit" className="btn btn-primary" disabled={!dirty || save.pending}>{save.pending && <span className="spin" />}{t.entities.saveLimits}</button></div>
-    </form>
+      <Button type="primary" htmlType="submit" disabled={!dirty} loading={save.pending} style={{ marginTop: 8 }}>{t.entities.saveLimits}</Button>
+    </Form>
   );
 }
+
+const useQuerySectors = () => useQuery({ queryKey: ['sectors', getSessionUserId()], queryFn: listSectors });
 
 function Sectors() {
   const q = useQuerySectors();
@@ -83,49 +88,47 @@ function Sectors() {
   const add = useAction((n: string) => addSector(n), { success: t.entities.sectorAdded, onSuccess: () => setName('') });
   const del = useAction((n: string) => removeSector(n), { success: t.entities.sectorRemoved });
   return (
-    <section className="card" aria-labelledby="sec-h">
-      <div className="card-h"><h2 id="sec-h">{t.entities.sectorsTitle}</h2></div>
-      <div className="card-b stack">
-        <p className="small muted">{t.entities.sectorsHint}</p>
+    <Card title={t.entities.sectorsTitle} style={{ height: '100%' }}>
+      <div className="stack">
+        <Typography.Text type="secondary">{t.entities.sectorsHint}</Typography.Text>
         <Async q={q} skeletonRows={3}>
-          {(list) => (list.length === 0 ? <p className="small muted">{t.entities.noSectors}</p> : (
-            <ul className="stack" style={{ gap: 4, listStyle: 'none', padding: 0, margin: 0 }}>
+          {(list) => (list.length === 0 ? <Typography.Text type="secondary">{t.entities.noSectors}</Typography.Text> : (
+            <Space size={[8, 8]} wrap>
               {list.map((s) => (
-                <li key={s} className="row spread"><span>{s}</span><button type="button" className="btn btn-quiet btn-sm" aria-label={interpolate(t.entities.removeSector, { s })} onClick={() => void del.run(s)} disabled={del.pending}><Icon name="x" small /></button></li>
+                <Tag key={s} bordered closable onClose={(e) => { e.preventDefault(); if (!del.pending) void del.run(s); }} closeIcon={<CloseOutlined aria-label={interpolate(t.entities.removeSector, { s })} role="button" />}>{s}</Tag>
               ))}
-            </ul>
+            </Space>
           ))}
         </Async>
-        <form className="row" onSubmit={(e) => { e.preventDefault(); if (name.trim()) void add.run(name.trim()); }}>
-          <label className="sr" htmlFor="sec-name">{t.entities.sectorName}</label>
-          <input id="sec-name" className="input grow" placeholder={t.entities.sectorName} value={name} onChange={(e) => setName(e.target.value)} />
-          <button type="submit" className="btn" disabled={!name.trim() || add.pending}>{t.entities.addSector}</button>
+        <form onSubmit={(e) => { e.preventDefault(); if (name.trim()) void add.run(name.trim()); }}>
+          <Space.Compact style={{ width: '100%' }}>
+            <Input aria-label={t.entities.sectorName} placeholder={t.entities.sectorName} value={name} onChange={(e) => setName(e.target.value)} />
+            <Button htmlType="submit" disabled={!name.trim()} loading={add.pending}>{t.entities.addSector}</Button>
+          </Space.Compact>
         </form>
         <ActionError error={add.error ?? del.error} raw={add.rawError ?? del.rawError} />
       </div>
-    </section>
+    </Card>
   );
 }
 
-const useQuerySectors = () => useQuery({ queryKey: ['sectors', getSessionUserId()], queryFn: listSectors });
-
 function AddEntity({ onClose }: { onClose: () => void }) {
-  const [name, setName] = useState('');
-  const [tax, setTax] = useState('');
-  const [touched, setTouched] = useState(false);
-  const save = useAction(() => createEntity({ name, taxCode: tax }), { success: t.entities.added, onSuccess: onClose });
-  const bad = { name: !name.trim(), tax: !/^\d{10}$/.test(tax.trim()) };
+  const [form] = Form.useForm<{ name: string; taxCode: string }>();
+  const save = useAction((v: { name: string; taxCode: string }) => createEntity(v), { success: t.entities.added, onSuccess: onClose });
   return (
-    <Modal
+    <ActionModal
       title={t.entities.addTitle}
+      okText={t.entities.save}
+      pending={save.pending}
+      error={save.error}
+      rawError={save.rawError}
       onClose={onClose}
-      dismissable={!save.pending}
-      onSubmit={() => { setTouched(true); if (bad.name || bad.tax) return; void save.run(undefined); }}
-      footer={<><button type="button" className="btn" onClick={onClose} disabled={save.pending}>{t.common.cancel}</button><button type="submit" className="btn btn-primary" disabled={save.pending}>{save.pending && <span className="spin" />}{t.entities.save}</button></>}
+      onOk={() => { void form.validateFields().then((v) => save.run({ name: v.name, taxCode: v.taxCode.trim() })).catch(() => undefined); }}
     >
-      <Field label={`${t.entities.name} ${t.common.required}`} htmlFor="en-name" error={touched && bad.name ? t.common.fieldRequired : null}><input id="en-name" className={`input${touched && bad.name ? ' invalid' : ''}`} value={name} onChange={(e) => setName(e.target.value)} data-autofocus /></Field>
-      <Field label={`${t.entities.taxCode} ${t.common.required}`} htmlFor="en-tax" hint={t.entities.taxHint} error={touched && bad.tax ? t.errors.TAX_CODE_INVALID : null}><input id="en-tax" className={`input${touched && bad.tax ? ' invalid' : ''}`} inputMode="numeric" maxLength={10} value={tax} onChange={(e) => setTax(e.target.value)} /></Field>
-      <ActionError error={save.error} raw={save.rawError} />
-    </Modal>
+      <Form form={form} layout="vertical">
+        <Form.Item name="name" label={t.entities.name} rules={[{ required: true, whitespace: true, message: t.common.fieldRequired }]}><Input autoFocus /></Form.Item>
+        <Form.Item name="taxCode" label={t.entities.taxCode} extra={t.entities.taxHint} rules={[{ required: true, pattern: /^\d{10}$/, message: t.errors.TAX_CODE_INVALID }]}><Input inputMode="numeric" maxLength={10} /></Form.Item>
+      </Form>
+    </ActionModal>
   );
 }

@@ -1,26 +1,28 @@
 import { Link } from 'react-router-dom';
+import { Button, Card, Result } from 'antd';
 import { useAuth } from '../auth/AuthContext';
 import { homeOf } from '../auth/nav';
 import { t } from '../i18n/vi';
-import { Icon } from '../components/Icon';
 
 /** SCR-90. The text is the same whether or not a record exists (BR-09, G-06). */
 export function AccessDeniedBody({ record }: { record?: boolean }) {
   const { session } = useAuth();
   return (
-    <div className="empty" role="alert">
-      <span className="empty-icon"><Icon name="lock" /></span>
-      <h1>{t.denied.title}</h1>
-      <p>{record ? t.denied.record : t.denied.text}</p>
-      {session && <Link className="btn btn-primary" to={homeOf(session.role)}>{t.denied.home}</Link>}
+    <div role="alert">
+      <Result
+        status="403"
+        title={t.denied.title}
+        subTitle={record ? t.denied.record : t.denied.text}
+        extra={session && <Link to={homeOf(session.role)}><Button type="primary">{t.denied.home}</Button></Link>}
+      />
     </div>
   );
 }
 
 export function AccessDenied() {
   return (
-    <div className="card">
+    <Card>
       <AccessDeniedBody />
-    </div>
+    </Card>
   );
 }

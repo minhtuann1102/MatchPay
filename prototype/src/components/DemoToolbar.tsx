@@ -1,91 +1,81 @@
 import { useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../auth/AuthContext';
-import { homeOf } from '../auth/nav';
+import { App, FloatButton, Modal, Popconfirm, Select, Tooltip, Typography } from 'antd';
+import { ClearOutlined, ExperimentOutlined, KeyOutlined, SwapOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { getForced, setForced, subscribeForced, type ForcedState } from '../api/client';
 import { REAUTH_CODE } from '../api/signing';
-import { listPersonas } from '../api/reporting';
-import { resetDemoData } from '../mock/db';
-import { useToast } from './Toast';
-import { ConfirmDialog } from './ConfirmDialog';
-import { useQuery } from '@tanstack/react-query';
+import { resetDemoData, getDb } from '../mock/db';
+import { usePersonaSwitch } from '../lib/usePersonaSwitch';
+import { useAuth } from '../auth/AuthContext';
 import { t } from '../i18n/vi';
 import { fmtDateTime } from '../lib/format';
-import { getDb } from '../mock/db';
 
 const STATES: ForcedState[] = ['none', 'loading', 'empty', 'server-error', 'ai-error', 'conflict'];
 
-/** Small collapsible demo panel: reset data, switch persona (Demo Operator idea, D-12), force a documented state. */
+/** Demo tools (Demo Operator idea, D-12): switch persona, force a documented state, show the re-auth code, reset data. */
 export function DemoToolbar() {
   const [open, setOpen] = useState(false);
-  const [confirm, setConfirm] = useState(false);
+  const [dialog, setDialog] = useState<'persona' | 'state' | null>(null);
   const forced = useSyncExternalStore(subscribeForced, getForced);
-  const { session, signIn } = useAuth();
+  const { session } = useAuth();
+  const { personas, current, switchTo } = usePersonaSwitch();
   const nav = useNavigate();
   const qc = useQueryClient();
-  const toast = useToast();
-  const personas = useQuery({ queryKey: ['personas'], queryFn: listPersonas });
-  const t2 = t.demo;
+  const { message } = App.useApp();
+  const d = t.demo;
 
-  const switchTo = async (id: string) => {
-    const s = await signIn(id);
-    await qc.invalidateQueries();
+  const reset = () => {
+    resetDemoData();
     setForced('none');
-    nav(homeOf(s.role));
+    void qc.clear();
+    void message.success(d.resetDone);
+    nav('/login');
   };
 
-  if (!open) {
-    return (
-      <button type="button" className="demo-fab" onClick={() => setOpen(true)} aria-expanded="false">
-        {t2.title}
-        {forced !== 'none' && <span className="tagx tagx-warn">{t2.states[forced]}</span>}
-      </button>
-    );
-  }
   return (
-    <section className="demo-panel" aria-label={t2.title}>
-      <div className="spread">
-        <b>{t2.title}</b>
-        <button type="button" className="btn btn-quiet btn-sm" onClick={() => setOpen(false)} aria-label={t.common.close}>{t.common.close}</button>
-      </div>
-      <div className="field">
-        <label htmlFor="demo-persona">{t2.persona}</label>
-        <select id="demo-persona" className="select" value={session?.userId ?? ''} onChange={(e) => void switchTo(e.target.value)}>
-          {!session && <option value="">-</option>}
-          {personas.data?.map((p) => (
-            <option key={p.id} value={p.id}>{p.fullName}, {t.roles[p.role]}{p.approvalLevel ? ` (${t.approvalLevel[p.approvalLevel]})` : ''}</option>
-          ))}
-        </select>
-      </div>
-      <div className="field">
-        <label htmlFor="demo-state">{t2.forceState}</label>
-        <select id="demo-state" className="select" value={forced} onChange={(e) => { setForced(e.target.value as ForcedState); void qc.invalidateQueries(); }}>
-          {STATES.map((s) => <option key={s} value={s}>{t2.states[s]}</option>)}
-        </select>
-        <span className="hint">{t2.forceHint}</span>
-      </div>
-      <p className="small">{t2.otp}: <b className="mono" data-testid="otp">{REAUTH_CODE}</b></p>
-      <p className="xs muted">{t2.clock}: {fmtDateTime(getDb().now)}</p>
-      <button type="button" className="btn btn-danger btn-sm" onClick={() => setConfirm(true)}>{t2.reset}</button>
-      {confirm && (
-        <ConfirmDialog
-          title={t2.resetTitle}
-          confirmLabel={t2.reset}
-          danger
-          onCancel={() => setConfirm(false)}
-          onConfirm={() => {
-            resetDemoData();
-            setConfirm(false);
-            setForced('none');
-            void qc.clear();
-            toast(t2.resetDone);
-            nav('/login');
-          }}
-        >
-          <p>{t2.resetText}</p>
-        </ConfirmDialog>
-      )}
-    </section>
+    <>
+      <FloatButton.Group
+        trigger="click"
+        open={open}
+        onOpenChange={setOpen}
+        type={forced !== 'none' ? 'primary' : 'default'}
+        icon={<ExperimentOutlined />}
+        tooltip={d.title}
+        aria-label={d.title}
+        style={{ insetInlineEnd: 20, insetBlockEnd: 20 }}
+      >
+        <FloatButton icon={<SwapOutlined />} tooltip={d.persona} aria-label={d.persona} onClick={() => setDialog('persona')} />
+        <FloatButton icon={<ThunderboltOutlined />} tooltip={d.forceState} aria-label={d.forceState} badge={forced !== 'none' ? { dot: true } : undefined} onClick={() => setDialog('state')} />
+        <Tooltip title={`${d.otp}: ${REAUTH_CODE}`} placement="left">
+          <FloatButton icon={<KeyOutlined />} aria-label={d.otp} />
+        </Tooltip>
+        <Popconfirm title={d.resetTitle} description={d.resetText} okText={d.reset} okButtonProps={{ danger: true }} cancelText={t.common.cancel} placement="left" onConfirm={reset}>
+          <FloatButton icon={<ClearOutlined />} aria-label={d.reset} tooltip={d.reset} />
+        </Popconfirm>
+      </FloatButton.Group>
+      <Modal open={dialog === 'persona'} title={d.persona} footer={null} onCancel={() => setDialog(null)} destroyOnHidden>
+        <Select
+          aria-label={d.persona}
+          style={{ width: '100%' }}
+          showSearch
+          optionFilterProp="label"
+          value={session?.userId ?? current ?? undefined}
+          options={personas.map((p) => ({ value: p.id, label: `${p.fullName}, ${t.roles[p.role]}${p.approvalLevel ? ` (${t.approvalLevel[p.approvalLevel]})` : ''}` }))}
+          onChange={(id) => { setDialog(null); setOpen(false); void switchTo(id); }}
+        />
+      </Modal>
+      <Modal open={dialog === 'state'} title={d.forceState} footer={null} onCancel={() => setDialog(null)} destroyOnHidden>
+        <Select
+          aria-label={d.forceState}
+          style={{ width: '100%' }}
+          value={forced}
+          options={STATES.map((s) => ({ value: s, label: d.states[s] }))}
+          onChange={(v) => { setForced(v); void qc.invalidateQueries(); setDialog(null); setOpen(false); }}
+        />
+        <Typography.Paragraph type="secondary" className="xs" style={{ marginTop: 8, marginBottom: 0 }}>{d.forceHint}</Typography.Paragraph>
+        <Typography.Paragraph type="secondary" className="xs" style={{ marginTop: 8, marginBottom: 0 }}>{d.clock}: {fmtDateTime(getDb().now)}</Typography.Paragraph>
+      </Modal>
+    </>
   );
 }

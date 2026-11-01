@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Alert, Avatar, Button, Card, Form, Input, List, Skeleton, Tag, Typography } from 'antd';
+import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons';
 import { useAuth } from '../auth/AuthContext';
 import { homeOf } from '../auth/nav';
 import { listPersonas, listPublicEntities, loginWithPassword } from '../api/reporting';
-import { Field, Notice } from '../components/Bits';
 import { errorText } from '../lib/errors';
 import { t } from '../i18n/vi';
 import { ApiError } from '../api/client';
+import type { Role } from '../api/types';
 
-/** SCR-01. Pick one of the 7 roles (persona card) or type an email and password. */
+const ROLE_COLOR: Record<Role, string> = {
+  AP_ACCOUNTANT: 'geekblue', CHIEF_ACCOUNTANT: 'purple', PAYMENT_APPROVER: 'magenta', REQUESTING_DEPARTMENT: 'cyan', ENTITY_ADMIN: 'green', GROUP_ADMIN: 'gold', DEMO_OPERATOR: 'default',
+};
+
+/** SCR-01. Pick one of the 7 roles (persona list) or type an email and password. */
 export function Login() {
   const { session, ready, ended, signIn } = useAuth();
   const nav = useNavigate();
@@ -17,8 +23,6 @@ export function Login() {
   const personas = useQuery({ queryKey: ['personas'], queryFn: listPersonas });
   const entities = useQuery({ queryKey: ['publicEntities'], queryFn: listPublicEntities });
   const [picked, setPicked] = useState<string | null>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -30,21 +34,31 @@ export function Login() {
 
   if (ready && session) return <Navigate to={homeOf(session.role)} replace />;
 
-  const submit = async (personaId?: string) => {
-    if (personaId) setPicked(personaId);
+  const fail = (e: unknown) => setError(e instanceof ApiError && e.code === 'DEACTIVATED' ? t.login.deactivated : e instanceof ApiError && e.code === 'BAD_CREDENTIALS' ? t.login.wrong : errorText(e));
+
+  const submitPersona = async (id: string) => {
+    setPicked(id);
     setBusy(true);
     setError(null);
     try {
-      if (showForm) {
-        const s = await loginWithPassword(email, password);
-        await signIn(s.userId);
-        nav(homeOf(s.role), { replace: true });
-      } else {
-        const s = await signIn(personaId ?? picked!);
-        nav(homeOf(s.role), { replace: true });
-      }
+      const s = await signIn(id);
+      nav(homeOf(s.role), { replace: true });
     } catch (e) {
-      setError(e instanceof ApiError && e.code === 'DEACTIVATED' ? t.login.deactivated : e instanceof ApiError && e.code === 'BAD_CREDENTIALS' ? t.login.wrong : errorText(e));
+      fail(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitEmail = async (v: { email: string; password: string }) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const s = await loginWithPassword(v.email, v.password);
+      await signIn(s.userId);
+      nav(homeOf(s.role), { replace: true });
+    } catch (e) {
+      fail(e);
     } finally {
       setBusy(false);
     }
@@ -53,64 +67,66 @@ export function Login() {
   return (
     <div className="login-page">
       <section className="login-intro" aria-label={t.login.title}>
-        <div>
+        <div style={{ maxWidth: 440 }}>
           <h1>{t.login.title}</h1>
-          <p className="lead">{t.login.subtitle}</p>
+          <Typography.Paragraph type="secondary" style={{ fontSize: 16, marginTop: 12 }}>{t.login.subtitle}</Typography.Paragraph>
         </div>
-        <div className="stack">
-          <p className="small muted">{t.login.entities}</p>
-          <ul className="entity-list">
-            {entities.data?.map((e) => (
-              <li key={e.id}><span>{e.name}</span><span>{t.shell.mst} {e.taxCode}</span></li>
-            ))}
-          </ul>
+        <div style={{ maxWidth: 440 }}>
+          <Typography.Text type="secondary">{t.login.entities}</Typography.Text>
+          <List
+            size="small"
+            style={{ marginTop: 8 }}
+            dataSource={entities.data ?? []}
+            renderItem={(e) => (
+              <List.Item extra={<Typography.Text type="secondary">{t.shell.mst} {e.taxCode}</Typography.Text>}>{e.name}</List.Item>
+            )}
+          />
         </div>
       </section>
-      <main className="login-register">
-        {endedState && <Notice kind="info" title={t.login.ended}>{t.login.endedHint}</Notice>}
-        {error && <Notice kind="err" icon="lock">{error}</Notice>}
-        {!showForm ? (
-          <>
-            <h2 id="register-h">{t.login.pickPersona}</h2>
-            <ul className="register" aria-labelledby="register-h">
-              {personas.data?.map((p) => (
-                <li key={p.id} className="register-row" data-picked={picked === p.id}>
-                  <div>
-                    <b>{p.fullName}</b>
-                    <span>{t.roles[p.role]}{p.approvalLevel ? ` (${t.approvalLevel[p.approvalLevel]})` : ''}, {p.entityName}</span>
-                  </div>
-                  <button type="button" className="btn btn-primary btn-sm" disabled={busy} aria-label={`${t.login.signIn}: ${p.fullName}`} onClick={() => void submit(p.id)}>
-                    {busy && picked === p.id && <span className="spin" />}
-                    {t.login.signIn}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : (
-          <form
-            className="stack"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void submit();
-            }}
-            noValidate
-          >
-            <h2>{t.login.useEmail}</h2>
-            <Field label={t.login.email} htmlFor="email"><input className="input" id="email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="alice@calderwood-foods.example" /></Field>
-            <Field label={t.login.password} htmlFor="pw" hint={t.login.passwordHint}><input className="input" id="pw" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
-            <button className="btn btn-primary" type="submit" disabled={busy}>
-              {busy && <span className="spin" />}
-              {busy ? t.login.signingIn : t.login.signIn}
-            </button>
-          </form>
-        )}
-        <div>
-          <button type="button" className="btn btn-quiet btn-sm" onClick={() => { setShowForm((v) => !v); setError(null); }}>
-            {showForm ? t.login.usePersona : t.login.useEmail}
-          </button>
-        </div>
-        <p className="foot">{t.login.footer}</p>
+      <main className="login-side">
+        <Card className="login-card" title={showForm ? t.login.useEmail : t.login.pickPersona}>
+          <div className="stack">
+            {endedState && <Alert type="info" showIcon message={t.login.ended} description={t.login.endedHint} />}
+            {error && <Alert type="error" showIcon icon={<LockOutlined />} message={error} role="alert" />}
+            {!showForm ? (
+              personas.isPending ? <Skeleton active /> : (
+                <List
+                  aria-label={t.login.pickPersona}
+                  dataSource={personas.data ?? []}
+                  renderItem={(p) => (
+                    <List.Item
+                      actions={[
+                        <Button key="in" type="primary" loading={busy && picked === p.id} disabled={busy} aria-label={`${t.login.signIn}: ${p.fullName}`} onClick={() => void submitPersona(p.id)}>
+                          {t.login.signIn}
+                        </Button>,
+                      ]}
+                    >
+                      <List.Item.Meta
+                        avatar={<Avatar style={{ background: '#ECE9F6', color: '#4A3A8C' }}>{p.fullName.slice(0, 1)}</Avatar>}
+                        title={<>{p.fullName} <Tag color={ROLE_COLOR[p.role]} style={{ marginInlineStart: 4 }}>{t.roles[p.role]}{p.approvalLevel ? ` (${t.approvalLevel[p.approvalLevel]})` : ''}</Tag></>}
+                        description={p.entityName}
+                      />
+                    </List.Item>
+                  )}
+                />
+              )
+            ) : (
+              <Form layout="vertical" onFinish={(v) => void submitEmail(v as { email: string; password: string })} requiredMark={false}>
+                <Form.Item name="email" label={t.login.email} rules={[{ required: true, message: t.common.fieldRequired }, { type: 'email', message: t.login.emailInvalid }]}>
+                  <Input prefix={<MailOutlined />} autoComplete="username" placeholder="alice@calderwood-foods.example" />
+                </Form.Item>
+                <Form.Item name="password" label={t.login.password} extra={t.login.passwordHint} rules={[{ required: true, message: t.common.fieldRequired }]}>
+                  <Input.Password prefix={<UserOutlined />} autoComplete="current-password" />
+                </Form.Item>
+                <Button type="primary" htmlType="submit" loading={busy} block>{busy ? t.login.signingIn : t.login.signIn}</Button>
+              </Form>
+            )}
+            <Button type="link" style={{ paddingInline: 0, justifySelf: 'start' }} onClick={() => { setShowForm((v) => !v); setError(null); }}>
+              {showForm ? t.login.usePersona : t.login.useEmail}
+            </Button>
+            <Typography.Text type="secondary" className="xs">{t.login.footer}</Typography.Text>
+          </div>
+        </Card>
       </main>
     </div>
   );

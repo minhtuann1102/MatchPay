@@ -1,15 +1,19 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Badge, Button, Card, Drawer, Form, Input, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
+import type { TableColumnsType } from 'antd';
+import {
+  ClockCircleOutlined, CloseOutlined, ExclamationCircleOutlined, FilterOutlined, InboxOutlined, RightOutlined, SearchOutlined, SyncOutlined, UploadOutlined, ContainerOutlined, CloudSyncOutlined,
+} from '@ant-design/icons';
 import type { InvoiceFlow, InvoiceQuery, InvoiceSource, InvoiceState } from '../api/types';
 import type { InvoiceRow } from '../api/invoices';
 import { startErpSync } from '../api/admin';
 import { useInvoices, useSuppliers, useWorklistSummary, useErpSync } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async, useForced } from '../components/Async';
-import { DueSoon, EmptyState, Field, Menu, Notice, PageHeader, Tabs, InvNo } from '../components/Bits';
-import { StateBadge, ExceptionBadge } from '../components/Chips';
-import { DataTable, Pager, type Col } from '../components/DataTable';
-import { Icon } from '../components/Icon';
+import { DueSoon, EmptyState, MoreMenu, Notice, PageHeader, InvNo } from '../components/Bits';
+import { StateBadge, ExceptionBadge } from '../components/Tags';
+import { Kpi, KpiRow } from '../components/Kpi';
 import { fmtDate, fmtDateTime, fmtMoney } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
@@ -18,6 +22,9 @@ import { UploadDrawer } from './UploadDrawer';
 type View = 'needs' | 'waiting' | 'batch' | 'done' | 'all';
 const VIEWS: View[] = ['needs', 'waiting', 'batch', 'done', 'all'];
 const PAGE_SIZE = 50;
+const FLOWS: InvoiceFlow[] = ['GOODS_WITH_ORDER', 'SERVICES_WITH_ORDER', 'RECURRING', 'UNSUPPORTED_FOREIGN'];
+
+interface FilterValues { state?: InvoiceState; supplier?: string; flow?: InvoiceFlow; source?: InvoiceSource }
 
 /** SCR-10 Invoice Worklist. Saved views are tabs, search and filters live in the query string (Back restores them). */
 export function Invoices() {
@@ -27,6 +34,7 @@ export function Invoices() {
   const [sp, setSp] = useSearchParams();
   const [filtersOpen, setFiltersOpen] = useState(sp.has('filters'));
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [form] = Form.useForm<FilterValues>();
   const isAp = session?.role === 'AP_ACCOUNTANT';
 
   const view = (VIEWS.includes(sp.get('view') as View) ? sp.get('view') : 'needs') as View;
@@ -53,6 +61,7 @@ export function Invoices() {
     if (!keepPage) next.delete('page');
     setSp(next, { replace: true });
   };
+  const clearAll = { q: null, state: null, supplier: null, flow: null, source: null, reminder: null, duesoon: null, figure: null };
 
   const summary = useWorklistSummary();
   const sync = useErpSync();
@@ -60,7 +69,6 @@ export function Invoices() {
   const suppliers = useSuppliers();
   const doSync = useAction(startErpSync, { success: (r) => t.invoices.syncDone.replace('{n}', String(r.admitted)) });
 
-  const [draft, setDraft] = useState({ state: q.state ?? '', supplier: q.supplierId ?? '', flow: q.flow ?? '', source: q.source ?? '', reminder: !!q.reminderDue });
   const sm = summary.data;
   const activeFilters: { key: string; label: string }[] = [];
   if (q.state) activeFilters.push({ key: 'state', label: `${t.invoices.fState}: ${t.invoiceState[q.state]}` });
@@ -71,28 +79,45 @@ export function Invoices() {
   if (q.dueSoon) activeFilters.push({ key: 'duesoon', label: t.common.dueSoon });
   if (q.figure) activeFilters.push({ key: 'figure', label: `${t.invoices.figure}: ${t.dashboard.figures[q.figure] ?? q.figure}` });
 
-  const cols: Col<InvoiceRow>[] = [
+  const cols: TableColumnsType<InvoiceRow> = [
     {
-      key: 'inv', label: t.invoices.colInvoice, header: t.invoices.colInvoice, sort: (r) => r.invoiceNumber,
-      render: (r) => (<><Link to={`/invoices/${r.id}`}><InvNo value={r.invoiceNumber} /></Link><span className="sub">{r.sellerName}</span></>),
+      key: 'inv', title: t.invoices.colInvoice, sorter: (a, b) => a.invoiceNumber.localeCompare(b.invoiceNumber, 'vi'), width: 220,
+      render: (_, r) => (<><Link to={`/invoices/${r.id}`} onClick={(e) => e.stopPropagation()}><InvNo value={r.invoiceNumber} /></Link><br /><Typography.Text type="secondary" className="xs">{r.sellerName}</Typography.Text></>),
     },
-    { key: 'flow', label: t.invoices.colFlow, header: t.invoices.colFlow, render: (r) => <span className="flow" title={t.flow[r.flow]}>{t.flow[r.flow]}</span> },
-    { key: 'src', label: t.invoices.colSource, header: t.invoices.colSource, render: (r) => <span className="src-tag">{t.source[r.source]}</span> },
-    { key: 'due', label: t.invoices.colDue, header: t.invoices.colDue, sort: (r) => r.dueDate, render: (r) => <><span className="due">{fmtDate(r.dueDate)}</span>{r.dueSoon && <DueSoon />}</> },
+    { key: 'flow', title: t.invoices.colFlow, ellipsis: true, width: 170, responsive: ['lg'], render: (_, r) => t.flow[r.flow] },
+    { key: 'src', title: t.invoices.colSource, width: 90, responsive: ['md'], render: (_, r) => <Tag bordered>{t.source[r.source]}</Tag> },
     {
-      key: 'state', label: t.invoices.colState, header: t.invoices.colState, sort: (r) => r.state,
-      render: (r) => (<><StateBadge state={r.state} />{r.exception && r.exception.state !== 'CLOSED' && <span className="sub"><ExceptionBadge state={r.exception.state} /></span>}</>),
+      key: 'due', title: t.invoices.colDue, width: 150, sorter: (a, b) => a.dueDate.localeCompare(b.dueDate),
+      render: (_, r) => <Space direction="vertical" size={2}><span className="nowrap">{fmtDate(r.dueDate)}</span>{r.dueSoon && <DueSoon />}</Space>,
     },
-    { key: 'why', label: t.invoices.colReasons, header: t.invoices.colReasons, render: (r) => <ReasonsCell r={r} /> },
-    { key: 'total', label: t.invoices.colTotal, header: t.invoices.colTotal, className: 'money', sort: (r) => r.totalAmount, render: (r) => fmtMoney(r.totalAmount) },
     {
-      key: 'go', label: '', header: <span className="sr">{t.common.open}</span>, className: 'row-act',
-      render: (r) => <Link className="btn btn-quiet btn-sm" to={`/invoices/${r.id}`} aria-label={`${t.common.open} ${r.invoiceNumber}`} title={t.common.open}><Icon name="chevronr" small /></Link>,
+      key: 'state', title: t.invoices.colState, width: 190, sorter: (a, b) => a.state.localeCompare(b.state),
+      render: (_, r) => (<Space direction="vertical" size={2}><StateBadge state={r.state} />{r.exception && r.exception.state !== 'CLOSED' && <ExceptionBadge state={r.exception.state} />}</Space>),
+    },
+    { key: 'why', title: t.invoices.colReasons, width: 260, responsive: ['xl'], render: (_, r) => <ReasonsCell r={r} /> },
+    { key: 'total', title: t.invoices.colTotal, align: 'right', width: 150, sorter: (a, b) => a.totalAmount - b.totalAmount, render: (_, r) => <span className="nowrap">{fmtMoney(r.totalAmount)}</span> },
+    {
+      key: 'go', title: <span className="sr">{t.common.open}</span>, fixed: 'right', width: 56,
+      render: (_, r) => <Link to={`/invoices/${r.id}`} aria-label={`${t.common.open} ${r.invoiceNumber}`} title={t.common.open} onClick={(e) => e.stopPropagation()}><Button type="text" size="small" icon={<RightOutlined />} tabIndex={-1} /></Link>,
     },
   ];
 
-  const items = list.data?.items ?? [];
   const noInvoicesAtAll = sm && sm.views.all === 0;
+  const emptyNode = (): ReactNode => {
+    const clear = <Button size="small" onClick={() => set(clearAll)}>{t.common.clearFilters}</Button>;
+    if (search) return <EmptyState title={t.invoices.noneFound} text={t.invoices.noneFoundHint} action={clear} />;
+    if (activeFilters.length > 0) return <EmptyState title={t.invoices.noMatch} action={clear} />;
+    if (noInvoicesAtAll) {
+      return (
+        <EmptyState
+          title={t.invoices.emptyTitle}
+          text={isAp ? t.invoices.emptyApText : t.invoices.emptyRoText}
+          action={isAp ? <Button type="primary" icon={<UploadOutlined />} onClick={() => setUploadOpen(true)}>{t.invoices.upload}</Button> : undefined}
+        />
+      );
+    }
+    return <EmptyState title={t.invoices.emptyViewTitle} text={t.invoices.emptyViewText} />;
+  };
 
   return (
     <>
@@ -101,20 +126,20 @@ export function Invoices() {
         readOnly={!isAp}
         actions={isAp ? (
           <>
-            <Menu items={[{ label: t.invoices.syncNow, onClick: () => void doSync.run(undefined as never) }]} />
-            <button type="button" className="btn btn-primary" onClick={() => setUploadOpen(true)}><Icon name="upload" />{t.invoices.upload}</button>
+            <MoreMenu items={[{ label: t.invoices.syncNow, onClick: () => void doSync.run(undefined as never) }]} />
+            <Button type="primary" icon={<UploadOutlined />} onClick={() => setUploadOpen(true)}>{t.invoices.upload}</Button>
           </>
         ) : undefined}
         meta={
-          <>
+          <Space size={16} wrap>
             {sync.data && (
-              <span className={`sync${sync.data.lastSyncFailed ? ' sync-stale' : ''}`}>
-                <Icon name="refresh" small />
+              <span>
+                <CloudSyncOutlined style={{ marginInlineEnd: 6 }} />
                 {t.invoices.lastSync}: {fmtDateTime(sync.data.lastSyncAt)}
               </span>
             )}
             <span>{t.invoices.ofEntity.replace('{entity}', session?.entityName ?? '')}</span>
-          </>
+          </Space>
         }
       />
 
@@ -122,168 +147,122 @@ export function Invoices() {
       {doSync.error && <Notice kind="err">{doSync.error}</Notice>}
 
       {sm && !search && forced === 'none' && !noInvoicesAtAll && (
-        <div className="kpis">
-          <button type="button" className="tile t-warn" onClick={() => set({ view: 'needs', figure: null })}>
-            <span className="t-lbl">{t.invoices.kpiExceptions}</span>
-            <span className="t-val">{sm.openExceptions}</span>
-            <span className="t-sub">{t.invoices.kpiExceptionsSub.replace('{d}', String(sm.waitingDecision)).replace('{s}', String(sm.waitingSupplier))}</span>
-          </button>
-          <button type="button" className="tile" onClick={() => set({ view: 'all', duesoon: '1', figure: null })}>
-            <span className="t-lbl">{t.invoices.kpiDue}</span>
-            <span className="t-val">{sm.dueWithin7Days}</span>
-            <span className="t-sub">{sm.dueDates.slice(0, 2).map(fmtDate).join(', ') || t.invoices.kpiNone}</span>
-          </button>
-          <button type="button" className="tile" onClick={() => set({ view: 'batch', figure: null })}>
-            <span className="t-lbl">{t.invoices.kpiBatch}</span>
-            <span className="t-val">{sm.inBatch}</span>
-            <span className="t-sub">{fmtMoney(sm.inBatchTotal)}</span>
-          </button>
-          <button type="button" className="tile" onClick={() => set({ view: 'waiting', figure: null })}>
-            <span className="t-lbl">{t.invoices.kpiWaiting}</span>
-            <span className="t-val">{sm.waitingForGoods}</span>
-            <span className="t-sub">{t.invoices.kpiWaitingSub}</span>
-          </button>
-        </div>
+        <KpiRow>
+          {[
+            <Kpi key="e" title={t.invoices.kpiExceptions} value={sm.openExceptions} icon={<ExclamationCircleOutlined />} color="#8A5E0F" sub={t.invoices.kpiExceptionsSub.replace('{d}', String(sm.waitingDecision)).replace('{s}', String(sm.waitingSupplier))} onClick={() => set({ view: 'needs', figure: null })} />,
+            <Kpi key="d" title={t.invoices.kpiDue} value={sm.dueWithin7Days} icon={<ClockCircleOutlined />} sub={sm.dueDates.slice(0, 2).map(fmtDate).join(', ') || t.invoices.kpiNone} onClick={() => set({ view: 'all', duesoon: '1', figure: null })} />,
+            <Kpi key="b" title={t.invoices.kpiBatch} value={sm.inBatch} icon={<ContainerOutlined />} color="#2E6A55" sub={fmtMoney(sm.inBatchTotal)} onClick={() => set({ view: 'batch', figure: null })} />,
+            <Kpi key="w" title={t.invoices.kpiWaiting} value={sm.waitingForGoods} icon={<InboxOutlined />} sub={t.invoices.kpiWaitingSub} onClick={() => set({ view: 'waiting', figure: null })} />,
+          ]}
+        </KpiRow>
       )}
 
-      <section className="card" aria-label={t.invoices.listLabel}>
+      <Card className="list-card" aria-label={t.invoices.listLabel} styles={{ body: { padding: 0 } }}>
         {sm && !search && !q.figure && (
-          <Tabs<View>
-            label={t.invoices.savedViews}
-            value={view}
+          <Tabs
+            className="view-tabs"
+            aria-label={t.invoices.savedViews}
+            activeKey={view}
             onChange={(v) => set({ view: v, duesoon: null })}
-            tabs={VIEWS.map((v) => ({ id: v, label: t.invoices.views[v], count: sm.views[v], tone: v === 'needs' && sm.views.needs ? 'warn' : undefined }))}
+            items={VIEWS.map((v) => ({
+              key: v,
+              label: <span>{t.invoices.views[v]} <Badge count={sm.views[v]} showZero color={v === 'needs' && sm.views.needs ? '#8A5E0F' : '#9a9fb0'} overflowCount={999} style={{ marginInlineStart: 4 }} /></span>,
+            }))}
           />
         )}
         <div className="toolbar">
-          <div className="search">
-            <Icon name="search" />
-            <input className="input" type="search" placeholder={t.invoices.searchPlaceholder} aria-label={t.invoices.searchLabel} value={search} onChange={(e) => set({ q: e.target.value })} />
-          </div>
-          <button type="button" className="btn" aria-expanded={filtersOpen} aria-controls="f-panel" onClick={() => setFiltersOpen((o) => !o)}>
-            <Icon name="filter" small />
-            {t.invoices.filters}
-            {activeFilters.length > 0 && <span className="fcount">{activeFilters.length}</span>}
-          </button>
+          <Input.Search
+            className="toolbar-search"
+            allowClear
+            placeholder={t.invoices.searchPlaceholder}
+            aria-label={t.invoices.searchLabel}
+            prefix={<SearchOutlined />}
+            enterButton={false}
+            value={search}
+            onChange={(e) => set({ q: e.target.value })}
+          />
+          <Badge count={activeFilters.length} size="small">
+            <Button icon={<FilterOutlined />} onClick={() => { form.setFieldsValue({ state: q.state || undefined, supplier: q.supplierId || undefined, flow: q.flow || undefined, source: q.source || undefined }); setFiltersOpen(true); }}>{t.invoices.filters}</Button>
+          </Badge>
+          {search && (
+            <Select
+              aria-label={t.invoices.narrowByState}
+              style={{ minWidth: 180 }}
+              allowClear
+              placeholder={t.invoices.anyState}
+              value={q.state || undefined}
+              onChange={(v) => set({ state: v ?? null })}
+              options={(Object.keys(t.invoiceState) as InvoiceState[]).map((s) => ({ value: s, label: t.invoiceState[s] }))}
+            />
+          )}
           {activeFilters.map((f) => (
-            <span className="fchip" key={f.key}>
-              {f.label}
-              <button type="button" aria-label={t.invoices.removeFilter.replace('{f}', f.label)} onClick={() => set({ [f.key]: null })}><Icon name="x" small /></button>
-            </span>
+            <Tag key={f.key} closable bordered color="purple" onClose={(e) => { e.preventDefault(); set({ [f.key]: null }); }} closeIcon={<span aria-label={t.invoices.removeFilter.replace('{f}', f.label)} role="button"><CloseOutlined /></span>}>{f.label}</Tag>
           ))}
-          {search && <span className="fchip">{t.invoices.searchChip.replace('{q}', search)}<button type="button" aria-label={t.invoices.removeSearch} onClick={() => set({ q: null })}><Icon name="x" small /></button></span>}
-          <span className="grow" />
+          <span style={{ flex: 1 }} />
           {list.data && (
-            <span className="muted small">
+            <Typography.Text type="secondary">
               {search
                 ? t.invoices.countAnyState.replace('{n}', String(list.data.anyStateCount))
                 : t.invoices.countOf.replace('{n}', String(list.data.total)).replace('{total}', String(sm?.views[view] ?? list.data.total))}
-            </span>
+            </Typography.Text>
           )}
         </div>
-        {filtersOpen && (
-          <div className="filter-panel" id="f-panel">
-            <form
-              className="filters"
-              onSubmit={(e) => {
-                e.preventDefault();
-                set({ state: draft.state, supplier: draft.supplier, flow: draft.flow, source: draft.source, reminder: draft.reminder ? '1' : null });
-              }}
-            >
-              <Field label={t.invoices.fState} htmlFor="f-state">
-                <select id="f-state" className="select" value={draft.state} onChange={(e) => setDraft({ ...draft, state: e.target.value as InvoiceState })}>
-                  <option value="">{t.invoices.allStates}</option>
-                  {(Object.keys(t.invoiceState) as InvoiceState[]).map((s) => <option key={s} value={s}>{t.invoiceState[s]}</option>)}
-                </select>
-              </Field>
-              <Field label={t.invoices.fSupplier} htmlFor="f-sup">
-                <select id="f-sup" className="select" value={draft.supplier} onChange={(e) => setDraft({ ...draft, supplier: e.target.value })}>
-                  <option value="">{t.invoices.allSuppliers}</option>
-                  {suppliers.data?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </Field>
-              <Field label={t.invoices.fFlow} htmlFor="f-flow">
-                <select id="f-flow" className="select" value={draft.flow} onChange={(e) => setDraft({ ...draft, flow: e.target.value as InvoiceFlow })}>
-                  <option value="">{t.invoices.allFlows}</option>
-                  {(['GOODS_WITH_ORDER', 'SERVICES_WITH_ORDER', 'RECURRING', 'UNSUPPORTED_FOREIGN'] as InvoiceFlow[]).map((f) => <option key={f} value={f}>{t.flow[f]}</option>)}
-                </select>
-              </Field>
-              <Field label={t.invoices.fSource} htmlFor="f-src">
-                <select id="f-src" className="select" value={draft.source} onChange={(e) => setDraft({ ...draft, source: e.target.value as InvoiceSource })}>
-                  <option value="">{t.invoices.allSources}</option>
-                  <option value="UPLOAD">{t.source.UPLOAD}</option>
-                  <option value="EMAIL">{t.source.EMAIL}</option>
-                </select>
-              </Field>
-              <label className="check" style={{ paddingBottom: 8 }}>
-                <input type="checkbox" checked={draft.reminder} onChange={(e) => setDraft({ ...draft, reminder: e.target.checked })} /> {t.invoices.reminderDue}
-              </label>
-              <button className="btn btn-primary" type="submit" style={{ marginBottom: 2 }}>{t.common.apply}</button>
-              <button
-                className="btn btn-quiet"
-                type="button"
-                style={{ marginBottom: 2 }}
-                onClick={() => {
-                  setDraft({ state: '', supplier: '', flow: '', source: '', reminder: false });
-                  set({ state: null, supplier: null, flow: null, source: null, reminder: null, duesoon: null, figure: null });
-                }}
-              >
-                {t.common.clearFilters}
-              </button>
-            </form>
-          </div>
-        )}
-        {search && (
-          <div className="toolbar" style={{ borderBottom: 0, paddingTop: 0 }}>
-            <label className="xs muted" htmlFor="f-narrow">{t.invoices.narrowByState}</label>
-            <select id="f-narrow" className="select" style={{ width: 'auto' }} value={q.state ?? ''} onChange={(e) => set({ state: e.target.value })}>
-              <option value="">{t.invoices.anyState}</option>
-              {(Object.keys(t.invoiceState) as InvoiceState[]).map((s) => <option key={s} value={s}>{t.invoiceState[s]}</option>)}
-            </select>
-          </div>
-        )}
-        <Async
-          q={list}
-          isEmpty={(d) => d.total === 0}
-          empty={emptyNode({ noInvoicesAtAll: !!noInvoicesAtAll, search, hasFilters: activeFilters.length > 0, isAp, onUpload: () => setUploadOpen(true), onClear: () => set({ q: null, state: null, supplier: null, flow: null, source: null, reminder: null, duesoon: null, figure: null }) })}
-        >
+        <Async q={list} isEmpty={(d) => d.total === 0} empty={emptyNode()}>
           {(data) => (
-            <>
-              <DataTable
-                columns={cols}
-                rows={items}
-                rowKey={(r) => r.id}
-                caption={t.invoices.title}
-                onRowClick={(r) => nav(`/invoices/${r.id}`)}
-                footer={<Pager total={data.total} page={data.page} pageSize={data.pageSize} onPage={(p) => set({ page: String(p) }, true)} />}
-              />
-            </>
+            <Table<InvoiceRow>
+              size="middle"
+              rowKey="id"
+              columns={cols}
+              dataSource={data.items}
+              scroll={{ x: 760 }}
+              onRow={(r) => ({ onClick: () => nav(`/invoices/${r.id}`), style: { cursor: 'pointer' } })}
+              loading={list.isFetching && !list.isPending}
+              pagination={{
+                current: data.page,
+                pageSize: data.pageSize,
+                total: data.total,
+                hideOnSinglePage: false,
+                showSizeChanger: false,
+                showTotal: (total, [from, to]) => t.common.showing.replace('{from}', String(from)).replace('{to}', String(to)).replace('{total}', String(total)),
+                onChange: (p) => set({ page: String(p) }, true),
+              }}
+            />
           )}
         </Async>
-      </section>
+      </Card>
+
+      <Drawer
+        open={filtersOpen}
+        title={t.invoices.filterTitle}
+        width={360}
+        onClose={() => setFiltersOpen(false)}
+        destroyOnHidden
+        footer={
+          <Space>
+            <Button type="primary" onClick={() => { const v = form.getFieldsValue(); set({ state: v.state ?? null, supplier: v.supplier ?? null, flow: v.flow ?? null, source: v.source ?? null }); setFiltersOpen(false); }}>{t.common.apply}</Button>
+            <Button onClick={() => { form.resetFields(); set({ state: null, supplier: null, flow: null, source: null, reminder: null, duesoon: null, figure: null }); setFiltersOpen(false); }}>{t.common.clearFilters}</Button>
+          </Space>
+        }
+      >
+        <Form form={form} layout="vertical" preserve={false}>
+          <Form.Item name="state" label={t.invoices.fState}>
+            <Select allowClear placeholder={t.invoices.allStates} options={(Object.keys(t.invoiceState) as InvoiceState[]).map((s) => ({ value: s, label: t.invoiceState[s] }))} />
+          </Form.Item>
+          <Form.Item name="supplier" label={t.invoices.fSupplier}>
+            <Select allowClear showSearch optionFilterProp="label" placeholder={t.invoices.allSuppliers} options={suppliers.data?.map((s) => ({ value: s.id, label: s.name }))} />
+          </Form.Item>
+          <Form.Item name="flow" label={t.invoices.fFlow}>
+            <Select allowClear placeholder={t.invoices.allFlows} options={FLOWS.map((f) => ({ value: f, label: t.flow[f] }))} />
+          </Form.Item>
+          <Form.Item name="source" label={t.invoices.fSource}>
+            <Select allowClear placeholder={t.invoices.allSources} options={[{ value: 'UPLOAD', label: t.source.UPLOAD }, { value: 'EMAIL', label: t.source.EMAIL }]} />
+          </Form.Item>
+        </Form>
+      </Drawer>
 
       {uploadOpen && <UploadDrawer onClose={() => setUploadOpen(false)} />}
     </>
   );
-}
-
-function emptyNode(o: { noInvoicesAtAll: boolean; search: string; hasFilters: boolean; isAp: boolean; onUpload: () => void; onClear: () => void }): ReactNode {
-  if (o.search) {
-    return <EmptyState icon="search" title={t.invoices.noneFound} text={t.invoices.noneFoundHint} action={<button type="button" className="btn btn-sm" onClick={o.onClear}>{t.common.clearFilters}</button>} />;
-  }
-  if (o.hasFilters) {
-    return <EmptyState icon="filter" title={t.invoices.noMatch} action={<button type="button" className="btn btn-sm" onClick={o.onClear}>{t.common.clearFilters}</button>} />;
-  }
-  if (o.noInvoicesAtAll) {
-    return (
-      <EmptyState
-        title={t.invoices.emptyTitle}
-        text={o.isAp ? t.invoices.emptyApText : t.invoices.emptyRoText}
-        action={o.isAp ? <button type="button" className="btn btn-primary" onClick={o.onUpload}><Icon name="upload" />{t.invoices.upload}</button> : undefined}
-      />
-    );
-  }
-  return <EmptyState title={t.invoices.emptyViewTitle} text={t.invoices.emptyViewText} />;
 }
 
 function ReasonsCell({ r }: { r: InvoiceRow }) {
@@ -291,14 +270,14 @@ function ReasonsCell({ r }: { r: InvoiceRow }) {
   if (e && e.state !== 'CLOSED') {
     const first = e.reasons[0];
     return (
-      <>
-        {first && <span className="reason">{t.reason(first.code, first.params)}</span>}
-        {e.reasons.length > 1 && <span className="more-n">+{e.reasons.length - 1}</span>}
-        {r.reminderDue && <span className="tagx tagx-warn">{t.invoices.reminderDue}</span>}
-      </>
+      <Space size={4} wrap>
+        {first && <Typography.Text ellipsis={{ tooltip: t.reason(first.code, first.params) }} style={{ maxWidth: 190 }}>{t.reason(first.code, first.params)}</Typography.Text>}
+        {e.reasons.length > 1 && <Tag style={{ marginInlineEnd: 0 }}>+{e.reasons.length - 1}</Tag>}
+        {r.reminderDue && <Tag color="warning" icon={<SyncOutlined />} style={{ marginInlineEnd: 0 }}>{t.invoices.reminderDue}</Tag>}
+      </Space>
     );
   }
-  if (r.state === 'REJECTED' && r.rejection) return <span className="clip muted">{t.rejection[r.rejection.code]}{r.rejection.note && r.rejection.code === 'REJECTED_BY_PERSON' ? `: ${r.rejection.note}` : ''}</span>;
-  if (r.state === 'PAID' && r.paymentRef) return <span className="clip muted mono">{r.paymentRef}</span>;
-  return <span className="clip muted">{t.note(r.note)}</span>;
+  if (r.state === 'REJECTED' && r.rejection) return <Typography.Text type="secondary">{t.rejection[r.rejection.code]}{r.rejection.note && r.rejection.code === 'REJECTED_BY_PERSON' ? `: ${r.rejection.note}` : ''}</Typography.Text>;
+  if (r.state === 'PAID' && r.paymentRef) return <Typography.Text type="secondary" className="mono">{r.paymentRef}</Typography.Text>;
+  return <Typography.Text type="secondary">{t.note(r.note)}</Typography.Text>;
 }

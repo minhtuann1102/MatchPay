@@ -2,10 +2,10 @@
 
 A clickable front-end prototype of MatchPay with an in-browser mock API. It is not the production code.
 
-- Stack: Vite, React 18, TypeScript (strict), react-router-dom (HashRouter), TanStack Query.
+- Stack: Vite, React 18, TypeScript (strict), Ant Design 5 (with `@ant-design/icons` and `dayjs`), react-router-dom (HashRouter), TanStack Query.
 - All UI copy is Vietnamese and lives in `src/i18n/vi.ts`. Seed free text (notes, mail subjects) lives in `src/mock/`.
 - Data is seeded from the fictional Calderwood Group, kept in `localStorage` (key `matchpay-proto-v1`) and reset from the demo toolbar.
-- Look: "ledger and seal". One typeface (Be Vietnam Pro, `@fontsource/be-vietnam-pro`, licence in `src/styles/fonts/`), purple ink for actions, a red seal reserved for signed and binding states, ledger tables, invoice numbers printed as series plus number. Tokens are at the top of `src/styles/matchpay.css`. The prototype differs from the design system and the wireframes in color, type, and some layout, not in content or states (see decisions D-197..D-204 in `docs/04-uiux/00-decisions.md`).
+- Look: Ant Design 5 components themed with the MatchPay tokens in `src/theme/theme.ts` (purple primary `#4A3A8C`, Be Vietnam Pro, radius 6; D-205..D-211). The three hands (AI, Rule Engine, Person) are `Tag` variants in `src/components/Tags.tsx`, and the red seal (`SealStamp`) is custom. `src/styles/matchpay.css` holds only what the library does not cover (layout helpers, invoice number, hand tags, seal, a few page rails). The prototype differs from the wireframes in look, not in content or states.
 - Source of truth for layout and behaviour: `docs/04-uiux/` and `docs/03-information-architecture/`; operation names follow `docs/06-api/openapi.yaml`.
 
 ```bash
@@ -15,7 +15,7 @@ npm run build    # type check and production build into dist/
 npm run preview  # serve dist/
 ```
 
-Demo time is fixed at 31/10/2026 10:30 and advances one minute for each change. The demo toolbar (bottom right) resets data, switches persona, forces a page state, and shows the one-time code for signing.
+Demo time is fixed at 31/10/2026 10:30 and advances one minute for each change. The demo toolbar (floating button, bottom right) resets data, switches persona, forces a page state, and shows the one-time code for signing.
 
 ## Screenshots
 

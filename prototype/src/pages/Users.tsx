@@ -1,18 +1,16 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { AutoComplete, Avatar, Button, Card, Form, Input, Select, Space, Table, Tag, Typography } from 'antd';
+import type { TableColumnsType } from 'antd';
+import { CheckCircleOutlined, MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { createUser, deactivateUser, listErpUsers, updateUser, type UserInput } from '../api/admin';
 import { getSessionUserId } from '../api/client';
-import { useQuery } from '@tanstack/react-query';
 import { useEntities, useUsers } from '../api/hooks';
 import type { ApprovalLevel, Role, User } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { EmptyState, Field, Menu, PageHeader } from '../components/Bits';
-import { Chip } from '../components/Chips';
-import { ConfirmDialog } from '../components/ConfirmDialog';
-import { DataTable, type Col } from '../components/DataTable';
-import { Icon } from '../components/Icon';
-import { Modal } from '../components/Modal';
-import { ActionError } from '../components/ReasonModal';
+import { EmptyState, PageHeader } from '../components/Bits';
+import { ActionModal } from '../components/Dialogs';
 import { interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
@@ -35,20 +33,23 @@ export function Users() {
   const filtered = !!role || !!entityId;
   const deact = useAction((u: Row) => deactivateUser(u.id), { success: t.users.deactivated, onSuccess: () => setOff(null) });
 
-  const cols: Col<Row>[] = [
-    { key: 'n', label: t.users.colName, header: t.users.colName, sort: (u) => u.fullName, render: (u) => <b>{u.fullName}{u.id === session?.userId && <span className="muted"> {t.users.you}</span>}</b> },
-    { key: 'e', label: t.users.colEmail, header: t.users.colEmail, render: (u) => u.email },
-    { key: 'r', label: t.users.colRole, header: t.users.colRole, sort: (u) => u.role, render: (u) => <>{t.roles[u.role]}{u.approvalLevel && <span className="sub">{t.approvalLevel[u.approvalLevel]}</span>}</> },
-    ...(group ? [{ key: 'en', label: t.users.colEntity, header: t.users.colEntity, render: (u: Row) => (u.entityId ? u.entityName : t.users.group) } as Col<Row>] : []),
-    { key: 'erp', label: t.users.colErp, header: t.users.colErp, render: (u) => (u.erpUser ? <span className="mono">{u.erpUser}</span> : '-') },
-    { key: 's', label: t.users.colStatus, header: t.users.colStatus, render: (u) => <Chip kind={u.status === 'ACTIVE' ? 'ok' : 'end'}>{t.users.status[u.status]}</Chip> },
+  const cols: TableColumnsType<Row> = [
     {
-      key: 'act', label: '', header: <span className="sr">{t.common.actions}</span>, className: 'row-act',
-      render: (u) => (
-        <span className="row" style={{ justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
-          <button type="button" className="btn btn-sm" onClick={() => setForm(u)}>{t.common.edit}</button>
-          {u.status === 'ACTIVE' && u.id !== session?.userId && <Menu label="" items={[{ label: t.users.deactivate, danger: true, onClick: () => setOff(u) }]} />}
-        </span>
+      title: t.users.colName, key: 'n', width: 240, sorter: (a, b) => a.fullName.localeCompare(b.fullName, 'vi'),
+      render: (_, u) => <Space><Avatar size="small" style={{ background: '#ECE9F6', color: '#4A3A8C' }}>{u.fullName.slice(0, 1)}</Avatar><b>{u.fullName}{u.id === session?.userId && <Typography.Text type="secondary"> {t.users.you}</Typography.Text>}</b></Space>,
+    },
+    { title: t.users.colEmail, key: 'e', width: 250, ellipsis: true, responsive: ['md'], render: (_, u) => u.email },
+    { title: t.users.colRole, key: 'r', width: 200, sorter: (a, b) => a.role.localeCompare(b.role), render: (_, u) => <>{t.roles[u.role]}{u.approvalLevel && <><br /><Typography.Text type="secondary" className="xs">{t.approvalLevel[u.approvalLevel]}</Typography.Text></>}</> },
+    ...(group ? [{ title: t.users.colEntity, key: 'en', width: 200, responsive: ['lg'], render: (_: unknown, u: Row) => (u.entityId ? u.entityName : t.users.group) } as TableColumnsType<Row>[number]] : []),
+    { title: t.users.colErp, key: 'erp', width: 120, responsive: ['xl'], render: (_, u) => (u.erpUser ? <span className="mono">{u.erpUser}</span> : '-') },
+    { title: t.users.colStatus, key: 's', width: 130, render: (_, u) => <Tag color={u.status === 'ACTIVE' ? 'success' : 'default'} icon={u.status === 'ACTIVE' ? <CheckCircleOutlined /> : <MinusCircleOutlined />}>{t.users.status[u.status]}</Tag> },
+    {
+      title: <span className="sr">{t.common.actions}</span>, key: 'act', fixed: 'right', width: 190,
+      render: (_, u) => (
+        <Space>
+          <Button size="small" onClick={() => setForm(u)}>{t.common.edit}</Button>
+          {u.status === 'ACTIVE' && u.id !== session?.userId && <Button size="small" danger onClick={() => setOff(u)}>{t.users.deactivate}</Button>}
+        </Space>
       ),
     },
   ];
@@ -58,118 +59,102 @@ export function Users() {
       <PageHeader
         title={t.users.title}
         meta={group ? t.users.introGroup : interpolate(t.users.introEntity, { entity: session?.entityName ?? '' })}
-        actions={<button type="button" className="btn btn-primary" onClick={() => setForm('new')}><Icon name="plus" />{t.users.add}</button>}
+        actions={<Button type="primary" icon={<PlusOutlined />} onClick={() => setForm('new')}>{t.users.add}</Button>}
       />
-      <section className="card">
-        <div className="filters" role="group" aria-label={t.users.savedViews}>
-          <div className="field">
-            <label htmlFor="us-role" className="sr">{t.users.roleFilter}</label>
-            <select id="us-role" className="select" value={role} onChange={(e) => setRole(e.target.value as '' | Role)}>
-              <option value="">{t.users.allRoles}</option>
-              {[...ENTITY_ROLES, ...(group ? GROUP_ROLES : [])].map((r) => <option key={r} value={r}>{t.roles[r]}</option>)}
-            </select>
-          </div>
+      <Card styles={{ body: { padding: 0 } }}>
+        <div className="toolbar" role="group" aria-label={t.users.savedViews}>
+          <Select
+            aria-label={t.users.roleFilter}
+            style={{ minWidth: 220 }}
+            value={role}
+            onChange={setRole}
+            options={[{ value: '', label: t.users.allRoles }, ...[...ENTITY_ROLES, ...(group ? GROUP_ROLES : [])].map((r) => ({ value: r, label: t.roles[r] }))]}
+          />
           {group && (
-            <div className="field">
-              <label htmlFor="us-ent" className="sr">{t.users.entityFilter}</label>
-              <select id="us-ent" className="select" value={entityId} onChange={(e) => setEntityId(e.target.value)}>
-                <option value="">{t.users.allEntities}</option>
-                {entities.data?.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
-              </select>
-            </div>
+            <Select
+              aria-label={t.users.entityFilter}
+              style={{ minWidth: 240 }}
+              value={entityId}
+              onChange={setEntityId}
+              options={[{ value: '', label: t.users.allEntities }, ...(entities.data?.map((e) => ({ value: e.id, label: e.name })) ?? [])]}
+            />
           )}
-          {filtered && <button type="button" className="btn btn-quiet btn-sm" onClick={() => { setRole(''); setEntityId(''); }}>{t.common.clearFilters}</button>}
+          {filtered && <Button type="link" size="small" onClick={() => { setRole(''); setEntityId(''); }}>{t.common.clearFilters}</Button>}
         </div>
-        <Async q={q} isEmpty={(d) => d.length === 0} empty={filtered && all.data?.length ? <EmptyState icon="search" title={t.users.noMatch} /> : <EmptyState icon="users" title={t.users.emptyTitle} text={t.users.emptyText} />}>
-          {(d) => <DataTable columns={cols} rows={d} rowKey={(u) => u.id} caption={t.users.title} />}
+        <Async q={q} isEmpty={(d) => d.length === 0} empty={filtered && all.data?.length ? <EmptyState title={t.users.noMatch} /> : <EmptyState title={t.users.emptyTitle} text={t.users.emptyText} />}>
+          {(d) => <Table<Row> size="middle" rowKey="id" columns={cols} dataSource={d} pagination={{ pageSize: 20, hideOnSinglePage: true }} scroll={{ x: 760 }} />}
         </Async>
-      </section>
+      </Card>
       {form && <UserForm user={form === 'new' ? null : form} group={group} onClose={() => setForm(null)} />}
       {off && (
-        <ConfirmDialog title={interpolate(t.users.deactivateTitle, { name: off.fullName })} confirmLabel={t.users.deactivate} danger pending={deact.pending} error={deact.error} onCancel={() => setOff(null)} onConfirm={() => void deact.run(off)}>
-          <p>{t.users.deactivateText}</p>
-        </ConfirmDialog>
+        <ActionModal title={interpolate(t.users.deactivateTitle, { name: off.fullName })} okText={t.users.deactivate} danger pending={deact.pending} error={deact.error} rawError={deact.rawError} onClose={() => setOff(null)} onOk={() => void deact.run(off)}>
+          <Typography.Paragraph>{t.users.deactivateText}</Typography.Paragraph>
+        </ActionModal>
       )}
     </>
   );
 }
 
+interface UserValues { fullName: string; email: string; role: Role; level: ApprovalLevel; entityId?: string; erpUser?: string; password?: string }
+
 function UserForm({ user, group, onClose }: { user: Row | null; group: boolean; onClose: () => void }) {
   const { session } = useAuth();
   const entities = useEntities();
   const erp = useQuery({ queryKey: ['erpUsers', getSessionUserId()], queryFn: listErpUsers });
-  const [v, setV] = useState({
-    fullName: user?.fullName ?? '', email: user?.email ?? '', role: (user?.role ?? 'AP_ACCOUNTANT') as Role, level: (user?.approvalLevel ?? 'DEPARTMENT_HEAD') as ApprovalLevel,
-    entityId: user ? user.entityId ?? '' : session?.entityId ?? '', erpUser: user?.erpUser ?? '', password: '',
-  });
-  const [touched, setTouched] = useState(false);
+  const [form] = Form.useForm<UserValues>();
+  const roleVal = Form.useWatch('role', form) ?? user?.role ?? 'AP_ACCOUNTANT';
   const own = user?.id === session?.userId;
   const save = useAction(
     (b: UserInput) => (user ? updateUser(user.id, { ...b, version: user.version }) : createUser(b)),
     { success: user ? t.users.updated : t.users.created, onSuccess: onClose },
   );
-  const groupLevel = GROUP_ROLES.includes(v.role);
-  const bad = {
-    name: !v.fullName.trim(),
-    email: !/^\S+@\S+\.\S+$/.test(v.email),
-    entity: !groupLevel && !v.entityId,
-    pw: !user && v.password.length < 8,
-  };
-  const set = <K extends keyof typeof v>(k: K, val: (typeof v)[K]) => setV((x) => ({ ...x, [k]: val }));
+  const groupLevel = GROUP_ROLES.includes(roleVal);
   const roles = group ? [...ENTITY_ROLES, ...GROUP_ROLES] : ENTITY_ROLES.filter((r) => r !== 'ENTITY_ADMIN');
   return (
-    <Modal
+    <ActionModal
       title={user ? t.users.editTitle : t.users.addTitle}
+      okText={t.users.save}
+      width={600}
+      pending={save.pending}
+      error={save.error}
+      rawError={save.rawError}
       onClose={onClose}
-      dismissable={!save.pending}
-      onSubmit={() => {
-        setTouched(true);
-        if (Object.values(bad).some(Boolean)) return;
-        void save.run({ fullName: v.fullName, email: v.email, role: v.role, entityId: groupLevel ? null : v.entityId, erpUser: v.erpUser.trim() || null, approvalLevel: v.role === 'PAYMENT_APPROVER' ? v.level : null, password: user ? undefined : v.password });
+      onOk={() => {
+        void form.validateFields().then(() => form.getFieldsValue(true) as UserValues).then((v) => save.run({ fullName: v.fullName, email: v.email, role: v.role, entityId: GROUP_ROLES.includes(v.role) ? null : v.entityId ?? null, erpUser: v.erpUser?.trim() || null, approvalLevel: v.role === 'PAYMENT_APPROVER' ? v.level : null, password: user ? undefined : v.password })).catch(() => undefined);
       }}
-      footer={<><button type="button" className="btn" onClick={onClose} disabled={save.pending}>{t.common.cancel}</button><button type="submit" className="btn btn-primary" disabled={save.pending}>{save.pending && <span className="spin" />}{t.users.save}</button></>}
     >
-      <div className="grid-2">
-        <Field label={`${t.users.fullName} ${t.common.required}`} htmlFor="u-name" error={touched && bad.name ? t.common.fieldRequired : null}>
-          <input id="u-name" className={`input${touched && bad.name ? ' invalid' : ''}`} value={v.fullName} onChange={(e) => set('fullName', e.target.value)} data-autofocus />
-        </Field>
-        <Field label={`${t.users.email} ${t.common.required}`} htmlFor="u-email" error={touched && bad.email ? t.users.emailInvalid : null}>
-          <input id="u-email" className={`input${touched && bad.email ? ' invalid' : ''}`} type="email" value={v.email} onChange={(e) => set('email', e.target.value)} />
-        </Field>
-      </div>
-      <div className="grid-2">
-        <Field label={t.users.role} htmlFor="u-role">
-          <select id="u-role" className="select" value={v.role} disabled={own} onChange={(e) => set('role', e.target.value as Role)}>
-            {roles.map((r) => <option key={r} value={r}>{t.roles[r]}</option>)}
-          </select>
-        </Field>
-        {v.role === 'PAYMENT_APPROVER' && (
-          <Field label={t.users.level} htmlFor="u-level">
-            <select id="u-level" className="select" value={v.level} onChange={(e) => set('level', e.target.value as ApprovalLevel)}>
-              <option value="DEPARTMENT_HEAD">{t.approvalLevel.DEPARTMENT_HEAD}</option>
-              <option value="CFO">{t.approvalLevel.CFO}</option>
-            </select>
-          </Field>
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{
+          fullName: user?.fullName ?? '', email: user?.email ?? '', role: user?.role ?? 'AP_ACCOUNTANT', level: user?.approvalLevel ?? 'DEPARTMENT_HEAD',
+          entityId: user ? user.entityId ?? undefined : session?.entityId ?? undefined, erpUser: user?.erpUser ?? '', password: '',
+        }}
+      >
+        <div className="form-grid">
+          <Form.Item name="fullName" label={t.users.fullName} rules={[{ required: true, whitespace: true, message: t.common.fieldRequired }]}><Input autoFocus /></Form.Item>
+          <Form.Item name="email" label={t.users.email} rules={[{ required: true, message: t.users.emailInvalid }, { type: 'email', message: t.users.emailInvalid }]}><Input /></Form.Item>
+          <Form.Item name="role" label={t.users.role}><Select disabled={own} options={roles.map((r) => ({ value: r, label: t.roles[r] }))} /></Form.Item>
+          {roleVal === 'PAYMENT_APPROVER' && (
+            <Form.Item name="level" label={t.users.level}>
+              <Select options={[{ value: 'DEPARTMENT_HEAD', label: t.approvalLevel.DEPARTMENT_HEAD }, { value: 'CFO', label: t.approvalLevel.CFO }]} />
+            </Form.Item>
+          )}
+        </div>
+        {group && !groupLevel && (
+          <Form.Item name="entityId" label={t.users.entity} rules={[{ required: true, message: t.common.chooseOne }]}>
+            <Select placeholder={t.common.choose} options={entities.data?.map((e) => ({ value: e.id, label: e.name }))} />
+          </Form.Item>
         )}
-      </div>
-      {group && !groupLevel && (
-        <Field label={`${t.users.entity} ${t.common.required}`} htmlFor="u-ent" error={touched && bad.entity ? t.common.chooseOne : null}>
-          <select id="u-ent" className={`select${touched && bad.entity ? ' invalid' : ''}`} value={v.entityId} onChange={(e) => set('entityId', e.target.value)}>
-            <option value="">{t.common.choose}</option>
-            {entities.data?.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
-          </select>
-        </Field>
-      )}
-      <Field label={t.users.erpUser} htmlFor="u-erp" hint={t.users.erpHint}>
-        <input id="u-erp" className="input" list="u-erp-list" value={v.erpUser} onChange={(e) => set('erpUser', e.target.value)} />
-        <datalist id="u-erp-list">{erp.data?.map((x) => <option key={x} value={x} />)}</datalist>
-      </Field>
-      {!user && (
-        <Field label={`${t.users.password} ${t.common.required}`} htmlFor="u-pw" hint={t.users.passwordHint} error={touched && bad.pw ? t.errors.PASSWORD_SHORT : null}>
-          <input id="u-pw" className={`input${touched && bad.pw ? ' invalid' : ''}`} type="password" autoComplete="new-password" value={v.password} onChange={(e) => set('password', e.target.value)} />
-        </Field>
-      )}
-      <ActionError error={save.error} raw={save.rawError} />
-    </Modal>
+        <Form.Item name="erpUser" label={t.users.erpUser} extra={t.users.erpHint}>
+          <AutoComplete options={erp.data?.map((x) => ({ value: x }))} filterOption />
+        </Form.Item>
+        {!user && (
+          <Form.Item name="password" label={t.users.password} extra={t.users.passwordHint} rules={[{ required: true, min: 8, message: t.errors.PASSWORD_SHORT }]}>
+            <Input.Password autoComplete="new-password" />
+          </Form.Item>
+        )}
+      </Form>
+    </ActionModal>
   );
 }
