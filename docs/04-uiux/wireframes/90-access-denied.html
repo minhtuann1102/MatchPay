@@ -14,6 +14,7 @@
     <li><a href="90-access-denied.html?role=ap">AP Accountant opens /signing</a></li>
     <li><a href="90-access-denied.html?role=chief">Chief Accountant opens /users</a></li>
     <li><a href="90-access-denied.html?role=entity-admin">Entity Admin opens /invoices</a></li>
+    <li><a href="90-access-denied.html?role=dept">Requesting Department opens /invoices</a></li>
     <li><a href="90-access-denied.html?role=demo">Demo Operator opens /dashboard</a></li>
   </ul>
   <ul class="wf-states" aria-label="State">
@@ -41,7 +42,7 @@
 <script src="assets/icons.js"></script>
 <script src="assets/states.js"></script>
 <script>
-  var homes = {ap:'10-invoice-worklist.html', chief:'40-decision-queue.html', approver:'50-signing-queue.html', 'entity-admin':'73-entity-policy.html', 'group-admin':'75-group-overview.html', demo:'80-erp-simulator.html'};
+  var homes = {ap:'10-invoice-worklist.html', chief:'40-decision-queue.html', approver:'50-signing-queue.html', dept:'22-acceptance-queue.html', 'entity-admin':'73-entity-policy.html', 'group-admin':'75-group-overview.html', demo:'80-erp-simulator.html'};
   var r = document.body.getAttribute('data-role');
   document.getElementById('home-link').setAttribute('href', homes[r] + '?role=' + r);
 </script>
