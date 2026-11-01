@@ -14,9 +14,9 @@ The original Vietnamese feature mind map is displayed below:
 
 ![Feature Mind Map](docs/images/source/feature-mind-map.png)
 
-### 1.2 Step 1 summary: research and problem analysis
+### 1.2 Research and Problem Analysis Summary
 
-Step 1 analyses four problems: manual matching of invoice, order, and receipt (P-01); item names and units that differ between documents (P-02); invoices from risky suppliers or issued to the wrong entity (P-03); and payment approval by email and chat with no approval matrix (P-04). It sets seven measurable goals, G-01..G-07, of which the touchless rate (G-01) is always reported together with the AI misplacement rate (G-02), and defines ten MVP modules, M-01..M-10.
+This research identifies four problems: manual matching of invoice, order, and receipt (P-01); item names and units that differ between documents (P-02); invoices from risky suppliers or issued to the wrong entity (P-03); and payment approval by email and chat with no approval matrix (P-04). It sets seven measurable goals, G-01..G-07, of which the touchless rate (G-01) is always reported together with the AI misplacement rate (G-02), and defines ten MVP modules, M-01..M-10.
 
 The brief's facts were checked against sources opened on 2026-10-31. Four points matter most:
 
@@ -25,7 +25,7 @@ The brief's facts were checked against sources opened on 2026-10-31. Four points
 - **The market gap is still an assumption.** Cost does not support it, Vietnam e-invoice support of international products is unpublished rather than disproven, and data location is a compliance step ([Similar products](docs/01-research/04-similar-products.md)).
 - **Open items remain** for the user, the manager, an accountant, or a lawyer, including the name, the legal effect of policy delegation and of a delegated e-signature (O-05, O-17), and the usage-based non-coded invoices of D-24 ([Decisions](docs/01-research/00-decisions.md), O-01..O-17).
 
-Start with the [Step 1 index](docs/01-research/README.md).
+Start with the [Research and Problem Analysis](docs/01-research/README.md).
 
 ### 1.3 INVEST requirements, use cases, and business rules
 
