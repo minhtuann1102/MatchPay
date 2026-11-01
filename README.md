@@ -497,25 +497,25 @@ The design concept is "three hands": what the AI proposed, what the Rule Engine 
 
 #### Invoice worklist (AP Accountant, SCR-10)
 
-![Invoice worklist](docs/images/ap-accountant/10-invoice-worklist.png)
+![Invoice worklist](docs/images/prototype/ap-accountant/10-invoice-worklist.png)
 
 Every state chip, reasons with numbers, "Due soon", and the sync time.
 
 #### Invoice detail with evidence (SCR-12)
 
-![Invoice detail and evidence](docs/images/ap-accountant/12-invoice-detail.png)
+![Invoice detail and evidence](docs/images/prototype/ap-accountant/12-invoice-detail.png)
 
 AI evidence, the six conditions with values, line matches, the decision history, and an action panel for the role.
 
 #### Batch review (SCR-30)
 
-![Batch review](docs/images/ap-accountant/30c-batch-review-sample.png)
+![Batch review](docs/images/prototype/ap-accountant/30c-batch-review-sample.png)
 
 The AI-selected sample that the AP Accountant marks before release.
 
 #### Payment request (Chief Accountant, SCR-51)
 
-![Payment request](docs/images/chief-accountant/51-payment-request.png)
+![Payment request](docs/images/prototype/chief-accountant/51-payment-request.png)
 
 The AI summary labelled as AI, Rule Engine totals, and the signature records.
 
