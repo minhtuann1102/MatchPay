@@ -1,0 +1,46 @@
+type: object
+description: The policy of the caller's entity with the group maximums next to it (SCR-73).
+required:
+  - priceTolerancePct
+  - batchThresholdVnd
+  - sampleRatePct
+  - groupingMode
+  - groupMaxPriceTolerancePct
+  - groupMaxBatchThresholdVnd
+  - version
+  - updatedAt
+properties:
+  priceTolerancePct:
+    $ref: ./Decimal.yaml
+  batchThresholdVnd:
+    $ref: ./Money.yaml
+  sampleRatePct:
+    allOf:
+      - $ref: ./Decimal.yaml
+    description: Between 1 and 100 (AC-04.3).
+  groupingMode:
+    $ref: ./GroupingMode.yaml
+  groupMaxPriceTolerancePct:
+    $ref: ./Decimal.yaml
+  groupMaxBatchThresholdVnd:
+    $ref: ./Money.yaml
+  version:
+    $ref: ./Version.yaml
+  updatedAt:
+    type: string
+    format: date-time
+  updatedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+example:
+  priceTolerancePct: '2.00'
+  batchThresholdVnd: '200000000.00'
+  sampleRatePct: '10.00'
+  groupingMode: BY_SUPPLIER
+  groupMaxPriceTolerancePct: '5.00'
+  groupMaxBatchThresholdVnd: '300000000.00'
+  version: 4
+  updatedAt: '2026-10-01T08:00:00+07:00'
+  updatedBy: 15

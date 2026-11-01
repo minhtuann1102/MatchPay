@@ -1,0 +1,50 @@
+get:
+  tags:
+    - Invoices
+  summary: Download the original XML
+  description: >-
+    Returns the original XML exactly as stored; the SHA-256 is in the
+    `X-Content-SHA256` header and equals `document.sha256` of getInvoice (D-141,
+    AC-10.1). A rejected invoice keeps its original as evidence (AC-10.2).
+  operationId: downloadInvoiceDocument
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-10
+    - US-17
+  x-rules:
+    - BR-12
+  x-screens:
+    - SCR-12
+  x-tables:
+    - invoice_documents
+    - invoices
+  x-criteria:
+    - AC-10.1
+    - AC-10.2
+    - AC-17.2
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  responses:
+    '200':
+      description: Original XML
+      content:
+        application/xml:
+          schema:
+            type: string
+            format: binary
+      headers:
+        X-Content-SHA256:
+          description: SHA-256 of the stored bytes
+          schema:
+            type: string
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

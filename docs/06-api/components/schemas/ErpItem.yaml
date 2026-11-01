@@ -1,0 +1,28 @@
+type: object
+description: An item copied from the ERP.
+required:
+  - id
+  - erpRef
+  - name
+  - baseUnit
+  - isActive
+  - conversions
+  - syncedAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  erpRef:
+    type: string
+  name:
+    type: string
+  baseUnit:
+    type: string
+  isActive:
+    type: boolean
+  conversions:
+    type: array
+    items:
+      $ref: ./UnitConversion.yaml
+  syncedAt:
+    type: string
+    format: date-time

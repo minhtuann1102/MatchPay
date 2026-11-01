@@ -1,0 +1,81 @@
+post:
+  tags:
+    - Batch
+  summary: Release the batch for signing
+  description: >-
+    In Review to In Signing (B3) and the payment requests are created in the
+    same transaction: one per supplier in the mode BY_SUPPLIER, one per invoice
+    in PER_INVOICE (AC-24.6, AC-04.4, BR-20), each with the total, the approval
+    level, and the content hash; an individually approved exception gets its
+    single-invoice request (AC-23.2, D-69). Refused while sample items are
+    PENDING, with the number still to mark (AC-24.5), and for an empty batch
+    (AC-24.9). The Chief Accountant is notified (AC-32.1); a failure to save the
+    notification never stops the release (AC-32.9). AI summaries are produced
+    after the response (D-135). Accepts `Idempotency-Key` (D-137). Carries
+    `version` (AC-24.10).
+  operationId: releaseBatch
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-24
+  x-rules:
+    - BR-03
+    - BR-05
+    - BR-07
+    - BR-12
+    - BR-20
+    - BR-35
+    - BR-37
+  x-screens:
+    - SCR-32
+    - SCR-30
+  x-tables:
+    - payment_batches
+    - payment_requests
+    - payment_request_lines
+    - batch_items
+    - batch_sample_items
+    - entity_policies
+    - approval_tiers
+    - individual_approvals
+    - notifications
+    - ai_payment_summaries
+    - ai_requests
+    - audit_log
+  x-criteria:
+    - AC-04.4
+    - AC-24.5
+    - AC-24.6
+    - AC-24.9
+    - AC-24.10
+    - AC-32.1
+    - AC-32.9
+  parameters:
+    - $ref: ../components/parameters/batchId.yaml
+    - $ref: ../components/parameters/IdempotencyKey.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/ReleaseBatchRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ReleaseBatchResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

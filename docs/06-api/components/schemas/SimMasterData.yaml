@@ -1,0 +1,24 @@
+type: object
+description: >-
+  What the order form needs (SCR-81). Master data is seed files with no table
+  (D-49).
+required:
+  - entityId
+  - personas
+  - suppliers
+  - items
+properties:
+  entityId:
+    $ref: ./Id.yaml
+  personas:
+    type: array
+    items:
+      $ref: ./SimPersona.yaml
+  suppliers:
+    type: array
+    items:
+      $ref: ./SimSupplier.yaml
+  items:
+    type: array
+    items:
+      $ref: ./SimItem.yaml

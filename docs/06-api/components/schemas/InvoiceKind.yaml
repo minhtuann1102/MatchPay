@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `invoice_kind`.
+enum:
+  - ORIGINAL
+  - ADJUSTMENT
+  - REPLACEMENT
+x-dbml-enum: invoice_kind

@@ -1,0 +1,15 @@
+type: object
+description: >-
+  Route an exception to the Chief Accountant (tax-risk hold) or the Payment
+  Approver (individual approval).
+required:
+  - version
+  - decisionRole
+properties:
+  version:
+    $ref: ./Version.yaml
+  decisionRole:
+    $ref: ./DecisionRole.yaml
+example:
+  version: 2
+  decisionRole: PAYMENT_APPROVER

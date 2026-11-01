@@ -1,0 +1,12 @@
+type: object
+description: One page of Batch records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./Batch.yaml
+  meta:
+    $ref: ./PageMeta.yaml

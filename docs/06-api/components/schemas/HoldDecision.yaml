@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `hold_decision`.
+enum:
+  - RELEASE
+  - REJECT
+x-dbml-enum: hold_decision

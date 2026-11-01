@@ -1,0 +1,6 @@
+name: poId
+in: path
+required: true
+description: Identifier of a simulator purchase order.
+schema:
+  $ref: ../schemas/Id.yaml

@@ -1,0 +1,14 @@
+type: object
+description: State history and decision history of an invoice.
+required:
+  - states
+  - decisions
+properties:
+  states:
+    type: array
+    items:
+      $ref: ./StateHistoryEntry.yaml
+  decisions:
+    type: array
+    items:
+      $ref: ./HistoryEntry.yaml

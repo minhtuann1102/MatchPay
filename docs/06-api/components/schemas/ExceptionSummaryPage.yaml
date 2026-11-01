@@ -1,0 +1,12 @@
+type: object
+description: One page of ExceptionSummary records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./ExceptionSummary.yaml
+  meta:
+    $ref: ./PageMeta.yaml

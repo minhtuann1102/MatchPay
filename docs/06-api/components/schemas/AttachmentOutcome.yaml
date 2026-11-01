@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `attachment_outcome`.
+enum:
+  - INVOICE_CREATED
+  - REJECTED_NOT_XML
+  - REJECTED_TOO_LARGE
+x-dbml-enum: attachment_outcome

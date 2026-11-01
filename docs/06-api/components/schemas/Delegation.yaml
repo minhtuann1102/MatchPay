@@ -1,0 +1,65 @@
+type: object
+description: A signing delegation (BR-38).
+required:
+  - id
+  - delegatorId
+  - delegatorName
+  - delegateId
+  - delegateName
+  - delegatedRole
+  - validFrom
+  - validTo
+  - reason
+  - state
+  - version
+  - createdAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  delegatorId:
+    $ref: ./Id.yaml
+  delegatorName:
+    type: string
+  delegateId:
+    $ref: ./Id.yaml
+  delegateName:
+    type: string
+  delegatedRole:
+    $ref: ./SignerRole.yaml
+  validFrom:
+    type: string
+    format: date
+  validTo:
+    type: string
+    format: date
+  reason:
+    type: string
+  state:
+    $ref: ./DelegationState.yaml
+  revokedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  revokedAt:
+    type: string
+    format: date-time
+    nullable: true
+  version:
+    $ref: ./Version.yaml
+  createdAt:
+    type: string
+    format: date-time
+example:
+  id: 71
+  delegatorId: 12
+  delegatorName: Carol
+  delegateId: 13
+  delegateName: Dan
+  delegatedRole: CHIEF_ACCOUNTANT
+  validFrom: '2026-11-10'
+  validTo: '2026-11-14'
+  reason: Annual leave
+  state: SCHEDULED
+  version: 1
+  createdAt: '2026-10-31T09:20:00+07:00'

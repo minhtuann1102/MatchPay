@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `run_outcome`.
+enum:
+  - RUNNING
+  - COMPLETED
+  - AI_FAILED
+x-dbml-enum: run_outcome

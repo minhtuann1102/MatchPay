@@ -1,0 +1,11 @@
+type: string
+description: Same values as the DBML enum `invoice_flow`.
+enum:
+  - GOODS_WITH_ORDER
+  - SERVICES_WITH_ORDER
+  - RECURRING
+  - SUBSCRIPTION
+  - UNSUPPORTED_FOREIGN
+  - EMPLOYEE_EXPENSE
+  - OTHER
+x-dbml-enum: invoice_flow

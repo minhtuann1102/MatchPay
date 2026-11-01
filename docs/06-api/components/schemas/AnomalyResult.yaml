@@ -1,0 +1,8 @@
+type: string
+description: Same values as the DBML enum `anomaly_result`.
+enum:
+  - FLAGGED
+  - NOT_FLAGGED
+  - SKIPPED
+  - UNAVAILABLE
+x-dbml-enum: anomaly_result

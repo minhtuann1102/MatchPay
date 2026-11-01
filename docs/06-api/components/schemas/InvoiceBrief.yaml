@@ -1,0 +1,17 @@
+type: object
+description: The few invoice fields that action results return.
+required:
+  - id
+  - number
+  - state
+  - version
+properties:
+  id:
+    $ref: ./Id.yaml
+  number:
+    type: string
+    description: Series and number, for example C26TAA-0000123.
+  state:
+    $ref: ./InvoiceState.yaml
+  version:
+    $ref: ./Version.yaml

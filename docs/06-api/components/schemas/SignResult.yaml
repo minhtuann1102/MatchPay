@@ -1,0 +1,50 @@
+type: object
+description: One result per request, never a silent partial success (D-137).
+required:
+  - signingActionId
+  - results
+  - signedCount
+  - refusedCount
+properties:
+  signingActionId:
+    type: string
+    format: uuid
+    description: Shared by the signatures of the action (D-61); equals the Idempotency-Key.
+  results:
+    type: array
+    items:
+      $ref: ./SignRequestResult.yaml
+  signedCount:
+    type: integer
+  refusedCount:
+    type: integer
+example:
+  signingActionId: 5b0b3c1e-6c3b-4f65-9a31-0d6c8c8f1a11
+  signedCount: 1
+  refusedCount: 1
+  results:
+    - requestId: 311
+      requestNo: PR-0017
+      outcome: SIGNED
+      message: Signed
+      newState: SIGNED
+      newVersion: 2
+      sendStarted: true
+      signature:
+        id: 901
+        signerId: 12
+        signerName: Carol
+        signerRole: CHIEF_ACCOUNTANT
+        signedAt: '2026-10-31T10:05:00+07:00'
+        requestVersion: 1
+        contentHash: a3f1000000000000000000000000000000000000000000000000000000000000
+        certificateRef: SIM-CERT-CARO-01
+        state: VALID
+        displayText: signed by Carol
+    - requestId: 312
+      requestNo: PR-0018
+      outcome: REFUSED
+      refusalCode: SEPARATION_OF_DUTIES
+      message: You processed an invoice in this request
+      invoiceId: 1042
+      sendStarted: false

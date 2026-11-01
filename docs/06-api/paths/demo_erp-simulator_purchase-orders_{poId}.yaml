@@ -1,0 +1,45 @@
+get:
+  tags:
+    - Demo
+  summary: Get a simulator purchase order
+  description: >-
+    Disabled outside a demo deployment: the server answers 404
+    RESOURCE_NOT_FOUND when the demo flag is off (D-143). Demo Operator only
+    (AC-08.7); every other role gets 403. One order with its lines and received
+    quantities.
+  operationId: getSimPurchaseOrder
+  security:
+    - sessionCookie: []
+  x-roles:
+    - DEMO_OPERATOR
+  x-stories:
+    - US-08
+  x-rules:
+    - BR-15
+  x-screens:
+    - SCR-80
+    - SCR-82
+  x-tables:
+    - sim_purchase_orders
+    - sim_po_lines
+    - sim_receipt_lines
+    - sim_personas
+  x-criteria:
+    - AC-08.5
+  parameters:
+    - $ref: ../components/parameters/poId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/SimPurchaseOrder.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '404':
+      $ref: ../components/responses/NotFound.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

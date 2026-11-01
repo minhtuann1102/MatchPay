@@ -1,0 +1,28 @@
+description: >-
+  Access denied, or the actor may not act because of separation of duties
+  (BR-02, BR-36). `context.invoiceId` names the invoice that causes it.
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    examples:
+      accessDenied:
+        value:
+          type: https://matchpay.example/problems/access-denied
+          title: Access denied
+          status: 403
+          detail: Access denied
+          errorCode: ACCESS_DENIED
+          traceId: 4f1c9a6e8b2d47a0
+      separation:
+        value:
+          type: https://matchpay.example/problems/separation-of-duties
+          title: Separation of duties
+          status: 403
+          detail: You processed an invoice in this request
+          errorCode: SEPARATION_OF_DUTIES
+          traceId: 4f1c9a6e8b2d47a0
+          context:
+            invoiceId: 1042
+            invoiceNumber: C26TAA-0000123
+            blockCode: PROCESSED_INVOICE

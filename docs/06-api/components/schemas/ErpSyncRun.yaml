@@ -1,0 +1,38 @@
+type: object
+description: One run of the ERP sync of the caller's entity.
+required:
+  - id
+  - startedAt
+  - status
+  - recordsRead
+  - recordsStored
+  - recordsRejected
+properties:
+  id:
+    $ref: ./Id.yaml
+  startedAt:
+    type: string
+    format: date-time
+  finishedAt:
+    type: string
+    format: date-time
+    nullable: true
+  status:
+    $ref: ./SyncStatus.yaml
+  recordsRead:
+    type: integer
+  recordsStored:
+    type: integer
+  recordsRejected:
+    type: integer
+  errorMessage:
+    type: string
+    nullable: true
+example:
+  id: 880
+  startedAt: '2026-10-31T09:15:00+07:00'
+  finishedAt: '2026-10-31T09:15:12+07:00'
+  status: SUCCESS
+  recordsRead: 214
+  recordsStored: 212
+  recordsRejected: 2

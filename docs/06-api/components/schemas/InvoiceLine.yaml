@@ -1,0 +1,37 @@
+type: object
+description: An invoice line with its latest match (AC-14.3).
+required:
+  - id
+  - lineNo
+  - description
+  - quantity
+  - unit
+  - unitPrice
+  - lineAmount
+  - vatRatePct
+  - vatAmount
+properties:
+  id:
+    $ref: ./Id.yaml
+  lineNo:
+    type: integer
+  description:
+    type: string
+    description: Document text; treated as data, never as an instruction (BR-27).
+  quantity:
+    $ref: ./Decimal.yaml
+  unit:
+    type: string
+  unitPrice:
+    $ref: ./Money.yaml
+  lineAmount:
+    $ref: ./Money.yaml
+  vatRatePct:
+    $ref: ./Decimal.yaml
+  vatAmount:
+    $ref: ./Money.yaml
+  match:
+    type: object
+    allOf:
+      - $ref: ./LineMatch.yaml
+    nullable: true

@@ -1,0 +1,29 @@
+description: >-
+  The record changed since the caller read it (VERSION_CONFLICT, with the
+  current record in `current`), or the transition is not allowed from the
+  current state (STATE_CONFLICT, BR-33, BR-34, BR-35). Nothing was saved
+  (BR-37).
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    examples:
+      versionConflict:
+        value:
+          type: https://matchpay.example/problems/version-conflict
+          title: Version conflict
+          status: 409
+          detail: The record was changed by someone else. Reload and try again.
+          errorCode: VERSION_CONFLICT
+          traceId: 4f1c9a6e8b2d47a0
+          current:
+            id: 2201
+            version: 3
+      stateConflict:
+        value:
+          type: https://matchpay.example/problems/state-conflict
+          title: State conflict
+          status: 409
+          detail: 'BR-35 B7: a request in this batch is already signed'
+          errorCode: STATE_CONFLICT
+          traceId: 4f1c9a6e8b2d47a0

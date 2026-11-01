@@ -1,0 +1,48 @@
+type: object
+description: >-
+  A recorded cancellation notice and its effect (BR-31, D-94). recordedBy is
+  NULL when the status feed caused it.
+required:
+  - id
+  - invoiceId
+  - source
+  - noticeReference
+  - noticeDate
+  - recordedAt
+  - invoiceStateAtNotice
+  - effect
+properties:
+  id:
+    $ref: ./Id.yaml
+  invoiceId:
+    $ref: ./Id.yaml
+  source:
+    $ref: ./CancelSource.yaml
+  noticeReference:
+    type: string
+  noticeDate:
+    type: string
+    format: date
+  fileName:
+    type: string
+    nullable: true
+  fileSha256:
+    type: string
+    nullable: true
+  recordedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  recordedAt:
+    type: string
+    format: date-time
+  invoiceStateAtNotice:
+    $ref: ./InvoiceState.yaml
+  effect:
+    $ref: ./CancellationEffect.yaml
+  requestId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true

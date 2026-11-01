@@ -1,0 +1,50 @@
+get:
+  tags:
+    - ERP sync
+  summary: List items of the entity
+  description: >-
+    Lists the ERP items with their unit conversions, for confirming a line match
+    (AC-18.2, AC-14.3). Own entity only (BR-09).
+  operationId: listErpItems
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-14
+    - US-18
+  x-rules:
+    - BR-25
+    - BR-28
+  x-screens:
+    - SCR-12
+  x-tables:
+    - erp_items
+    - erp_unit_conversions
+  x-criteria:
+    - AC-14.3
+    - AC-18.2
+  parameters:
+    - name: q
+      in: query
+      required: false
+      description: Part of the item name.
+      schema:
+        type: string
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErpItemPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

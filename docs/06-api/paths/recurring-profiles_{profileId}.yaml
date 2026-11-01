@@ -1,0 +1,95 @@
+get:
+  tags:
+    - Recurring profiles
+  summary: Get a recurring profile
+  description: >-
+    Returns the profile with its earlier periods and average. Another entity's
+    profile gives 403 ACCESS_DENIED (AC-09.6).
+  operationId: getRecurringProfile
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-09
+  x-rules:
+    - BR-09
+    - BR-24
+  x-screens:
+    - SCR-20
+    - SCR-21
+  x-tables:
+    - recurring_profiles
+    - recurring_profile_periods
+    - erp_suppliers
+  x-criteria:
+    - AC-09.4
+    - AC-09.6
+  parameters:
+    - $ref: ../components/parameters/profileId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/RecurringProfile.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+patch:
+  tags:
+    - Recurring profiles
+  summary: Change a recurring profile
+  description: >-
+    Changes a profile with the same checks as creation. A Chief Accountant, a
+    Payment Approver, or an AP Accountant of another entity gets 403
+    ACCESS_DENIED (AC-09.6). Carries `version`. Appends to audit_log.
+  operationId: updateRecurringProfile
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-09
+  x-rules:
+    - BR-09
+    - BR-24
+  x-screens:
+    - SCR-21
+  x-tables:
+    - recurring_profiles
+    - audit_log
+  x-criteria:
+    - AC-09.2
+    - AC-09.3
+    - AC-09.6
+  parameters:
+    - $ref: ../components/parameters/profileId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/RecurringProfileUpdate.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/RecurringProfile.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

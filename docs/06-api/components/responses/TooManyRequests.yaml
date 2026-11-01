@@ -1,0 +1,15 @@
+description: Too many requests (DF-88). `Retry-After` gives the seconds.
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    examples:
+      rateLimited:
+        value:
+          type: https://matchpay.example/problems/rate-limited
+          title: Too many requests
+          status: 429
+          detail: Try again later
+          errorCode: RATE_LIMITED
+          traceId: 4f1c9a6e8b2d47a0
+          retryAfterSeconds: 30

@@ -1,0 +1,73 @@
+post:
+  tags:
+    - Tax-risk decisions
+  summary: Decide on a tax-risk hold
+  description: >-
+    The Chief Accountant releases or rejects an invoice held for a supplier on
+    the tax-risk list, with a required reason (AC-21.3..AC-21.5, BR-08). Release
+    re-runs UC-16 and the invoice is admitted only if the other conditions hold
+    (202 with the run); Reject makes the invoice Rejected. Carries `version`: a
+    second decision on the same hold gets 409 VERSION_CONFLICT (AC-21.8). An AP
+    Accountant or a Payment Approver gets 403 (AC-21.7). Appends to audit_log
+    with who, when, and why (AC-21.9). The decision does not count as processing
+    the invoice (D-89, AC-25.17).
+  operationId: decideTaxRiskHold
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - CHIEF_ACCOUNTANT
+  x-stories:
+    - US-21
+  x-rules:
+    - BR-08
+    - BR-12
+    - BR-34
+    - BR-37
+  x-screens:
+    - SCR-16
+    - SCR-12
+    - SCR-40
+  x-tables:
+    - tax_risk_decisions
+    - tax_risk_entries
+    - exceptions
+    - exception_reasons
+    - invoices
+    - invoice_check_runs
+    - audit_log
+  x-criteria:
+    - AC-21.1
+    - AC-21.2
+    - AC-21.3
+    - AC-21.4
+    - AC-21.5
+    - AC-21.6
+    - AC-21.7
+    - AC-21.8
+    - AC-21.9
+  parameters:
+    - $ref: ../components/parameters/exceptionId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/TaxRiskDecisionRequest.yaml
+  responses:
+    '202':
+      description: Decision saved; a check run is queued after a release
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ExceptionActionResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

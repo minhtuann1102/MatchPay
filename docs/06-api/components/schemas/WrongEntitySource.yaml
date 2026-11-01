@@ -1,0 +1,9 @@
+type: string
+description: Same values as the DBML enum `wrong_entity_source`.
+enum:
+  - BUYER_TAX_CODE
+  - BUYER_NAME
+  - ORDER_REFERENCE
+  - ERP_DATA
+  - NOT_TRACED
+x-dbml-enum: wrong_entity_source

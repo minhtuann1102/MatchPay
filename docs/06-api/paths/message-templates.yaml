@@ -1,0 +1,39 @@
+get:
+  tags:
+    - Corrections and follow-ups
+  summary: List the approved request templates
+  description: >-
+    The three templates approved by the Chief Accountant (DF-21): correction
+    request, data-fix notice, and reissue request. The AP Accountant gets the
+    blank template when the LLM is down (AC-19.7).
+  operationId: listMessageTemplates
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+  x-stories:
+    - US-19
+  x-rules:
+    - BR-26
+    - BR-27
+  x-screens:
+    - SCR-14
+  x-tables:
+    - message_templates
+  x-criteria:
+    - AC-19.1
+    - AC-19.7
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/MessageTemplateList.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

@@ -1,0 +1,26 @@
+type: object
+description: One expansion of the sample (AC-24.12).
+required:
+  - id
+  - expansionNo
+  - expandedBy
+  - expandedAt
+  - reason
+  - method
+  - itemsAdded
+properties:
+  id:
+    $ref: ./Id.yaml
+  expansionNo:
+    type: integer
+  expandedBy:
+    $ref: ./Id.yaml
+  expandedAt:
+    type: string
+    format: date-time
+  reason:
+    type: string
+  method:
+    $ref: ./SampleMethod.yaml
+  itemsAdded:
+    type: integer

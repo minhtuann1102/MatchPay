@@ -1,0 +1,34 @@
+type: object
+description: >-
+  Confirm a receipt or acceptance (AC-08.2, AC-08.6). It has no field that takes
+  data from an invoice (BR-13, AC-08.4).
+required:
+  - entityId
+  - personaId
+  - poId
+  - lines
+properties:
+  entityId:
+    $ref: ./Id.yaml
+  personaId:
+    allOf:
+      - $ref: ./Id.yaml
+    description: >-
+      Warehouse keeper or acceptor persona; must differ from the order creator
+      (BR-02, AC-08.3).
+  poId:
+    $ref: ./Id.yaml
+  deliveryNote:
+    type: string
+  lines:
+    type: array
+    items:
+      $ref: ./SimReceiptLine.yaml
+example:
+  entityId: 1
+  personaId: 2
+  poId: 8001
+  deliveryNote: 60 of 100 received, 40 outstanding
+  lines:
+    - poLineId: 1
+      quantityReceived: '60.000'

@@ -1,0 +1,59 @@
+post:
+  tags:
+    - Exceptions
+  summary: Reject the invoice
+  description: >-
+    Rejects the invoice with a required reason; the invoice is Rejected and the
+    exception closes with the outcome Rejected (AC-18.6, V13, E11). It is the
+    only resolution of "Unsupported: foreign invoice" (AC-12.9). Carries
+    `version`. Appends to audit_log.
+  operationId: rejectInvoice
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-18
+    - US-12
+  x-rules:
+    - BR-33
+    - BR-34
+    - BR-37
+  x-screens:
+    - SCR-15
+    - SCR-12
+  x-tables:
+    - exceptions
+    - exception_reasons
+    - invoices
+    - audit_log
+  x-criteria:
+    - AC-12.9
+    - AC-18.6
+    - AC-18.7
+  parameters:
+    - $ref: ../components/parameters/exceptionId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/RejectInvoiceRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Exception.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

@@ -1,0 +1,68 @@
+get:
+  tags:
+    - Dashboard and group overview
+  summary: Get the dashboard of the own entity
+  description: >-
+    Touchless rate with its counts and formula (AC-27.1), the AI misplacement
+    rate beside it with the note that the sample is weighted by risk (AC-27.2,
+    AC-27.4), and the exception backlog by state and age 0 to 2, 3 to 7, over 7
+    days (AC-27.3). Rejected invoices stay in the denominator and Waiting for
+    Goods is shown as a separate count (AC-27.5). Employee-expense invoices are
+    left out of the denominator (BR-23, D-14); the simulated gate history is
+    left out (AC-06.10). Entity Admin and the finance roles see the own entity
+    only (AC-27.8). A Group Admin uses getGroupDashboard; a Demo Operator and a
+    Requesting Department user get 403. A period with no invoices returns
+    `isEmpty` true (AC-27.9). Everything is computed (D-142).
+  operationId: getDashboard
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+    - ENTITY_ADMIN
+  x-stories:
+    - US-27
+  x-rules:
+    - BR-05
+    - BR-07
+    - BR-23
+  x-screens:
+    - SCR-60
+  x-tables:
+    - invoices
+    - exceptions
+    - batch_items
+    - batch_sample_items
+    - payment_batches
+    - gate_comparisons
+  x-criteria:
+    - AC-27.1
+    - AC-27.2
+    - AC-27.3
+    - AC-27.4
+    - AC-27.5
+    - AC-27.8
+    - AC-27.9
+  parameters:
+    - name: period
+      in: query
+      required: false
+      description: Calendar month as YYYY-MM; default the current month (DF-23).
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Dashboard.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

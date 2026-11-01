@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `decision_role`.
+enum:
+  - CHIEF_ACCOUNTANT
+  - PAYMENT_APPROVER
+x-dbml-enum: decision_role

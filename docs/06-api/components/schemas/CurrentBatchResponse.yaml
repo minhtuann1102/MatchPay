@@ -1,0 +1,16 @@
+type: object
+description: The batch the Batch Review page shows.
+required:
+  - periodStart
+properties:
+  periodStart:
+    type: string
+    format: date
+  batch:
+    type: object
+    allOf:
+      - $ref: ./Batch.yaml
+    nullable: true
+    description: >-
+      NULL until the first invoice of the period is admitted (B1). The empty
+      state of SCR-30.

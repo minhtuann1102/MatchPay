@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `signature_state`.
+enum:
+  - VALID
+  - VOIDED
+x-dbml-enum: signature_state

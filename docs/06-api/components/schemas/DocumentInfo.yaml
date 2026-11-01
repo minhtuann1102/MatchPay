@@ -1,0 +1,23 @@
+type: object
+description: The stored original XML of an invoice.
+required:
+  - sha256
+  - byteSize
+  - storedAt
+properties:
+  sha256:
+    type: string
+    description: SHA-256 of the original XML, stored unchanged (AC-10.1).
+  byteSize:
+    type: integer
+  schemaVersion:
+    type: string
+    nullable: true
+  storedAt:
+    type: string
+    format: date-time
+  storedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true

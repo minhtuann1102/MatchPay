@@ -1,0 +1,9 @@
+type: string
+description: Same values as the DBML enum `rule_decision`.
+enum:
+  - ADMITTED
+  - EXCEPTION
+  - WAITING_FOR_GOODS
+  - SEPARATED
+  - REJECTED
+x-dbml-enum: rule_decision

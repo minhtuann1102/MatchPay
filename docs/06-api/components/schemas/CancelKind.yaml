@@ -1,0 +1,8 @@
+type: string
+description: Same values as the DBML enum `cancel_kind`.
+enum:
+  - DECLINED
+  - ALL_LINES_REMOVED
+  - CANCELLATION_NOTICE
+  - BATCH_REOPENED
+x-dbml-enum: cancel_kind

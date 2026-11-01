@@ -1,0 +1,12 @@
+type: object
+description: One page of Notification records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./Notification.yaml
+  meta:
+    $ref: ./PageMeta.yaml

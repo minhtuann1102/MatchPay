@@ -1,0 +1,27 @@
+type: object
+description: Approve or decline an exception at the approver level.
+required:
+  - decision
+  - versions
+properties:
+  decision:
+    $ref: ./ApprovalDecision.yaml
+  reason:
+    type: string
+    description: Required for DECLINED (AC-23.5).
+  versions:
+    type: array
+    items:
+      $ref: ./LinkVersion.yaml
+    description: >-
+      The exception and, for split orders, every linked exception with its
+      version; all are decided in one action (D-70).
+example:
+  decision: APPROVED
+  versions:
+    - exceptionId: 2205
+      version: 3
+    - exceptionId: 2206
+      version: 3
+    - exceptionId: 2207
+      version: 3

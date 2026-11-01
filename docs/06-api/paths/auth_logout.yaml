@@ -1,0 +1,38 @@
+post:
+  tags:
+    - Session
+  summary: Log out
+  description: >-
+    Ends the server-side session and clears the cookie. A later Back-button
+    request to a protected page gets 401 AUTH_SESSION_EXPIRED (AC-01.9).
+  operationId: logout
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+    - REQUESTING_DEPARTMENT
+    - ENTITY_ADMIN
+    - GROUP_ADMIN
+    - DEMO_OPERATOR
+  x-stories:
+    - US-01
+  x-rules: []
+  x-screens:
+    - SCR-01
+  x-tables:
+    - users
+    - audit_log
+  x-criteria:
+    - AC-01.9
+  responses:
+    '204':
+      description: Session ended; no body
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

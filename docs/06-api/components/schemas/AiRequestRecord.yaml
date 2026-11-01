@@ -1,0 +1,26 @@
+type: object
+description: One embedding or LLM call of the run. No document text is stored (D-59).
+required:
+  - task
+  - callKind
+  - modelVersion
+  - promptVersion
+  - outcome
+  - requestedAt
+properties:
+  task:
+    $ref: ./AiTask.yaml
+  callKind:
+    $ref: ./AiCallKind.yaml
+  modelVersion:
+    type: string
+  promptVersion:
+    type: string
+  outcome:
+    $ref: ./AiOutcome.yaml
+  latencyMs:
+    type: integer
+    nullable: true
+  requestedAt:
+    type: string
+    format: date-time

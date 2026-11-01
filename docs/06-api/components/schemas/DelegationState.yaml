@@ -1,0 +1,7 @@
+type: string
+description: Computed state of a delegation (AC-30.9). Not stored.
+enum:
+  - SCHEDULED
+  - ACTIVE
+  - ENDED
+  - REVOKED

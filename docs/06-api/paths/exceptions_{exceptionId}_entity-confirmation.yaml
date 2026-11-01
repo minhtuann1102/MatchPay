@@ -1,0 +1,57 @@
+post:
+  tags:
+    - Exceptions
+  summary: Confirm the entity of an invoice
+  description: >-
+    For the exception "Entity unconfirmed" (AC-13.2): the AP Accountant confirms
+    that the entity the invoice was uploaded for is right. An invoice never
+    changes entity (D-68). A run follows; 202.
+  operationId: confirmEntity
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-13
+    - US-18
+  x-rules:
+    - BR-01
+    - BR-34
+    - BR-37
+  x-screens:
+    - SCR-12
+  x-tables:
+    - exceptions
+    - exception_reasons
+    - invoices
+    - invoice_check_runs
+    - audit_log
+  x-criteria:
+    - AC-13.2
+    - AC-18.3
+  parameters:
+    - $ref: ../components/parameters/exceptionId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/VersionOnly.yaml
+  responses:
+    '202':
+      description: Saved; check run queued
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ExceptionActionResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

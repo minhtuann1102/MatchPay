@@ -1,0 +1,66 @@
+type: object
+description: >-
+  One anomaly check result with the numbers behind it (AC-15.9). Related
+  invoices are those of the same entity only (BR-09).
+required:
+  - id
+  - kind
+  - result
+  - relatedInvoiceIds
+  - createdAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  kind:
+    $ref: ./AnomalyKind.yaml
+  result:
+    $ref: ./AnomalyResult.yaml
+  observedValue:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  referenceValue:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  deviationPct:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  limitPct:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  sampleCount:
+    type: integer
+    nullable: true
+  windowDays:
+    type: integer
+    nullable: true
+  combinedAmount:
+    type: string
+    allOf:
+      - $ref: ./Money.yaml
+    nullable: true
+  relatedInvoiceIds:
+    type: array
+    items:
+      $ref: ./Id.yaml
+  invoiceLineId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  detail:
+    type: string
+    nullable: true
+    description: >-
+      The numbers behind the finding, for example "median VND 60,000 from 6
+      purchases: +20.8%".
+  createdAt:
+    type: string
+    format: date-time

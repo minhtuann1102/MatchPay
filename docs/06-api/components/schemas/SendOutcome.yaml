@@ -1,0 +1,9 @@
+type: string
+description: Same values as the DBML enum `send_outcome`.
+enum:
+  - PENDING
+  - DELIVERED
+  - UNAVAILABLE
+  - REJECTED_BY_ERP
+  - HASH_MISMATCH
+x-dbml-enum: send_outcome

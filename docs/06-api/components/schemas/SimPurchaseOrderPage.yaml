@@ -1,0 +1,12 @@
+type: object
+description: One page of SimPurchaseOrder records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./SimPurchaseOrder.yaml
+  meta:
+    $ref: ./PageMeta.yaml

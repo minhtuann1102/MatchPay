@@ -1,0 +1,27 @@
+type: object
+description: Mailbox address, last fetch, and failure warning (computed, D-142).
+required:
+  - mailboxAddress
+  - isStale
+properties:
+  mailboxAddress:
+    type: string
+  lastSuccessAt:
+    type: string
+    format: date-time
+    nullable: true
+  lastRun:
+    type: object
+    allOf:
+      - $ref: ./MailboxFetchRun.yaml
+    nullable: true
+  isStale:
+    type: boolean
+    description: True when the latest fetch failed after the last success (AC-31.7).
+  failureMessage:
+    type: string
+    nullable: true
+example:
+  mailboxAddress: invoices-foods@calderwood.example
+  lastSuccessAt: '2026-10-31T09:15:00+07:00'
+  isStale: false

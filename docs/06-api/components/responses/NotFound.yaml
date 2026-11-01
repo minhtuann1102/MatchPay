@@ -1,0 +1,17 @@
+description: >-
+  The resource does not exist. Used only for unscoped lookups such as the demo
+  routes when the demo flag is off (D-139, D-143); an id outside the caller's
+  scope gives 403 instead.
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    examples:
+      notFound:
+        value:
+          type: https://matchpay.example/problems/resource-not-found
+          title: Not found
+          status: 404
+          detail: No such resource
+          errorCode: RESOURCE_NOT_FOUND
+          traceId: 4f1c9a6e8b2d47a0

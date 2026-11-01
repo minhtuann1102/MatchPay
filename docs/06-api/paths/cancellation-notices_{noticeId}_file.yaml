@@ -1,0 +1,44 @@
+get:
+  tags:
+    - Corrections and follow-ups
+  summary: Download a cancellation notice file
+  description: >-
+    Returns the notice file unchanged; the SHA-256 is in the `X-Content-SHA256`
+    header (DF-81).
+  operationId: downloadCancellationNotice
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-18
+  x-rules: []
+  x-screens:
+    - SCR-12
+  x-tables:
+    - cancellation_notices
+  x-criteria:
+    - AC-18.13
+  parameters:
+    - $ref: ../components/parameters/noticeId.yaml
+  responses:
+    '200':
+      description: Notice file
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
+      headers:
+        X-Content-SHA256:
+          description: SHA-256 of the stored bytes
+          schema:
+            type: string
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

@@ -1,0 +1,12 @@
+type: object
+description: One page of RecurringProfile records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./RecurringProfile.yaml
+  meta:
+    $ref: ./PageMeta.yaml

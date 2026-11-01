@@ -1,0 +1,25 @@
+type: object
+description: >-
+  Name a delegate (AC-30.1). At most 30 days, starting today or later, no
+  overlap (DF-62, DF-77).
+required:
+  - delegateId
+  - validFrom
+  - validTo
+  - reason
+properties:
+  delegateId:
+    $ref: ./Id.yaml
+  validFrom:
+    type: string
+    format: date
+  validTo:
+    type: string
+    format: date
+  reason:
+    type: string
+example:
+  delegateId: 13
+  validFrom: '2026-11-10'
+  validTo: '2026-11-14'
+  reason: Annual leave

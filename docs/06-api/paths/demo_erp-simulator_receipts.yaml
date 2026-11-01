@@ -1,0 +1,120 @@
+get:
+  tags:
+    - Demo
+  summary: List simulator receipts and acceptances
+  description: >-
+    Disabled outside a demo deployment: the server answers 404
+    RESOURCE_NOT_FOUND when the demo flag is off (D-143). Demo Operator only
+    (AC-08.7); every other role gets 403. Receipts and service acceptances of
+    the entity (SCR-80).
+  operationId: listSimReceipts
+  security:
+    - sessionCookie: []
+  x-roles:
+    - DEMO_OPERATOR
+  x-stories:
+    - US-08
+  x-rules:
+    - BR-09
+  x-screens:
+    - SCR-80
+  x-tables:
+    - sim_receipts
+    - sim_receipt_lines
+    - sim_purchase_orders
+    - sim_personas
+  x-criteria:
+    - AC-08.2
+    - AC-08.6
+    - AC-08.8
+  parameters:
+    - name: entityId
+      in: query
+      required: true
+      description: The entity the Demo Operator works in.
+      schema:
+        $ref: ../components/schemas/Id.yaml
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/SimReceiptPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '404':
+      $ref: ../components/responses/NotFound.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+post:
+  tags:
+    - Demo
+  summary: Confirm a simulator receipt or acceptance
+  description: >-
+    Disabled outside a demo deployment: the server answers 404
+    RESOURCE_NOT_FOUND when the demo flag is off (D-143). Demo Operator only
+    (AC-08.7); every other role gets 403. Stores a receipt (goods) or an
+    acceptance (service) with a reference to the order (AC-08.2, AC-08.6, BR-13,
+    BR-19). A receipt without an order reference is rejected (AC-08.4). The same
+    persona that created the order is refused with 403 SEPARATION_OF_DUTIES "The
+    receipt must be confirmed by a different person than the order creator"
+    (AC-08.3, BR-02). A partial quantity leaves the order open (AC-08.5, BR-15).
+  operationId: confirmSimReceipt
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - DEMO_OPERATOR
+  x-stories:
+    - US-08
+  x-rules:
+    - BR-02
+    - BR-13
+    - BR-15
+    - BR-19
+  x-screens:
+    - SCR-82
+    - SCR-80
+  x-tables:
+    - sim_receipts
+    - sim_receipt_lines
+    - sim_purchase_orders
+    - sim_po_lines
+    - sim_personas
+    - entities
+  x-criteria:
+    - AC-08.2
+    - AC-08.3
+    - AC-08.4
+    - AC-08.5
+    - AC-08.6
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/SimReceiptCreate.yaml
+  responses:
+    '201':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/SimReceipt.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/ForbiddenSod.yaml
+    '404':
+      $ref: ../components/responses/NotFound.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

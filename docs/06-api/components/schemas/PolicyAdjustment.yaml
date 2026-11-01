@@ -1,0 +1,19 @@
+type: object
+description: An entity value lowered because a group maximum went below it (AC-03.4).
+required:
+  - entityId
+  - entityName
+  - field
+  - oldValue
+  - newValue
+properties:
+  entityId:
+    $ref: ./Id.yaml
+  entityName:
+    type: string
+  field:
+    $ref: ./PolicyField.yaml
+  oldValue:
+    $ref: ./Decimal.yaml
+  newValue:
+    $ref: ./Decimal.yaml

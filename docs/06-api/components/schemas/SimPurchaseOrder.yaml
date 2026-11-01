@@ -1,0 +1,57 @@
+type: object
+description: A purchase order in the simulated ERP.
+required:
+  - id
+  - entityId
+  - poNumber
+  - supplierErpRef
+  - kind
+  - orderDate
+  - createdByPersona
+  - createdAt
+  - lines
+properties:
+  id:
+    $ref: ./Id.yaml
+  entityId:
+    $ref: ./Id.yaml
+  poNumber:
+    type: string
+  supplierErpRef:
+    type: string
+  kind:
+    $ref: ./OrderKind.yaml
+  orderDate:
+    type: string
+    format: date
+  createdByPersona:
+    $ref: ./SimPersona.yaml
+  createdAt:
+    type: string
+    format: date-time
+  lines:
+    type: array
+    items:
+      $ref: ./SimPoLine.yaml
+example:
+  id: 8001
+  entityId: 1
+  poNumber: PO-CF-1001
+  supplierErpRef: SUP-0051
+  kind: GOODS
+  orderDate: '2026-10-20'
+  createdByPersona:
+    id: 1
+    kind: BUYER
+    erpRef: ERPU-301
+    displayName: Buyer Bao
+  createdAt: '2026-10-20T08:00:00+07:00'
+  lines:
+    - id: 1
+      lineNo: 1
+      itemErpRef: ITM-A4
+      quantity: '100.000'
+      unit: ream
+      unitPrice: '60000.00'
+      quantityReceived: '60.000'
+      outstanding: '40.000'

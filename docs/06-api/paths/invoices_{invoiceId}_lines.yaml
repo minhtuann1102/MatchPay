@@ -1,0 +1,46 @@
+get:
+  tags:
+    - Invoices
+  summary: List the lines of an invoice
+  description: >-
+    Returns the lines with the latest match of each, the unit arithmetic, and
+    the method (AC-14.3, AC-17.2). Line text is document content and is treated
+    as data (BR-27).
+  operationId: listInvoiceLines
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-14
+    - US-17
+  x-rules:
+    - BR-27
+    - BR-28
+  x-screens:
+    - SCR-12
+  x-tables:
+    - invoice_lines
+    - invoice_line_matches
+    - erp_items
+    - erp_unit_conversions
+  x-criteria:
+    - AC-14.3
+    - AC-17.2
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/InvoiceLineList.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

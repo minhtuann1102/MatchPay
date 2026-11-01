@@ -1,0 +1,18 @@
+type: object
+description: Record the gate comparison for a "Gate closed" exception.
+required:
+  - version
+  - allUnchanged
+properties:
+  version:
+    $ref: ./Version.yaml
+  allUnchanged:
+    type: boolean
+    description: >-
+      True when every AI result stood unchanged; counts for the accuracy of the
+      pair (AC-18.4, DF-17).
+  changedItems:
+    type: string
+example:
+  version: 2
+  allUnchanged: true

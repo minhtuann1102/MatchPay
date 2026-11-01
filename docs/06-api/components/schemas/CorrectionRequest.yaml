@@ -1,0 +1,95 @@
+type: object
+description: >-
+  A correction request, data-fix notice, or reissue request. Nothing is sent
+  until the AP Accountant presses Send (AC-19.2).
+required:
+  - id
+  - exceptionId
+  - kind
+  - templateId
+  - recipientType
+  - body
+  - isBlankTemplate
+  - aiGenerated
+  - sendStatus
+  - attemptCount
+  - createdAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  exceptionId:
+    $ref: ./Id.yaml
+  kind:
+    $ref: ./MessageKind.yaml
+  templateId:
+    $ref: ./Id.yaml
+  recipientType:
+    $ref: ./RecipientType.yaml
+  recipientName:
+    type: string
+    nullable: true
+  recipientAddress:
+    type: string
+    nullable: true
+  subject:
+    type: string
+    nullable: true
+  aiDraft:
+    type: string
+    nullable: true
+  body:
+    type: string
+  isBlankTemplate:
+    type: boolean
+    description: >-
+      True when the LLM was unavailable and the blank approved template is
+      returned (AC-19.7).
+  aiGenerated:
+    type: boolean
+  sendStatus:
+    $ref: ./SendStatus.yaml
+  attemptCount:
+    type: integer
+  lastError:
+    type: string
+    nullable: true
+  sentBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  sentAt:
+    type: string
+    format: date-time
+    nullable: true
+  replyDueAt:
+    type: string
+    format: date-time
+    nullable: true
+  replyRecordedAt:
+    type: string
+    format: date-time
+    nullable: true
+  createdAt:
+    type: string
+    format: date-time
+example:
+  id: 301
+  exceptionId: 2201
+  kind: CORRECTION_REQUEST
+  templateId: 1
+  recipientType: SUPPLIER
+  recipientName: Brightfield Paper Ltd
+  recipientAddress: billing@brightfield.example
+  subject: Correction for invoice C26TAA-0000123
+  aiDraft: >-
+    Dear Brightfield Paper Ltd, invoice C26TAA-0000123 shows 105 reams against
+    100 received on PO-CF-1001.
+  body: >-
+    Dear Brightfield Paper Ltd, invoice C26TAA-0000123 shows 105 reams against
+    100 received on PO-CF-1001.
+  isBlankTemplate: false
+  aiGenerated: true
+  sendStatus: DRAFT
+  attemptCount: 0
+  createdAt: '2026-10-31T09:30:00+07:00'

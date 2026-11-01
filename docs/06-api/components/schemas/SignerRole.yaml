@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `signer_role`.
+enum:
+  - CHIEF_ACCOUNTANT
+  - PAYMENT_APPROVER
+x-dbml-enum: signer_role

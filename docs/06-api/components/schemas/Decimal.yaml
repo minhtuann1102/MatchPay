@@ -1,0 +1,4 @@
+type: string
+pattern: ^-?[0-9]{1,14}(\.[0-9]{1,6})?$
+description: Quantity, rate, percentage, or probability as a decimal string (D-138).
+example: '2.00'

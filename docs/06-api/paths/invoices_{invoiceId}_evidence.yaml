@@ -1,0 +1,102 @@
+get:
+  tags:
+    - Checks and evidence
+  summary: Get the evidence of an invoice
+  description: >-
+    The evidence panel of SCR-12 from the latest check run: authority status
+    with its date and lookup time (AC-10.16), the matched order and receipt with
+    their sync time, flow with reason and confidence, line matches, anomaly
+    numbers, each of the six BR-05 conditions with its value, the exception, the
+    service acceptance with its source (ERP or Requesting Department, AC-29.4),
+    stored cancellation notices (AC-18.15), and the payment request with
+    signature records (AC-25.15, AC-30.10). AI text is marked `aiGenerated`
+    (AC-17.3). An order of another entity is shown as not found with no content
+    (AC-13.6). A duplicate in another entity is only a flag (AC-17.6). Read-only
+    for Chief Accountant and Payment Approver.
+  operationId: getInvoiceEvidence
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-13
+    - US-15
+    - US-16
+    - US-17
+    - US-14
+    - US-12
+    - US-26
+    - US-29
+    - US-30
+    - US-25
+  x-rules:
+    - BR-05
+    - BR-09
+    - BR-12
+    - BR-14
+    - BR-19
+    - BR-20
+    - BR-27
+    - BR-38
+  x-screens:
+    - SCR-12
+  x-tables:
+    - invoices
+    - invoice_documents
+    - invoice_receipts
+    - erp_purchase_orders
+    - erp_po_lines
+    - erp_receipts
+    - erp_receipt_lines
+    - erp_users
+    - authority_status_lookups
+    - ai_flow_classifications
+    - ai_identifications
+    - invoice_line_matches
+    - anomaly_findings
+    - anomaly_finding_invoices
+    - rule_evaluations
+    - rule_condition_results
+    - exceptions
+    - service_acceptances
+    - cancellation_notices
+    - payment_request_lines
+    - payment_requests
+    - request_signatures
+    - recurring_profiles
+    - recurring_profile_periods
+  x-criteria:
+    - AC-12.1
+    - AC-13.1
+    - AC-13.6
+    - AC-14.3
+    - AC-15.9
+    - AC-17.2
+    - AC-17.3
+    - AC-17.6
+    - AC-18.9
+    - AC-18.15
+    - AC-25.15
+    - AC-26.2
+    - AC-29.2
+    - AC-29.4
+    - AC-30.10
+    - AC-16.1
+    - AC-16.2
+  parameters:
+    - $ref: ../components/parameters/invoiceId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/InvoiceEvidence.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

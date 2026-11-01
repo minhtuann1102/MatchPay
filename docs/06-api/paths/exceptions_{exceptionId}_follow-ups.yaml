@@ -1,0 +1,48 @@
+get:
+  tags:
+    - Corrections and follow-ups
+  summary: List follow-up invoices of an exception
+  description: >-
+    Follow-up invoices linked to the exception, automatically when a new invoice
+    of the same supplier refers to the original or matches the same order
+    (AC-20.1, BR-26). Never links a supplier of another entity (AC-20.8).
+  operationId: listFollowUps
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-20
+  x-rules:
+    - BR-09
+    - BR-26
+    - BR-31
+  x-screens:
+    - SCR-12
+  x-tables:
+    - exception_follow_up_links
+    - invoice_corrections
+    - invoices
+  x-criteria:
+    - AC-20.1
+    - AC-20.2
+    - AC-20.3
+    - AC-20.4
+    - AC-20.5
+    - AC-20.7
+    - AC-20.8
+  parameters:
+    - $ref: ../components/parameters/exceptionId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/FollowUpLinkList.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

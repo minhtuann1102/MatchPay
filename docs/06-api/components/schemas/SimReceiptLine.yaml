@@ -1,0 +1,10 @@
+type: object
+description: A received quantity for an order line.
+required:
+  - poLineId
+  - quantityReceived
+properties:
+  poLineId:
+    $ref: ./Id.yaml
+  quantityReceived:
+    $ref: ./Decimal.yaml

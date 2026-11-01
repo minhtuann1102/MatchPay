@@ -1,0 +1,9 @@
+type: object
+description: Carries only the version last read.
+required:
+  - version
+properties:
+  version:
+    $ref: ./Version.yaml
+example:
+  version: 3

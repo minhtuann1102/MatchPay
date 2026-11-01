@@ -1,0 +1,10 @@
+type: string
+description: Same values as the DBML enum `exception_state`.
+enum:
+  - OPEN
+  - IN_REVIEW
+  - WAITING_FOR_SUPPLIER
+  - WAITING_FOR_DATA_FIX
+  - WAITING_FOR_DECISION
+  - CLOSED
+x-dbml-enum: exception_state

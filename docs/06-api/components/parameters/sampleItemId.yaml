@@ -1,0 +1,6 @@
+name: sampleItemId
+in: path
+required: true
+description: Identifier of a sample item of the batch.
+schema:
+  $ref: ../schemas/Id.yaml

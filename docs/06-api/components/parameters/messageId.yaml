@@ -1,0 +1,6 @@
+name: messageId
+in: path
+required: true
+description: Identifier of a mailbox message of the caller's entity.
+schema:
+  $ref: ../schemas/Id.yaml

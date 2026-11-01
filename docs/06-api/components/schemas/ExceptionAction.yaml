@@ -1,0 +1,17 @@
+type: string
+description: Actions available to the caller on this exception now (UI hint only, D-133).
+enum:
+  - TAKE
+  - CONFIRM_LINE_MATCH
+  - CORRECT_FLOW
+  - CONFIRM_ENTITY
+  - REPORT_WRONG_ENTITY
+  - CONFIRM_AI_RESULTS
+  - REQUEST_CORRECTION
+  - REQUEST_DATA_FIX
+  - REJECT
+  - SEND_FOR_DECISION
+  - CONFIRM_FOLLOW_UP
+  - DECIDE_TAX_RISK
+  - APPROVE_INDIVIDUALLY
+  - RECORD_CANCELLATION_NOTICE

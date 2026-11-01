@@ -1,0 +1,10 @@
+type: string
+description: Same values as the DBML enum `batch_state`.
+enum:
+  - OPEN
+  - IN_REVIEW
+  - IN_SIGNING
+  - SIGNED
+  - SENT
+  - COMPLETED
+x-dbml-enum: batch_state

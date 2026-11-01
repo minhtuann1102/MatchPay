@@ -1,0 +1,40 @@
+get:
+  tags:
+    - Group and entities
+  summary: Get the group and its limits
+  description: >-
+    Returns the group name and the maximums for the price tolerance and the
+    batch threshold (BR-16). The Entity Admin reads them to show "Maximum
+    allowed by the group" next to each policy field (SCR-73).
+  operationId: getGroup
+  security:
+    - sessionCookie: []
+  x-roles:
+    - GROUP_ADMIN
+    - ENTITY_ADMIN
+  x-stories:
+    - US-03
+    - US-04
+  x-rules:
+    - BR-16
+  x-screens:
+    - SCR-73
+    - SCR-76
+  x-tables:
+    - corporate_groups
+  x-criteria:
+    - AC-03.3
+    - AC-04.2
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Group.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

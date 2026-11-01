@@ -1,0 +1,46 @@
+get:
+  tags:
+    - Batch
+  summary: List the payment requests of a batch
+  description: >-
+    After release: each request with state, total, required level, and the ERP
+    send status (Sending, Retry n of 3, Failed with an alert, Paid) and the
+    payment reference (SCR-30). "Resend" is offered by `erpStatus.canResend`
+    (AC-26.10). The AP Accountant reads the requests here; the signing queue is
+    closed to the AP Accountant (AC-25.14).
+  operationId: listBatchRequests
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-24
+    - US-26
+  x-rules:
+    - BR-35
+  x-screens:
+    - SCR-30
+  x-tables:
+    - payment_requests
+    - payment_request_lines
+    - request_signatures
+    - erp_send_attempts
+    - payment_batches
+  x-criteria:
+    - AC-24.6
+    - AC-26.10
+  parameters:
+    - $ref: ../components/parameters/batchId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/PaymentRequestSummaryList.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

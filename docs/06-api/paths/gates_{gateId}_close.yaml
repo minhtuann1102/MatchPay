@@ -1,0 +1,52 @@
+post:
+  tags:
+    - Automation gates
+  summary: Close a gate
+  description: >-
+    Closes the gate. Later invoices of the pair become exceptions "Gate closed";
+    invoices already in a batch stay (AC-06.6). An open alert of the gate is
+    cleared by this action (D-152). Carries `version`. Appends to audit_log.
+  operationId: closeGate
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - GROUP_ADMIN
+  x-stories:
+    - US-06
+  x-rules:
+    - BR-06
+  x-screens:
+    - SCR-79
+  x-tables:
+    - supplier_gates
+    - gate_alerts
+    - audit_log
+  x-criteria:
+    - AC-06.6
+    - AC-06.7
+  parameters:
+    - $ref: ../components/parameters/gateId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/GateCloseRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Gate.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

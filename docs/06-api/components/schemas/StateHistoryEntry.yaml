@@ -1,0 +1,36 @@
+type: object
+description: >-
+  One state the invoice has been in, with who or what changed it (AC-17.11).
+  Read from audit_log.
+required:
+  - changedAt
+  - toState
+  - actorType
+properties:
+  changedAt:
+    type: string
+    format: date-time
+  fromState:
+    type: string
+    allOf:
+      - $ref: ./InvoiceState.yaml
+    nullable: true
+  toState:
+    $ref: ./InvoiceState.yaml
+  transition:
+    type: string
+    nullable: true
+    description: BR-33 transition number, for example V11.
+  actorType:
+    $ref: ./AuditActor.yaml
+  actorUserId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  actorName:
+    type: string
+    nullable: true
+  reason:
+    type: string
+    nullable: true

@@ -1,0 +1,20 @@
+type: object
+description: A tier in a replacement matrix.
+required:
+  - levelName
+  - minAmount
+  - approverUserIds
+properties:
+  levelName:
+    type: string
+  minAmount:
+    $ref: ./Money.yaml
+  maxAmount:
+    type: string
+    allOf:
+      - $ref: ./Money.yaml
+    nullable: true
+  approverUserIds:
+    type: array
+    items:
+      $ref: ./Id.yaml

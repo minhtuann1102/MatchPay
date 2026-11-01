@@ -1,0 +1,6 @@
+name: lineId
+in: path
+required: true
+description: Identifier of a payment request line.
+schema:
+  $ref: ../schemas/Id.yaml

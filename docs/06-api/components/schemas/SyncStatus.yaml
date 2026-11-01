@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `sync_status`.
+enum:
+  - RUNNING
+  - SUCCESS
+  - FAILED
+x-dbml-enum: sync_status

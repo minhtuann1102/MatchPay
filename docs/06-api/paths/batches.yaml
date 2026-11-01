@@ -1,0 +1,50 @@
+get:
+  tags:
+    - Batch
+  summary: List batches
+  description: History of the batches of the own entity, one per period, newest first.
+  operationId: listBatches
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-24
+  x-rules:
+    - BR-09
+    - BR-35
+  x-screens:
+    - SCR-30
+  x-tables:
+    - payment_batches
+  x-criteria:
+    - AC-24.1
+    - AC-24.11
+  parameters:
+    - name: state
+      in: query
+      required: false
+      description: One or more states.
+      schema:
+        type: array
+        items:
+          $ref: ../components/schemas/BatchState.yaml
+      style: form
+      explode: true
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/BatchPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

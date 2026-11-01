@@ -1,0 +1,6 @@
+name: figure
+in: path
+required: true
+description: The dashboard figure whose invoices are listed.
+schema:
+  $ref: ../schemas/DashboardFigure.yaml

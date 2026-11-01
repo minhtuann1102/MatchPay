@@ -1,0 +1,52 @@
+type: object
+description: RFC 7807 Problem Details with MatchPay extensions (D-139).
+required:
+  - type
+  - title
+  - status
+  - detail
+  - errorCode
+  - traceId
+properties:
+  type:
+    type: string
+    description: URI that names the problem kind.
+  title:
+    type: string
+  status:
+    type: integer
+  detail:
+    type: string
+    description: Human-readable message. Do not branch on it; use errorCode.
+  instance:
+    type: string
+  errorCode:
+    $ref: ./ErrorCode.yaml
+  traceId:
+    type: string
+    description: Correlates the response with server logs.
+  errors:
+    type: object
+    additionalProperties:
+      type: array
+      items:
+        type: string
+    description: 'Validation errors: field name to messages (VALIDATION_FAILED).'
+  current:
+    type: object
+    additionalProperties: true
+    description: >-
+      VERSION_CONFLICT only: the current record, so the client can reload
+      without another call.
+  context:
+    type: object
+    additionalProperties: true
+    description: >-
+      Extra machine-readable facts, for example {"invoiceId": 1042} for
+      SEPARATION_OF_DUTIES.
+  rejectionReason:
+    allOf:
+      - $ref: ./FileRejectionReason.yaml
+    description: FILE_REJECTED only.
+  retryAfterSeconds:
+    type: integer

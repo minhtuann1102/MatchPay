@@ -1,0 +1,26 @@
+type: object
+description: >-
+  The payment request that holds an invoice, with its signature records
+  (AC-25.15).
+required:
+  - requestId
+  - requestNo
+  - state
+  - totalAmount
+  - signatures
+properties:
+  requestId:
+    $ref: ./Id.yaml
+  requestNo:
+    type: string
+  state:
+    $ref: ./RequestState.yaml
+  totalAmount:
+    $ref: ./Money.yaml
+  paymentReference:
+    type: string
+    nullable: true
+  signatures:
+    type: array
+    items:
+      $ref: ./SignatureRecord.yaml

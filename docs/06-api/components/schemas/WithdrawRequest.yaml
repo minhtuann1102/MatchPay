@@ -1,0 +1,15 @@
+type: object
+description: Withdraw an invoice from its batch (AC-24.7).
+required:
+  - reason
+  - version
+properties:
+  reason:
+    type: string
+  version:
+    allOf:
+      - $ref: ./Version.yaml
+    description: Version of the invoice last read.
+example:
+  reason: Supplier asked to hold this invoice
+  version: 6

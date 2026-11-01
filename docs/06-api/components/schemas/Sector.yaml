@@ -1,0 +1,22 @@
+type: object
+description: A sector allowed to issue non-coded invoices (BR-17, DF-25).
+required:
+  - id
+  - sectorName
+  - addedBy
+  - addedAt
+properties:
+  id:
+    $ref: ./Id.yaml
+  sectorName:
+    type: string
+  addedBy:
+    $ref: ./Id.yaml
+  addedAt:
+    type: string
+    format: date-time
+example:
+  id: 1
+  sectorName: electricity
+  addedBy: 21
+  addedAt: '2026-10-01T08:00:00+07:00'

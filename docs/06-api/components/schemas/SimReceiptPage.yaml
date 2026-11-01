@@ -1,0 +1,12 @@
+type: object
+description: One page of SimReceipt records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./SimReceipt.yaml
+  meta:
+    $ref: ./PageMeta.yaml

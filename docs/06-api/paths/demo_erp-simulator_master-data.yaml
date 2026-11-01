@@ -1,0 +1,54 @@
+get:
+  tags:
+    - Demo
+  summary: Get the simulator master data for an entity
+  description: >-
+    Disabled outside a demo deployment: the server answers 404
+    RESOURCE_NOT_FOUND when the demo flag is off (D-143). Demo Operator only
+    (AC-08.7); every other role gets 403. Returns the personas of the entity and
+    the supplier and item seed data for the order form (SCR-80, SCR-81). Data of
+    one entity is not visible in another (AC-08.8).
+  operationId: getSimMasterData
+  security:
+    - sessionCookie: []
+  x-roles:
+    - DEMO_OPERATOR
+  x-stories:
+    - US-08
+  x-rules:
+    - BR-09
+  x-screens:
+    - SCR-80
+    - SCR-81
+    - SCR-82
+  x-tables:
+    - sim_personas
+    - entities
+  x-criteria:
+    - AC-08.1
+    - AC-08.7
+    - AC-08.8
+  parameters:
+    - name: entityId
+      in: query
+      required: true
+      description: The entity the Demo Operator works in.
+      schema:
+        $ref: ../components/schemas/Id.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/SimMasterData.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '404':
+      $ref: ../components/responses/NotFound.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

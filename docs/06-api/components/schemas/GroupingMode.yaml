@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `grouping_mode`.
+enum:
+  - BY_SUPPLIER
+  - PER_INVOICE
+x-dbml-enum: grouping_mode

@@ -1,0 +1,8 @@
+type: string
+description: Same values as the DBML enum `match_method`.
+enum:
+  - MAPPING_TABLE
+  - EMBEDDING_FUSION
+  - LLM
+  - PERSON
+x-dbml-enum: match_method

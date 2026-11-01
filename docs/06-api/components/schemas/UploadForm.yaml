@@ -1,0 +1,13 @@
+type: object
+description: Multipart form of an upload.
+required:
+  - files
+properties:
+  files:
+    type: array
+    items:
+      type: string
+      format: binary
+    description: >-
+      One or many XML files, field name "files" (D-141). At most 20 files of 10
+      MB each (DF-85).

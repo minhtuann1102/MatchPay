@@ -1,0 +1,61 @@
+get:
+  tags:
+    - Batch
+  summary: Get the batch of the current period
+  description: >-
+    The batch that SCR-30 shows: the open batch of the current calendar month,
+    or the batch still In Review or In Signing. `batch` is null until the first
+    invoice of the period is admitted (B1, DF-18, D-10). There is never more
+    than one open batch per entity per period (AC-16.14, AC-24.1). A Chief
+    Accountant, a Payment Approver, or an AP Accountant of another entity gets
+    403 (AC-24.11).
+  operationId: getCurrentBatch
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-24
+    - US-16
+  x-rules:
+    - BR-09
+    - BR-35
+  x-screens:
+    - SCR-30
+  x-tables:
+    - payment_batches
+    - batch_items
+    - batch_sample_items
+  x-criteria:
+    - AC-16.14
+    - AC-24.1
+    - AC-24.9
+    - AC-24.11
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/CurrentBatchResponse.yaml
+          example:
+            periodStart: '2026-10-01'
+            batch:
+              id: 41
+              periodStart: '2026-10-01'
+              state: OPEN
+              sampleRatePct: '10.00'
+              itemCount: 5
+              totalAmount: '70050000.00'
+              version: 2
+              canClose: true
+              canRelease: false
+              canReopen: false
+              canExpandSample: false
+              warnings: []
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

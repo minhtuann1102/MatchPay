@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `receipt_kind`.
+enum:
+  - GOODS_RECEIPT
+  - SERVICE_ACCEPTANCE
+x-dbml-enum: receipt_kind

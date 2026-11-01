@@ -1,0 +1,13 @@
+type: object
+description: Open exceptions by state and age.
+required:
+  - state
+  - bucket
+  - count
+properties:
+  state:
+    $ref: ./ExceptionState.yaml
+  bucket:
+    $ref: ./AgeBucket.yaml
+  count:
+    type: integer

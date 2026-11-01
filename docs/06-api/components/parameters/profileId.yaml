@@ -1,0 +1,6 @@
+name: profileId
+in: path
+required: true
+description: Identifier of a recurring profile of the caller's entity.
+schema:
+  $ref: ../schemas/Id.yaml

@@ -1,0 +1,15 @@
+type: object
+description: The invoice back in exceptions and the request that changed.
+required:
+  - invoice
+  - exceptionId
+  - batch
+properties:
+  invoice:
+    $ref: ./InvoiceBrief.yaml
+  exceptionId:
+    $ref: ./Id.yaml
+  batch:
+    $ref: ./Batch.yaml
+  recomputedRequestId:
+    $ref: ./Id.yaml

@@ -1,0 +1,12 @@
+type: object
+description: One page of ErpSyncRun records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./ErpSyncRun.yaml
+  meta:
+    $ref: ./PageMeta.yaml

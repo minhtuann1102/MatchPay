@@ -1,0 +1,12 @@
+type: object
+description: One page of PaymentRequestSummary records.
+required:
+  - items
+  - meta
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./PaymentRequestSummary.yaml
+  meta:
+    $ref: ./PageMeta.yaml

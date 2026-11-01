@@ -1,0 +1,10 @@
+type: object
+description: A warning shown on the evidence; it never blocks.
+required:
+  - code
+  - message
+properties:
+  code:
+    $ref: ./WarningCode.yaml
+  message:
+    type: string

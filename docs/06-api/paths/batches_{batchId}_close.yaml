@@ -1,0 +1,66 @@
+post:
+  tags:
+    - Batch
+  summary: Close the batch for review
+  description: >-
+    Open to In Review (B2). Invoices admitted afterwards go to the next period's
+    batch (AC-24.1). The AI selects the sample by risk: high value first, then
+    suppliers whose gate opened in the last 30 days, then items often matched
+    wrongly, each with why (AC-24.3, BR-07); size = rate x invoices rounded up,
+    minimum 1 (AC-24.2, DF-06). If the AI cannot select, the highest-value
+    invoices are taken and the sample is labelled "selected without AI"
+    (AC-24.8, DF-29). The AI call runs before the transaction. Carries `version`
+    (AC-24.10).
+  operationId: closeBatchForReview
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-24
+  x-rules:
+    - BR-07
+    - BR-35
+    - BR-37
+  x-screens:
+    - SCR-31
+    - SCR-30
+  x-tables:
+    - payment_batches
+    - batch_sample_items
+    - batch_items
+    - entity_policies
+    - ai_requests
+    - audit_log
+  x-criteria:
+    - AC-24.1
+    - AC-24.2
+    - AC-24.3
+    - AC-24.8
+    - AC-24.10
+  parameters:
+    - $ref: ../components/parameters/batchId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/CloseBatchRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Batch.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

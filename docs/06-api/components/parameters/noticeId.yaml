@@ -1,0 +1,6 @@
+name: noticeId
+in: path
+required: true
+description: Identifier of a stored cancellation notice.
+schema:
+  $ref: ../schemas/Id.yaml

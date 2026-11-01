@@ -1,0 +1,13 @@
+type: string
+description: >-
+  Why one request of a signing action was refused. The others are still
+  processed (AC-25.4, D-137).
+enum:
+  - VERSION_CONFLICT
+  - LEVEL_REQUIRED
+  - WAIT_FOR_CHIEF_ACCOUNTANT
+  - SEPARATION_OF_DUTIES
+  - SAME_SIGNER
+  - NOT_ACTIVE_DELEGATE
+  - DELEGATED_AWAY
+  - STATE_CONFLICT

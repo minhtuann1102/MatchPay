@@ -1,0 +1,6 @@
+name: gateId
+in: path
+required: true
+description: Identifier of an automation gate (a supplier and entity pair).
+schema:
+  $ref: ../schemas/Id.yaml

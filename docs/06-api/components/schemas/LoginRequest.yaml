@@ -1,0 +1,14 @@
+type: object
+description: Credentials (DF-32).
+required:
+  - email
+  - password
+properties:
+  email:
+    type: string
+    format: email
+  password:
+    type: string
+example:
+  email: alice@calderwood-foods.example
+  password: ExamplePassword123!

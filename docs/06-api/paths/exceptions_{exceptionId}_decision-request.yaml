@@ -1,0 +1,56 @@
+post:
+  tags:
+    - Exceptions
+  summary: Send for a decision
+  description: >-
+    Routes the exception to the Chief Accountant (tax-risk hold) or to the
+    Payment Approver (individual approval) (E5, AC-18.1). Refused with 409
+    STATE_CONFLICT for the kinds that have no individual approval (AC-23.4,
+    D-31). Carries `version`.
+  operationId: sendForDecision
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-18
+    - US-23
+  x-rules:
+    - BR-03
+    - BR-34
+    - BR-37
+  x-screens:
+    - SCR-12
+  x-tables:
+    - exceptions
+    - audit_log
+  x-criteria:
+    - AC-18.1
+    - AC-18.12
+    - AC-23.4
+  parameters:
+    - $ref: ../components/parameters/exceptionId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/SendForDecisionRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Exception.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

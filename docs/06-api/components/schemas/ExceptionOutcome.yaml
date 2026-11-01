@@ -1,0 +1,9 @@
+type: string
+description: Same values as the DBML enum `exception_outcome`.
+enum:
+  - ADMITTED
+  - APPROVED_INDIVIDUALLY
+  - REJECTED
+  - SUPERSEDED
+  - AUTO_CLOSED
+x-dbml-enum: exception_outcome

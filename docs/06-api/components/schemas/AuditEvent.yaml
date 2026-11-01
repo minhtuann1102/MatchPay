@@ -1,0 +1,17 @@
+type: string
+description: Same values as the DBML enum `audit_event`.
+enum:
+  - AI_DECISION
+  - RULE_DECISION
+  - PERSON_DECISION
+  - SIGNATURE
+  - CONFIG_CHANGE
+  - GATE_CHANGE
+  - INTAKE
+  - SYNC
+  - MESSAGE_SENT
+  - ERP_SEND
+  - ERP_PAID
+  - LOGIN_FAILED
+  - ACCESS_DENIED
+x-dbml-enum: audit_event

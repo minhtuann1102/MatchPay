@@ -1,0 +1,51 @@
+get:
+  tags:
+    - ERP sync
+  summary: List suppliers of the entity
+  description: >-
+    Lists the suppliers copied from the entity ERP (read-only, BR-25). Used by
+    the profile form and the worklist filter. A supplier of another entity is
+    never listed (BR-09).
+  operationId: listSuppliers
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-09
+    - US-17
+  x-rules:
+    - BR-25
+  x-screens:
+    - SCR-10
+    - SCR-21
+  x-tables:
+    - erp_suppliers
+  x-criteria:
+    - AC-17.1
+  parameters:
+    - name: q
+      in: query
+      required: false
+      description: Part of the name or tax code.
+      schema:
+        type: string
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/SupplierPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

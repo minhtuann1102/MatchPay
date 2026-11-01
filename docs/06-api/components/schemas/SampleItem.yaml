@@ -1,0 +1,49 @@
+type: object
+description: A sampled invoice with why it was selected (AC-24.3).
+required:
+  - id
+  - invoiceId
+  - invoiceNumber
+  - totalAmount
+  - rank
+  - reason
+  - mark
+properties:
+  id:
+    $ref: ./Id.yaml
+  invoiceId:
+    $ref: ./Id.yaml
+  invoiceNumber:
+    type: string
+  supplierName:
+    type: string
+    nullable: true
+  totalAmount:
+    $ref: ./Money.yaml
+  rank:
+    type: integer
+  reason:
+    $ref: ./SampleReason.yaml
+  reasonText:
+    type: string
+    nullable: true
+  expansionId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+    description: NULL for the original sample.
+  mark:
+    $ref: ./SampleMark.yaml
+  markReason:
+    type: string
+    nullable: true
+  markedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  markedAt:
+    type: string
+    format: date-time
+    nullable: true

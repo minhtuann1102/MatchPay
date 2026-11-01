@@ -1,0 +1,13 @@
+type: object
+description: Reopen a batch that is In Signing (B7).
+required:
+  - reason
+  - version
+properties:
+  reason:
+    type: string
+  version:
+    $ref: ./Version.yaml
+example:
+  reason: Price correction needed on one invoice
+  version: 4

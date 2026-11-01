@@ -1,0 +1,70 @@
+get:
+  tags:
+    - Exceptions
+  summary: Get an exception
+  description: >-
+    Every reason with its explanation and numbers (AC-16.2), the withdrawal
+    reason and who withdrew (AC-18.9), links to a split-order set (D-70),
+    follow-up links (BR-31), the tax-risk entry with source and date for a hold
+    (AC-21.2), the wrong-entity trace (AC-18.11), and the actions open to the
+    caller. For a Payment Approver the response carries `approvalBlock` when
+    approving is blocked: "You created the order for this invoice" or "You
+    processed this invoice" (AC-23.6, AC-23.13). Individual approval is not
+    offered for the kinds of AC-23.4 (D-31).
+  operationId: getException
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+    - CHIEF_ACCOUNTANT
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-18
+    - US-21
+    - US-23
+  x-rules:
+    - BR-02
+    - BR-09
+    - BR-10
+    - BR-34
+    - BR-36
+  x-screens:
+    - SCR-12
+    - SCR-16
+    - SCR-18
+  x-tables:
+    - exceptions
+    - exception_reasons
+    - wrong_entity_reports
+    - exception_follow_up_links
+    - tax_risk_entries
+    - individual_approvals
+    - erp_purchase_orders
+    - users
+    - approval_tiers
+    - invoices
+  x-criteria:
+    - AC-18.1
+    - AC-18.9
+    - AC-18.10
+    - AC-21.2
+    - AC-23.4
+    - AC-23.6
+    - AC-23.12
+    - AC-23.13
+    - AC-23.9
+  parameters:
+    - $ref: ../components/parameters/exceptionId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Exception.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

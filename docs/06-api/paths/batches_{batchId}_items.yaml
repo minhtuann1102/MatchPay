@@ -1,0 +1,54 @@
+get:
+  tags:
+    - Batch
+  summary: List the invoices of a batch
+  description: >-
+    Invoices with due dates and the Withdraw link, active and withdrawn; a
+    withdrawn item shows the reason and who withdrew (AC-18.9). Every invoice
+    opens SCR-12 and a back action returns here (AC-17.12).
+  operationId: listBatchItems
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-24
+    - US-17
+  x-rules:
+    - BR-35
+  x-screens:
+    - SCR-30
+  x-tables:
+    - batch_items
+    - invoices
+    - erp_suppliers
+    - payment_batches
+  x-criteria:
+    - AC-17.12
+    - AC-18.9
+    - AC-24.9
+  parameters:
+    - $ref: ../components/parameters/batchId.yaml
+    - name: includeWithdrawn
+      in: query
+      required: false
+      description: Also list withdrawn items.
+      schema:
+        type: boolean
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/BatchItemPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

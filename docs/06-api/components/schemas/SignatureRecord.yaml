@@ -1,0 +1,51 @@
+type: object
+description: A signature record bound to a request version and content hash (BR-20, BR-37).
+required:
+  - id
+  - signerId
+  - signerName
+  - signerRole
+  - signedAt
+  - requestVersion
+  - contentHash
+  - certificateRef
+  - state
+  - displayText
+properties:
+  id:
+    $ref: ./Id.yaml
+  signerId:
+    $ref: ./Id.yaml
+  signerName:
+    type: string
+  signerRole:
+    $ref: ./SignerRole.yaml
+  onBehalfOfUserId:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  onBehalfOfName:
+    type: string
+    nullable: true
+  signedAt:
+    type: string
+    format: date-time
+  requestVersion:
+    type: integer
+  contentHash:
+    type: string
+  certificateRef:
+    type: string
+  state:
+    $ref: ./SignatureState.yaml
+  voidedAt:
+    type: string
+    format: date-time
+    nullable: true
+  voidReason:
+    type: string
+    nullable: true
+  displayText:
+    type: string
+    description: For example "signed by Dan on behalf of Carol" (AC-30.10).

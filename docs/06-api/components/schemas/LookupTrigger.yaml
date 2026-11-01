@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `lookup_trigger`.
+enum:
+  - INTAKE
+  - RE_RUN
+  - SYNC_REFRESH
+x-dbml-enum: lookup_trigger

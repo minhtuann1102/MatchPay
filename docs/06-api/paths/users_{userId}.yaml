@@ -1,0 +1,99 @@
+get:
+  tags:
+    - Users
+  summary: Get a user
+  description: >-
+    Returns one user. A user outside the caller's scope gives 403 ACCESS_DENIED
+    whether or not it exists (D-132, AC-02.6).
+  operationId: getUser
+  security:
+    - sessionCookie: []
+  x-roles:
+    - ENTITY_ADMIN
+    - GROUP_ADMIN
+  x-stories:
+    - US-02
+  x-rules:
+    - BR-09
+  x-screens:
+    - SCR-70
+    - SCR-71
+  x-tables:
+    - users
+    - erp_users
+    - entities
+  x-criteria:
+    - AC-02.6
+  parameters:
+    - $ref: ../components/parameters/userId.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/User.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml
+patch:
+  tags:
+    - Users
+  summary: Change a user
+  description: >-
+    Changes the name, the role, or the ERP user link. A second role or a second
+    entity is refused: "A user has one role in one entity in the MVP" (AC-02.3,
+    D-13). An administrator cannot change their own role (AC-02.8). Entity Admin
+    cannot give an administrator role (AC-02.2). Carries `version` (D-136).
+    Appends to audit_log with the old and new values.
+  operationId: updateUser
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - ENTITY_ADMIN
+    - GROUP_ADMIN
+  x-stories:
+    - US-02
+  x-rules:
+    - BR-02
+    - BR-36
+  x-screens:
+    - SCR-71
+  x-tables:
+    - users
+    - erp_users
+    - audit_log
+  x-criteria:
+    - AC-02.2
+    - AC-02.3
+    - AC-02.4
+    - AC-02.8
+  parameters:
+    - $ref: ../components/parameters/userId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/UserUpdate.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/User.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

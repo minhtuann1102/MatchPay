@@ -1,0 +1,30 @@
+type: object
+description: A line of a simulator order.
+required:
+  - id
+  - lineNo
+  - itemErpRef
+  - quantity
+  - unit
+  - unitPrice
+  - quantityReceived
+  - outstanding
+properties:
+  id:
+    $ref: ./Id.yaml
+  lineNo:
+    type: integer
+  itemErpRef:
+    type: string
+  quantity:
+    $ref: ./Decimal.yaml
+  unit:
+    type: string
+  unitPrice:
+    $ref: ./Money.yaml
+  quantityReceived:
+    $ref: ./Decimal.yaml
+  outstanding:
+    allOf:
+      - $ref: ./Decimal.yaml
+    description: Ordered minus received (BR-15, AC-08.5). Computed.

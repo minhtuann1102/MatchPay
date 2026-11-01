@@ -1,0 +1,6 @@
+name: notificationId
+in: path
+required: true
+description: Identifier of a notification addressed to the caller.
+schema:
+  $ref: ../schemas/Id.yaml

@@ -1,0 +1,13 @@
+type: object
+description: Open a gate.
+required:
+  - version
+properties:
+  version:
+    $ref: ./Version.yaml
+  reason:
+    type: string
+    description: Required when the accuracy is below the threshold (AC-06.5).
+example:
+  version: 1
+  reason: Reviewed the last 50 comparisons with the Chief Accountant

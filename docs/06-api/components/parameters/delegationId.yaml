@@ -1,0 +1,6 @@
+name: delegationId
+in: path
+required: true
+description: Identifier of a signing delegation of the caller's entity.
+schema:
+  $ref: ../schemas/Id.yaml

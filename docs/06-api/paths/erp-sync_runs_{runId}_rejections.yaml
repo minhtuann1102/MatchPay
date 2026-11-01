@@ -1,0 +1,45 @@
+get:
+  tags:
+    - ERP sync
+  summary: List the records a sync rejected
+  description: >-
+    A receipt with no order reference or created from an invoice (BR-13,
+    AC-07.4), a risk-list entry with no source or date (AC-07.9), and a status
+    entry with no key, status, or date (AC-07.12) are rejected and logged here.
+  operationId: listErpSyncRejections
+  security:
+    - sessionCookie: []
+  x-roles:
+    - AP_ACCOUNTANT
+  x-stories:
+    - US-07
+  x-rules:
+    - BR-13
+    - BR-39
+  x-screens: []
+  x-tables:
+    - erp_sync_rejections
+    - erp_sync_runs
+  x-criteria:
+    - AC-07.4
+    - AC-07.9
+    - AC-07.12
+  parameters:
+    - $ref: ../components/parameters/runId.yaml
+    - $ref: ../components/parameters/Page.yaml
+    - $ref: ../components/parameters/PageSize.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ErpSyncRejectionPage.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

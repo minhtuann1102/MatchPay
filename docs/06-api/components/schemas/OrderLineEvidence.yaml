@@ -1,0 +1,22 @@
+type: object
+description: An order line with the quantity received so far.
+required:
+  - lineNo
+  - itemName
+  - quantity
+  - unit
+  - unitPrice
+  - quantityReceived
+properties:
+  lineNo:
+    type: integer
+  itemName:
+    type: string
+  quantity:
+    $ref: ./Decimal.yaml
+  unit:
+    type: string
+  unitPrice:
+    $ref: ./Money.yaml
+  quantityReceived:
+    $ref: ./Decimal.yaml

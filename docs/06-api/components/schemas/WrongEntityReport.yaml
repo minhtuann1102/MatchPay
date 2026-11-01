@@ -1,0 +1,25 @@
+type: object
+description: >-
+  A wrong-entity report with the traced source of the mismatch (D-68). The
+  invoice never moves.
+required:
+  - id
+  - reportedBy
+  - reportedAt
+  - note
+  - tracedSource
+properties:
+  id:
+    $ref: ./Id.yaml
+  reportedBy:
+    $ref: ./Id.yaml
+  reportedAt:
+    type: string
+    format: date-time
+  note:
+    type: string
+  tracedSource:
+    $ref: ./WrongEntitySource.yaml
+  traceDetail:
+    type: string
+    nullable: true

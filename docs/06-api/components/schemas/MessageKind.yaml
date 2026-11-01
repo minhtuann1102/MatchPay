@@ -1,0 +1,7 @@
+type: string
+description: Same values as the DBML enum `message_kind`.
+enum:
+  - CORRECTION_REQUEST
+  - DATA_FIX_NOTICE
+  - REISSUE_REQUEST
+x-dbml-enum: message_kind

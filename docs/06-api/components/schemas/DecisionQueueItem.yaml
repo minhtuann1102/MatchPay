@@ -1,0 +1,53 @@
+type: object
+description: >-
+  A row of the decision queue (SCR-40): one list, content by role (D-40). Rows
+  the caller cannot decide are not listed.
+required:
+  - exceptionId
+  - invoiceId
+  - invoiceNumber
+  - kind
+  - totalAmount
+  - reasonCodes
+  - ageDays
+  - linkedExceptionIds
+  - version
+properties:
+  exceptionId:
+    $ref: ./Id.yaml
+  invoiceId:
+    $ref: ./Id.yaml
+  invoiceNumber:
+    type: string
+  supplierName:
+    type: string
+    nullable: true
+  kind:
+    $ref: ./DecisionKind.yaml
+  totalAmount:
+    $ref: ./Money.yaml
+  approvalAmount:
+    type: string
+    allOf:
+      - $ref: ./Money.yaml
+    nullable: true
+  reasonCodes:
+    type: array
+    items:
+      $ref: ./ReasonCode.yaml
+  ageDays:
+    type: integer
+  requiredLevelName:
+    type: string
+    nullable: true
+  linkedExceptionIds:
+    type: array
+    items:
+      $ref: ./Id.yaml
+  blocked:
+    type: object
+    allOf:
+      - $ref: ./SignBlock.yaml
+    nullable: true
+  version:
+    $ref: ./Version.yaml

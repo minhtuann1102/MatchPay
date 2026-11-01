@@ -1,0 +1,95 @@
+post:
+  tags:
+    - Individual approvals
+  summary: Approve or decline an exception individually
+  description: >-
+    The Payment Approver whose level equals the amount (BR-03) approves an
+    exception: the approval is recorded at once, the invoice is In Batch, and
+    the exception closes Approved individually (AC-23.2); the payment request is
+    created when the batch is released (D-69). Declining needs a reason and
+    returns the exception to the AP Accountant (AC-23.5). Split-order exceptions
+    are decided together at the level of the combined amount: `versions` lists
+    every linked exception, nothing is saved if any check fails, and the
+    response says which invoice causes it (AC-23.3, AC-23.11, AC-23.12, D-70).
+    Refused with 403 SEPARATION_OF_DUTIES when the approver is linked to the
+    order creator or receipt confirmer ("You created the order for this
+    invoice") or processed the invoice ("You processed this invoice") (AC-23.6,
+    AC-23.13, BR-02, BR-36). Not offered for the kinds of AC-23.4 (409
+    STATE_CONFLICT). A stale version gives 409 VERSION_CONFLICT (AC-23.8).
+    Appends to audit_log.
+  operationId: decideIndividualApproval
+  security:
+    - sessionCookie: []
+      csrfHeader: []
+  x-roles:
+    - PAYMENT_APPROVER
+  x-stories:
+    - US-23
+  x-rules:
+    - BR-02
+    - BR-03
+    - BR-09
+    - BR-10
+    - BR-30
+    - BR-34
+    - BR-35
+    - BR-36
+    - BR-37
+  x-screens:
+    - SCR-18
+    - SCR-12
+    - SCR-40
+  x-tables:
+    - individual_approvals
+    - exceptions
+    - exception_reasons
+    - batch_items
+    - payment_batches
+    - approval_tiers
+    - approval_tier_approvers
+    - invoices
+    - users
+    - erp_users
+    - erp_purchase_orders
+    - erp_receipts
+    - batch_sample_items
+    - service_acceptances
+    - audit_log
+  x-criteria:
+    - AC-23.2
+    - AC-23.3
+    - AC-23.4
+    - AC-23.5
+    - AC-23.6
+    - AC-23.7
+    - AC-23.8
+    - AC-23.9
+    - AC-23.10
+    - AC-23.11
+    - AC-23.12
+    - AC-23.13
+  parameters:
+    - $ref: ../components/parameters/exceptionId.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/IndividualApprovalRequest.yaml
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/IndividualApprovalResult.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/ForbiddenSod.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+    '500':
+      $ref: ../components/responses/InternalError.yaml

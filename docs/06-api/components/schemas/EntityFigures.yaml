@@ -1,0 +1,29 @@
+type: object
+description: Counts and rates of one entity. No invoice-level data (BR-09).
+required:
+  - entityId
+  - entityName
+  - receivedCount
+  - openExceptionCount
+  - waitingForGoodsCount
+properties:
+  entityId:
+    $ref: ./Id.yaml
+  entityName:
+    type: string
+  touchlessRate:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  misplacementRate:
+    type: string
+    allOf:
+      - $ref: ./Decimal.yaml
+    nullable: true
+  receivedCount:
+    type: integer
+  openExceptionCount:
+    type: integer
+  waitingForGoodsCount:
+    type: integer

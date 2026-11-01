@@ -1,0 +1,5 @@
+type: object
+description: Record that the supplier replied (E6).
+properties:
+  note:
+    type: string

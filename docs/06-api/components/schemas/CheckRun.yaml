@@ -1,0 +1,64 @@
+type: object
+description: One check run with all its outputs (D-58).
+required:
+  - id
+  - invoiceId
+  - trigger
+  - startedAt
+  - outcome
+  - lineMatches
+  - anomalyFindings
+  - authorityLookups
+  - aiRequests
+properties:
+  id:
+    $ref: ./Id.yaml
+  invoiceId:
+    $ref: ./Id.yaml
+  trigger:
+    $ref: ./RunTrigger.yaml
+  startedAt:
+    type: string
+    format: date-time
+  finishedAt:
+    type: string
+    format: date-time
+    nullable: true
+  outcome:
+    $ref: ./RunOutcome.yaml
+  startedBy:
+    type: integer
+    allOf:
+      - $ref: ./Id.yaml
+    nullable: true
+  flowClassification:
+    type: object
+    allOf:
+      - $ref: ./FlowClassification.yaml
+    nullable: true
+  identification:
+    type: object
+    allOf:
+      - $ref: ./Identification.yaml
+    nullable: true
+  lineMatches:
+    type: array
+    items:
+      $ref: ./LineMatch.yaml
+  anomalyFindings:
+    type: array
+    items:
+      $ref: ./AnomalyFinding.yaml
+  ruleEvaluation:
+    type: object
+    allOf:
+      - $ref: ./RuleEvaluation.yaml
+    nullable: true
+  authorityLookups:
+    type: array
+    items:
+      $ref: ./AuthorityLookup.yaml
+  aiRequests:
+    type: array
+    items:
+      $ref: ./AiRequestRecord.yaml

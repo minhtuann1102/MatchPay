@@ -1,0 +1,6 @@
+type: string
+description: Same values as the DBML enum `cancel_source`.
+enum:
+  - SELLER
+  - AUTHORITY
+x-dbml-enum: cancel_source

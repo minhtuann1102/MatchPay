@@ -1,0 +1,14 @@
+type: string
+description: >-
+  Actions that the caller's role may take on this invoice now. UI hint only; the
+  server enforces every rule (D-133).
+enum:
+  - RERUN_CHECKS
+  - RUN_AUTHORITY_LOOKUP
+  - WITHDRAW_FROM_BATCH
+  - RECORD_CANCELLATION_NOTICE
+  - REJECT
+  - REQUEST_CORRECTION
+  - DECIDE_TAX_RISK
+  - APPROVE_INDIVIDUALLY
+  - CONFIRM_ACCEPTANCE
