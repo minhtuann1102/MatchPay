@@ -3,7 +3,7 @@ Project matchpay {
   Note: '''
     MatchPay: a shared platform for a group of legal entities. The AI reads and matches incoming
     XML e-invoices, the Rule Engine admits clean ones to a payment batch, and authorised people
-    sign consolidated payment requests. Step 5 of 9, logical schema, draft for review.
+    sign consolidated payment requests. Step 5 of 9, logical schema, approved.
     PostgreSQL is assumed here and confirmed in Step 7 (D-47).
 
     Every business table carries entity_id (BR-09, G-06). Group-level tables (corporate_groups,

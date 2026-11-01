@@ -1,6 +1,6 @@
 # Business Rules — MatchPay MVP
 
-> Design status: MVP — Step 2 of 9, draft for review
+> Design status: MVP — Step 2 of 9, approved
 >
 > Implementation status: NOT STARTED
 
@@ -191,8 +191,8 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
     - **Only XML e-invoices are accepted (D-33).** A PDF, an image, or any other file that is not XML is rejected at upload with the reason "Only XML e-invoices are accepted in the MVP". The reading of PDF and of images by a multimodal LLM is Advanced (W-19).
     - **High:** an XML invoice with the seller's digital signature and a tax-authority code.
     - **Signed non-coded XML (D-24):** an XML invoice with the seller's digital signature and no tax-authority code, accepted only from sellers in a sector listed in configuration (DF-25; the default list holds electricity). The signature confirms where the invoice came from. A matching recurring profile (BR-24) is the independent source. With no matching profile the invoice goes to an exception. For a **fixed price** the amount must equal the contract. For a **usage-based price** the profile gives only a plausibility check through the BR-24 deviation threshold; it is not an independent confirmation of the amount. This limit is a call for the user to review (O-16).
-    - **Unsupported: foreign invoice.** A foreign invoice that still arrives, for example an XML whose seller has no Vietnamese tax code, or a foreign supplier invoice that the flow classifier recognises (UC-12), is classified "Unsupported: foreign invoice" and becomes an exception. It cannot be approved individually (D-31) and cannot join a batch. The AP Accountant resolves it by rejecting it with a reason, and it is handled outside the system. This reading of D-33 is a call awaiting user review.
-    - **Services (D-90).** For a service invoice the independent acceptance source is the acceptance in the ERP or, when the ERP holds none, the acceptance confirmed by the Requesting Department in MatchPay (BR-19). A rejected acceptance makes an exception. This reading is a call awaiting user review.
+    - **Unsupported: foreign invoice.** A foreign invoice that still arrives, for example an XML whose seller has no Vietnamese tax code, or a foreign supplier invoice that the flow classifier recognises (UC-12), is classified "Unsupported: foreign invoice" and becomes an exception. It cannot be approved individually (D-31) and cannot join a batch. The AP Accountant resolves it by rejecting it with a reason, and it is handled outside the system. This reading of D-33 is a call approved by the user (2026-11-01).
+    - **Services (D-90).** For a service invoice the independent acceptance source is the acceptance in the ERP or, when the ERP holds none, the acceptance confirmed by the Requesting Department in MatchPay (BR-19). A rejected acceptance makes an exception. This reading is a call approved by the user (2026-11-01).
     - **Email (D-92).** An XML attachment fetched from the entity mailbox has the same trust level as an uploaded file; the sender's address is not a source (UC-31).
   - **Advanced part (W-03, W-19).** A PDF confirmed by an independent source, such as a matching card transaction and subscription profile, may join a batch after the gate opens, with a low amount limit (W-03). A PDF, a scanned image, or a paper document with no independent source (Low trust), and a foreign PDF invoice whose fields the AP Accountant confirms, always take the exception path (W-19, DF-04).
 
@@ -213,7 +213,7 @@ BR-01..BR-31 are the rules of the brief and keep their number and meaning. Where
 - **Related API:** TBD (Step 6)
 - **Rule:**
   - The quantity received and the acceptance of a service come from the confirmation of the warehouse keeper or the acceptor in the ERP or warehouse software.
-  - **Amended (D-90):** for a service, when the ERP holds no acceptance, the Requesting Department user of the entity can confirm or reject the acceptance in MatchPay with a note (UC-29). The confirmation counts as the independent acceptance source (BR-17). The ERP acceptance is still preferred and wins if both exist; the confirmation stays in the history. The quantity of goods still comes only from the goods receipt (BR-13). The brief names the warehouse keeper and the acceptor in the ERP only, so this is a difference from the brief and a call awaiting user review.
+  - **Amended (D-90):** for a service, when the ERP holds no acceptance, the Requesting Department user of the entity can confirm or reject the acceptance in MatchPay with a note (UC-29). The confirmation counts as the independent acceptance source (BR-17). The ERP acceptance is still preferred and wins if both exist; the confirmation stays in the history. The quantity of goods still comes only from the goods receipt (BR-13). The brief names the warehouse keeper and the acceptor in the ERP only, so this is a difference from the brief and a call approved by the user (2026-11-01).
   - A scan with a handwritten signature is only an attachment. The AI does not verify handwritten signatures.
 
 ## BR-20 — Signing and consolidated payment requests
@@ -569,7 +569,7 @@ Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In 
 - **Source:** Step 2 (new rule), D-91, DF-62, O-17
 - **Related US:** US-30
 - **Related API:** TBD (Step 6)
-- **Rule:** *(a call awaiting user review; its legal validity is Unverified, O-17)*
+- **Rule:** *(a call approved by the user (2026-11-01); its legal validity is Unverified, O-17)*
   - A Chief Accountant or a Payment Approver can name a delegate for a date range while they are absent. The delegate is an active Chief Accountant or Payment Approver of the same entity (DF-62). The range is at most 30 days, starts today or later, and does not overlap another delegation of the same delegator.
   - In the range the delegate can sign the requests that wait for the delegator, **at the delegator's approval level** (BR-03), and only in the range. The delegate enters their own password again (DF-10). The delegator cannot sign while the delegation is active.
   - **Separation still applies to the delegate** (BR-02, BR-36): the delegate cannot sign both signatures of one request, cannot sign a request that holds an invoice they processed or whose order or receipt they are linked to, and the Chief Accountant still signs first (DF-01).
@@ -583,7 +583,7 @@ Invoices can leave a batch (V15) while the batch is `Open`, `In Review`, or `In 
 - **Related US:** US-07, US-10
 - **Advanced part:** W-13, the real connection point
 - **Related API:** TBD (Step 6)
-- **Rule:** *(a call awaiting user review)*
+- **Rule:** *(a call approved by the user (2026-11-01))*
   - **MVP part: a simulated lookup.** Like the simulated tax-risk list (D-21), the status comes from a simulated feed: for an invoice key (seller, series, number) it gives Valid, Adjusted, Replaced, or Cancelled, with a status date (DF-64). Each entry carries its key, status, and date, and an entry without them is rejected.
   - At intake, after the signature check, the system looks up the status. **Cancelled** or **Replaced** stops the invoice: it is `Rejected` with the reason and the date, and it is not processed further (BR-33 V6). **Adjusted** is a warning on the evidence; the adjustment invoice is a separate document handled by BR-31.
   - If the lookup does not answer within 10 seconds, the invoice becomes an exception "Authority status unavailable"; intake never blocks, and an invoice with an unknown status is never admitted to a batch (BR-27 principle, DF-08). The AP Accountant can run the lookup again.

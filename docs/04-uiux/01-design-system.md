@@ -4,11 +4,11 @@
 >
 > Implementation status: NOT STARTED
 >
-> Revision R1 (UX redesign, 2026-11-01): draft for review
+> Revision R1 (UX redesign, 2026-11-01): approved
 >
-> Mind map sync (D-88): components added, draft for review
+> Mind map sync (D-88): components added, approved
 
-Source of truth: [`wireframes/assets/wireframe.css`](wireframes/assets/wireframe.css). Step 9 reuses these tokens. The concept is a call awaiting user review (D-44).
+Source of truth: [`wireframes/assets/wireframe.css`](wireframes/assets/wireframe.css). Step 9 reuses these tokens. The concept is a call approved by the user (2026-11-01) (D-44).
 
 ## Concept: three hands
 
@@ -96,7 +96,7 @@ Spacing steps: 4, 8, 12, 16, 24, 32, 48 px. Radius follows the hands: surfaces 8
 
 ## Layout patterns (R1)
 
-Revision R1 (draft for review, D-73..D-81) changes how the pages are laid out, not what they say. The tokens, the three hands, and the components above are kept. The patterns below are in the same stylesheet (`wireframes/assets/wireframe.css`, block "R1") and the same script (`states.js`). Where a value below differs from the one above (the page title is 22 px, not 24 px), the R1 value applies to the redesigned pages.
+Revision R1 (approved, D-73..D-81) changes how the pages are laid out, not what they say. The tokens, the three hands, and the components above are kept. The patterns below are in the same stylesheet (`wireframes/assets/wireframe.css`, block "R1") and the same script (`states.js`). Where a value below differs from the one above (the page title is 22 px, not 24 px), the R1 value applies to the redesigned pages.
 
 ### Patterns P1 to P11
 

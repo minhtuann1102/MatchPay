@@ -1,6 +1,6 @@
 # Future Work (after the MVP)
 
-> Design status: MVP — Step 1 of 9, draft for review; nothing here is in the MVP scope
+> Design status: MVP — Step 1 of 9, approved; nothing here is in the MVP scope
 >
 > Implementation status: NOT PLANNED for the MVP
 

@@ -566,8 +566,8 @@ def row(txt, rid):
 d33 = row(dec2, 'D-33')
 print('  D-33 defined as a row with "User decision":', 'User decision' in d33, '; DF range extends to DF-33:', 'DF-33' in defs)
 if 'User decision' not in d33 or 'DF-33' not in defs: fail('D-33 or DF-33')
-# D-33: the user's own decision must not be labelled as a review call, and the interpretation must be marked as awaiting review
-if 'awaiting user review' not in dec2[dec2.index('### Calls made while applying D-33'):]: fail('D-33 interpretation not marked awaiting review')
+# D-33: the user's own decision must not be labelled as a review call, and the interpretation must be marked as a call approved by the user (2026-11-01), not as the user's decision
+if 'a call approved by the user (2026-11-01)' not in dec2[dec2.index('### Calls made while applying D-33'):] and 'Call, approved by the user (2026-11-01)' not in dec2[dec2.index('### Calls made while applying D-33'):]: fail('D-33 interpretation not marked as a call approved by the user')
 # D-33: removed or changed items keep their entry and say so
 mark_checks = [
     ('D-25', row(dec1, 'D-25'), RM),
@@ -849,13 +849,13 @@ else:
         r_ = row(dec3, i_)
         if not r_: st_bad.append((i_, 'missing')); continue
         st = r_.strip().strip('|').split('|')[-1].strip()
-        if not (st == 'Approved with Step 3 (user, 2026-10-31)' or st.startswith('Awaiting user review') or st.startswith('Superseded by ')): st_bad.append((i_, st))
+        if not (st == 'Approved with Step 3 (user, 2026-10-31)' or st.startswith('Approved by the user (2026-11-01)') or st.startswith('Superseded by ')): st_bad.append((i_, st))
     # D-88 sync: D-41 and DF-40 are superseded, not deleted; D-100..D-107 and DF-69..DF-72 are calls awaiting review
     for old_, new_ in (('D-41', 'D-100'), ('DF-40', 'DF-69')):
         if ('Superseded by %s (mind map sync)' % new_) not in row(dec3, old_): st_bad.append((old_, 'not marked superseded by ' + new_))
     for i_ in ['D-%d' % n for n in range(100, 108)] + ['DF-%d' % n for n in range(69, 73)]:
         r_ = row(dec3, i_)
-        if not r_ or r_.strip().strip('|').split('|')[-1].strip() != 'Call, awaiting user review': st_bad.append((i_, 'missing or not "Call, awaiting user review"'))
+        if not r_ or r_.strip().strip('|').split('|')[-1].strip() != 'Call, approved by the user (2026-11-01)': st_bad.append((i_, 'missing or not "Call, approved by the user (2026-11-01)"'))
     if 'Changes made to Step 3 for the mind map sync (D-88)' not in dec3: st_bad.append(('section', 'Changes made to Step 3 for the mind map sync (D-88) missing'))
     nav3 = text[IA + '03-navigation.md']
     if 'There are no notification centre' in nav3 or 'SCR-62' not in nav3 or 'reverses D-41' not in nav3: st_bad.append(('03-navigation.md', 'notification section not reversed'))
@@ -1178,9 +1178,9 @@ else:
     h8 = []
     for f_ in DB_FILES:
         t_ = text.get(DB + f_, '')
-        if '> Design status: MVP — Step 5 of 9, draft for review\n>\n> Implementation status: NOT STARTED' not in t_: h8.append((f_, 'header'))
+        if '> Design status: MVP — Step 5 of 9, approved\n>\n> Implementation status: NOT STARTED' not in t_: h8.append((f_, 'header'))
         if not re.search(r'^\*\*Related:\*\*', t_, re.M): h8.append((f_, 'Related line'))
-    print('  Step 5 files with the "draft for review" header and a Related line: %s' % ('all 4' if not h8 else h8))
+    print('  Step 5 files with the "approved" header and a Related line: %s' % ('all 4' if not h8 else h8))
     if h8: fail('Step 5 headers')
     # (l) decisions D-47..D-66 and DF-53..DF-60 exist and await review
     dec5 = text[DB + '00-decisions.md']
@@ -1188,12 +1188,12 @@ else:
     for i_ in ['D-%d' % n_ for n_ in range(47, 67)] + ['DF-%d' % n_ for n_ in range(53, 61)]:
         r_ = row(dec5, i_)
         if not r_: st8.append((i_, 'missing')); continue
-        want_ = {'DF-60': 'Approved by the user, 2026-10-31', 'D-53': 'Decided by the user, D-70', 'D-54': 'Decided by the user, D-69', 'D-64': 'Decided by the user, D-72', 'DF-58': 'Decided by the user, D-71'}.get(i_, 'Awaiting user review')
+        want_ = {'DF-60': 'Approved by the user, 2026-10-31', 'D-53': 'Decided by the user, D-70', 'D-54': 'Decided by the user, D-69', 'D-64': 'Decided by the user, D-72', 'DF-58': 'Decided by the user, D-71'}.get(i_, 'Approved by the user (2026-11-01)')
         if r_.strip().strip('|').split('|')[-1].strip() != want_: st8.append((i_, 'status'))
     for i_ in ('D-67', 'D-68', 'D-69', 'D-70', 'D-71', 'D-72'):
         r_ = row(dec5, i_)
         if not r_ or r_.strip().strip('|').split('|')[-1].strip() != 'User decision, 2026-10-31': st8.append((i_, 'user decision source'))
-        elif i_ in ('D-67', 'D-68', 'D-70') and 'Call, awaiting user review' not in r_: st8.append((i_, 'call not separated'))
+        elif i_ in ('D-67', 'D-68', 'D-70') and 'Call, approved by the user (2026-11-01)' not in r_: st8.append((i_, 'call not separated'))
     # D-69, D-70: the changed Steps 2-4 record the user decision, and gaps 3 and 5 are resolved
     for f_, ids_ in (('docs/02-usecases-userstories/00-decisions.md', ('D-69', 'D-70', 'D-72')), ('docs/03-information-architecture/00-decisions.md', ('D-69', 'D-70')), ('docs/04-uiux/00-decisions.md', ('D-69', 'D-70'))):
         for i_ in ids_:
@@ -1206,9 +1206,10 @@ else:
         if f_.startswith('docs/') and re.search(r'correct(s|ing)? the entity|Correct entity|change the entity|correct entity or flow', t_, re.I) and not f_.endswith('00-decisions.md') and 'handoff' not in f_:
             st8.append((f_, 'offers to correct or change the entity'))
     if st8: print('   ', st8); fail('Step 5 decision rows')
-    approved_claim = [f_ for f_ in DB_FILES if re.search(r'Approved with Step 5|Step 5 of 9, approved', text.get(DB + f_, ''))]
-    print('  Step 5 text that calls itself approved: %s' % (approved_claim or 'none'))
-    if approved_claim: fail('Step 5 labelled approved')
+    # Step 5 was approved by the user on 2026-11-01: every Step 5 file must carry the approved header
+    not_approved = [f_ for f_ in DB_FILES if 'Step 5 of 9, approved' not in text.get(DB + f_, '')]
+    print('  Step 5 files without the approved header: %s' % (not_approved or 'none'))
+    if not_approved: fail('Step 5 not labelled approved')
     # (m) counts stated in the prose equal the DBML
     cnt_bad = []
     for f_, t_ in text.items():
@@ -1227,7 +1228,7 @@ d88 = row(dec2_, 'D-88')
 if 'User decision, 2026-11-01' not in d88: s9.append('D-88 must be a row with the source "User decision, 2026-11-01"')
 for i_ in ['D-%d' % n_ for n_ in range(89, 100)]:
     r_ = row(dec2_, i_)
-    if not r_ or not r_.strip().strip('|').split('|')[-1].strip() == 'Call, awaiting user review': s9.append('%s must be a row ending in "Call, awaiting user review"' % i_)
+    if not r_ or not r_.strip().strip('|').split('|')[-1].strip() == 'Call, approved by the user (2026-11-01)': s9.append('%s must be a row ending in "Call, approved by the user (2026-11-01)"' % i_)
 for i_ in ['DF-%d' % n_ for n_ in range(61, 69)]:
     if not row(dec2_, i_): s9.append(i_ + ' missing')
 if 'D-88' not in dec2_[dec2_.index('## Sync to the feature mind map'):]: s9.append('sync section missing')

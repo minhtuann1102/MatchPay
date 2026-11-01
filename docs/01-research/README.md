@@ -1,6 +1,6 @@
 # 01 — Research and Problem Analysis
 
-> Design status: MVP — Step 1 of 9, draft for review
+> Design status: MVP — Step 1 of 9, approved
 >
 > Implementation status: NOT STARTED
 
@@ -8,7 +8,7 @@ Step 1 analyses **MatchPay** top-down: context, problem, measurable goals, stake
 
 | File | Content |
 |---|---|
-| [00-decisions.md](00-decisions.md) | Decisions for user review D-01..D-14; corrections to the brief from research D-15..D-23; decisions from review D-24..D-26, awaiting user review (D-25 was removed by the user's decision D-33); the brief's ten open items O-01..O-10 and open items O-11..O-17 found by research, by the review decisions, or by the sync to the feature mind map (D-88) |
+| [00-decisions.md](00-decisions.md) | Decisions for user review D-01..D-14; corrections to the brief from research D-15..D-23; decisions from review D-24..D-26, approved by the user (2026-11-01) (D-25 was removed by the user's decision D-33); the brief's ten open items O-01..O-10 and open items O-11..O-17 found by research, by the review decisions, or by the sync to the feature mind map (D-88) |
 | [01-context-and-problem.md](01-context-and-problem.md) | Context, today's process, problem statement P-01..P-04 with root causes, value, the corrected "why now", vision, top-down decomposition |
 | [02-goals-and-metrics.md](02-goals-and-metrics.md) | Measurable goals G-01..G-07 with exact formulas, the reading limits, and the benchmark range |
 | [03-stakeholders.md](03-stakeholders.md) | Stakeholders and their interests |

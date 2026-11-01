@@ -1,10 +1,10 @@
 # Use Case Specifications
 
-> Design status: MVP — Step 2 of 9, draft for review
+> Design status: MVP — Step 2 of 9, approved
 >
 > Implementation status: NOT STARTED
 
-Each use case has one story with the same number (US-nn is UC-nn). "Re-runs UC-16" means the Rule Engine checks the invoice again from the stored evidence. UC-11 and UC-22 were removed by D-33; their headings stay and their numbers are not reused. UC-29 to UC-32 were added by the sync to the feature mind map (D-88); their readings are calls awaiting user review (D-90, D-91, D-92, D-97).
+Each use case has one story with the same number (US-nn is UC-nn). "Re-runs UC-16" means the Rule Engine checks the invoice again from the stored evidence. UC-11 and UC-22 were removed by D-33; their headings stay and their numbers are not reused. UC-29 to UC-32 were added by the sync to the feature mind map (D-88); their readings are calls approved by the user (2026-11-01) (D-90, D-91, D-92, D-97).
 
 ## UC-01 Log In and Out
 

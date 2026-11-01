@@ -1,10 +1,10 @@
 # Data Model
 
-> Design status: MVP — Step 5 of 9, draft for review
+> Design status: MVP — Step 5 of 9, approved
 >
 > Implementation status: NOT STARTED
 
-The schema for **MatchPay** on PostgreSQL (D-47): 74 tables in twelve groups. It stores what the [business rules](../requirements/business-rules.md) and the [screens](../04-uiux/02-screen-notes.md) need, plus who created each record and when, and nothing that can be computed (D-63). Everything that comes from the Entity ERP is a read-only copy, and everything that a person decided is a row with its author. The sync to the feature mind map (D-88, [Step 5 decisions](00-decisions.md#mind-map-sync-d-88-draft-for-review)) added eleven tables, twelve enums, and the columns named in the tables below; all of it is draft for review.
+The schema for **MatchPay** on PostgreSQL (D-47): 74 tables in twelve groups. It stores what the [business rules](../requirements/business-rules.md) and the [screens](../04-uiux/02-screen-notes.md) need, plus who created each record and when, and nothing that can be computed (D-63). Everything that comes from the Entity ERP is a read-only copy, and everything that a person decided is a row with its author. The sync to the feature mind map (D-88, [Step 5 decisions](00-decisions.md#mind-map-sync-d-88-approved)) added eleven tables, twelve enums, and the columns named in the tables below; all of it is approved.
 
 Related sources of truth: [matchpay.dbml](matchpay.dbml), [ER diagram](02-er-diagram.md), [decisions](00-decisions.md).
 
@@ -342,7 +342,7 @@ A model call never runs inside a database transaction, so no lock is held while 
 | Create or revoke a delegation | The `signing_delegations` row; the exclusion constraint refuses an overlap with another unrevoked range of the delegator. A revocation checks the version and sets `revoked_by` and `revoked_at`. Audit entries with the type `CONFIG_CHANGE` (D-127) | — |
 | Notifications | A notification is written in the transaction of the event that causes it, but a failure to write it is logged and never rolls the event back (DF-67, AC-32.9). Reminders are written by a daily job that skips work already done and rows that exist for the day | — |
 | ERP send | A worker takes a `PENDING` attempt, sends with the request number as the idempotency key, and records the outcome and the next attempt in one transaction; the third failure leaves the request `Signed` and raises the alert. A hash that differs from the signed one is `HASH_MISMATCH` and is not sent (AC-26.7) | — |
-| ERP paid status | `reply`, `payment_reference`, request `Paid`, invoices `Paid`, `price_history` and `supplier_entity_stats`, and the batch `Completed` when every request is paid or has its mocked failure recorded (D-67, a call awaiting review) | — |
+| ERP paid status | `reply`, `payment_reference`, request `Paid`, invoices `Paid`, `price_history` and `supplier_entity_stats`, and the batch `Completed` when every request is paid or has its mocked failure recorded (D-67, a call approved by the user (2026-11-01)) | — |
 | ERP sync | One transaction per record type: upserts by `(entity_id, erp_ref)` (so a second run creates no duplicate, AC-07.2), rejections logged, run totals; then new check runs for invoices that wait for goods or for a corrected record, and for invoices of a newly listed supplier (AC-07.10) | Check runs |
 | Lower a group maximum | The group row and every entity policy above the new maximum are changed together, with one audit entry each (AC-03.4) | — |
 
