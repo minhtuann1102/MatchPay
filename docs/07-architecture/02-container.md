@@ -1,6 +1,6 @@
 # C2 — Container
 
-> Design status: MVP — Step 7 of 9, draft for review
+> Design status: MVP — draft for review
 >
 > Implementation status: NOT STARTED
 
@@ -62,7 +62,7 @@ flowchart TB
 
 | Container | Technology | Responsibility | Status |
 |---|---|---|---|
-| Reverse Proxy and Web | Caddy (Unverified: the Caddy documentation was not opened; nginx is the alternative), static files built by Vite | Terminates TLS, serves the built web application, forwards `/api/v1` to the API, and returns `index.html` for any other path so that the history-mode routes of Step 3 work (D-166) | Not started |
+| Reverse Proxy and Web | Caddy (Unverified: the Caddy documentation was not opened; nginx is the alternative), static files built by Vite | Terminates TLS, serves the built web application, forwards `/api/v1` to the API, and returns `index.html` for any other path so that the history-mode routes of the information architecture work (D-166) | Not started |
 | API | Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2 | Implements the 121 operations of [`openapi.yaml`](../06-api/openapi.yaml): authenticates the session, checks role and entity scope, validates the CSRF token, checks versions, changes state, and writes the audit entry in the same transaction. Starts jobs by inserting them. The two operations that answer at once and need an outside system (`draftCorrectionRequest` for the LLM, `sendCorrectionRequest` for the Email Service) insert a job and wait for its result up to a timeout (D-169). Never calls the LLM, an ERP, a mailbox, the status service, or the Email Service itself | Not started |
 | Worker | Same codebase and image as the API, started with another command | Runs the ten jobs of the [API traceability](../06-api/01-api-traceability.md#4-background-jobs): the check run (AI steps, then the Rule Engine), the ERP sync, the mailbox fetch, the authority status lookup, the ERP send, the daily reminders, the AI payment summary, and the demo seed loader, plus the two call-and-wait jobs (draft and send of a request) that the API waits for. The only unit that holds the LLM key and reaches the outside systems | Not started |
 | Embedding Model | An open multilingual model that supports Vietnamese, run with a Python library inside the Worker (D-180) | Turns item text into vectors for the top 3 to 5 candidate items; costs nothing per call | Not started |
@@ -83,7 +83,7 @@ flowchart TB
 9. Embeddings are computed inside the deployment. The LLM key exists only in the Worker, and document text goes to the LLM as data in a delimited field, never as instructions (BR-27, D-179).
 10. The LLM Provider can be replaced by configuration: nothing outside the LLM Gateway names a provider (D-181).
 
-## Where the Step 5 and Step 6 items land
+## Where the database and API items land
 
 | Item | Container |
 |---|---|

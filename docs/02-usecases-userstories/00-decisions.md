@@ -1,29 +1,29 @@
 # Decisions and Defaults
 
-> Design status: MVP — Step 2 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
-Step 2 follows the decisions of Step 1 ([Step 1 decisions](../01-research/00-decisions.md)). This page records what Step 2 adds: the decisions it makes, how the Step 1 decisions appear in the use cases and rules, and the defaults that make the stories testable. Defaults apply unless the user changes them. After the first draft the user changed the scope (D-33, section "Scope change decided by the user"): foreign invoices and the cash payment flag are no longer in the MVP. After that the user attached a feature mind map (F01..F12) and asked for the documents to be brought in line with it (D-88, section "Sync to the feature mind map"); the four use cases and stories that came from it (UC-29..UC-32) are Should.
+Requirements follows the decisions of the research ([Research decisions](../01-research/00-decisions.md)). This page records what requirements adds: the decisions it makes, how the research decisions appear in the use cases and rules, and the defaults that make the stories testable. Defaults apply unless the user changes them. After the first draft the user changed the scope (D-33, section "Scope change decided by the user"): foreign invoices and the cash payment flag are no longer in the MVP. After that the user attached a feature mind map (F01..F12) and asked for the documents to be brought in line with it (D-88, section "Sync to the feature mind map"); the four use cases and stories that came from it (UC-29..UC-32) are Should.
 
 ## User approval on 2026-11-01
 
-The user wrote on 2026-11-01: "hoan thien not buoc 6 buoc 7, toi da review xong" (in English: "finish Steps 6 and 7, I have finished the review"). The assistant reads this message as approval of every call and default of this step that awaited review, so they now read "approved by the user (2026-11-01)". This reading, that the message covers every item awaiting review in Steps 1 to 5, is the assistant's and awaits the user's confirmation (see the [session handoff](../handoff/session-handoff.md)). A call stays a call: approval does not turn it into one of the user's own decisions, and the user's own decisions keep their labels. Items that only other people can close stay open: O-05, O-15, and O-17 (accountant or legal confirmation), O-16 (needs the user's own answer), and the remaining O-xx items of Step 1 that are Unverified. Legal validity stays Unverified.
+The user wrote on 2026-11-01: "hoan thien not buoc 6 buoc 7, toi da review xong" (in English: "finish the API and architecture documents, I have finished the review"). The assistant reads this message as approval of every call and default of this document set that awaited review, so they now read "approved by the user (2026-11-01)". This reading, that the message covers every item awaiting review in the research, requirements, information architecture, UI/UX, and database documents, is the assistant's and awaits the user's confirmation (see the [session handoff](../handoff/session-handoff.md)). A call stays a call: approval does not turn it into one of the user's own decisions, and the user's own decisions keep their labels. Items that only other people can close stay open: O-05, O-15, and O-17 (accountant or legal confirmation), O-16 (needs the user's own answer), and the remaining O-xx items of the research that are Unverified. Legal validity stays Unverified.
 
-## Decisions made in this step
+## Decisions made in this document set
 
 | ID | Decision | Resolves | Source |
 |---|---|---|---|
-| D-27 | **UC-06 Manage Automation Gates is a Must, not a Should.** Condition 5 of the batch rule needs a gate that is open for the supplier and entity pair (BR-05). With no way to open a gate, no invoice could ever join a batch and the touchless rate (G-01) would be 0%. This is the first of two priority moves from the first proposal; the other is D-32 (removed by D-33). | — | Step 2 review of the priorities |
-| D-28 | **The simulated tax-risk list loads through UC-07 as a simulated external feed.** Each entry carries a source and a date (D-21). No use case and no actor is added: the backlog stays at exactly 28 use cases. (D-33 later removed two of them, UC-11 and UC-22, leaving 26 active use cases; D-88 later added four, UC-29..UC-32, so there are 30.) An entry without a source or a date is rejected. | — | Step 1 review |
-| D-29 | **A new supplier and entity pair starts with its gate closed.** Invoices of a closed pair go to exceptions with the reason "Gate closed". The AI's proposal is recorded next to the person's decision, which is how shadow mode measures accuracy (BR-06). | — | Step 2 |
-| D-30 | **BR-37 applies to every state-changing action,** not only to signing and withdrawal. Signing and withdrawal are the critical cases; resolving an exception, deciding a hold, and approving an exception use the same version check. | — | Step 2 |
-| D-31 | **Only some exceptions can be approved individually by the Payment Approver (UC-23):** gate closed, unusual price, possible duplicate, split orders, new supplier, changed bank account, and a recurring invoice outside its deviation threshold. These cannot: a failed XML signature, an exact duplicate, a wrong buyer tax code, an open tax-risk hold, and an unsupported foreign invoice (D-33), and an invoice with a reported wrong entity (D-68). Each of those has its own decision path; an unsupported foreign invoice can only be rejected with a reason, and a reported wrong entity is resolved by a correction or reissue request or by a rejection. | — | Step 2; list extended by user decision D-68 |
-| D-32 | Removed (D-33). **US-22 Confirm Foreign Tax Obligations is a Should, not a Must.** Foreign invoices enter only through US-11, which is a Should, so a Must story would have nothing to work on if US-11 were cut. US-11 and US-22 are cut together. D-33 then removed both stories from the MVP. | — | Step 2 review of the priorities |
+| D-27 | **UC-06 Manage Automation Gates is a Must, not a Should.** Condition 5 of the batch rule needs a gate that is open for the supplier and entity pair (BR-05). With no way to open a gate, no invoice could ever join a batch and the touchless rate (G-01) would be 0%. This is the first of two priority moves from the first proposal; the other is D-32 (removed by D-33). | — | Requirements review of the priorities |
+| D-28 | **The simulated tax-risk list loads through UC-07 as a simulated external feed.** Each entry carries a source and a date (D-21). No use case and no actor is added: the backlog stays at exactly 28 use cases. (D-33 later removed two of them, UC-11 and UC-22, leaving 26 active use cases; D-88 later added four, UC-29..UC-32, so there are 30.) An entry without a source or a date is rejected. | — | Research review |
+| D-29 | **A new supplier and entity pair starts with its gate closed.** Invoices of a closed pair go to exceptions with the reason "Gate closed". The AI's proposal is recorded next to the person's decision, which is how shadow mode measures accuracy (BR-06). | — | Requirements |
+| D-30 | **BR-37 applies to every state-changing action,** not only to signing and withdrawal. Signing and withdrawal are the critical cases; resolving an exception, deciding a hold, and approving an exception use the same version check. | — | Requirements |
+| D-31 | **Only some exceptions can be approved individually by the Payment Approver (UC-23):** gate closed, unusual price, possible duplicate, split orders, new supplier, changed bank account, and a recurring invoice outside its deviation threshold. These cannot: a failed XML signature, an exact duplicate, a wrong buyer tax code, an open tax-risk hold, and an unsupported foreign invoice (D-33), and an invoice with a reported wrong entity (D-68). Each of those has its own decision path; an unsupported foreign invoice can only be rejected with a reason, and a reported wrong entity is resolved by a correction or reissue request or by a rejection. | — | Requirements; list extended by user decision D-68 |
+| D-32 | Removed (D-33). **US-22 Confirm Foreign Tax Obligations is a Should, not a Must.** Foreign invoices enter only through US-11, which is a Should, so a Must story would have nothing to work on if US-11 were cut. US-11 and US-22 are cut together. D-33 then removed both stories from the MVP. | — | Requirements review of the priorities |
 
 ## Scope change decided by the user
 
-After the first draft of Step 2, the user decided to take foreign invoices and the cash payment flag out of the MVP. This is the user's own decision, not a call made in review.
+After the first draft of the requirements, the user decided to take foreign invoices and the cash payment flag out of the MVP. This is the user's own decision, not a call made in review.
 
 | ID | Decision | Resolves | Source |
 |---|---|---|---|
@@ -36,7 +36,7 @@ The brief is never edited. These are the places that D-33 changes (line numbers 
 - Scope table, row "Invoice types", MVP column (line 162): "foreign invoices (level A)". Row "Documents", MVP column (line 161): "foreign invoices as PDF". Row "Tax", MVP column (line 165): "for foreign invoices: flag foreign contractor tax and import documents, block payment until the accountant confirms"; the Advanced column of that row holds "cross-check of customs declarations".
 - Batch condition 6 (line 72): "no sign of anomaly and no unhandled tax duty (foreign contractor tax, import documents)". BR-21 (line 195): block payment of a foreign service until the accountant confirms foreign contractor tax; imported goods need the customs declaration and the proof of import-stage VAT before joining a batch; store the original currency and the exchange rate. BR-18 (line 192): PDF and XML of one invoice that differ are flagged as suspected fraud.
 - The AI table and the architecture table (lines 56, 91, 163) have the AI read PDF through a multimodal LLM, and the process table (line 61) has a row for foreign contractor tax. The brief's scope sentence (line 157) says "about 28 user stories".
-- Cash: the brief has **no rule** about cash or non-cash payment. The only mention is in its open questions (line 265): the current purchase-list form "and the condition of payment by non-cash means (the sources conflict)". BR-32 was added in Step 1 review (D-25) and was never in the brief.
+- Cash: the brief has **no rule** about cash or non-cash payment. The only mention is in its open questions (line 265): the current purchase-list form "and the condition of payment by non-cash means (the sources conflict)". BR-32 was added in the research review (D-25) and was never in the brief.
 
 ### What the documents now say
 
@@ -63,9 +63,9 @@ These are not the user's words. They fill gaps that the decision leaves open.
 - **DF-22 attachments.** The only MVP use of attachments was the foreign tax documents of UC-22. DF-22 stays as the default for W-20 and no MVP story uses it.
 - **BR-18 status.** BR-18 is Advanced, not Removed, because the rule is still sound and the Advanced item W-09 needs it.
 
-## How the Step 1 decisions appear in Step 2
+## How the research decisions appear in the requirements
 
-| Step 1 decision | Where it is applied |
+| Research decision | Where it is applied |
 |---|---|
 | D-06 Automation gate: shadow mode, manual switch, alert | BR-06; US-06 (AC-06.1..AC-06.10); US-16 (AC-16.7); US-18 (AC-18.4) |
 | D-07 Follow-up invoices: BR-31 wins over BR-26 | BR-26, BR-31; US-18 (AC-18.5); US-20 (AC-20.2, AC-20.3, AC-20.4) |
@@ -120,9 +120,9 @@ These are not the user's words. They fill gaps that the decision leaves open.
 | DF-32 | **Passwords** have at least 8 characters. Login is by email and password. |
 | DF-33 | **Demo seed history:** the demo seed data includes a compared history of at least 50 invoices for chosen supplier and entity pairs (for example Brightfield Paper Ltd and Calderwood Foods Co., with 49 of 50 confirmed unchanged), so that their gates can be opened in the demo (D-29, DF-16). This history is labelled "Simulated history" and is excluded from the G-01 and G-02 figures and from the dashboard. Only invoices processed after the gate is open count. |
 
-## Open items that affect Step 2
+## Open items that affect requirements
 
-| ID | Item | How Step 2 handles it |
+| ID | Item | How requirements handles it |
 |---|---|---|
 | O-05 | Whether a policy delegation can replace signing each voucher | Per-voucher signing (BR-20); legal confirmation stays open. The delegation for a date range (UC-30, BR-38) is a different thing: the delegate still signs each voucher |
 | O-17 | Whether an e-signature given by a delegate for a named signer is valid | Delegation by date range is designed as a call (D-91, BR-38); validity is Unverified, and the accountant and the lawyer must confirm it (O-17) |
@@ -134,9 +134,9 @@ On 2026-10-31 the user asked that the diagrams show the actors as the sample doe
 
 ## Changed by user decisions after the first draft
 
-On 2026-10-31 the user ruled on gaps found in Step 5 (see [Step 5 decisions](../05-database/00-decisions.md#decisions-made-by-the-user)). The IDs are D-68..D-72 and they are recorded there, because the gaps arose in Step 5. The changes made here keep every ID.
+On 2026-10-31 the user ruled on gaps found in the database (see [Database decisions](../05-database/00-decisions.md#decisions-made-by-the-user)). The IDs are D-68..D-72 and they are recorded there, because the gaps arose in the database. The changes made here keep every ID.
 
-| Changed by user decision | What changed in Step 2 |
+| Changed by user decision | What changed in the requirements |
 |---|---|
 | D-68 | UC-18 and US-18 no longer offer to "correct the entity". The AP Accountant reports a wrong entity, the system traces the mismatch, and the exception follows the wrong-invoice path. AC-18.1 is reworded; AC-18.11 and AC-18.12 are added at the end of the range; AC-13.2 and AC-23.4 name the report; D-31 lists the new reason "Wrong entity reported" (and "Wrong buyer tax code") as not individually approvable. The user said: "No moving between entities. Only allow reporting the error, tracing where the error is, then putting it into an exception like a wrong invoice." The choice of the two reason names and of what the trace compares is a call approved by the user (2026-11-01). |
 | D-69 | AC-23.2, UC-23, DF-03, and the note under the UC-16 diagram: an individually approved exception is recorded at once and its invoice is `In Batch`; the single-invoice payment request is created when the batch is released (BR-35 R1 is unchanged) and goes straight to the Chief Accountant's co-signature (R4). The user chose to fix the wording of AC-23.2 and keep BR-35. |
@@ -150,7 +150,7 @@ On 2026-11-01 the user attached a mind map of the product with twelve features, 
 
 | ID | Decision | Resolves | Source |
 |---|---|---|---|
-| D-88 | **Bring Steps 1 and 2 in line with the feature mind map F01..F12.** The mind map is read as a feature map. Where it adds or sharpens a feature, the documents follow (D-89..D-98); where it is silent about something the documents already hold, the documents keep it (D-99). Steps 3 to 5 are not changed in this pass; what they must add is listed in "Follow-up in Steps 3 to 5" below. | The request to sync with the mind map | User decision, 2026-11-01 |
+| D-88 | **Bring the research and requirements documents in line with the feature mind map F01..F12.** The mind map is read as a feature map. Where it adds or sharpens a feature, the documents follow (D-89..D-98); where it is silent about something the documents already hold, the documents keep it (D-99). The information architecture, UI/UX, and database documents are not changed in this pass; what they must add is listed in "Follow-up in the information architecture, UI/UX, and database documents" below. | The request to sync with the mind map | User decision, 2026-11-01 |
 
 On 2026-11-01 (08:09 UTC) the user sent the mind map again, said it is the final one, and asked to add it to the repository. The image is byte-identical to the one this sync was based on, so no requirement changed. D-88 stays a user decision. The image is stored at `docs/images/source/feature-mind-map.png`.
 
@@ -166,7 +166,7 @@ On 2026-11-01 (08:09 UTC) the user sent the mind map again, said it is the final
 | D-94 | **Cancelled invoices (F04 "replacement / adjustment / cancellation").** BR-31 gains the third case. A cancellation notice (from the seller, recorded by the AP Accountant, or from the simulated authority status) withdraws the invoice from any batch that is not yet signed and rejects it. After signing but before sending, the request is cancelled and its invoices become exceptions (new transitions V20, V21, and R9 in BR-33 and BR-35); once `Sent`, the notice is only stored as a warning, because an ERP failure after `Sent` is only mocked (D-67). The cancellation of a signed request is the only exception to DF-07. | F04 | Call, approved by the user (2026-11-01) |
 | D-95 | **Sample failure handling (F07 "remove invoice / reopen batch / expand sample").** BR-07 already withdraws a wrong invoice. Added: the AP Accountant can expand the sample (the next invoices by risk, at least the original sample size again, DF-65), and can reopen a batch that is `In Signing` back to `In Review` while no request holds a signature (new transition B7 in BR-35, DF-66). | F07 | Call, approved by the user (2026-11-01) |
 | D-96 | **Manual resend to the ERP (F08 "track ERP send: error, resend, paid").** After the 3 automatic attempts of DF-24 fail, the AP Accountant or the Chief Accountant can resend the same signed request, with the request number as idempotency key and no new signature (DF-66). This is different from the ERP returning a payment failure (AC-26.6 is unchanged). The user's decision D-67 is respected: the resend happens before the ERP accepts the request, and no new state is added for a failure after `Sent`. | F08 | Call, approved by the user (2026-11-01) |
-| D-97 | **UC-32 / US-32 Receive Notifications and Reminders (F11).** In-app notifications, no email to staff, for: a batch released and waiting for a signature (signers); a new exception and a returned or declined request (AP Accountant); overdue reminders, that is a correction request past 5 working days (DF-21) and a request waiting for a signature past its due date (DF-67). Priority **Should**. **This reverses the approved Step 3 decision D-41 ("There is no notification centre"):** D-41 said that no story asked for notifications, and now one does. Step 3 must change in the follow-up. | F11 | Call, approved by the user (2026-11-01) |
+| D-97 | **UC-32 / US-32 Receive Notifications and Reminders (F11).** In-app notifications, no email to staff, for: a batch released and waiting for a signature (signers); a new exception and a returned or declined request (AP Accountant); overdue reminders, that is a correction request past 5 working days (DF-21) and a request waiting for a signature past its due date (DF-67). Priority **Should**. **This reverses the approved information architecture decision D-41 ("There is no notification centre"):** D-41 said that no story asked for notifications, and now one does. The information architecture must change in the follow-up. | F11 | Call, approved by the user (2026-11-01) |
 | D-98 | **Search and drill-down (F10) need no new story.** US-17 covers the worklist; criteria are added to it (AC-17.10..AC-17.13): search all invoices of the own entity by number, supplier, amount, and state; open the state history of any invoice; open an invoice from a batch or a payment request. | F10 | Call, approved by the user (2026-11-01) |
 | D-99 | **Kept although the mind map does not show them:** UC-08 ERP simulator and the Demo Operator (demo only), the tax-risk hold UC-21, split-order handling (BR-10), employee-expense invoices (BR-23), and group limits (UC-03). The mind map is read as a feature map at a higher level, so these stay. The map names four role groups (accountant, approver, using department, administrator); the documents read "accountant" as the AP Accountant and the Chief Accountant, and keep the Chief Accountant because BR-20 needs the first signer. | The map's silence | Call, approved by the user (2026-11-01) |
 
@@ -229,20 +229,20 @@ The brief is never edited. These are the places where the documents now differ f
 | US-10, US-17, US-24, US-26 | The story sentence is longer (status check, search, expand and reopen, resend) |
 | W-05, W-13 | Reworded to the supplier portal and the real connection point; the numbers stay |
 
-### Follow-up in Steps 3 to 5
+### Follow-up in the information architecture, UI/UX, and database documents
 
-Step 3 was synced in the same session ([Step 3 decisions](../03-information-architecture/00-decisions.md#changes-made-to-step-3-for-the-mind-map-sync-d-88)) and Step 4 after it ([Step 4 decisions](../04-uiux/00-decisions.md#mind-map-sync-d-88-approved)). Step 5 was synced after them ([Step 5 decisions](../05-database/00-decisions.md#mind-map-sync-d-88-approved)), so the Database column of the [traceability matrix](../traceability/master-traceability.md) is filled for US-29..US-32 and no pending marker is left. The first column below says which step the row was for.
+The information architecture was synced in the same session ([Information architecture decisions](../03-information-architecture/00-decisions.md#changes-made-to-the-information-architecture-for-the-mind-map-sync-d-88)) and UI/UX after it ([UI/UX decisions](../04-uiux/00-decisions.md#mind-map-sync-d-88-approved)). The database was synced after them ([Database decisions](../05-database/00-decisions.md#mind-map-sync-d-88-approved)), so the Database column of the [traceability matrix](../traceability/master-traceability.md) is filled for US-29..US-32 and no pending marker is left. The first column below says which document the row was for.
 
-| Step | What it must add or change | Because of |
+| Document | What it must add or change | Because of |
 |---|---|---|
-| 3 (done, Step 3 sync) | A seventh role, Requesting Department, in the role list, the permission table, the sitemap, the screens per role, and DF-28 (home page: the acceptance queue); a screen for the acceptance queue with a confirm-or-reject modal (US-29) | D-90 |
-| 3 (done, Step 3 sync) | A delegations screen for the Chief Accountant and the Payment Approver, a read and revoke view for the Entity Admin, and the "On behalf of" marking on the signing screens (US-30) | D-91 |
-| 3 (done, Step 3 sync) | A mailbox log screen with "Fetch now" (US-31) | D-92 |
-| 3 (done, Step 3 sync) | A notification list with an unread count in the top bar, and the **reversal of D-41** (no notification centre), including the sidebar-badge wording of DF-40 and DF-43 where they depend on it (US-32) | D-97 |
-| 3 (done, Step 3 sync) | Search on the worklist, the state history on the invoice detail, and links from a batch and a payment request to the invoice (AC-17.10..AC-17.13) | D-98 |
-| 3 (done, Step 3 sync) | Actions on the batch screens: expand the sample, reopen for review; on the batch and request screens: resend; an action to record a cancellation notice on the invoice detail | D-94, D-95, D-96 |
-| 3 (done, Step 3 sync) | DF-40 says no manual retry is drawn; it must change for the resend. The flows for intake, exception handling, batch and signing need the new branches | D-96 |
-| 4 (done, Step 4 sync) | Wireframes and screen notes for every screen and state above; the design system needs the notification list and the "On behalf of" marker | All of the above |
-| 5 (done, Step 5 sync) | New roles value `REQUESTING_DEPARTMENT`; tables for service acceptances, signing delegations, mailbox messages and attachments, authority status lookups, cancellation notices, sample expansions, and notifications; a marker for a manual attempt and its author on the ERP send attempts; "on behalf of" on the signature records; reopen columns on the batch; new invoice states and request transitions (V20, V21, R9, B7) in the lifecycle columns and checks | D-90..D-97 |
+| 3 (done, information architecture sync) | A seventh role, Requesting Department, in the role list, the permission table, the sitemap, the screens per role, and DF-28 (home page: the acceptance queue); a screen for the acceptance queue with a confirm-or-reject modal (US-29) | D-90 |
+| 3 (done, information architecture sync) | A delegations screen for the Chief Accountant and the Payment Approver, a read and revoke view for the Entity Admin, and the "On behalf of" marking on the signing screens (US-30) | D-91 |
+| 3 (done, information architecture sync) | A mailbox log screen with "Fetch now" (US-31) | D-92 |
+| 3 (done, information architecture sync) | A notification list with an unread count in the top bar, and the **reversal of D-41** (no notification centre), including the sidebar-badge wording of DF-40 and DF-43 where they depend on it (US-32) | D-97 |
+| 3 (done, information architecture sync) | Search on the worklist, the state history on the invoice detail, and links from a batch and a payment request to the invoice (AC-17.10..AC-17.13) | D-98 |
+| 3 (done, information architecture sync) | Actions on the batch screens: expand the sample, reopen for review; on the batch and request screens: resend; an action to record a cancellation notice on the invoice detail | D-94, D-95, D-96 |
+| 3 (done, information architecture sync) | DF-40 says no manual retry is drawn; it must change for the resend. The flows for intake, exception handling, batch and signing need the new branches | D-96 |
+| 4 (done, UI/UX sync) | Wireframes and screen notes for every screen and state above; the design system needs the notification list and the "On behalf of" marker | All of the above |
+| 5 (done, database sync) | New roles value `REQUESTING_DEPARTMENT`; tables for service acceptances, signing delegations, mailbox messages and attachments, authority status lookups, cancellation notices, sample expansions, and notifications; a marker for a manual attempt and its author on the ERP send attempts; "on behalf of" on the signature records; reopen columns on the batch; new invoice states and request transitions (V20, V21, R9, B7) in the lifecycle columns and checks | D-90..D-97 |
 
-**Related:** [Step index](README.md) · [Step 1 decisions](../01-research/00-decisions.md)
+**Related:** [Requirements index](README.md) · [Research decisions](../01-research/00-decisions.md)

@@ -1,10 +1,10 @@
 # C1 — System Context
 
-> Design status: MVP — Step 7 of 9, draft for review
+> Design status: MVP — draft for review
 >
 > Implementation status: NOT STARTED
 
-**Purpose:** show who uses MatchPay and which outside systems it talks to, without implementation technology. The roles are the seven roles of the [Step 3 routes](../03-information-architecture/02-routes-and-permissions.md) and the `user_role` enum of the database; the outside systems are the systems of the [use case actors](../02-usecases-userstories/01-use-cases.md). In the demo, three of the outside systems are simulated inside the deployment (see [C2](02-container.md)); C1 shows them as they are in production, and the table says what the demo binds to each.
+**Purpose:** show who uses MatchPay and which outside systems it talks to, without implementation technology. The roles are the seven roles of the [Information architecture routes](../03-information-architecture/02-routes-and-permissions.md) and the `user_role` enum of the database; the outside systems are the systems of the [use case actors](../02-usecases-userstories/01-use-cases.md). In the demo, three of the outside systems are simulated inside the deployment (see [C2](02-container.md)); C1 shows them as they are in production, and the table says what the demo binds to each.
 
 ```mermaid
 flowchart LR
@@ -96,4 +96,4 @@ Embeddings are not an outside relationship: the embedding model runs inside the 
 - **Where can data leave the deployment?** To the LLM Provider (R9) and, by e-mail, to a supplier or an internal team (R6). Nothing else leaves.
 - **Which outside systems exist only as simulations?** The ERP, the status service, and the mailbox (R2 to R5); the Email Service is simulated too (R6). The LLM Provider is a real API in the demo.
 
-**Previous:** [Step index](README.md) · **Next:** zoom into MatchPay → [C2 — Container](02-container.md).
+**Previous:** [Architecture index](README.md) · **Next:** zoom into MatchPay → [C2 — Container](02-container.md).

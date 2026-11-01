@@ -1,14 +1,14 @@
 # MVP Scope
 
-> Design status: MVP — Step 1 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
 The MVP is one core flow built in depth: invoice, AI reads and matches lines, Rule Engine, payment batch, signing. It is 30 user stories (the brief says about 28; the user removed foreign invoices and the cash flag, D-33, and later asked to sync to the feature mind map, which added four stories, D-88). The Advanced column is designed and is the direction for growth ([Future work](09-future-work.md)). The demo uses three fictional entities (D-05, O-02).
 
-**Sync to the feature mind map (D-88, 2026-11-01).** The user attached a feature mind map (F01..F12). It adds to the MVP: the Requesting Department role and service acceptance in MatchPay (D-90), signing delegation while absent (D-91), a simulated entity mailbox for invoices (D-92), a simulated invoice status lookup at the tax authority (D-93), cancelled invoices (D-94), sample expansion and batch reopening (D-95), manual resend to the ERP (D-96), and in-app notifications and reminders (D-97). The supplier portal and the real connection to the tax authority stay Advanced (W-05, W-13). See [Step 2 decisions](../02-usecases-userstories/00-decisions.md#sync-to-the-feature-mind-map-user-decision-d-88-2026-11-01); the calls inside it await user review.
+**Sync to the feature mind map (D-88, 2026-11-01).** The user attached a feature mind map (F01..F12). It adds to the MVP: the Requesting Department role and service acceptance in MatchPay (D-90), signing delegation while absent (D-91), a simulated entity mailbox for invoices (D-92), a simulated invoice status lookup at the tax authority (D-93), cancelled invoices (D-94), sample expansion and batch reopening (D-95), manual resend to the ERP (D-96), and in-app notifications and reminders (D-97). The supplier portal and the real connection to the tax authority stay Advanced (W-05, W-13). See [Requirements decisions](../02-usecases-userstories/00-decisions.md#sync-to-the-feature-mind-map-user-decision-d-88-2026-11-01); the calls inside it await user review.
 
-**Scope change decided by the user (D-33).** Foreign invoices, their tax duties (foreign contractor tax, customs declaration, import-stage VAT), PDF intake with the multimodal LLM, and the cash payment flag are not in the MVP. They are Advanced items W-19, W-20, and W-21. See [Step 2 decisions](../02-usecases-userstories/00-decisions.md#scope-change-decided-by-the-user).
+**Scope change decided by the user (D-33).** Foreign invoices, their tax duties (foreign contractor tax, customs declaration, import-stage VAT), PDF intake with the multimodal LLM, and the cash payment flag are not in the MVP. They are Advanced items W-19, W-20, and W-21. See [Requirements decisions](../02-usecases-userstories/00-decisions.md#scope-change-decided-by-the-user).
 
 ## In scope (MVP)
 
@@ -64,4 +64,4 @@ How these and the Advanced items could be added: [Future work](09-future-work.md
 | A-10 | The MVP only designs the 10-year retention of invoice XML and does not implement it (D-22). |
 | A-11 | The platform creates no ledger entries; the Entity ERP posts the signed batch (O-06). |
 
-**Related:** [Step index](README.md)
+**Related:** [Research index](README.md)

@@ -1,10 +1,10 @@
 # 07 — Architecture
 
-> Design status: MVP — Step 7 of 9, draft for review
+> Design status: MVP — draft for review
 >
 > Implementation status: NOT STARTED
 
-Step 7 turns the [API contract](../06-api/README.md), the [database schema](../05-database/README.md), and the AI design of [Step 1](../01-research/07-ai-vs-rule-based.md) into a C4 architecture, a tech stack, and an LLM provider recommendation. MatchPay is a modular monolith: one backend codebase deployed as two processes, `api` for the 121 operations and `worker` for the ten background jobs, with 30 components named after the tags of the contract (D-165). The database is PostgreSQL 16 with pgvector in three schemas (business, `sim`, `platform`); entity isolation has a server filter and row-level security (D-172); the AI gives evidence, the Rule Engine decides, and a person signs. Item embeddings run locally, and the hosted LLM sits behind a port, so the provider can be changed by configuration. Step 7 also answers every question that Steps 3, 5, and 6 left to it, fills the C4 Component column of the [master traceability matrix](../traceability/master-traceability.md), and recommends an LLM on vendor pages opened on 2026-11-01, with what stayed Unverified. Every decision of this step is a call that awaits the user's review.
+The architecture turns the [API contract](../06-api/README.md), the [database schema](../05-database/README.md), and the AI design of [Research](../01-research/07-ai-vs-rule-based.md) into a C4 architecture, a tech stack, and an LLM provider recommendation. MatchPay is a modular monolith: one backend codebase deployed as two processes, `api` for the 121 operations and `worker` for the ten background jobs, with 30 components named after the tags of the contract (D-165). The database is PostgreSQL 16 with pgvector in three schemas (business, `sim`, `platform`); entity isolation has a server filter and row-level security (D-172); the AI gives evidence, the Rule Engine decides, and a person signs. Item embeddings run locally, and the hosted LLM sits behind a port, so the provider can be changed by configuration. The architecture also answers every question that the information architecture, database, and API documents left to it, fills the C4 Component column of the [master traceability matrix](../traceability/master-traceability.md), and recommends an LLM on vendor pages opened on 2026-11-01, with what stayed Unverified. Every decision of this document set is a call that awaits the user's review.
 
 ```mermaid
 flowchart LR
@@ -23,7 +23,7 @@ flowchart LR
 
 | File | Content |
 |---|---|
-| [00-decisions.md](00-decisions.md) | Decisions D-165..D-186 and defaults DF-89..DF-93, all awaiting review; the items deferred to Step 7 and their answers; differences from Steps 1 to 6; gaps found in approved steps; doubts for the user |
+| [00-decisions.md](00-decisions.md) | Decisions D-165..D-186 and defaults DF-89..DF-93, all awaiting review; the items deferred to the architecture and their answers; differences from the research, requirements, information architecture, UI/UX, database, and API documents; gaps found in approved documents; doubts for the user |
 | [01-system-context.md](01-system-context.md) | C1: the seven roles, MatchPay, the outside systems, and a table of every relationship |
 | [02-container.md](02-container.md) | C2: proxy and web, API, Worker, local embedding model, PostgreSQL with three schemas, outside systems; responsibilities and architecture rules |
 | [03-component.md](03-component.md) | C3: 30 components, the catalog of operations, jobs, tables, and stories, and the dependency rules |
@@ -46,8 +46,8 @@ flowchart LR
 
 | Unit | Status |
 |---|---|
-| Web application, API, Worker, database migrations | Not started (Step 9) |
-| Code structure and folders | Step 8 |
+| Web application, API, Worker, database migrations | Not started (Implementation) |
+| Code structure and folders | Code structure |
 | Embedding model choice | Open until ES-03 compares the two candidates on Vietnamese lines |
 | LLM provider | Recommended, not contracted; synthetic data only (O-03) |
 

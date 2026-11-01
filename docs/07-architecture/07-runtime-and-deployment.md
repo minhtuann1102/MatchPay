@@ -1,6 +1,6 @@
 # Runtime and Deployment
 
-> Design status: MVP — Step 7 of 9, draft for review
+> Design status: MVP — draft for review
 >
 > Implementation status: NOT STARTED
 
@@ -216,8 +216,8 @@ A second environment, a production topology, backups, and scaling the Worker to 
 | LLM data | Document text is passed as data in a delimited field; the answer must match a fixed schema; synthetic data only in the MVP; no document text or prompt is stored in `ai_requests` | BR-27, O-03, R-11 |
 | Passwords | Argon2id hashes; a signing action asks for the password again; a wrong password is 401 and a `LOGIN_FAILED` entry | D-175, D-153 |
 | Rate limits | Login 10 a minute for one email or address; 600 a minute for one session; counters in `platform.rate_limit_counters` | DF-88 |
-| Uploads | At most 20 files, 10 MB each, 200 MB per request; the XML parser must not resolve external entities or fetch network resources. This setting is a standard measure that is not confirmed in the parser documentation (not opened), so it is Unverified and Step 9 tests it with a hostile file | DF-85, BR-17 |
+| Uploads | At most 20 files, 10 MB each, 200 MB per request; the XML parser must not resolve external entities or fetch network resources. This setting is a standard measure that is not confirmed in the parser documentation (not opened), so it is Unverified and the implementation tests it with a hostile file | DF-85, BR-17 |
 | Logs | JSON lines with the `traceId`; no document text, no password, no session id | D-178 |
 | Demo routes | `/demo/erp-simulator/...` answers 404 when `MATCHPAY_DEMO_MODE` is off | D-143 |
 
-**Previous:** [LLM provider](06-llm-provider.md) · **Next:** [Step index](README.md).
+**Previous:** [LLM provider](06-llm-provider.md) · **Next:** [Architecture index](README.md).

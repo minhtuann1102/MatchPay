@@ -1,10 +1,10 @@
 # API Traceability and Cross-check
 
-> Design status: MVP — Step 6 of 9, draft for review
+> Design status: MVP — draft for review
 >
 > Implementation status: NOT STARTED
 
-This page is the Step 6 cross-check of the [OpenAPI contract](openapi.yaml). Every active user story has at least one operation, every operation names stories, business rules, screens, and database tables (`x-stories`, `x-rules`, `x-screens`, `x-tables`, D-134), and every table of the [DBML schema](../05-database/matchpay.dbml) is used by an operation or written by a background job. Work that is not HTTP is listed as a job (D-135). The checker `tools/check_docs.py` compares sections 1, 2, 3, 5, 6, and 7 of this page with `openapi.yaml`, so change both together.
+This page is the API cross-check of the [OpenAPI contract](openapi.yaml). Every active user story has at least one operation, every operation names stories, business rules, screens, and database tables (`x-stories`, `x-rules`, `x-screens`, `x-tables`, D-134), and every table of the [DBML schema](../05-database/matchpay.dbml) is used by an operation or written by a background job. Work that is not HTTP is listed as a job (D-135). The checker `tools/check_docs.py` compares sections 1, 2, 3, 5, 6, and 7 of this page with `openapi.yaml`, so change both together.
 
 Section 3 cannot say for each operation whether it only reads a table: an operation that changes data lists every table it writes or reads to decide, and is shown in the first column. An operation that is a GET is shown in the second column.
 
@@ -265,11 +265,11 @@ These jobs are not HTTP (D-135). Their results are read through the operations n
 | ERP send worker | A request becomes Signed (first attempt), then up to 3 attempts 5 minutes apart (DF-24), or resendToErp | US-26 | `erp_send_attempts`, `payment_requests`, `payment_batches`, `invoices`, `price_history`, `supplier_entity_stats`, `notifications`, `audit_log` | signPaymentRequests, resendToErp (start); listErpSendAttempts, listBatchRequests, getPaymentRequest (read) |
 | Daily reminder job | Once a day (DF-67, DF-80) | US-32, US-19 | `notifications` | listNotifications, getUnreadNotificationCount (read) |
 | AI payment summary | After a batch release and after a request changes (AC-25.1, AC-25.13) | US-25 | `ai_payment_summaries`, `ai_requests` | releaseBatch (start); getPaymentRequest (read) |
-| Draft request (call-and-wait) | The API starts it on draftCorrectionRequest and waits up to 25 seconds (Step 7 D-169, DF-93); the Worker holds the LLM key | US-19 | `correction_requests`, `ai_requests`, `audit_log` | draftCorrectionRequest (start and read). A timeout returns the blank template (AC-19.7) |
-| Request mail send (call-and-wait) | The API starts it on sendCorrectionRequest and waits up to 25 seconds (Step 7 D-169, DF-93) | US-19 | `correction_requests`, `exceptions`, `audit_log` | sendCorrectionRequest (start and read). A failure or timeout gives NOT_SENT (AC-19.6) |
+| Draft request (call-and-wait) | The API starts it on draftCorrectionRequest and waits up to 25 seconds (Architecture D-169, DF-93); the Worker holds the LLM key | US-19 | `correction_requests`, `ai_requests`, `audit_log` | draftCorrectionRequest (start and read). A timeout returns the blank template (AC-19.7) |
+| Request mail send (call-and-wait) | The API starts it on sendCorrectionRequest and waits up to 25 seconds (Architecture D-169, DF-93) | US-19 | `correction_requests`, `exceptions`, `audit_log` | sendCorrectionRequest (start and read). A failure or timeout gives NOT_SENT (AC-19.6) |
 | Demo seed loader | Once when a demo deployment is created (DF-56, DF-82) | US-06, US-07, US-08 | `sim_authority_statuses`, `sim_personas`, `message_templates`, `price_history`, `supplier_entity_stats`, `gate_comparisons`, `recurring_profile_periods` | none (not an HTTP operation) |
 
-Tables that no operation names and that only a job or the seed writes: `sim_authority_statuses`. `sim_authority_statuses` is the simulated authority feed of D-93; it is loaded by the seed and read by the lookup job, and the ERP simulator screens do not edit it (see the gaps in the [decisions](00-decisions.md#gaps-found-in-approved-steps)).
+Tables that no operation names and that only a job or the seed writes: `sim_authority_statuses`. `sim_authority_statuses` is the simulated authority feed of D-93; it is loaded by the seed and read by the lookup job, and the ERP simulator screens do not edit it (see the gaps in the [decisions](00-decisions.md#gaps-found-in-approved-documents)).
 
 ## 5. Business rules and their operations
 
@@ -319,7 +319,7 @@ BR-09 and BR-12 apply to every operation (D-132, D-144); they appear in `x-rules
 
 ## 6. Screens and their operations
 
-Fills the placeholder "Screen-to-API mapping" of the [screen inventory](../03-information-architecture/04-screen-inventory.md#screen-to-api-mapping), now filled in the approved Step 3 file by Step 6. SCR-90 Access denied needs no operation of its own: it is the client's reaction to 403 ACCESS_DENIED and to the routes of a role that may not open a page.
+Fills the placeholder "Screen-to-API mapping" of the [screen inventory](../03-information-architecture/04-screen-inventory.md#screen-to-api-mapping), now filled in the approved information architecture file by the API. SCR-90 Access denied needs no operation of its own: it is the client's reaction to 403 ACCESS_DENIED and to the routes of a role that may not open a page.
 
 | Screen | Operations |
 |---|---|
@@ -692,4 +692,4 @@ Every active acceptance criterion is reachable through an operation (`x-criteria
 | AC-32.9 | `releaseBatch`, `listNotifications` |
 | AC-32.10 | `listNotifications` |
 
-**Related:** [Step index](README.md) · [Decisions](00-decisions.md) · [OpenAPI contract](openapi.yaml) · [Master traceability](../traceability/master-traceability.md) · [Data model](../05-database/01-data-model.md)
+**Related:** [API index](README.md) · [Decisions](00-decisions.md) · [OpenAPI contract](openapi.yaml) · [Master traceability](../traceability/master-traceability.md) · [Data model](../05-database/01-data-model.md)

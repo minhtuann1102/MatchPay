@@ -1,6 +1,6 @@
 # Sitemap by Role
 
-> Design status: MVP — Step 3 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -199,4 +199,4 @@ The home page is the page shown after login (DF-28).
 
 SCR-90 is shown to every role when a URL is opened without permission. The numbers SCR-13 and SCR-17 are removed (D-33) and appear on no card, route, or role list.
 
-**Related:** [Step index](README.md) · [Routes and permissions](02-routes-and-permissions.md) · [Screen inventory](04-screen-inventory.md)
+**Related:** [Information architecture index](README.md) · [Routes and permissions](02-routes-and-permissions.md) · [Screen inventory](04-screen-inventory.md)

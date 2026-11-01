@@ -7,9 +7,9 @@ info:
 
     The contract is the source of truth for paths, request and response bodies, roles, and errors (D-130). The server enforces entity scope and roles on every request; hidden controls in the interface are for convenience only (D-133).
 
-    Every operation carries the extensions `x-roles`, `x-stories`, `x-rules`, `x-screens`, and `x-tables` (D-134) that link it to the user stories, business rules, screens, and database tables of Steps 2 to 5.
+    Every operation carries the extensions `x-roles`, `x-stories`, `x-rules`, `x-screens`, and `x-tables` (D-134) that link it to the user stories, business rules, screens, and database tables of the requirements, information architecture, UI/UX, and database documents.
 
-    All sample data is fictional (Calderwood Group). This is a draft for review (Step 6 of 9).
+    All sample data is fictional (Calderwood Group). This is a draft for review.
   contact:
     name: MatchPay documentation team
 servers:

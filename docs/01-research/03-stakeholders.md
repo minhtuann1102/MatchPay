@@ -1,6 +1,6 @@
 # Stakeholders
 
-> Design status: MVP — Step 1 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -20,7 +20,7 @@ Each user of the product is scoped to one entity in the MVP (D-13), with one rol
 | **Auditors** (internal and external) | Reader of the audit log. | Every AI decision with its reason, confidence, and model version; a log that cannot be edited through the application. | Medium. |
 | **Tax authority** | External: issues the invoice codes and holds the invoice data; its decisions set the rules for the system. | Correct invoices and correct deductions. | High on the rules, none on the product. |
 | **Entity ERP** | External system: source of truth for purchase orders, receipts, acceptances, suppliers, and master data; receives the signed batch. Simulated in the MVP. | A read-only consumer that never edits its data and never creates duplicates on re-sync. | High: the product depends on it. |
-| **LLM provider** | External system called for matching lines and drafting. | API use within its terms. | Medium: availability, price, and data-processing terms affect the product. Choice is made in Step 7. |
-| **Project team** (BA, SA, developer) | Builds the MVP. | A scope that is deep rather than wide, approved step by step. | High during delivery. |
+| **LLM provider** | External system called for matching lines and drafting. | API use within its terms. | Medium: availability, price, and data-processing terms affect the product. Choice is made in the architecture. |
+| **Project team** (BA, SA, developer) | Builds the MVP. | A scope that is deep rather than wide, approved in stages. | High during delivery. |
 
-**Related:** [Step index](README.md)
+**Related:** [Research index](README.md)

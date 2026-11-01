@@ -1,6 +1,6 @@
 # LLM Provider — Decision Record
 
-> Design status: MVP — Step 7 of 9, draft for review
+> Design status: MVP — draft for review
 >
 > Implementation status: NOT STARTED
 

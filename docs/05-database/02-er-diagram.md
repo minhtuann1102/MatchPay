@@ -1,6 +1,6 @@
 # ER Diagram
 
-> Design status: MVP — Step 5 of 9, approved
+> Design status: MVP — approved
 >
 > Implementation status: NOT STARTED
 
@@ -104,7 +104,7 @@ erDiagram
 
 ## Enums
 
-Values are stored in capitals with underscores. The **UI** column gives the text a user sees, with the screen or rule that shows it. The state names are exactly those of BR-33, BR-34, and BR-35 and of the Step 3 status chips. A label marked *proposed* is not named in Steps 2 to 4.
+Values are stored in capitals with underscores. The **UI** column gives the text a user sees, with the screen or rule that shows it. The state names are exactly those of BR-33, BR-34, and BR-35 and of the information architecture status chips. A label marked *proposed* is not named in the requirements, information architecture, and UI/UX documents.
 
 | Enum | Values | UI |
 |---|---|---|
@@ -1315,4 +1315,4 @@ These are in the DBML and are not repeated in every diagram. `entity_id` refers 
 | `notifications` | `recipient_id` | `users` | The person the item is for |
 | `audit_log` | `actor_user_id` | `users` | The person who acts in this row |
 
-**Related:** [Step index](README.md) · [Data model](01-data-model.md)
+**Related:** [Database index](README.md) · [Data model](01-data-model.md)
