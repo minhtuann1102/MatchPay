@@ -4041,7 +4041,9 @@ paths:
         approved template, using only data of the own entity and of the invoice (AC-19.1, AC-19.3, AC-19.5, AC-19.9).
         Invoice notes are data and never change the template (AC-19.8, BR-27). When the LLM is unavailable the blank
         template is returned with `isBlankTemplate` true (AC-19.7). Nothing is sent (AC-19.2). Response 201 with
-        the draft. Appends to audit_log with the model and prompt version.
+        the draft. Appends to audit_log with the model and prompt version. The model call runs as a background job
+        that the server waits for, up to 25 seconds (a call-and-wait job, see the background jobs in the API
+        traceability); when the wait ends first, the blank template is returned as for an unavailable LLM (AC-19.7).
       operationId: draftCorrectionRequest
       security:
       - sessionCookie: []
@@ -4233,7 +4235,9 @@ paths:
         and the call can be repeated (AC-19.6): this is returned as 200 with `sendStatus` NOT_SENT, not as an error
         (D-158). On success the exception moves to Waiting for Supplier or Waiting for Data Fix (E3, E4) and the
         reply deadline starts (AC-19.4). Nothing is ever sent to a supplier automatically. Only an AP Accountant
-        of the entity may send (AC-19.10).'
+        of the entity may send (AC-19.10). The delivery runs as a background job that the server waits for, up to
+        25 seconds (a call-and-wait job); when the wait ends first, the answer is 200 with NOT_SENT and the call
+        can be repeated (AC-19.6).'
       operationId: sendCorrectionRequest
       security:
       - sessionCookie: []
