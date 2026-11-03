@@ -539,25 +539,31 @@ Four figures on top (open exceptions, due in 7 days, in batch, waiting for goods
 
 The key fields and the total, the exception reasons, the lifecycle, the evidence in tabs (lines, the six Rule Engine conditions, documents, anomalies, history), and an action panel for the person who decides.
 
-##### 5. Requesting Department: confirm a delivered service (SCR-22, SCR-23)
+##### 5. AP Accountant: check the three source documents (SCR-12, popup)
+
+![Three-way match on the source documents](docs/images/prototype/ap-accountant/12c-invoice-detail-match.png)
+
+Clicking an error opens the invoice, the purchase order, and the goods receipt side by side as paper documents. Every value that breaks a Rule Engine rule is boxed in red on the documents, with the same number on the matching values (here the unit price and the quantity received), a line the AI could not identify is boxed in amber, and the strip on top says what is wrong in the boxed figures. This is the approved pilot screenshot; it is replaced by the final one when the popup is merged.
+
+##### 6. Requesting Department: confirm a delivered service (SCR-22, SCR-23)
 
 ![Acceptance queue](docs/images/prototype/requesting-department/22-acceptance-queue.png)
 
 Service invoices wait here until the department that ordered the service confirms it was delivered; the confirmation is the independent source for a service invoice.
 
-##### 6. Chief Accountant: decide a tax-risk hold (SCR-40, SCR-16)
+##### 7. Chief Accountant: decide a tax-risk hold (SCR-40, SCR-16)
 
 ![Tax-risk hold decision](docs/images/prototype/chief-accountant/40b-decision-queue-tax-risk.png)
 
 The Rule Engine holds an invoice whose supplier is on the tax-risk list; the Chief Accountant releases or rejects it with a required reason, which goes to the audit log.
 
-##### 7. Payment Approver: decide an exception individually (SCR-12, SCR-18)
+##### 8. Payment Approver: decide an exception individually (SCR-12, SCR-18)
 
 ![Individual approval](docs/images/prototype/payment-approver/12-invoice-detail-approve.png)
 
 The approver sees the same evidence read-only (here an unusual price of +20.8%) and decides from the Decision Queue at the level the amount requires.
 
-##### 8. AP Accountant: review, close, sample, and release the batch (SCR-30, SCR-31, SCR-32)
+##### 9. AP Accountant: review, close, sample, and release the batch (SCR-30, SCR-31, SCR-32)
 
 ![Batch review](docs/images/prototype/ap-accountant/30-batch-review.png)
 
@@ -575,7 +581,7 @@ The AI picks the riskiest invoices for the sample; the AP Accountant marks each 
 
 Release creates the payment requests, one per supplier under the entity policy, for the Chief Accountant and then the Payment Approver to sign.
 
-##### 9. Chief Accountant: sign payment requests with a one-time code (SCR-50, SCR-52)
+##### 10. Chief Accountant: sign payment requests with a one-time code (SCR-50, SCR-52)
 
 ![Signing queue](docs/images/prototype/chief-accountant/50-signing-queue.png)
 
@@ -589,19 +595,19 @@ Signing asks for a one-time code; the signature is stored with the request versi
 
 The result shows each request signed, as a plain signed line with the role and the time, and the request moves on to the Payment Approver.
 
-##### 10. Chief Accountant or Payment Approver: read the payment request (SCR-51)
+##### 11. Chief Accountant or Payment Approver: read the payment request (SCR-51)
 
 ![Payment request](docs/images/prototype/chief-accountant/51-payment-request.png)
 
 The total, the invoices in the request, the AI summary labelled as AI, the Rule Engine totals and checks, the two signature slots, and the ERP send status.
 
-##### 11. Demo Operator: the simulated ERP behind the orders and receipts (SCR-80)
+##### 12. Demo Operator: the simulated ERP behind the orders and receipts (SCR-80)
 
 ![ERP simulator](docs/images/prototype/demo-operator/80-erp-simulator.png)
 
 For the demo only, this page stands in for the entity ERP: it creates purchase orders and confirms receipts, and invoices waiting for goods are checked again after a receipt.
 
-##### 12. Oversight: dashboard and automation gates (SCR-60, SCR-78)
+##### 13. Oversight: dashboard and automation gates (SCR-60, SCR-78)
 
 ![Dashboard](docs/images/prototype/ap-accountant/60-dashboard.png)
 
