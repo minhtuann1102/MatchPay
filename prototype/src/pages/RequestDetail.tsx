@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Alert, Button, Card, Col, Descriptions, List, Row, Space, Statistic, Steps, Table, Tag, Typography } from 'antd';
+import { Alert, Button, Card, Col, Descriptions, List, Row, Space, Steps, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { EditOutlined, SwapOutlined, LockOutlined, WarningOutlined, SendOutlined } from '@ant-design/icons';
+import { EditOutlined, SwapOutlined, LockOutlined, SendOutlined } from '@ant-design/icons';
 import { resendToErp } from '../api/batch';
 import { declineRequest, removeRequestLine, type RequestDetail as Detail } from '../api/signing';
 import { useRequest } from '../api/hooks';
 import { Async, useForced } from '../components/Async';
-import { InvNo, Notice, PageHeader, ReqNo, SealStamp } from '../components/Bits';
-import { HandTag, RequestBadge, StateBadge } from '../components/Tags';
+import { InvNo, Notice, PageHeader, ReqNo, SignedMark } from '../components/Bits';
+import { HandTag, RequestBadge, StateBadge, StatusDot } from '../components/Tags';
 import { ActionModal, ReasonModal } from '../components/Dialogs';
 import { fmtDate, fmtDateTime, fmtMoney, interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
@@ -62,19 +62,14 @@ function Body({ d }: { d: Detail }) {
 
       <Card aria-label={t.request.titleFallback}>
         <Row gutter={[24, 16]} align="middle">
-          <Col xs={24} md={10}><Statistic title={t.signing.colTotal} value={fmtMoney(r.total)} valueStyle={{ fontSize: 28, fontWeight: 600 }} /></Col>
+          <Col xs={24} md={10}><div className="kpi-label">{t.signing.colTotal}</div><div className="total-value">{fmtMoney(r.total)}</div></Col>
           <Col xs={24} md={14}>
             {!cancelled && r.signatures.length > 0 ? (
-              <div className="seals" aria-label={t.request.sigTitle} style={{ justifyContent: 'flex-start' }}>
-                {r.signatures.map((s) => (
-                  <div className="stamped" key={s.step}>
-                    <SealStamp role={s.role} at={s.at} small />
-                    <div><b>{s.name}</b><br /><Typography.Text type="secondary">{t.roles[s.role]}, {fmtDateTime(s.at)}</Typography.Text></div>
-                  </div>
-                ))}
-              </div>
+              <Space direction="vertical" size={4} aria-label={t.request.sigTitle}>
+                {r.signatures.map((s) => <SignedMark key={s.step} role={s.role} at={s.at} />)}
+              </Space>
             ) : (
-              <Descriptions size="small" column={1} items={[
+              <Descriptions colon={false} size="small" column={1} items={[
                 { key: 's', label: t.request.supplier, children: r.supplierName },
                 { key: 'l', label: t.request.level, children: t.approvalLevel[r.level] },
               ]} />
@@ -93,6 +88,7 @@ function Body({ d }: { d: Detail }) {
         <Card size="small" aria-label={t.request.steps[r.state as keyof typeof t.request.steps] ?? ''}>
           <Steps
             size="small"
+            progressDot
             current={stepIdx}
             items={STEPS.map((k, n) => ({
               title: t.request.steps[k],
@@ -116,7 +112,7 @@ function Body({ d }: { d: Detail }) {
                 pagination={false}
                 scroll={{ x: 600 }}
                 summary={() => (
-                  <Table.Summary.Row>
+                  <Table.Summary.Row className="total-row">
                     <Table.Summary.Cell index={0} colSpan={2}>{t.request.invoices}: {d.invoices.length}</Table.Summary.Cell>
                     <Table.Summary.Cell index={1} align="right"><b>{fmtMoney(r.total)}</b></Table.Summary.Cell>
                     <Table.Summary.Cell index={2} colSpan={2} />
@@ -128,12 +124,12 @@ function Body({ d }: { d: Detail }) {
             <Card title={t.request.summaryTitle}>
               <div className="stack">
                 {summaryOk ? (
-                  <Card size="small" className="hand-card hand-card-ai" title={<HandTag hand="AI" />}>{interpolate(t.request.summaryText, { n: d.invoices.length })}</Card>
+                  <Card size="small" title={<HandTag hand="AI" />}>{interpolate(t.request.summaryText, { n: d.invoices.length })}</Card>
                 ) : (
                   <Alert type="info" showIcon message={t.request.summaryUnavailable} />
                 )}
-                <Card size="small" className="hand-card hand-card-rule" title={<Space><HandTag hand="RULE" />{t.request.totalsTitle}</Space>}>
-                  <Descriptions size="small" column={1} items={[
+                <Card size="small" title={<Space><HandTag hand="RULE" />{t.request.totalsTitle}</Space>}>
+                  <Descriptions colon={false} size="small" column={1} items={[
                     { key: 'e', label: t.request.byEntity, children: d.summary?.byEntity.map((x) => `${x.name}: ${fmtMoney(x.total)}`).join('; ') ?? fmtMoney(r.total) },
                     { key: 's', label: t.request.bySupplier, children: d.summary?.bySupplier.map((x) => `${x.name}: ${fmtMoney(x.total)}`).join('; ') ?? `${r.supplierName}: ${fmtMoney(r.total)}` },
                     { key: 'l', label: t.request.largeInvoices, children: d.largeInvoices.length ? d.largeInvoices.join(', ') : t.request.none },
@@ -147,15 +143,15 @@ function Body({ d }: { d: Detail }) {
 
         <Col xs={24} lg={8}>
           <div className="stack">
-            <Card title={t.request.signHeading} className="act-card">
+            <Card title={t.request.signHeading}>
               <div className="stack">
-                <Descriptions size="small" column={1} items={[
+                <Descriptions colon={false} size="small" column={1} items={[
                   { key: 's', label: t.request.supplier, children: r.supplierName },
                   { key: 'l', label: t.request.level, children: interpolate(r.level === 'CFO' ? t.request.levelRule : t.request.levelRuleLow, { level: t.approvalLevel[r.level] }) },
                   {
                     key: 'f', label: t.request.flags,
                     children: r.flags.bankChanged || r.flags.newSupplier
-                      ? <Space direction="vertical" size={4}>{r.flags.bankChanged && <Tag color="warning" icon={<WarningOutlined />}>{t.request.flagBank}</Tag>}{r.flags.newSupplier && <Tag color="warning" icon={<WarningOutlined />}>{t.request.flagNew}</Tag>}</Space>
+                      ? <Space direction="vertical" size={4}>{r.flags.bankChanged && <StatusDot tone="warning">{t.request.flagBank}</StatusDot>}{r.flags.newSupplier && <StatusDot tone="warning">{t.request.flagNew}</StatusDot>}</Space>
                       : interpolate(t.request.noFlags, { s: r.supplierName }),
                   },
                 ]} />
@@ -176,7 +172,7 @@ function Body({ d }: { d: Detail }) {
                     <div className="sig" key={step}>
                       <span className="sig-mark">{s.name.slice(0, 1)}</span>
                       <div>
-                        <b>{s.name}</b>{s.onBehalfOfName && <> <Tag color="error">{interpolate(t.request.sigOnBehalf, { who: s.onBehalfOfName })}</Tag></>}
+                        <b>{s.name}</b>{s.onBehalfOfName && <> <Tag>{interpolate(t.request.sigOnBehalf, { who: s.onBehalfOfName })}</Tag></>}
                         <br /><Typography.Text type="secondary" className="xs">{t.roles[s.role]}, {fmtDateTime(s.at)}</Typography.Text>
                         <br /><Typography.Text type="secondary" className="xs mono hash">{t.request.hash}: {s.contentHash}</Typography.Text>
                       </div>

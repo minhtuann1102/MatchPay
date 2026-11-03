@@ -9,11 +9,7 @@ import { listPersonas, listPublicEntities, loginWithPassword } from '../api/repo
 import { errorText } from '../lib/errors';
 import { t } from '../i18n/vi';
 import { ApiError } from '../api/client';
-import type { Role } from '../api/types';
-
-const ROLE_COLOR: Record<Role, string> = {
-  AP_ACCOUNTANT: 'geekblue', CHIEF_ACCOUNTANT: 'purple', PAYMENT_APPROVER: 'magenta', REQUESTING_DEPARTMENT: 'cyan', ENTITY_ADMIN: 'green', GROUP_ADMIN: 'gold', DEMO_OPERATOR: 'default',
-};
+import { TOKENS } from '../theme/theme';
 
 /** SCR-01. Pick one of the 7 roles (persona list) or type an email and password. */
 export function Login() {
@@ -102,8 +98,8 @@ export function Login() {
                       ]}
                     >
                       <List.Item.Meta
-                        avatar={<Avatar style={{ background: '#ECE9F6', color: '#4A3A8C' }}>{p.fullName.slice(0, 1)}</Avatar>}
-                        title={<>{p.fullName} <Tag color={ROLE_COLOR[p.role]} style={{ marginInlineStart: 4 }}>{t.roles[p.role]}{p.approvalLevel ? ` (${t.approvalLevel[p.approvalLevel]})` : ''}</Tag></>}
+                        avatar={<Avatar shape="square" style={{ background: TOKENS.primary, color: TOKENS.white }}>{p.fullName.slice(0, 1)}</Avatar>}
+                        title={<>{p.fullName} <Tag style={{ marginInlineStart: 4 }}>{t.roles[p.role]}{p.approvalLevel ? ` (${t.approvalLevel[p.approvalLevel]})` : ''}</Tag></>}
                         description={p.entityName}
                       />
                     </List.Item>

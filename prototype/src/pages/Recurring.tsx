@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Button, Card, Form, Input, InputNumber, Select, Space, Table, Tabs, Tag, Badge, Typography } from 'antd';
+import { Button, Card, Form, Input, InputNumber, Select, Space, Table, Tabs, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { CheckCircleOutlined, MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import type { ProfileInput, ProfileRow } from '../api/recurring';
 import { createRecurringProfile, deactivateRecurringProfile, updateRecurringProfile } from '../api/recurring';
 import { useProfiles, useSuppliers } from '../api/hooks';
 import { Async } from '../components/Async';
-import { EmptyState, PageHeader } from '../components/Bits';
+import { Count, EmptyState, PageHeader } from '../components/Bits';
+import { StatusDot } from '../components/Tags';
 import { ActionModal } from '../components/Dialogs';
 import { MoneyInput } from '../components/Inputs';
 import { fmtMoney } from '../lib/format';
@@ -35,9 +36,9 @@ export function Recurring() {
     { title: t.recurring.colThreshold, key: 'thr', width: 110, responsive: ['lg'], render: (_, r) => (r.deviationThreshold ? `${r.deviationThreshold}%` : '-') },
     {
       title: t.recurring.colEarlier, key: 'earlier', width: 280, responsive: ['xl'],
-      render: (_, r) => r.earlier.length === 0 ? <Typography.Text type="secondary">{t.recurring.noPeriods}</Typography.Text> : <><b>{t.recurring.average} {fmtMoney(r.average ?? 0)}</b><br /><Typography.Text type="secondary" className="xs">{r.earlier.map((e) => `${e.label} ${fmtMoney(e.amount)}`).join(' · ')}</Typography.Text></>,
+      render: (_, r) => r.earlier.length === 0 ? <Typography.Text type="secondary">{t.recurring.noPeriods}</Typography.Text> : <><b>{t.recurring.average} {fmtMoney(r.average ?? 0)}</b><br /><Typography.Text type="secondary" className="xs">{r.earlier.map((e) => `${e.label} ${fmtMoney(e.amount)}`).join(' \u00B7 ')}</Typography.Text></>,
     },
-    { title: t.recurring.colStatus, key: 'status', width: 130, render: (_, r) => <Tag color={r.status === 'ACTIVE' ? 'success' : 'default'} icon={r.status === 'ACTIVE' ? <CheckCircleOutlined /> : <MinusCircleOutlined />}>{t.recurring.status[r.status]}</Tag> },
+    { title: t.recurring.colStatus, key: 'status', width: 130, render: (_, r) => <StatusDot tone={r.status === 'ACTIVE' ? 'success' : 'neutral'}>{t.recurring.status[r.status]}</StatusDot> },
     {
       title: <span className="sr">{t.common.actions}</span>, key: 'act', fixed: 'right', width: 190,
       render: (_, r) => (
@@ -62,14 +63,14 @@ export function Recurring() {
           aria-label={t.recurring.savedViews}
           activeKey={tab}
           onChange={(k) => setTab(k as Tab)}
-          items={(['active', 'inactive', 'all'] as Tab[]).map((s) => ({ key: s, label: <span>{t.recurring.views[s]} {q.data && <Badge count={count(s)} showZero color="#9a9fb0" style={{ marginInlineStart: 4 }} />}</span> }))}
+          items={(['active', 'inactive', 'all'] as Tab[]).map((s) => ({ key: s, label: <span>{t.recurring.views[s]} {q.data && <Count n={count(s)} />}</span> }))}
         />
         <Async
           q={q}
           isEmpty={(d) => d.length === 0}
           empty={<EmptyState title={t.recurring.emptyTitle} text={t.recurring.emptyText} action={<Button type="primary" onClick={() => setForm('new')}>{t.recurring.add}</Button>} />}
         >
-          {() => (rows.length === 0 ? <EmptyState title={t.recurring.emptyView} /> : <Table<ProfileRow> size="middle" rowKey="id" columns={cols} dataSource={rows} pagination={false} scroll={{ x: 900 }} />)}
+          {() => (rows.length === 0 ? <EmptyState title={t.recurring.emptyView} /> : <Table<ProfileRow> size="middle" rowKey="id" columns={cols} dataSource={rows} pagination={false} scroll={{ x: 900 }} sticky={{ offsetHeader: 56 }} />)}
         </Async>
       </Card>
       {form && <ProfileForm profile={form === 'new' ? null : form} onClose={() => setForm(null)} />}

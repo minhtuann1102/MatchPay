@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { App, Badge, Button, Card, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { App, Button, Card, Space, Table, Tabs, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, FileTextOutlined, InboxOutlined, MailOutlined, MinusCircleOutlined, SyncOutlined } from '@ant-design/icons';
+import { MailOutlined, SyncOutlined } from '@ant-design/icons';
 import type { MailboxAttachment, MailboxMessage } from '../api/types';
 import { getMailboxFetchRun, startMailboxFetch } from '../api/mailbox';
 import { useMailboxMessages, useMailboxStatus } from '../api/hooks';
 import { Async } from '../components/Async';
-import { EmptyState, InvNo, Notice, PageHeader } from '../components/Bits';
+import { Count, EmptyState, InvNo, Notice, PageHeader } from '../components/Bits';
 import { Kpi, KpiRow } from '../components/Kpi';
+import { StatusDot } from '../components/Tags';
 import { fmtDateTime } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 
 type Tab = 'all' | 'accepted' | 'rejected' | 'none';
 interface Row { key: string; msg: MailboxMessage; att: MailboxAttachment }
@@ -55,9 +57,9 @@ export function Mailbox() {
     { title: t.mailbox.colAttachment, key: 'att', width: 200, responsive: ['md'], render: (_, r) => (r.att.fileName ? <span className="mono">{r.att.fileName}</span> : <Typography.Text type="secondary">{t.mailbox.none}</Typography.Text>) },
     {
       title: t.mailbox.colResult, key: 'res', width: 150,
-      render: (_, r) => r.att.result === 'ACCEPTED' ? <Tag color="success" icon={<CheckCircleOutlined />}>{t.mailbox.result.ACCEPTED}</Tag>
-        : r.att.result === 'REJECTED' ? <Tag color="error" icon={<CloseCircleOutlined />}>{t.mailbox.result.REJECTED}</Tag>
-        : <Tag icon={<MinusCircleOutlined />}>{t.mailbox.result[r.att.result]}</Tag>,
+      render: (_, r) => r.att.result === 'ACCEPTED' ? <StatusDot tone="success">{t.mailbox.result.ACCEPTED}</StatusDot>
+        : r.att.result === 'REJECTED' ? <StatusDot tone="error">{t.mailbox.result.REJECTED}</StatusDot>
+        : <StatusDot tone="neutral">{t.mailbox.result[r.att.result]}</StatusDot>,
     },
     {
       title: t.mailbox.colDetail, key: 'why', width: 260,
@@ -68,7 +70,7 @@ export function Mailbox() {
     },
   ];
 
-  const tabCount = (n: number) => <Badge count={n} showZero color="#9a9fb0" style={{ marginInlineStart: 4 }} />;
+  const tabCount = (n: number) => <Count n={n} />;
   return (
     <>
       <PageHeader
@@ -88,10 +90,10 @@ export function Mailbox() {
       {s && (
         <KpiRow>
           {[
-            <Kpi key="m" title={t.mailbox.kMessages} value={s.messages} icon={<MailOutlined />} sub={t.mailbox.kMessagesSub} />,
-            <Kpi key="c" title={t.mailbox.kCreated} value={s.invoicesCreated} icon={<FileTextOutlined />} color="#2E6A55" sub={t.mailbox.kCreatedSub} />,
-            <Kpi key="r" title={t.mailbox.kRejected} value={s.rejectedAttachments} icon={<CloseCircleOutlined />} color="#B3261E" sub={t.mailbox.kRejectedSub} />,
-            <Kpi key="n" title={t.mailbox.kNone} value={s.noAttachment} icon={<InboxOutlined />} />,
+            <Kpi key="m" title={t.mailbox.kMessages} value={s.messages} sub={t.mailbox.kMessagesSub} />,
+            <Kpi key="c" title={t.mailbox.kCreated} value={s.invoicesCreated} sub={t.mailbox.kCreatedSub} />,
+            <Kpi key="r" title={t.mailbox.kRejected} value={s.rejectedAttachments} color={s.rejectedAttachments > 0 ? TOKENS.error : undefined} sub={t.mailbox.kRejectedSub} />,
+            <Kpi key="n" title={t.mailbox.kNone} value={s.noAttachment} />,
           ]}
         </KpiRow>
       )}
@@ -115,7 +117,7 @@ export function Mailbox() {
         >
           {() => (
             <>
-              <Table<Row> size="middle" rowKey="key" columns={cols} dataSource={view} pagination={{ pageSize: 20, hideOnSinglePage: true }} scroll={{ x: 800 }} />
+              <Table<Row> size="middle" rowKey="key" columns={cols} dataSource={view} pagination={{ pageSize: 20, hideOnSinglePage: true }} scroll={{ x: 800 }} sticky={{ offsetHeader: 56 }} />
               <Typography.Text type="secondary" className="xs" style={{ display: 'block', padding: '0 16px 12px' }}>{t.mailbox.footer.replace('{n}', String(view.length)).replace('{total}', String(rows.length)).replace('{m}', String(msgs.data?.length ?? 0))}</Typography.Text>
             </>
           )}

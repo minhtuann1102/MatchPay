@@ -1,8 +1,8 @@
-import { useId, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Alert, Breadcrumb, Button, Dropdown, Empty, Space, Tag, Typography } from 'antd';
+import { Alert, Breadcrumb, Button, Dropdown, Space, Tag, Typography } from 'antd';
 import type { MenuProps } from 'antd';
-import { ClockCircleOutlined, EllipsisOutlined, LockOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, ClockCircleOutlined, EllipsisOutlined, LockOutlined } from '@ant-design/icons';
 import { fmtDate, fmtDateTime, fmtMoney } from '../lib/format';
 import { t } from '../i18n/vi';
 import type { Role } from '../api/types';
@@ -17,30 +17,20 @@ export function InvNo({ value }: { value: string }) {
 /** A payment request number: PR- muted, then the number. */
 export const ReqNo = InvNo;
 
-/** The company seal (con dau do): red, round, stamped on a request once a person has signed. */
-export function SealStamp({ role, at, fresh, small, large }: { role: Role; at: string; fresh?: boolean; small?: boolean; large?: boolean }) {
-  const uid = useId().replace(/:/g, '');
-  const roleText = t.roles[role].toLocaleUpperCase('vi');
-  return (
-    <span className={`seal-stamp${small ? ' sm' : ''}${large ? ' lg' : ''}${fresh ? ' fresh' : ''}`} role="img" aria-label={`${t.seal.signed}: ${t.roles[role]}, ${fmtDate(at)}`}>
-      <svg viewBox="0 0 120 120" aria-hidden="true">
-        <defs>
-          <path id={`top-${uid}`} d="M 17,60 a 43,43 0 1,1 86,0" />
-          <path id={`bot-${uid}`} d="M 13,60 a 47,47 0 0,0 94,0" />
-        </defs>
-        <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" strokeWidth="3.5" />
-        <circle cx="60" cy="60" r="31" fill="none" stroke="currentColor" strokeWidth="1.2" />
-        <text fontSize="10.5" fontWeight="700" letterSpacing="0.4" textAnchor="middle"><textPath href={`#top-${uid}`} startOffset="50%">{roleText}</textPath></text>
-        <text fontSize="10.5" fontWeight="600" letterSpacing="0.4" textAnchor="middle"><textPath href={`#bot-${uid}`} startOffset="50%">{fmtDate(at)}</textPath></text>
-        <text x="60" y="66" fontSize="17" fontWeight="700" textAnchor="middle">{t.seal.signed}</text>
-      </svg>
-    </span>
-  );
+/** The signed line (D-216): a check icon, "signed", the role, and the date and time. Replaces the red seal. */
+export function SignedMark({ role, at }: { role: Role; at: string }) {
+  return <span className="signed-mark"><CheckCircleFilled aria-hidden="true" /> {t.seal.signed} {'\u00B7'} {t.roles[role]} {'\u00B7'} {fmtDateTime(at)}</span>;
+}
+
+/** A small grey count next to a label (tab, nav item). Strong when it marks work to do. Renders nothing while the number is unknown. */
+export function Count({ n, strong }: { n: number | undefined; strong?: boolean }) {
+  if (n === undefined) return null;
+  return <span className={strong ? 'count count-strong' : 'count'}>{n}</span>;
 }
 
 export const Money = ({ value }: { value: number }) => <span className="nowrap">{fmtMoney(value)}</span>;
 export const DateText = ({ value, time }: { value: string | null | undefined; time?: boolean }) => <span className="nowrap">{time ? fmtDateTime(value) : fmtDate(value)}</span>;
-export const DueSoon = () => <Tag color="warning" icon={<ClockCircleOutlined />} style={{ marginInlineEnd: 0 }}>{t.common.dueSoon}</Tag>;
+export const DueSoon = () => <Typography.Text className="xs due-soon"><ClockCircleOutlined aria-hidden="true" /> {t.common.dueSoon}</Typography.Text>;
 
 /** A notice on a page or in a dialog. `err` is announced as an alert. */
 export function Notice({ kind = 'info', title, children, action, icon, className }: { kind?: 'err' | 'warn' | 'ok' | 'info' | 'ai' | 'rule'; title?: ReactNode; children?: ReactNode; action?: ReactNode; icon?: ReactNode; className?: string }) {
@@ -61,9 +51,11 @@ export function Notice({ kind = 'info', title, children, action, icon, className
 
 export function EmptyState({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
   return (
-    <Empty className="empty-state" image={Empty.PRESENTED_IMAGE_SIMPLE} description={<><Typography.Text strong>{title}</Typography.Text>{text && <><br /><Typography.Text type="secondary">{text}</Typography.Text></>}</>}>
-      {action}
-    </Empty>
+    <div className="empty-state">
+      <Typography.Text strong>{title}</Typography.Text>
+      {text && <Typography.Text type="secondary">{text}</Typography.Text>}
+      {action && <div className="empty-state-action">{action}</div>}
+    </div>
   );
 }
 

@@ -32,7 +32,7 @@ export function Entities() {
       <PageHeader title={t.entities.title} meta={t.entities.intro} actions={<Button type="primary" icon={<PlusOutlined />} onClick={() => setAdding(true)}>{t.entities.add}</Button>} />
       <Card styles={{ body: { padding: 0 } }}>
         <Async q={q} isEmpty={(d) => d.length === 0} empty={<EmptyState title={t.entities.emptyTitle} action={<Button type="primary" onClick={() => setAdding(true)}>{t.entities.add}</Button>} />}>
-          {(d) => <Table<Entity> size="middle" rowKey="id" columns={cols} dataSource={d} pagination={false} scroll={{ x: 760 }} />}
+          {(d) => <Table<Entity> size="middle" rowKey="id" columns={cols} dataSource={d} pagination={false} scroll={{ x: 760 }} sticky={{ offsetHeader: 56 }} />}
         </Async>
       </Card>
       <Row gutter={[16, 16]}>

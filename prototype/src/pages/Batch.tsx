@@ -2,18 +2,19 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Alert, Button, Card, Descriptions, Input, List, Radio, Select, Space, Steps, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { CheckCircleFilled, ContainerOutlined, DollarOutlined, FileTextOutlined, ScheduleOutlined } from '@ant-design/icons';
+import { CheckCircleFilled } from '@ant-design/icons';
 import type { BatchOverview, Invoice, PaymentRequest, SampleItem } from '../api/types';
 import { closeBatchForReview, expandSample, markSampleItem, releaseBatch, reopenBatch, resendToErp } from '../api/batch';
 import { useBatch, useBatchList } from '../api/hooks';
 import { Async } from '../components/Async';
 import { EmptyState, MoreMenu, Notice, PageHeader, InvNo, ReqNo } from '../components/Bits';
-import { BatchBadge, HandTag, RequestBadge, StateBadge } from '../components/Tags';
+import { BatchBadge, HandTag, RequestBadge, StateBadge, StatusDot } from '../components/Tags';
 import { ActionError, ActionModal, ReasonModal } from '../components/Dialogs';
 import { Kpi, KpiRow } from '../components/Kpi';
 import { fmtDate, fmtDateTime, fmtMoney } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 
 type Dlg = null | 'close' | 'release' | 'expand' | 'reopen' | { resend: PaymentRequest };
 
@@ -144,7 +145,7 @@ function BatchView({ o, options, selected, onSelect, dlg, setDlg, close }: { o: 
       {b.state === 'IN_REVIEW' && o.sampleRemaining > 0 && <Typography.Text type="secondary" role="status">{t.batch.stillToMark.replace('{n}', String(o.sampleRemaining))} {t.batch.releaseNeeds}</Typography.Text>}
 
       <Card size="small" aria-label={t.batch.progress}>
-        <Steps size="small" current={stage} items={STAGES.map((k) => ({ title: t.batch.stages[k] }))} />
+        <Steps size="small" progressDot current={stage} items={STAGES.map((k) => ({ title: t.batch.stages[k] }))} />
       </Card>
 
       {b.reopenedNote && b.state === 'IN_REVIEW' && <Notice kind="info" title={t.batch.reopenedDone}>{t.batch.reopenedText}</Notice>}
@@ -154,17 +155,16 @@ function BatchView({ o, options, selected, onSelect, dlg, setDlg, close }: { o: 
 
       <KpiRow>
         {[
-          <Kpi key="i" title={t.batch.kInvoices} value={o.invoices.length} icon={<FileTextOutlined />} sub={t.batch.kInvoicesSub} />,
-          <Kpi key="t" title={t.batch.kTotal} value={fmtMoney(o.total)} icon={<DollarOutlined />} color="#4A3A8C" sub={t.batch.kTotalSub.replace('{n}', String(o.invoices.length))} />,
-          <Kpi key="r" title={t.batch.kRequests} value={requestsRows.filter((r) => r.state !== 'CANCELLED').length || o.requestCountOnRelease} icon={<ContainerOutlined />} sub={requestsRows.length ? t.batch.kRequestsReleased : t.batch.kRequestsPlanned} />,
-          <Kpi key="d" title={t.batch.kDue} value={dueSoonest ? fmtDate(dueSoonest.dueDate) : '-'} icon={<ScheduleOutlined />} sub={dueSoonest ? `${dueSoonest.invoiceNumber}, ${dueSoonest.sellerName}` : t.invoices.kpiNone} />,
+          <Kpi key="i" title={t.batch.kInvoices} value={o.invoices.length} sub={t.batch.kInvoicesSub} />,
+          <Kpi key="t" title={t.batch.kTotal} value={fmtMoney(o.total)} sub={t.batch.kTotalSub.replace('{n}', String(o.invoices.length))} />,
+          <Kpi key="r" title={t.batch.kRequests} value={requestsRows.filter((r) => r.state !== 'CANCELLED').length || o.requestCountOnRelease} sub={requestsRows.length ? t.batch.kRequestsReleased : t.batch.kRequestsPlanned} />,
+          <Kpi key="d" title={t.batch.kDue} value={dueSoonest ? fmtDate(dueSoonest.dueDate) : '-'} sub={dueSoonest ? `${dueSoonest.invoiceNumber}, ${dueSoonest.sellerName}` : t.invoices.kpiNone} />,
         ]}
       </KpiRow>
 
       {(b.sample.length > 0 || b.state === 'IN_REVIEW') && (
         <Card
-          className="hand-card hand-card-ai"
-          title={<Space wrap>{t.batch.sampleTitle}{b.selectedWithoutAi ? <Tag color="warning">{t.batch.withoutAi}</Tag> : <HandTag hand="AI" />}</Space>}
+          title={<Space wrap>{t.batch.sampleTitle}{b.selectedWithoutAi ? <StatusDot tone="warning">{t.batch.withoutAi}</StatusDot> : <HandTag hand="AI" />}</Space>}
           extra={b.state === 'IN_REVIEW' ? <Button size="small" onClick={() => setDlg('expand')}>{t.batch.expand}</Button> : undefined}
         >
           <div className="stack" style={{ gap: 8 }}>
@@ -191,7 +191,7 @@ function BatchView({ o, options, selected, onSelect, dlg, setDlg, close }: { o: 
         </Card>
       )}
 
-      <Card className="hand-card hand-card-rule" title={<Space wrap>{t.batch.admittedTitle}<HandTag hand="RULE" /><Typography.Text type="secondary" className="xs">{t.batch.groupedBy}</Typography.Text></Space>} styles={{ body: { padding: o.invoices.length ? 0 : undefined } }}>
+      <Card title={<Space wrap>{t.batch.admittedTitle}<HandTag hand="RULE" /><Typography.Text type="secondary" className="xs">{t.batch.groupedBy}</Typography.Text></Space>} styles={{ body: { padding: o.invoices.length ? 0 : undefined } }}>
         {o.invoices.length === 0 ? (
           <EmptyState title={t.batch.noInvoices} text={t.batch.noInvoicesText} />
         ) : (
@@ -202,9 +202,10 @@ function BatchView({ o, options, selected, onSelect, dlg, setDlg, close }: { o: 
             columns={admitCols}
             dataSource={admitRows}
             scroll={{ x: 640 }}
-            rowClassName={(r) => (r.kind === 'group' ? 'row-group' : r.kind === 'sub' ? 'row-sub' : '')}
+            sticky={{ offsetHeader: 56 }}
+            rowClassName={(r) => (r.kind === 'group' ? 'row-group' : r.kind === 'sub' ? 'row-sub total-row' : '')}
             summary={() => (
-              <Table.Summary.Row className="row-sub">
+              <Table.Summary.Row className="row-sub total-row">
                 <Table.Summary.Cell index={0} colSpan={3}><b>{t.batch.totalRow.replace('{n}', String(o.invoices.length))}</b></Table.Summary.Cell>
                 <Table.Summary.Cell index={1} align="right"><b>{fmtMoney(o.total)}</b></Table.Summary.Cell>
                 <Table.Summary.Cell index={2} />
@@ -216,7 +217,7 @@ function BatchView({ o, options, selected, onSelect, dlg, setDlg, close }: { o: 
 
       {requestsRows.length > 0 && (
         <Card title={t.batch.requestsTitle} extra={<Typography.Text type="secondary" className="xs">{t.batch.requestsSub.replace('{total}', fmtMoney(requestsRows.filter((r) => r.state !== 'CANCELLED').reduce((s, r) => s + r.total, 0)))}</Typography.Text>} styles={{ body: { padding: 0 } }}>
-          <Table<PaymentRequest> size="middle" rowKey="id" pagination={false} columns={reqCols} dataSource={requestsRows} scroll={{ x: 720 }} />
+          <Table<PaymentRequest> size="middle" rowKey="id" pagination={false} columns={reqCols} dataSource={requestsRows} scroll={{ x: 720 }} sticky={{ offsetHeader: 56 }} />
         </Card>
       )}
 
@@ -245,21 +246,21 @@ function SampleRow({ item, invoice, editable, pending, onMark }: { item: SampleI
           <Space wrap>
             <b>{invoice ? fmtMoney(invoice.totalAmount) : ''}</b>
             {item.mark ? (
-              item.mark === 'OK' ? <Tag color="success" icon={<CheckCircleFilled />}>{t.batch.markOk}</Tag> : <Tag color="error">{t.batch.markError}</Tag>
+              item.mark === 'OK' ? <StatusDot tone="success">{t.batch.markOk}</StatusDot> : <StatusDot tone="error">{t.batch.markError}</StatusDot>
             ) : editable ? (
               <Space role="group" aria-label={t.batch.yourCheck}>
                 <Button size="small" disabled={pending} onClick={() => void onMark('OK')}>{t.batch.markOk}</Button>
                 <Button size="small" danger={errOpen} aria-pressed={errOpen} disabled={pending} onClick={() => setErrOpen((x) => !x)}>{t.batch.markError}</Button>
               </Space>
             ) : (
-              <Tag>{t.batch.notMarked}</Tag>
+              <StatusDot tone="neutral">{t.batch.notMarked}</StatusDot>
             )}
           </Space>
         </div>
         {item.mark && <Typography.Text type="secondary" className="xs">{item.mark === 'OK' ? t.batch.markedBy.replace('{who}', item.markedBy ?? '').replace('{time}', fmtDateTime(item.markedAt)) : t.batch.errorBy.replace('{who}', item.markedBy ?? '').replace('{reason}', item.errorReason ?? '')}</Typography.Text>}
         {errOpen && !item.mark && (
           <div className="stack" style={{ gap: 8 }}>
-            <label htmlFor={`err-${item.invoiceId}`}>{t.batch.errorReason} <span style={{ color: '#B3261E' }}>*</span></label>
+            <label htmlFor={`err-${item.invoiceId}`}>{t.batch.errorReason} <span style={{ color: TOKENS.error }}>*</span></label>
             <Input.TextArea id={`err-${item.invoiceId}`} rows={3} maxLength={500} showCount autoFocus status={touched && invalid ? 'error' : undefined} value={reason} onChange={(e) => setReason(e.target.value)} />
             <Typography.Text type={touched && invalid ? 'danger' : 'secondary'} className="xs">{touched && invalid ? t.batch.errorReasonRequired : t.batch.errorHint}</Typography.Text>
             <Space>
@@ -280,7 +281,7 @@ function CloseModal({ o, onClose }: { o: BatchOverview; onClose: () => void }) {
   const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
   return (
     <ActionModal title={t.batch.closeTitle} okText={t.batch.close} pending={act.pending} error={act.error} rawError={act.rawError} onClose={onClose} onOk={() => void act.run(undefined)}>
-      <Descriptions size="small" column={1} items={[
+      <Descriptions colon={false} size="small" column={1} items={[
         { key: 'p', label: t.batch.period, children: o.batch.label },
         { key: 'i', label: t.batch.kInvoices, children: t.batch.countTotal.replace('{n}', String(o.invoices.length)).replace('{total}', fmtMoney(o.total)) },
         { key: 's', label: t.batch.sampleSize, children: t.batch.sampleSizeValue.replace('{n}', String(o.sampleSizeOnClose)) },
@@ -294,7 +295,7 @@ function ReleaseModal({ o, onClose }: { o: BatchOverview; onClose: () => void })
   const act = useAction(() => releaseBatch(o.batch.id, { version: o.batch.version }), { success: t.batch.toastReleased, onSuccess: onClose });
   return (
     <ActionModal title={t.batch.releaseTitle} okText={t.batch.release} okDisabled={o.sampleRemaining > 0} pending={act.pending} error={act.error} rawError={act.rawError} onClose={onClose} onOk={() => void act.run(undefined)}>
-      <Descriptions size="small" column={1} items={[
+      <Descriptions colon={false} size="small" column={1} items={[
         { key: 'i', label: t.batch.kInvoices, children: t.batch.countTotal.replace('{n}', String(o.invoices.length)).replace('{total}', fmtMoney(o.total)) },
         { key: 's', label: t.batch.sampleTitle, children: o.sampleRemaining === 0 ? <Typography.Text type="success"><CheckCircleFilled /> {t.batch.allMarked}</Typography.Text> : <Typography.Text type="danger">{t.batch.stillToMark.replace('{n}', String(o.sampleRemaining))}</Typography.Text> },
         { key: 'r', label: t.batch.kRequests, children: t.batch.requestsOnRelease.replace('{n}', String(o.requestCountOnRelease)) },
@@ -322,7 +323,7 @@ function ExpandModal({ o, onClose }: { o: BatchOverview; onClose: () => void }) 
       onClose={onClose}
       intro={
         <>
-          <Descriptions size="small" column={1} items={[
+          <Descriptions colon={false} size="small" column={1} items={[
             { key: 'c', label: t.batch.currentSample, children: t.batch.currentSampleValue.replace('{n}', String(o.batch.sample.length)).replace('{e}', String(o.batch.sample.filter((s) => s.mark === 'ERROR').length)) },
             { key: 'n', label: t.batch.notInSample, children: t.batch.invoicesN.replace('{n}', String(o.notInSample)) },
             { key: 'w', label: t.batch.willAdd, children: full ? '-' : t.batch.invoicesN.replace('{n}', String(willAdd)) },
@@ -357,7 +358,7 @@ function ReopenModal({ o, onClose }: { o: BatchOverview; onClose: () => void }) 
       intro={
         <>
           {signed && <Notice kind="err" title={t.errors.REQUEST_ALREADY_SIGNED_TITLE}>{t.errors.REQUEST_ALREADY_SIGNED.replace('{request}', signed.id).replace('{by}', signed.signatures[0]!.name)}</Notice>}
-          <Descriptions size="small" column={1} items={[
+          <Descriptions colon={false} size="small" column={1} items={[
             { key: 'r', label: t.batch.requestsCancelled, children: signed ? t.batch.notPossible : t.batch.noneSigned.replace('{n}', String(live)) },
             { key: 'i', label: t.batch.kInvoices, children: t.batch.invoicesStay.replace('{n}', String(o.invoices.length)) },
             { key: 'k', label: t.batch.kept, children: t.batch.keptValue },
@@ -372,7 +373,7 @@ function ResendModal({ r, onClose }: { r: PaymentRequest; onClose: () => void })
   const act = useAction(() => resendToErp(r.id, { version: r.version }), { success: t.batch.toastResent, onSuccess: onClose });
   return (
     <ActionModal title={t.batch.resendTitle} okText={t.batch.resend} pending={act.pending} error={act.error} rawError={act.rawError} onClose={onClose} onOk={() => void act.run(undefined)}>
-      <Descriptions size="small" column={1} items={[
+      <Descriptions colon={false} size="small" column={1} items={[
         { key: 'r', label: t.batch.colRequest, children: <><ReqNo value={r.id} />, {fmtMoney(r.total)}</> },
         { key: 'a', label: t.batch.autoAttempts, children: t.batch.attemptsFailed.replace('{n}', String(r.attempts.filter((a) => !a.manual).length)).replace('{time}', fmtDateTime(r.attempts[r.attempts.length - 1]?.at)) },
       ]} />

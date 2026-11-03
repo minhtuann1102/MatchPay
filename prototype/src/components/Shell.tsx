@@ -1,11 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Avatar, Badge, Button, Drawer, Dropdown, Grid, Layout, List, Menu, Popover, Space, Tag, Typography } from 'antd';
+import { Avatar, Badge, Button, Drawer, Dropdown, Grid, Layout, List, Menu, Popover, Space, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import { BellOutlined, DownOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SwapOutlined } from '@ant-design/icons';
 import { useAuth } from '../auth/AuthContext';
-import { NAV } from '../auth/nav';
+import { NAV, homeOf } from '../auth/nav';
 import { getSessionUserId } from '../api/client';
 import * as dec from '../api/decisions';
 import * as sign from '../api/signing';
@@ -16,6 +16,9 @@ import { useNotifications, useUnreadCount } from '../api/hooks';
 import { usePersonaSwitch } from '../lib/usePersonaSwitch';
 import { fmtDateTime } from '../lib/format';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
+import { Count } from './Bits';
+import { StatusDot } from './Tags';
 import { DemoToolbar } from './DemoToolbar';
 
 const { Sider, Header, Content } = Layout;
@@ -48,15 +51,18 @@ function NavMenu({ collapsed, onNavigate }: { collapsed?: boolean; onNavigate?: 
   const selected = items
     .filter((it) => pathname === it.to || pathname.startsWith(`${it.to}/`))
     .sort((a, b) => b.to.length - a.to.length)[0];
+  const home = homeOf(session.role);
   const menuItems: MenuProps['items'] = items.map((it) => {
     const c = it.badge ? counts[it.badge] : undefined;
+    // The role's work queue (its home page) is the one count shown strong.
+    const strong = it.to === home && !!c && c > 0;
     return {
       key: it.id,
-      icon: collapsed && c ? <Badge count={c} size="small" offset={[6, -2]}>{it.icon}</Badge> : it.icon,
+      icon: collapsed && c ? <Badge dot color={TOKENS.primary}>{it.icon}</Badge> : it.icon,
       label: (
         <Link to={it.to} onClick={onNavigate} className="nav-link">
           <span>{it.label}</span>
-          {c ? <Badge count={c} overflowCount={99} className="nav-count" title={`${t.shell.count} ${c}`} /> : null}
+          {c ? <span title={`${t.shell.count} ${c}`}><Count n={c} strong={strong} /></span> : null}
         </Link>
       ),
     };
@@ -80,7 +86,7 @@ function Bell() {
         renderItem={(it) => (
           <List.Item>
             <List.Item.Meta
-              avatar={<Badge dot={!it.read}><Avatar size="small" icon={<BellOutlined />} /></Badge>}
+              avatar={<Badge dot={!it.read} color={TOKENS.primary}><Avatar size="small" icon={<BellOutlined />} /></Badge>}
               title={<span style={{ fontWeight: it.read ? 400 : 600 }}>{t.notifications.kinds[it.kind]}</span>}
               description={<><span>{t.notification(it)}</span><br /><Typography.Text type="secondary" className="xs">{fmtDateTime(it.at)}</Typography.Text></>}
             />
@@ -93,7 +99,7 @@ function Bell() {
   return (
     <Popover open={open} onOpenChange={setOpen} trigger="click" placement="bottomRight" title={t.shell.latest} content={content}>
       <Button type="text" aria-label={n ? t.shell.bellUnread.replace('{n}', String(n)) : t.shell.bell}>
-        <Badge count={n} size="small" overflowCount={99}><BellOutlined style={{ fontSize: 18 }} /></Badge>
+        <Badge count={n} size="small" overflowCount={99} color={TOKENS.primary}><BellOutlined style={{ fontSize: 18 }} /></Badge>
       </Button>
     </Popover>
   );
@@ -123,7 +129,7 @@ function UserMenu() {
     <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
       <Button type="text" className="user-btn" aria-label={`${t.shell.account}: ${session.fullName}`}>
         <Space size={8}>
-          <Avatar size="small" style={{ background: '#ECE9F6', color: '#4A3A8C' }}>{session.fullName.slice(0, 1)}</Avatar>
+          <Avatar size="small" shape="square" style={{ background: TOKENS.primary, color: TOKENS.white }}>{session.fullName.slice(0, 1)}</Avatar>
           <span className="who"><b>{session.fullName}</b><span className="who-role">{t.roles[session.role]}{session.approvalLevel ? ` (${t.approvalLevel[session.approvalLevel]})` : ''}</span></span>
           <DownOutlined style={{ fontSize: 10 }} />
         </Space>
@@ -156,15 +162,17 @@ export function Shell({ children }: { children: ReactNode }) {
       {!mobile && (
         <Sider
           className="sider"
-          width={248}
+          width={232}
           collapsedWidth={64}
           collapsible
           collapsed={collapsed}
           trigger={null}
           theme="light"
         >
-          <div className={collapsed ? 'brand brand-mark' : 'brand'}>{collapsed ? <span aria-label="MatchPay" role="img">M</span> : 'MatchPay'}</div>
-          {!collapsed && entity}
+          <div className={collapsed ? 'brand brand-collapsed' : 'brand'}>
+            <span className="brand-box" {...(collapsed ? { role: 'img', 'aria-label': 'MatchPay' } : { 'aria-hidden': true })}>M</span>
+            {!collapsed && <span className="brand-name">MatchPay</span>}
+          </div>
           <NavMenu collapsed={collapsed} />
         </Sider>
       )}
@@ -181,7 +189,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <div className="top-entity">
               <span className="entity-name">{session.entityName}</span>
               {session.entityTaxCode && <Typography.Text type="secondary" className="entity-mst">{t.shell.mst} {session.entityTaxCode}</Typography.Text>}
-              {demo && <Tag color="warning" style={{ marginInlineEnd: 0 }}>{t.shell.demoOnly}</Tag>}
+              {demo && <StatusDot tone="warning">{t.shell.demoOnly}</StatusDot>}
             </div>
           </div>
           <Space size={4}>

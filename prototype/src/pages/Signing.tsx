@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Affix, Alert, Badge, Button, Card, Form, Input, List, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { Affix, Alert, Button, Card, Form, Input, List, Space, Table, Tabs, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { CheckCircleOutlined, ClockCircleOutlined, EditOutlined, ExclamationCircleOutlined, SwapOutlined, WarningOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, EditOutlined, SwapOutlined } from '@ant-design/icons';
 import { signPaymentRequests, type RequestRow, type SignOutcome } from '../api/signing';
 import { useDelegations, useRequests } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { EmptyState, Notice, PageHeader, ReqNo, SealStamp } from '../components/Bits';
-import { RequestBadge } from '../components/Tags';
+import { Count, EmptyState, Notice, PageHeader, ReqNo, SignedMark } from '../components/Bits';
+import { RequestBadge, StatusDot } from '../components/Tags';
 import { ActionModal } from '../components/Dialogs';
 import { Kpi, KpiRow } from '../components/Kpi';
 import { fmtDate, fmtDateTime, fmtMoney, interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 
 type Tab = 'ready' | 'waiting' | 'done' | 'all';
 const DONE = ['SIGNED', 'SENT', 'PAID'];
@@ -54,7 +55,7 @@ export function Signing() {
         <Space direction="vertical" size={2}>
           <span><ReqNo value={r.id} /></span>
           <Typography.Text type="secondary" className="xs">{r.supplierName}</Typography.Text>
-          {r.sign.onBehalfOf && <Tag color="error" icon={<SwapOutlined />}>{interpolate(t.signing.onBehalf, { who: r.sign.onBehalfOf })}</Tag>}
+          {r.sign.onBehalfOf && <Tag icon={<SwapOutlined />}>{interpolate(t.signing.onBehalf, { who: r.sign.onBehalfOf })}</Tag>}
         </Space>
       ),
     },
@@ -72,7 +73,7 @@ export function Signing() {
     },
     {
       title: t.signing.colFlags, key: 'flags', width: 190, responsive: ['lg'],
-      render: (_, r) => (r.flags.bankChanged || r.flags.newSupplier ? <Space direction="vertical" size={2}>{r.flags.bankChanged && <Tag color="warning" icon={<WarningOutlined />}>{t.signing.bankChanged}</Tag>}{r.flags.newSupplier && <Tag color="warning" icon={<WarningOutlined />}>{t.signing.newSupplier}</Tag>}</Space> : <Typography.Text type="secondary">{t.signing.noFlags}</Typography.Text>),
+      render: (_, r) => (r.flags.bankChanged || r.flags.newSupplier ? <Space direction="vertical" size={2}>{r.flags.bankChanged && <StatusDot tone="warning">{t.signing.bankChanged}</StatusDot>}{r.flags.newSupplier && <StatusDot tone="warning">{t.signing.newSupplier}</StatusDot>}</Space> : <Typography.Text type="secondary">{t.signing.noFlags}</Typography.Text>),
     },
     {
       title: t.signing.colSigs, key: 'sigs', width: 220, responsive: ['xl'],
@@ -89,9 +90,9 @@ export function Signing() {
       {q.data && all.length > 0 && (
         <KpiRow span={8}>
           {[
-            <Kpi key="r" title={t.signing.kReady} value={ready.length} icon={<EditOutlined />} color="#B3261E" sub={`${t.signing.kReadySub} ${fmtMoney(ready.reduce((s, r) => s + r.total, 0))}`} onClick={() => setTab('ready')} />,
-            <Kpi key="w" title={t.signing.kWaiting} value={waiting.length} icon={<ClockCircleOutlined />} sub={waiting.map((r) => r.id).join(', ') || '-'} onClick={() => setTab('waiting')} />,
-            <Kpi key="f" title={t.signing.kFlag} value={all.filter((r) => r.state.startsWith('AWAITING') && (r.flags.bankChanged || r.flags.newSupplier)).length} icon={<ExclamationCircleOutlined />} color="#8A5E0F" sub={all.filter((r) => r.flags.bankChanged).map((r) => `${r.id}: ${t.signing.bankChanged}`).join(', ') || '-'} />,
+            <Kpi key="r" title={t.signing.kReady} value={ready.length} color={ready.length > 0 ? TOKENS.warning : undefined} sub={`${t.signing.kReadySub} ${fmtMoney(ready.reduce((s, r) => s + r.total, 0))}`} onClick={() => setTab('ready')} />,
+            <Kpi key="w" title={t.signing.kWaiting} value={waiting.length} sub={waiting.map((r) => r.id).join(', ') || '-'} onClick={() => setTab('waiting')} />,
+            <Kpi key="f" title={t.signing.kFlag} value={all.filter((r) => r.state.startsWith('AWAITING') && (r.flags.bankChanged || r.flags.newSupplier)).length} color={all.some((r) => r.state.startsWith('AWAITING') && (r.flags.bankChanged || r.flags.newSupplier)) ? TOKENS.warning : undefined} sub={all.filter((r) => r.flags.bankChanged).map((r) => `${r.id}: ${t.signing.bankChanged}`).join(', ') || '-'} />,
           ]}
         </KpiRow>
       )}
@@ -103,7 +104,7 @@ export function Signing() {
           onChange={(k) => setTab(k as Tab)}
           items={(['ready', 'waiting', 'done', 'all'] as Tab[]).map((k) => ({
             key: k,
-            label: <span>{t.signing.views[k]} {q.data && <Badge count={{ ready: ready.length, waiting: waiting.length, done: done.length, all: all.length }[k]} showZero color={k === 'ready' && ready.length ? '#8A5E0F' : '#9a9fb0'} style={{ marginInlineStart: 4 }} />}</span>,
+            label: <span>{t.signing.views[k]} {q.data && <Count n={{ ready: ready.length, waiting: waiting.length, done: done.length, all: all.length }[k]} strong={k === 'ready' && ready.length > 0} />}</span>,
           }))}
         />
         <Async q={q} isEmpty={(d) => d.length === 0} empty={<EmptyState title={t.signing.emptyTitle} text={t.signing.emptyText} />}>
@@ -114,6 +115,7 @@ export function Signing() {
               columns={cols}
               dataSource={rows}
               scroll={{ x: 640 }}
+              sticky={{ offsetHeader: 56 }}
               pagination={rows.length > 20 ? { pageSize: 20 } : false}
               rowSelection={{
                 selectedRowKeys: picked,
@@ -138,7 +140,7 @@ export function Signing() {
   );
 }
 
-/** SCR-52: re-authentication with the one-time code (Input.OTP), then the result per request with the red seal. */
+/** SCR-52: re-authentication with the one-time code (Input.OTP), then the result per request with the signed mark. */
 export function SignModal({ items, onClose }: { items: RequestRow[]; onClose: () => void }) {
   const [code, setCode] = useState('');
   const [touched, setTouched] = useState(false);
@@ -178,15 +180,15 @@ export function SignModal({ items, onClose }: { items: RequestRow[]; onClose: ()
       ) : (
         <div role="status" className="stack">
           <Alert type={signed === results.length ? 'success' : 'warning'} showIcon message={t.signing.results} description={interpolate(t.signing.summary, { a: signed, b: results.length - signed })} />
-          <div className="seals">
-            {results.filter((r) => r.result === 'SIGNED' && r.signedAt && r.signerRole).map((r) => <SealStamp key={r.requestId} role={r.signerRole!} at={r.signedAt!} fresh large />)}
-          </div>
+          <Space direction="vertical" size={4}>
+            {results.filter((r) => r.result === 'SIGNED' && r.signedAt && r.signerRole).map((r) => <SignedMark key={r.requestId} role={r.signerRole!} at={r.signedAt!} />)}
+          </Space>
           <List
             size="small"
             dataSource={results}
             renderItem={(r) => (
               <List.Item>
-                <span><ReqNo value={r.requestId} />: {r.result === 'SIGNED' ? <><CheckCircleOutlined style={{ color: '#2E6A55' }} /> {interpolate(t.signing.resultSigned, { s: r.newState ? t.requestState[r.newState] : '' })}</> : interpolate(t.signing.resultRefused, { r: signReasonText(r.reason) })}</span>
+                <span><ReqNo value={r.requestId} />: {r.result === 'SIGNED' ? <><CheckCircleOutlined style={{ color: TOKENS.success }} /> {interpolate(t.signing.resultSigned, { s: r.newState ? t.requestState[r.newState] : '' })}</> : interpolate(t.signing.resultRefused, { r: signReasonText(r.reason) })}</span>
               </List.Item>
             )}
           />

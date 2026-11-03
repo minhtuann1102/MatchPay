@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, Card, Checkbox, Descriptions, Form, Input, Modal, Select, Space, Table, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { CheckCircleOutlined, ClockCircleOutlined, FieldTimeOutlined, LockOutlined } from '@ant-design/icons';
+import { LockOutlined } from '@ant-design/icons';
 import type { AcceptanceRow } from '../api/acceptance';
 import { decideServiceAcceptance } from '../api/acceptance';
 import { useAcceptanceQueue, useSuppliers } from '../api/hooks';
@@ -13,6 +13,7 @@ import { Kpi, KpiRow } from '../components/Kpi';
 import { fmtDate, fmtMoney, interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 
 /** SCR-22 Acceptance Queue, with SCR-23 (confirm or reject) as a modal. Goods invoices are never listed. */
 export function Acceptance() {
@@ -35,7 +36,7 @@ export function Acceptance() {
     { title: t.acceptance.colLines, key: 'lines', width: 90, responsive: ['md'], render: (_, r) => r.serviceLines },
     { title: t.acceptance.colAmount, key: 'amt', align: 'right', width: 150, sorter: (a, b) => a.invoice.totalAmount - b.invoice.totalAmount, render: (_, r) => <span className="nowrap">{fmtMoney(r.invoice.totalAmount)}</span> },
     { title: t.acceptance.colDue, key: 'due', width: 170, sorter: (a, b) => a.invoice.dueDate.localeCompare(b.invoice.dueDate), render: (_, r) => <Space size={8} wrap>{fmtDate(r.invoice.dueDate)}{r.dueSoon && <DueSoon />}</Space> },
-    { title: <span className="sr">{t.common.actions}</span>, key: 'act', fixed: 'right', width: 110, render: (_, r) => <Button size="small" type="primary" onClick={(e) => { e.stopPropagation(); setOpen(r); }}>{t.acceptance.review}</Button> },
+    { title: <span className="sr">{t.common.actions}</span>, key: 'act', fixed: 'right', width: 110, render: (_, r) => <Button size="small" onClick={(e) => { e.stopPropagation(); setOpen(r); }}>{t.acceptance.review}</Button> },
   ];
 
   return (
@@ -44,9 +45,9 @@ export function Acceptance() {
       {all.data && items.length > 0 && (
         <KpiRow span={8}>
           {[
-            <Kpi key="w" title={t.acceptance.kWaiting} value={items.length} icon={<ClockCircleOutlined />} color="#8A5E0F" sub={fmtMoney(items.reduce((s, i) => s + i.invoice.totalAmount, 0))} />,
-            <Kpi key="d" title={t.acceptance.kDue} value={dueCount} icon={<FieldTimeOutlined />} sub={items.filter((i) => i.dueSoon).map((i) => i.invoice.invoiceNumber).join(', ') || t.acceptance.kDueNone} />,
-            oldest ? <Kpi key="o" title={t.acceptance.kOldest} value={fmtDate(oldest.invoice.receivedAt)} icon={<CheckCircleOutlined />} sub={oldest.invoice.invoiceNumber} /> : null,
+            <Kpi key="w" title={t.acceptance.kWaiting} value={items.length} color={items.length > 0 ? TOKENS.warning : undefined} sub={fmtMoney(items.reduce((s, i) => s + i.invoice.totalAmount, 0))} />,
+            <Kpi key="d" title={t.acceptance.kDue} value={dueCount} sub={items.filter((i) => i.dueSoon).map((i) => i.invoice.invoiceNumber).join(', ') || t.acceptance.kDueNone} />,
+            oldest ? <Kpi key="o" title={t.acceptance.kOldest} value={fmtDate(oldest.invoice.receivedAt)} sub={oldest.invoice.invoiceNumber} /> : null,
           ]}
         </KpiRow>
       )}
@@ -65,7 +66,7 @@ export function Acceptance() {
         <Async q={q} isEmpty={(d) => d.items.length === 0} empty={filtered && q.data?.totalAll ? <EmptyState title={t.acceptance.noMatch} action={<Button onClick={clear}>{t.common.clearFilters}</Button>} /> : <EmptyState title={t.acceptance.emptyTitle} text={t.acceptance.emptyText} />}>
           {(d) => (
             <>
-              <Table<AcceptanceRow> size="middle" rowKey="id" columns={cols} dataSource={d.items} pagination={false} scroll={{ x: 760 }} onRow={(r) => ({ onClick: () => setOpen(r), style: { cursor: 'pointer' } })} />
+              <Table<AcceptanceRow> size="middle" rowKey="id" columns={cols} dataSource={d.items} pagination={false} scroll={{ x: 760 }} sticky={{ offsetHeader: 56 }} onRow={(r) => ({ onClick: () => setOpen(r), style: { cursor: 'pointer' } })} />
               <Typography.Text type="secondary" className="xs" style={{ display: 'block', padding: '8px 16px 12px' }}>{interpolate(t.acceptance.counted, { n: d.items.length })}</Typography.Text>
             </>
           )}
@@ -111,7 +112,7 @@ function DecideModal({ item, onClose }: { item: AcceptanceRow; onClose: () => vo
     >
       <div className="modal-body">
         {creator && <Notice kind="warn" icon={<LockOutlined />}>{t.acceptance.creatorBlocked}</Notice>}
-        <Descriptions size="small" column={1} items={[
+        <Descriptions colon={false} size="small" column={1} items={[
           { key: 'i', label: t.acceptance.invoice, children: <><InvNo value={item.invoice.invoiceNumber} />, {item.invoice.sellerName}</> },
           { key: 'o', label: t.acceptance.order, children: <span className="mono">{item.poRef}</span> },
           { key: 'l', label: t.acceptance.lines, children: item.serviceLines },

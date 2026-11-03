@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Alert, Badge, Button, Card, Col, Descriptions, Form, Input, Modal, Row, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { Alert, Button, Card, Col, Descriptions, Form, Input, Modal, Row, Select, Space, Table, Tabs, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { CheckCircleOutlined, LockOutlined, UnlockOutlined, WarningOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined } from '@ant-design/icons';
 import { closeGate, openGate, type GateRow } from '../api/admin';
 import { useEntities, useGates } from '../api/hooks';
 import { Async } from '../components/Async';
-import { EmptyState, Notice, PageHeader } from '../components/Bits';
+import { Count, EmptyState, Notice, PageHeader } from '../components/Bits';
+import { StatusDot } from '../components/Tags';
 import { ActionError, ActionModal } from '../components/Dialogs';
 import { Kpi } from '../components/Kpi';
 import { fmtDate, fmtPercent, interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 
 type View = 'all' | 'alerts' | 'open' | 'closed';
 
@@ -31,18 +33,18 @@ export function Gates() {
   const rows = all.filter((g) => view === 'all' || (view === 'alerts' ? !!g.alert : view === 'open' ? g.state === 'OPEN' : g.state === 'CLOSED'));
 
   const cols: TableColumnsType<GateRow> = [
-    { title: t.gates.colSupplier, key: 's', width: 220, sorter: (a, b) => a.supplierName.localeCompare(b.supplierName, 'vi'), render: (_, g) => <b>{g.supplierName}</b> },
-    { title: t.gates.colEntity, key: 'e', width: 220, sorter: (a, b) => a.entityName.localeCompare(b.entityName, 'vi'), render: (_, g) => g.entityName },
+    { title: t.gates.colSupplier, key: 's', width: 190, sorter: (a, b) => a.supplierName.localeCompare(b.supplierName, 'vi'), render: (_, g) => <b>{g.supplierName}</b> },
+    { title: t.gates.colEntity, key: 'e', width: 200, sorter: (a, b) => a.entityName.localeCompare(b.entityName, 'vi'), render: (_, g) => g.entityName },
     {
-      title: t.gates.colState, key: 'st', width: 160,
-      render: (_, g) => <><Tag color={g.state === 'OPEN' ? 'success' : 'default'} icon={g.state === 'OPEN' ? <UnlockOutlined /> : <LockOutlined />}>{t.gates.states[g.state]}</Tag>{g.openSince && <><br /><Typography.Text type="secondary" className="xs">{interpolate(t.gates.since, { d: fmtDate(g.openSince) })}</Typography.Text></>}</>,
+      title: t.gates.colState, key: 'st', width: 120,
+      render: (_, g) => <><StatusDot tone={g.state === 'OPEN' ? 'success' : 'neutral'}>{t.gates.states[g.state]}</StatusDot>{g.openSince && <><br /><Typography.Text type="secondary" className="xs">{interpolate(t.gates.since, { d: fmtDate(g.openSince) })}</Typography.Text></>}</>,
     },
-    { title: t.gates.colAccuracy, key: 'acc', width: 220, responsive: ['md'], sorter: (a, b) => a.accuracy - b.accuracy, render: (_, g) => (g.compared ? interpolate(t.gates.accuracyValue, { a: fmtPercent(g.accuracy), u: g.unchanged, n: g.compared }) : '-') },
-    { title: t.gates.colCompared, key: 'cmp', align: 'right', width: 110, responsive: ['lg'], sorter: (a, b) => a.compared - b.compared, render: (_, g) => g.compared },
-    { title: t.gates.colSample, key: 'smp', width: 240, render: (_, g) => <>{interpolate(t.gates.sampleValue, { e: g.sampleErrors, n: g.sampled })}{g.alert && <><br /><Tag color="warning" icon={<WarningOutlined />} style={{ marginTop: 4 }}>{interpolate(t.gates.alert, { rate: fmtPercent(g.alert.rate) })}</Tag></>}</> },
+    { title: t.gates.colAccuracy, key: 'acc', width: 210, responsive: ['md'], sorter: (a, b) => a.accuracy - b.accuracy, render: (_, g) => (g.compared ? interpolate(t.gates.accuracyValue, { a: fmtPercent(g.accuracy), u: g.unchanged, n: g.compared }) : '-') },
+    { title: t.gates.colCompared, key: 'cmp', align: 'right', width: 100, responsive: ['lg'], sorter: (a, b) => a.compared - b.compared, render: (_, g) => g.compared },
+    { title: t.gates.colSample, key: 'smp', width: 190, render: (_, g) => <>{interpolate(t.gates.sampleValue, { e: g.sampleErrors, n: g.sampled })}{g.alert && <><br /><StatusDot tone="warning">{interpolate(t.gates.alert, { rate: fmtPercent(g.alert.rate) })}</StatusDot></>}</> },
     {
       title: <span className="sr">{t.gates.colAction}</span>, key: 'act', fixed: 'right', width: 110,
-      render: (_, g) => (g.state === 'CLOSED' ? <Button size="small" type="primary" onClick={() => setOpening(g)}>{t.gates.open}</Button> : <Button size="small" onClick={() => setClosing(g)}>{t.gates.close}</Button>),
+      render: (_, g) => (g.state === 'CLOSED' ? <Button size="small" onClick={() => setOpening(g)}>{t.gates.open}</Button> : <Button size="small" onClick={() => setClosing(g)}>{t.gates.close}</Button>),
     },
   ];
 
@@ -51,9 +53,9 @@ export function Gates() {
       <PageHeader title={t.gates.title} meta={t.gates.intro} />
       {q.data && q.data.length > 0 && (
         <Row gutter={[16, 16]}>
-          <Col xs={24} sm={8}><Kpi title={t.gates.kOpen} value={counts.open} icon={<UnlockOutlined />} color="#2E6A55" /></Col>
-          <Col xs={24} sm={8}><Kpi title={t.gates.kClosed} value={counts.closed} icon={<LockOutlined />} /></Col>
-          <Col xs={24} sm={8}><Kpi title={t.gates.kAlerts} value={counts.alerts} icon={<WarningOutlined />} color="#8A5E0F" onClick={() => set('view', 'alerts')} /></Col>
+          <Col xs={12} sm={8}><Kpi title={t.gates.kOpen} value={counts.open} /></Col>
+          <Col xs={12} sm={8}><Kpi title={t.gates.kClosed} value={counts.closed} /></Col>
+          <Col xs={12} sm={8}><Kpi title={t.gates.kAlerts} value={counts.alerts} color={counts.alerts > 0 ? TOKENS.warning : undefined} onClick={() => set('view', 'alerts')} /></Col>
         </Row>
       )}
       <Card styles={{ body: { padding: 0 } }}>
@@ -62,7 +64,7 @@ export function Gates() {
           aria-label={t.gates.savedViews}
           activeKey={view}
           onChange={(v) => set('view', v === 'all' ? null : v)}
-          items={(['all', 'alerts', 'open', 'closed'] as View[]).map((k) => ({ key: k, label: <span>{t.gates.views[k]} {q.data && <Badge count={counts[k]} showZero color={k === 'alerts' && counts.alerts ? '#8A5E0F' : '#9a9fb0'} style={{ marginInlineStart: 4 }} />}</span> }))}
+          items={(['all', 'alerts', 'open', 'closed'] as View[]).map((k) => ({ key: k, label: <span>{t.gates.views[k]} {q.data && <Count n={counts[k]} strong={k === 'alerts' && counts.alerts > 0} />}</span> }))}
         />
         <div className="toolbar">
           <Select
@@ -74,7 +76,7 @@ export function Gates() {
           />
         </div>
         <Async q={q} isEmpty={(d) => d.length === 0} empty={<EmptyState title={t.gates.emptyTitle} text={t.gates.emptyText} />}>
-          {() => (rows.length === 0 ? <EmptyState title={t.gates.noMatch} action={<Button onClick={() => setSp({}, { replace: true })}>{t.common.clearFilters}</Button>} /> : <Table<GateRow> size="middle" rowKey="id" columns={cols} dataSource={rows} pagination={false} scroll={{ x: 900 }} />)}
+          {() => (rows.length === 0 ? <EmptyState title={t.gates.noMatch} action={<Button onClick={() => setSp({}, { replace: true })}>{t.common.clearFilters}</Button>} /> : <Table<GateRow> size="middle" rowKey="id" columns={cols} dataSource={rows} pagination={false} scroll={{ x: 900 }} sticky={{ offsetHeader: 56 }} />)}
         </Async>
       </Card>
       {opening && <OpenModal g={opening} onClose={() => setOpening(null)} />}
@@ -102,7 +104,7 @@ function OpenModal({ g, onClose }: { g: GateRow; onClose: () => void }) {
     >
       <div className="modal-body">
         <section aria-label={t.gates.evidence}>
-          <Descriptions size="small" column={1} items={[
+          <Descriptions colon={false} size="small" column={1} items={[
             { key: 'c', label: t.gates.colCompared, children: g.compared },
             { key: 's', label: t.gates.simulated, children: g.simulatedCompared },
             { key: 'a', label: t.gates.colAccuracy, children: g.compared ? interpolate(t.gates.accuracyValue, { a: fmtPercent(g.accuracy), u: g.unchanged, n: g.compared }) : '-' },

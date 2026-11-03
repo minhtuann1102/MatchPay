@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Drawer, List, Space, Tag, Typography, Upload } from 'antd';
-import { CloseOutlined, InboxOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { Button, Drawer, List, Space, Typography, Upload } from 'antd';
+import { CloseOutlined, InboxOutlined } from '@ant-design/icons';
 import type { UploadItemResult } from '../api/types';
 import { uploadInvoices } from '../api/invoices';
 import { InvNo, Notice } from '../components/Bits';
-import { StateBadge } from '../components/Tags';
+import { StateBadge, StatusDot } from '../components/Tags';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
 
@@ -34,10 +34,10 @@ export function UploadDrawer({ onClose }: { onClose: () => void }) {
           <Button type="primary" onClick={onClose}>{t.common.close}</Button>
         ) : (
           <Space>
+            <Button onClick={onClose} disabled={up.pending}>{t.common.cancel}</Button>
             <Button type="primary" disabled={!files.length} loading={up.pending} onClick={() => void up.run(files.map((name) => ({ name })))}>
               {up.pending ? t.upload.uploading : t.upload.submit.replace('{n}', String(files.length))}
             </Button>
-            <Button onClick={onClose} disabled={up.pending}>{t.common.cancel}</Button>
           </Space>
         )
       }
@@ -89,7 +89,7 @@ export function UploadDrawer({ onClose }: { onClose: () => void }) {
                 <List.Item
                   extra={
                     <Space size={4} wrap style={{ justifyContent: 'flex-end' }}>
-                      {r.result === 'ACCEPTED' ? <Tag color="success" icon={<CheckCircleOutlined />}>{t.upload.accepted}</Tag> : <Tag color="error" icon={<CloseCircleOutlined />}>{t.upload.rejected}</Tag>}
+                      {r.result === 'ACCEPTED' ? <StatusDot tone="success">{t.upload.accepted}</StatusDot> : <StatusDot tone="error">{t.upload.rejected}</StatusDot>}
                       {r.state && <StateBadge state={r.state} />}
                     </Space>
                   }

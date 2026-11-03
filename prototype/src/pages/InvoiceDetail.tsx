@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
-  Alert, Badge, Button, Card, Col, Collapse, Descriptions, Form, Row, Select, Space, Statistic, Steps, Table, Tabs, Tag, Timeline, Typography,
+  Alert, Button, Card, Col, Collapse, Descriptions, Form, Row, Select, Space, Steps, Table, Tabs, Tag, Timeline, Typography,
 } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { CheckCircleFilled, CloseCircleFilled, ExclamationCircleFilled, MinusCircleOutlined, UserOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, CloseCircleFilled, MinusCircleOutlined, UserOutlined } from '@ant-design/icons';
 import type { Condition, InvoiceDetail, InvoiceFlow } from '../api/types';
 import {
   confirmLineMatch, correctFlow, rejectInvoice, reportWrongEntity, rerunChecks, sendForDecision, takeException, withdrawInvoiceFromBatch, type CancellationResult,
@@ -12,12 +12,13 @@ import {
 import { useInvoice } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { DueSoon, MoreMenu, Notice, InvNo, ReqNo, PageHeader } from '../components/Bits';
-import { ExceptionBadge, HandTag, RequestBadge, StateBadge } from '../components/Tags';
+import { Count, DueSoon, MoreMenu, Notice, InvNo, ReqNo, PageHeader } from '../components/Bits';
+import { HandTag, RequestBadge, StateBadge, StatusDot } from '../components/Tags';
 import { ActionModal, ReasonModal } from '../components/Dialogs';
 import { fmtDate, fmtDateTime, fmtMoney, fmtDecimal } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 import { CancellationModal, CorrectionModal } from './InvoiceModals';
 
 type Tab = 'overview' | 'lines' | 'checks' | 'documents' | 'anomalies' | 'history';
@@ -48,24 +49,27 @@ function stepIndex(d: InvoiceDetail): { cur: number; kind: 'normal' | 'exc' | 'b
   }
 }
 
-/** The lifecycle of one invoice as antd Steps: finish, process, or error for an exception or a rejection. */
+/** The lifecycle of one invoice as dotted antd Steps: an exception is a process step with its state as warning text; error only for a rejection. */
 function Lifecycle({ d }: { d: InvoiceDetail }) {
   const s = stepIndex(d);
   const i = d.invoice;
+  const warn = (node: ReactNode) => <span style={{ color: TOKENS.warning }}>{node}</span>;
   return (
     <Card size="small" aria-label={t.detail.progress}>
       <Steps
         size="small"
+        progressDot
         current={s.cur}
-        status={s.kind === 'bad' ? 'error' : s.kind === 'exc' ? 'error' : 'process'}
+        status={s.kind === 'bad' ? 'error' : 'process'}
         items={STEPS.map((k, n) => {
           const cur = n === s.cur;
+          const exc = cur && s.kind === 'exc';
           const title = cur && s.label ? s.label : k === 'outcome' ? (i.state === 'EXCEPTION' ? t.invoiceState.EXCEPTION : t.invoiceState.IN_BATCH) : t.detail.steps[k];
           const desc = cur && k === 'received' ? fmtDateTime(i.receivedAt) : cur && i.state === 'EXCEPTION' && i.exception ? t.exceptionState[i.exception.state] : cur && i.state === 'IN_BATCH' && d.batch ? d.batch.label : undefined;
           return {
-            title,
-            description: desc,
-            icon: cur && s.kind === 'exc' ? <ExclamationCircleFilled style={{ color: '#8A5E0F' }} /> : undefined,
+            // An exception step carries its state as warning text; without a description the title itself takes the warning color.
+            title: exc && !desc ? warn(title) : title,
+            description: exc && desc ? warn(desc) : desc,
           };
         })}
       />
@@ -142,18 +146,21 @@ function Detail({ d }: { d: InvoiceDetail }) {
     { key: 'foreign', show: a.reject, label: t.detail.reject, onClick: () => setDlg('reject'), danger: true },
   ] as { key: string; show: boolean; label: string; onClick: () => void; separatorBefore?: boolean; danger?: boolean }[]).filter((m) => m.show && m.key !== primaryKey);
 
-  const tabBadge = (n: ReactNode, tone?: 'err') => <Badge count={n} color={tone === 'err' ? '#B3261E' : '#9a9fb0'} style={{ marginInlineStart: 6 }} />;
+  // Counts are plain grey numbers; a failed-check count is red text; the other check summaries are grey text.
+  const tabNote = (text: string, tone?: 'err') => (tone === 'err'
+    ? <Typography.Text type="danger" className="xs" style={{ marginInlineStart: 4 }}>{text}</Typography.Text>
+    : <span className="count">{text}</span>);
   const tabItems: { key: Tab; label: ReactNode; children: ReactNode }[] = [
     { key: 'overview', label: t.detail.tabs.overview, children: <Overview d={d} go={setTab} /> },
-    { key: 'lines', label: <>{t.detail.tabs.lines}{tabBadge(inv.lines.length)}</>, children: <Lines d={d} /> },
+    { key: 'lines', label: <>{t.detail.tabs.lines}<Count n={inv.lines.length} /></>, children: <Lines d={d} /> },
     {
       key: 'checks',
-      label: <>{t.detail.tabs.checks}{failed ? tabBadge(t.detail.failedN.replace('{n}', String(failed)), 'err') : notEval ? tabBadge(t.detail.notEvalN.replace('{n}', String(notEval))) : inv.conditions.length ? tabBadge(t.detail.passedAll) : null}</>,
+      label: <>{t.detail.tabs.checks}{failed ? tabNote(t.detail.failedN.replace('{n}', String(failed)), 'err') : notEval ? tabNote(t.detail.notEvalN.replace('{n}', String(notEval))) : inv.conditions.length ? tabNote(t.detail.passedAll) : null}</>,
       children: <Checks d={d} />,
     },
     { key: 'documents', label: t.detail.tabs.documents, children: <Documents d={d} /> },
     { key: 'anomalies', label: t.detail.tabs.anomalies, children: <Anomalies d={d} /> },
-    { key: 'history', label: <>{t.detail.tabs.history}{tabBadge(d.history.length)}</>, children: <History d={d} /> },
+    { key: 'history', label: <>{t.detail.tabs.history}<Count n={d.history.length} /></>, children: <History d={d} /> },
   ];
 
   const showPanel = !d.readOnly || a.decideTaxRisk || a.decideApproval;
@@ -168,10 +175,14 @@ function Detail({ d }: { d: InvoiceDetail }) {
         extra={
           <Space size={8} wrap>
             <StateBadge state={inv.state} />
-            {exc && <ExceptionBadge state={exc.state} />}
-            {exc?.route && <Typography.Text type="secondary">{t.detail.waitingFor.replace('{who}', exc.route === 'CHIEF_ACCOUNTANT' ? t.roles.CHIEF_ACCOUNTANT : t.roles.PAYMENT_APPROVER)}</Typography.Text>}
-            {d.batch && inv.state === 'IN_BATCH' && <Tag bordered>{d.batch.label}</Tag>}
-            <Tag bordered>{t.source[inv.source]}</Tag>
+            <Typography.Text type="secondary">
+              {[
+                exc ? t.exceptionState[exc.state] : null,
+                exc?.route ? t.detail.waitingFor.replace('{who}', exc.route === 'CHIEF_ACCOUNTANT' ? t.roles.CHIEF_ACCOUNTANT : t.roles.PAYMENT_APPROVER) : null,
+                d.batch && inv.state === 'IN_BATCH' ? d.batch.label : null,
+                t.source[inv.source],
+              ].filter(Boolean).join(' \u00B7 ')}
+            </Typography.Text>
           </Space>
         }
       />
@@ -182,7 +193,7 @@ function Detail({ d }: { d: InvoiceDetail }) {
       <Card aria-label={t.detail.summary}>
         <Row gutter={[24, 16]}>
           <Col xs={24} lg={17}>
-            <Descriptions
+            <Descriptions colon={false}
               size="small"
               layout="vertical"
               column={{ xs: 1, sm: 2, xl: 3 }}
@@ -197,7 +208,8 @@ function Detail({ d }: { d: InvoiceDetail }) {
             />
           </Col>
           <Col xs={24} lg={7}>
-            <Statistic title={t.invoices.colTotal} value={fmtMoney(inv.totalAmount)} valueStyle={{ fontSize: 26, fontWeight: 600 }} />
+            <div className="kpi-label">{t.invoices.colTotal}</div>
+            <div className="total-value">{fmtMoney(inv.totalAmount)}</div>
           </Col>
         </Row>
         {exc && (
@@ -231,12 +243,12 @@ function Detail({ d }: { d: InvoiceDetail }) {
         <Col xs={24} lg={{ span: 7, order: 2 }} xl={6}>
           <aside aria-label={t.detail.actionPanel} className="side-sticky">
             {showPanel ? (
-              <Card className="act-card" title={t.detail.resolve}>
+              <Card title={t.detail.resolve}>
                 <div className="stack">
                   <div><HandTag hand="PERSON" /></div>
                   {primary ? (
                     <div className="stack" style={{ gap: 8 }}>
-                      <Typography.Text strong>{nextTitle}</Typography.Text>
+                      <Typography.Text strong className="next-title">{nextTitle}</Typography.Text>
                       <Typography.Text type="secondary">{nextText}</Typography.Text>
                       {primary}
                     </div>
@@ -356,7 +368,7 @@ function WrongEntityTrace({ d }: { d: InvoiceDetail }) {
         columns={[
           { dataIndex: 'k' },
           { dataIndex: 'v' },
-          { key: 's', render: (_, r) => (r.same ? <Tag color="success">{t.detail.same}</Tag> : <Tag color="warning">{t.detail.differs}</Tag>) },
+          { key: 's', render: (_, r) => (r.same ? <StatusDot tone="success">{t.detail.same}</StatusDot> : <StatusDot tone="warning">{t.detail.differs}</StatusDot>) },
         ]}
       />
       <Typography.Text type="secondary">{t.detail.wrongEntityHint.replace('{entity}', d.entityName)}</Typography.Text>
@@ -416,7 +428,7 @@ function Overview({ d, go }: { d: InvoiceDetail; go: (t: Tab) => void }) {
       )}
 
       <Card size="small" title={t.detail.keyFacts} extra={<Button type="link" size="small" onClick={() => go('documents')}>{t.detail.openDocuments}</Button>}>
-        <Descriptions
+        <Descriptions colon={false}
           size="small"
           layout="vertical"
           column={{ xs: 1, md: 2, xl: 3 }}
@@ -432,7 +444,7 @@ function Overview({ d, go }: { d: InvoiceDetail; go: (t: Tab) => void }) {
       </Card>
 
       {inv.flowConfidence !== null && inv.flowReason && (
-        <Card size="small" className="hand-card hand-card-ai" title={<Space><HandTag hand="AI" />{t.detail.flowIdent}</Space>}>
+        <Card size="small" title={<Space><HandTag hand="AI" />{t.detail.flowIdent}</Space>}>
           <Typography.Paragraph style={{ marginBottom: 4 }}>{t.flow[inv.flow]}, {t.detail.confidence} <span className="mono">{fmtDecimal(inv.flowConfidence)}</span>. {t.flowReason(inv.flowReason)}</Typography.Paragraph>
           <Typography.Text type="secondary" className="xs">{t.detail.versions}: model 2026.10 - prompt v14</Typography.Text>
         </Card>
@@ -440,7 +452,7 @@ function Overview({ d, go }: { d: InvoiceDetail; go: (t: Tab) => void }) {
 
       {inv.serviceAcceptance && (
         <Card size="small" title={t.detail.acceptance}>
-          <Descriptions
+          <Descriptions colon={false}
             size="small"
             column={{ xs: 1, md: 3 }}
             items={[
@@ -453,7 +465,7 @@ function Overview({ d, go }: { d: InvoiceDetail; go: (t: Tab) => void }) {
       )}
 
       {d.tax && (
-        <Card size="small" className="hand-card hand-card-rule" title={<Space><HandTag hand="RULE" />{t.detail.taxRisk}</Space>}>
+        <Card size="small" title={<Space><HandTag hand="RULE" />{t.detail.taxRisk}</Space>}>
           {t.detail.taxRiskText.replace('{supplier}', d.supplierName).replace('{date}', fmtDate(d.tax.listedAt))}
         </Card>
       )}
@@ -499,7 +511,7 @@ function Overview({ d, go }: { d: InvoiceDetail; go: (t: Tab) => void }) {
       {inv.paymentRef && <Typography.Text>{t.detail.paymentRef}: <span className="mono">{inv.paymentRef}</span></Typography.Text>}
       {d.cancellation && (
         <Card size="small" title={t.detail.cancellationNotice}>
-          <Descriptions
+          <Descriptions colon={false}
             size="small"
             column={{ xs: 1, md: 3 }}
             items={[
@@ -529,7 +541,7 @@ function Lines({ d }: { d: InvoiceDetail }) {
       title: t.detail.lineProb, key: 'p', width: 200,
       render: (_, l) => (
         <>
-          {l.probability !== null && <Tag color={l.probability < 0.9 ? 'warning' : 'success'} icon={l.probability < 0.9 ? <ExclamationCircleFilled /> : <CheckCircleFilled />}>{fmtDecimal(l.probability)} {l.probability < 0.9 ? t.detail.doubtful : t.detail.matched}</Tag>}
+          {l.probability !== null && <StatusDot tone={l.probability < 0.9 ? 'warning' : 'success'}>{fmtDecimal(l.probability)} {l.probability < 0.9 ? t.detail.doubtful : t.detail.matched}</StatusDot>}
           {l.doubtNote && <><br /><Typography.Text type="secondary" className="xs">{t.doubt[l.doubtNote as 'UNIT_UNKNOWN'] ?? l.doubtNote}</Typography.Text></>}
         </>
       ),
@@ -565,8 +577,8 @@ function ConditionSteps({ list }: { list: Condition[] }) {
       size="small"
       items={list.map((c) => ({
         status: c.result === 'PASS' ? 'finish' : c.result === 'FAIL' ? 'error' : 'wait',
-        icon: c.result === 'PASS' ? <CheckCircleFilled style={{ color: '#2E6A55' }} /> : c.result === 'FAIL' ? <CloseCircleFilled style={{ color: '#B3261E' }} /> : <MinusCircleOutlined />,
-        title: <Space wrap size={8}>{c.no}. {condTitle(c)}<Tag color={c.result === 'PASS' ? 'success' : c.result === 'FAIL' ? 'error' : 'default'} style={{ marginInlineEnd: 0 }}>{t.conditionResult[c.result]}</Tag></Space>,
+        icon: c.result === 'PASS' ? <CheckCircleFilled style={{ color: TOKENS.success }} /> : c.result === 'FAIL' ? <CloseCircleFilled style={{ color: TOKENS.error }} /> : <MinusCircleOutlined />,
+        title: <Space wrap size={8}>{c.no}. {condTitle(c)}<StatusDot tone={c.result === 'PASS' ? 'success' : c.result === 'FAIL' ? 'error' : 'neutral'}>{t.conditionResult[c.result]}</StatusDot></Space>,
         description: t.condition(c.detail),
       }))}
     />
@@ -598,7 +610,7 @@ function Documents({ d }: { d: InvoiceDetail }) {
   return (
     <div className="stack">
       <Card size="small" title={t.detail.sourceDocument} extra={<Tag className="hand hand-data">{t.detail.documentData}</Tag>}>
-        <Descriptions
+        <Descriptions colon={false}
           size="small"
           column={{ xs: 1, md: 2 }}
           items={[
@@ -640,11 +652,11 @@ function Anomalies({ d }: { d: InvoiceDetail }) {
     <div className="stack" style={{ gap: 12 }}>
       <Space><HandTag hand="AI" /><Typography.Text strong>{t.detail.anomalyNumbers}</Typography.Text></Space>
       {list.length === 0 ? <Typography.Text type="secondary">{t.detail.noAnomalies}</Typography.Text> : (
-        <Descriptions
+        <Descriptions colon={false}
           size="small"
           bordered
           column={1}
-          items={list.map((a, n) => ({ key: n, label: t.anomalyTitle(a.code), children: <Space wrap>{t.anomaly(a)}{a.flagged && <Tag color="error">{t.detail.flagged}</Tag>}</Space> }))}
+          items={list.map((a, n) => ({ key: n, label: t.anomalyTitle(a.code), children: <Space wrap>{t.anomaly(a)}{a.flagged && <StatusDot tone="warning">{t.detail.flagged}</StatusDot>}</Space> }))}
         />
       )}
     </div>
@@ -659,7 +671,7 @@ function History({ d }: { d: InvoiceDetail }) {
         <Timeline
           items={d.history.map((h) => ({
             key: h.id,
-            color: h.hand === 'PERSON' ? '#B3261E' : h.hand === 'AI' ? '#4A3A8C' : 'gray',
+            color: h.hand === 'PERSON' ? TOKENS.ink : h.hand === 'AI' ? TOKENS.primary : TOKENS.neutralDot,
             dot: h.hand === 'PERSON' ? <UserOutlined /> : undefined,
             children: (
               <div>
@@ -669,7 +681,7 @@ function History({ d }: { d: InvoiceDetail }) {
                     {h.hand === 'AI' || h.hand === 'RULE' || h.hand === 'PERSON' ? <HandTag hand={h.hand} /> : <HandTag hand={h.hand} />}
                     {h.hand === 'PERSON' && h.actorName ? <b>{h.actorName}</b> : null}
                     <span>{t.event(h.event.code, h.event.params)}</span>
-                    {h.note ? <q style={{ color: '#545A6E' }}>{h.note}</q> : null}
+                    {h.note ? <q style={{ color: TOKENS.text2 }}>{h.note}</q> : null}
                   </Space>
                 </div>
               </div>

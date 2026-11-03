@@ -110,7 +110,7 @@ export function CancellationModal({ detail, onClose, onDone }: { detail: Invoice
         void form.validateFields().then((v) => rec.run({ id: inv.id, body: { reference: v.reference, noticeDate: v.date.format('YYYY-MM-DD'), fileName, version: inv.version } })).catch(() => undefined);
       }}
     >
-      <Descriptions size="small" column={1} items={[
+      <Descriptions colon={false} size="small" column={1} items={[
         { key: 's', label: t.detail.seller, children: detail.supplierName },
         { key: 'i', label: t.invoices.colInvoice, children: <InvNo value={inv.invoiceNumber} /> },
       ]} />

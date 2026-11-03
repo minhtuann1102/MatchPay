@@ -1,27 +1,23 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Badge, Button, Card, DatePicker, Form, Input, Select, Table, Tabs, Tag, Typography } from 'antd';
+import { Button, Card, DatePicker, Form, Input, Select, Table, Tabs, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, LockOutlined, MinusCircleOutlined, PlusOutlined, SwapOutlined } from '@ant-design/icons';
+import { LockOutlined, PlusOutlined, SwapOutlined } from '@ant-design/icons';
 import dayjs, { type Dayjs } from 'dayjs';
 import { createDelegation, listDelegateCandidates, revokeDelegation, type DelegationRow } from '../api/signing';
 import { getSessionUserId } from '../api/client';
 import { useDelegations } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { EmptyState, Notice, PageHeader } from '../components/Bits';
+import { Count, EmptyState, Notice, PageHeader } from '../components/Bits';
+import { StatusDot } from '../components/Tags';
 import { ActionModal } from '../components/Dialogs';
 import { fmtDate, interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
 
 type Tab = 'current' | 'past' | 'all';
-const STATE_TAG = {
-  SCHEDULED: { color: 'warning', icon: <ClockCircleOutlined /> },
-  ACTIVE: { color: 'success', icon: <CheckCircleOutlined /> },
-  ENDED: { color: 'default', icon: <MinusCircleOutlined /> },
-  REVOKED: { color: 'error', icon: <CloseCircleOutlined /> },
-} as const;
+const STATE_TONE = { SCHEDULED: 'warning', ACTIVE: 'success', ENDED: 'neutral', REVOKED: 'error' } as const;
 
 /** SCR-55 Signing Delegations, with SCR-56 (new delegation) as a modal. Entity Admin reads and revokes only. */
 export function Delegations() {
@@ -44,7 +40,7 @@ export function Delegations() {
     { title: t.delegations.colFrom, key: 'f', width: 120, sorter: (a, b) => a.from.localeCompare(b.from), render: (_, d) => fmtDate(d.from) },
     { title: t.delegations.colTo, key: 'to', width: 120, sorter: (a, b) => a.to.localeCompare(b.to), render: (_, d) => fmtDate(d.to) },
     { title: t.delegations.colReason, key: 'r', ellipsis: true, width: 220, responsive: ['md'], render: (_, d) => d.reason },
-    { title: t.delegations.colState, key: 's', width: 140, render: (_, d) => <Tag color={STATE_TAG[d.state].color} icon={STATE_TAG[d.state].icon}>{t.delegations.states[d.state]}</Tag> },
+    { title: t.delegations.colState, key: 's', width: 140, render: (_, d) => <StatusDot tone={STATE_TONE[d.state]}>{t.delegations.states[d.state]}</StatusDot> },
     {
       title: <span className="sr">{t.common.actions}</span>, key: 'act', fixed: 'right', width: 110,
       render: (_, d) => ((d.state === 'ACTIVE' || d.state === 'SCHEDULED') && (admin || d.mine === 'GAVE') ? <Button size="small" onClick={() => setRev(d)}>{t.delegations.revoke}</Button> : null),
@@ -67,14 +63,14 @@ export function Delegations() {
           aria-label={t.delegations.savedViews}
           activeKey={tab}
           onChange={(k) => setTab(k as Tab)}
-          items={(['current', 'past', 'all'] as Tab[]).map((k) => ({ key: k, label: <span>{t.delegations.views[k]} {q.data && <Badge count={{ current: cur.length, past: past.length, all: all.length }[k]} showZero color="#9a9fb0" style={{ marginInlineStart: 4 }} />}</span> }))}
+          items={(['current', 'past', 'all'] as Tab[]).map((k) => ({ key: k, label: <span>{t.delegations.views[k]} {q.data && <Count n={{ current: cur.length, past: past.length, all: all.length }[k]} />}</span> }))}
         />
         <Async
           q={q}
           isEmpty={(d) => d.length === 0}
           empty={<EmptyState title={t.delegations.emptyTitle} text={admin ? t.delegations.emptyAdmin : t.delegations.emptyText} action={!admin ? <Button type="primary" onClick={() => setForm(true)}>{t.delegations.new}</Button> : undefined} />}
         >
-          {() => (rows.length === 0 ? <EmptyState title={t.delegations.emptyTitle} /> : <Table<DelegationRow> size="middle" rowKey="id" columns={cols} dataSource={rows} pagination={false} scroll={{ x: 800 }} />)}
+          {() => (rows.length === 0 ? <EmptyState title={t.delegations.emptyTitle} /> : <Table<DelegationRow> size="middle" rowKey="id" columns={cols} dataSource={rows} pagination={false} scroll={{ x: 800 }} sticky={{ offsetHeader: 56 }} />)}
         </Async>
         <Typography.Text type="secondary" className="xs" style={{ display: 'block', padding: '8px 16px 12px' }}>{t.delegations.immutable}</Typography.Text>
       </Card>

@@ -7,10 +7,12 @@ import { markAllNotificationsRead, markNotificationRead } from '../api/reporting
 import { useNotifications } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
-import { EmptyState, PageHeader } from '../components/Bits';
+import { Count, EmptyState, PageHeader } from '../components/Bits';
+import { StatusDot } from '../components/Tags';
 import { useAction } from '../lib/useAction';
 import { fmtDateTime } from '../lib/format';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 
 type Tab = 'unread' | 'all';
 
@@ -52,8 +54,8 @@ export function Notifications() {
           activeKey={tab}
           onChange={(k) => setTab(k as Tab)}
           items={[
-            { key: 'unread', label: <span>{t.notifications.unread} <Badge count={unread.data?.length} showZero color={unread.data?.length ? '#8A5E0F' : '#9a9fb0'} style={{ marginInlineStart: 4 }} /></span> },
-            { key: 'all', label: <span>{t.notifications.all} <Badge count={all.data?.length} showZero color="#9a9fb0" style={{ marginInlineStart: 4 }} /></span> },
+            { key: 'unread', label: <span>{t.notifications.unread} <Count n={unread.data?.length} strong={!!unread.data?.length} /></span> },
+            { key: 'all', label: <span>{t.notifications.all} <Count n={all.data?.length} /></span> },
           ]}
         />
         <Async
@@ -71,9 +73,9 @@ export function Notifications() {
                   actions={[<Button key="o" size="small" onClick={() => void open(n)} aria-label={`${t.common.open}: ${t.notifications.kinds[n.kind]}`}>{t.common.open}</Button>]}
                 >
                   <List.Item.Meta
-                    avatar={<Badge dot={!n.read}><Avatar icon={<BellOutlined />} style={{ background: n.read ? '#f0f0f4' : '#ECE9F6', color: '#4A3A8C' }} /></Badge>}
-                    title={<Space size={8} wrap><Tag bordered style={{ marginInlineEnd: 0 }}>{t.notifications.kinds[n.kind]}</Tag>{!n.read && <Tag color="purple" style={{ marginInlineEnd: 0 }}>{t.notifications.unreadFlag}</Tag>}</Space>}
-                    description={<><span style={{ color: '#1E2233' }}>{t.notification(n)}</span><br /><Typography.Text type="secondary" className="xs"><time dateTime={n.at}>{fmtDateTime(n.at)}</time></Typography.Text></>}
+                    avatar={<Badge dot={!n.read} color={TOKENS.primary}><Avatar icon={<BellOutlined />} style={{ background: n.read ? TOKENS.layout : TOKENS.primaryWash, color: TOKENS.primary }} /></Badge>}
+                    title={<Space size={8} wrap><Tag bordered style={{ marginInlineEnd: 0 }}>{t.notifications.kinds[n.kind]}</Tag>{!n.read && <StatusDot tone="primary">{t.notifications.unreadFlag}</StatusDot>}</Space>}
+                    description={<><span style={{ color: TOKENS.text }}>{t.notification(n)}</span><br /><Typography.Text type="secondary" className="xs"><time dateTime={n.at}>{fmtDateTime(n.at)}</time></Typography.Text></>}
                   />
                 </List.Item>
               )}

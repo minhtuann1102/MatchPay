@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Card, Col, Progress, Row, Select, Space, Table, Tag, Typography } from 'antd';
-import { CheckCircleOutlined, ClockCircleOutlined, ExclamationCircleOutlined, FileTextOutlined, WarningOutlined, TableOutlined, BarChartOutlined, RobotOutlined } from '@ant-design/icons';
+import { Button, Card, Col, Progress, Row, Select, Space, Table, Typography } from 'antd';
+import { TableOutlined, BarChartOutlined } from '@ant-design/icons';
 import type { DashboardData } from '../api/types';
 import { useDashboard, useGroupDashboard } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
 import { EmptyState, PageHeader } from '../components/Bits';
 import { Kpi } from '../components/Kpi';
+import { StatusDot } from '../components/Tags';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 import { fmtNumber, fmtPercent, interpolate } from '../lib/format';
 
 const periodLabel = (p: string): string => t.periodLabel(p);
@@ -22,7 +24,7 @@ function Fig({ to, children }: { to: string | null; children: React.ReactNode })
   return to ? <Link to={to}>{children}</Link> : <>{children}</>;
 }
 
-/** Progress bars for a distribution; the oldest group is striped red. A table view gives exact numbers and works for assistive technology. */
+/** Progress bars for a distribution; the oldest group (over 7 days) is drawn striped in the warning color. A table view gives exact numbers and works for assistive technology. */
 function Bars({ title, rows, hatchLast, drill }: { title: string; rows: { label: string; count: number; figure: string }[]; hatchLast?: boolean; drill: (figure: string) => string | null }) {
   const [asTable, setAsTable] = useState(false);
   const max = Math.max(1, ...rows.map((r) => r.count));
@@ -42,7 +44,7 @@ function Bars({ title, rows, hatchLast, drill }: { title: string; rows: { label:
             return (
               <div className="bar-row" key={r.figure}>
                 <span className="bar-label"><Fig to={r.count ? drill(r.figure) : null}>{r.label}</Fig></span>
-                <Progress percent={(r.count / max) * 100} showInfo={false} strokeColor={oldest ? '#B3261E' : '#4A3A8C'} size={['100%', 10]} />
+                <Progress className={oldest ? 'bar-striped' : undefined} percent={(r.count / max) * 100} showInfo={false} strokeColor={oldest ? TOKENS.warning : TOKENS.primary} size={['100%', 10]} />
                 <span className="bar-num">{r.count}</span>
               </div>
             );
@@ -94,29 +96,27 @@ function EntityDashboard({ canDrill }: { canDrill: boolean }) {
             <Row gutter={[16, 16]}>
               <Col xs={24} lg={12}>
                 <Card title={t.dashboard.touchless} style={{ height: '100%' }}>
-                  <Space size={24} align="center" wrap>
-                    <Progress type="dashboard" percent={Math.round(d.touchlessRate)} strokeColor={d.touchlessValid ? '#2E6A55' : '#8A5E0F'} aria-label={interpolate(t.dashboard.ring, { n: fmtPercent(d.touchlessRate) })} />
-                    <div className="stack" style={{ gap: 6 }}>
-                      <Typography.Text style={{ fontSize: 28, fontWeight: 600 }}>{fmtPercent(d.touchlessRate)}</Typography.Text>
-                      <span><Tag color={d.touchlessValid ? 'success' : 'warning'} icon={d.touchlessValid ? <CheckCircleOutlined /> : <WarningOutlined />}>{d.touchlessValid ? t.dashboard.valid.split(':')[0]! : t.dashboard.notValid}</Tag></span>
-                      <Typography.Text type="secondary" className="xs">{interpolate(t.dashboard.touchlessSub, { n: d.touchless, base: d.touchlessBase })}</Typography.Text>
-                      {canDrill && <Link to={drill('touchless')!}>{interpolate(t.dashboard.openList, { n: d.touchless })}</Link>}
-                    </div>
-                  </Space>
+                  <div className="stack" style={{ gap: 6 }}>
+                    <Typography.Text style={{ fontSize: 28, fontWeight: 600 }}>{fmtPercent(d.touchlessRate)}</Typography.Text>
+                    <Progress percent={Math.round(d.touchlessRate)} size="small" showInfo={false} strokeColor={d.touchlessValid ? TOKENS.success : TOKENS.warning} aria-label={interpolate(t.dashboard.ring, { n: fmtPercent(d.touchlessRate) })} />
+                    <span><StatusDot tone={d.touchlessValid ? 'success' : 'warning'}>{d.touchlessValid ? t.dashboard.valid.split(':')[0]! : t.dashboard.notValid}</StatusDot></span>
+                    <Typography.Text type="secondary" className="xs">{interpolate(t.dashboard.touchlessSub, { n: d.touchless, base: d.touchlessBase })}</Typography.Text>
+                    {canDrill && <Link to={drill('touchless')!}>{interpolate(t.dashboard.openList, { n: d.touchless })}</Link>}
+                  </div>
                 </Card>
               </Col>
               <Col xs={24} lg={12}>
                 <Card title={t.dashboard.misplacement} style={{ height: '100%' }}>
                   <div className="stack" style={{ gap: 6 }}>
-                    <Space align="center"><RobotOutlined style={{ color: '#4A3A8C', fontSize: 20 }} /><Typography.Text style={{ fontSize: 28, fontWeight: 600 }}>{fmtPercent(d.misplacementRate)}</Typography.Text></Space>
+                    <Typography.Text style={{ fontSize: 28, fontWeight: 600 }}>{fmtPercent(d.misplacementRate)}</Typography.Text>
                     <Typography.Text type="secondary">{interpolate(t.dashboard.misplacementSub, { e: d.sampleErrors, s: d.sampled })}</Typography.Text>
                     <Typography.Text type="secondary" className="xs">{t.dashboard.misplacementNote}</Typography.Text>
                   </div>
                 </Card>
               </Col>
-              <Col xs={24} sm={12} lg={8}><Kpi title={t.dashboard.openExceptions} value={d.openExceptions} icon={<ExclamationCircleOutlined />} color="#8A5E0F" sub={t.dashboard.openExceptionsSub} onClick={go('open-exceptions')} /></Col>
-              <Col xs={24} sm={12} lg={8}><Kpi title={t.dashboard.waiting} value={d.waitingForGoods} icon={<ClockCircleOutlined />} sub={t.dashboard.waitingSub} onClick={go('waiting-for-goods')} /></Col>
-              <Col xs={24} sm={12} lg={8}><Kpi title={t.dashboard.received} value={fmtNumber(d.received)} icon={<FileTextOutlined />} sub={periodLabel(d.period)} /></Col>
+              <Col xs={12} sm={12} lg={8}><Kpi title={t.dashboard.openExceptions} value={d.openExceptions} color={d.openExceptions > 0 ? TOKENS.warning : undefined} sub={t.dashboard.openExceptionsSub} onClick={go('open-exceptions')} /></Col>
+              <Col xs={12} sm={12} lg={8}><Kpi title={t.dashboard.waiting} value={d.waitingForGoods} sub={t.dashboard.waitingSub} onClick={go('waiting-for-goods')} /></Col>
+              <Col xs={12} sm={12} lg={8}><Kpi title={t.dashboard.received} value={fmtNumber(d.received)} sub={periodLabel(d.period)} /></Col>
               <Col xs={24} lg={12}><Bars title={t.dashboard.byState} drill={drill} rows={d.byState.map((x) => ({ label: t.exceptionState[x.state], count: x.count, figure: `exc-${x.state.toLowerCase().replace(/_/g, '-')}` }))} /></Col>
               <Col xs={24} lg={12}><Bars title={t.dashboard.byAge} drill={drill} hatchLast rows={d.byAge.map((x) => ({ label: t.dashboard.ages[x.bucket], count: x.count, figure: `age-${x.bucket}` }))} /></Col>
             </Row>
@@ -141,9 +141,9 @@ function GroupDashboard() {
           return (
             <>
               <Row gutter={[16, 16]}>
-                <Col xs={24} sm={12} lg={8}><Kpi title={t.dashboard.received} value={fmtNumber(sum((r) => r.received))} icon={<FileTextOutlined />} sub={interpolate(t.dashboard.receivedSub, { p: periodLabel(d.period) })} /></Col>
-                <Col xs={24} sm={12} lg={8}><Kpi title={t.dashboard.openExceptions} value={sum((r) => r.openExceptions)} icon={<ExclamationCircleOutlined />} color="#8A5E0F" sub={d.rows.map((r) => r.openExceptions).join(' + ')} /></Col>
-                <Col xs={24} sm={12} lg={8}><Kpi title={t.dashboard.waiting} value={sum((r) => r.waitingForGoods)} icon={<ClockCircleOutlined />} sub={d.rows.map((r) => r.waitingForGoods).join(' + ')} /></Col>
+                <Col xs={12} sm={12} lg={8}><Kpi title={t.dashboard.received} value={fmtNumber(sum((r) => r.received))} sub={interpolate(t.dashboard.receivedSub, { p: periodLabel(d.period) })} /></Col>
+                <Col xs={12} sm={12} lg={8}><Kpi title={t.dashboard.openExceptions} value={sum((r) => r.openExceptions)} color={sum((r) => r.openExceptions) > 0 ? TOKENS.warning : undefined} sub={d.rows.map((r) => r.openExceptions).join(' + ')} /></Col>
+                <Col xs={12} sm={12} lg={8}><Kpi title={t.dashboard.waiting} value={sum((r) => r.waitingForGoods)} sub={d.rows.map((r) => r.waitingForGoods).join(' + ')} /></Col>
               </Row>
               <Card title={interpolate(t.dashboard.eachEntity, { p: periodLabel(d.period) })} extra={<Typography.Text type="secondary" className="xs">{t.dashboard.entitiesSub}</Typography.Text>} styles={{ body: { padding: 0 } }}>
                 <Table
@@ -152,10 +152,11 @@ function GroupDashboard() {
                   pagination={false}
                   dataSource={d.rows}
                   scroll={{ x: 760 }}
+                  sticky={{ offsetHeader: 56 }}
                   columns={[
                     { title: t.dashboard.colEntity, key: 'n', render: (_, r) => <b>{r.name}</b> },
                     { title: t.dashboard.colReceived, key: 'r', align: 'right', render: (_, r) => r.received },
-                    { title: t.dashboard.colTouchless, key: 't', render: (_, r) => <Space direction="vertical" size={2}><Space><b>{fmtPercent(r.touchlessRate)}</b><Tag color={r.touchlessValid ? 'success' : 'warning'} style={{ marginInlineEnd: 0 }}>{r.touchlessValid ? t.dashboard.valid.split(':')[0]! : t.dashboard.notValid}</Tag></Space><Typography.Text type="secondary" className="xs">{interpolate(t.dashboard.ofBase, { n: r.touchless, b: r.touchlessBase })}</Typography.Text></Space> },
+                    { title: t.dashboard.colTouchless, key: 't', render: (_, r) => <Space direction="vertical" size={2}><Space><b>{fmtPercent(r.touchlessRate)}</b><StatusDot tone={r.touchlessValid ? 'success' : 'warning'}>{r.touchlessValid ? t.dashboard.valid.split(':')[0]! : t.dashboard.notValid}</StatusDot></Space><Typography.Text type="secondary" className="xs">{interpolate(t.dashboard.ofBase, { n: r.touchless, b: r.touchlessBase })}</Typography.Text></Space> },
                     { title: t.dashboard.colMis, key: 'm', render: (_, r) => <><b>{fmtPercent(r.misplacementRate)}</b><br /><Typography.Text type="secondary" className="xs">{interpolate(t.dashboard.sampledOf, { e: r.sampleErrors, s: r.sampled })}</Typography.Text></> },
                     { title: t.dashboard.colOpen, key: 'o', align: 'right', render: (_, r) => r.openExceptions },
                     { title: t.dashboard.colWaiting, key: 'w', align: 'right', render: (_, r) => r.waitingForGoods },

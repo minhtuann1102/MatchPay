@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Badge, Button, Card, Drawer, Form, Input, InputNumber, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { Button, Card, Drawer, Form, Input, InputNumber, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import { confirmSimReceipt, createSimPurchaseOrder, type SimOrderRow } from '../api/sim';
 import { useSimMaster, useSimOrders, useSimReceipts } from '../api/hooks';
 import type { PoLine, SimPersonaKind, SimReceipt } from '../api/types';
 import { Async } from '../components/Async';
-import { EmptyState, PageHeader } from '../components/Bits';
+import { Count, EmptyState, PageHeader } from '../components/Bits';
+import { StatusDot } from '../components/Tags';
 import { ActionError } from '../components/Dialogs';
 import { MoneyInput } from '../components/Inputs';
 import { fmtDateTime, fmtMoney, interpolate } from '../lib/format';
@@ -30,7 +31,7 @@ export function ErpSimulator() {
   const oCols: TableColumnsType<SimOrderRow> = [
     { title: t.erp.colPo, key: 'id', width: 110, defaultSortOrder: 'descend', sorter: (a, b) => a.id.localeCompare(b.id), render: (_, p) => <b className="mono">{p.id}</b> },
     { title: t.erp.colSupplier, key: 's', width: 220, render: (_, p) => p.supplierName },
-    { title: t.erp.colKind, key: 'k', width: 120, render: (_, p) => <Tag color={p.kind === 'GOODS' ? 'blue' : 'purple'}>{t.erp.kinds[p.kind]}</Tag> },
+    { title: t.erp.colKind, key: 'k', width: 120, render: (_, p) => <Tag>{t.erp.kinds[p.kind]}</Tag> },
     { title: t.erp.colLines, key: 'l', width: 300, ellipsis: true, responsive: ['lg'], render: (_, p) => p.lines.map((l) => `${l.item} x ${l.quantity} ${l.unit}, ${fmtMoney(l.price)}`).join('; ') },
     { title: t.erp.colQty, key: 'q', width: 180, render: (_, p) => <>{p.receivedQuantity} / {p.totalQuantity} {p.unit}{p.outstanding > 0 && <><br /><Typography.Text type="secondary" className="xs">{interpolate(t.erp.outstanding, { n: p.outstanding })}</Typography.Text></>}</> },
     { title: t.erp.colBy, key: 'b', width: 190, responsive: ['md'], render: (_, p) => <>{t.erp.personas[p.createdByPersona]}<br /><Typography.Text type="secondary" className="xs">{fmtDateTime(p.createdAt)}</Typography.Text></> },
@@ -49,7 +50,7 @@ export function ErpSimulator() {
     <>
       <PageHeader
         title={t.erp.title}
-        meta={<><Tag color="warning">{t.erp.demoNote}</Tag> {t.erp.intro}</>}
+        meta={<><StatusDot tone="warning">{t.erp.demoNote}</StatusDot> {t.erp.intro}</>}
         actions={<><Button onClick={() => setDlg({ receipt: null })} disabled={!orders.data?.some((o) => o.outstanding > 0)}>{t.erp.confirmReceipt}</Button><Button type="primary" icon={<PlusOutlined />} onClick={() => setDlg('po')}>{t.erp.newOrder}</Button></>}
       />
       <Card styles={{ body: { padding: 0 } }}>
@@ -65,17 +66,17 @@ export function ErpSimulator() {
                 activeKey={tab}
                 onChange={(k) => setTab(k as Tab)}
                 items={[
-                  { key: 'orders', label: <span>{t.erp.tabs.orders} <Badge count={orders.data?.length} showZero color="#9a9fb0" style={{ marginInlineStart: 4 }} /></span> },
-                  { key: 'receipts', label: <span>{t.erp.tabs.receipts} <Badge count={receipts.data?.length} showZero color="#9a9fb0" style={{ marginInlineStart: 4 }} /></span> },
+                  { key: 'orders', label: <span>{t.erp.tabs.orders} <Count n={orders.data?.length} /></span> },
+                  { key: 'receipts', label: <span>{t.erp.tabs.receipts} <Count n={receipts.data?.length} /></span> },
                 ]}
               />
               {tab === 'orders' ? (
                 <Async q={orders} isEmpty={(d) => d.length === 0} empty={<EmptyState title={t.erp.emptyOrders} text={t.erp.emptyOrdersText} action={<Button type="primary" onClick={() => setDlg('po')}>{t.erp.newOrder}</Button>} />}>
-                  {(d) => <Table<SimOrderRow> size="middle" rowKey="id" columns={oCols} dataSource={d} pagination={{ pageSize: 20, hideOnSinglePage: true }} scroll={{ x: 800 }} />}
+                  {(d) => <Table<SimOrderRow> size="middle" rowKey="id" columns={oCols} dataSource={d} pagination={{ pageSize: 20, hideOnSinglePage: true }} scroll={{ x: 800 }} sticky={{ offsetHeader: 56 }} />}
                 </Async>
               ) : (
                 <Async q={receipts} isEmpty={(d) => d.length === 0} empty={<EmptyState title={t.erp.emptyReceipts} text={t.erp.emptyReceiptsText} />}>
-                  {(d) => <Table<SimReceipt> size="middle" rowKey="id" columns={rCols} dataSource={d} pagination={{ pageSize: 20, hideOnSinglePage: true }} scroll={{ x: 700 }} />}
+                  {(d) => <Table<SimReceipt> size="middle" rowKey="id" columns={rCols} dataSource={d} pagination={{ pageSize: 20, hideOnSinglePage: true }} scroll={{ x: 700 }} sticky={{ offsetHeader: 56 }} />}
                 </Async>
               )}
             </>
@@ -101,7 +102,7 @@ function PoDrawer({ entityId, suppliers, onClose }: { entityId: string; supplier
       onClose={onClose}
       maskClosable={!save.pending}
       destroyOnHidden
-      footer={<Space><Button type="primary" loading={save.pending} onClick={() => { void form.validateFields().then((v) => save.run(v)).catch(() => undefined); }}>{t.erp.create}</Button><Button onClick={onClose} disabled={save.pending}>{t.common.cancel}</Button></Space>}
+      footer={<Space><Button onClick={onClose} disabled={save.pending}>{t.common.cancel}</Button><Button type="primary" loading={save.pending} onClick={() => { void form.validateFields().then((v) => save.run(v)).catch(() => undefined); }}>{t.erp.create}</Button></Space>}
     >
       <Form form={form} layout="vertical" initialValues={{ kind: 'GOODS', persona: 'BUYER', lines: [{ item: t.erp.defaultItem, quantity: 100, unit: t.erp.defaultUnit, price: 45000 }] }}>
         <div className="form-grid">
@@ -148,7 +149,7 @@ function ReceiptDrawer({ entityId, orders, preset, supplierName, onClose }: { en
       onClose={onClose}
       maskClosable={!save.pending}
       destroyOnHidden
-      footer={<Space><Button type="primary" loading={save.pending} onClick={() => { void form.validateFields().then((v) => save.run({ poId: v.poId!, persona: v.persona, quantity: v.quantity!, note: v.note ?? '' })).catch(() => undefined); }}>{t.erp.confirmReceipt}</Button><Button onClick={onClose} disabled={save.pending}>{t.common.cancel}</Button></Space>}
+      footer={<Space><Button onClick={onClose} disabled={save.pending}>{t.common.cancel}</Button><Button type="primary" loading={save.pending} onClick={() => { void form.validateFields().then((v) => save.run({ poId: v.poId!, persona: v.persona, quantity: v.quantity!, note: v.note ?? '' })).catch(() => undefined); }}>{t.erp.confirmReceipt}</Button></Space>}
     >
       <Form form={form} layout="vertical" initialValues={{ poId: preset?.id, quantity: preset?.outstanding, persona: 'WAREHOUSE_KEEPER' }}>
         <Form.Item name="poId" label={t.erp.order} rules={[{ required: true, message: t.errors.ORDER_REQUIRED }]}>

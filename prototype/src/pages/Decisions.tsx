@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Alert, Button, Descriptions, Form, Input, List, Modal, Select, Skeleton, Space, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { ClockCircleOutlined, DollarOutlined, FileSearchOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { SafetyCertificateOutlined } from '@ant-design/icons';
 import type { DecisionRow } from '../api/decisions';
 import { decideIndividualApproval, decideTaxRiskHold } from '../api/decisions';
 import { useDecisionQueue, useInvoice } from '../api/hooks';
@@ -15,6 +15,7 @@ import { HandTag } from '../components/Tags';
 import { fmtDate, fmtDateTime, fmtMoney, interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 import { Card } from 'antd';
 
 type Kind = DecisionRow['kind'];
@@ -38,13 +39,13 @@ export function Decisions() {
       title: t.decisions.colReasons, key: 'why', width: 260,
       render: (_, r) => <Space direction="vertical" size={2}>{r.invoice.exception?.reasons.map((x, i) => <span key={i}>{t.reason(x.code, x.params)}</span>)}</Space>,
     },
-    ...(isChief ? [] : [{ title: t.decisions.colLevel, key: 'lvl', width: 150, render: (_: unknown, r: DecisionRow) => (r.level ? <Tag color="warning">{t.approvalLevel[r.level]}</Tag> : '') } as TableColumnsType<DecisionRow>[number]]),
+    ...(isChief ? [] : [{ title: t.decisions.colLevel, key: 'lvl', width: 150, render: (_: unknown, r: DecisionRow) => (r.level ? <Tag>{t.approvalLevel[r.level]}</Tag> : '') } as TableColumnsType<DecisionRow>[number]]),
     { title: t.decisions.colAmount, key: 'amt', align: 'right', width: 150, sorter: (a, b) => a.amount - b.amount, render: (_, r) => <span className="nowrap">{fmtMoney(r.amount)}</span> },
     {
       title: t.decisions.colAge, key: 'age', width: 170, sorter: (a, b) => a.ageDays - b.ageDays, defaultSortOrder: 'descend',
       render: (_, r) => <>{age(r.ageDays)}<br /><Typography.Text type="secondary" className="xs">{interpolate(t.decisions.sent, { t: fmtDateTime(r.sentAt) })}</Typography.Text></>,
     },
-    { title: <span className="sr">{t.decisions.colAction}</span>, key: 'act', fixed: 'right', width: 110, render: (_, r) => <Button type="primary" size="small" onClick={(e) => { e.stopPropagation(); setOpen(r); }}>{t.decisions.review}</Button> },
+    { title: <span className="sr">{t.decisions.colAction}</span>, key: 'act', fixed: 'right', width: 110, render: (_, r) => <Button size="small" onClick={(e) => { e.stopPropagation(); setOpen(r); }}>{t.decisions.review}</Button> },
   ];
 
   const all = q.data ?? [];
@@ -58,9 +59,9 @@ export function Decisions() {
       {all.length > 0 && (
         <KpiRow span={8}>
           {[
-            <Kpi key="w" title={t.decisions.kWaiting} value={all.length} icon={<FileSearchOutlined />} color="#8A5E0F" sub={[...new Set(all.map((r) => t.decisions.kinds[r.kind]))].join(', ')} />,
-            <Kpi key="a" title={t.decisions.kAmount} value={fmtMoney(all.reduce((s, r) => s + r.amount, 0))} icon={<DollarOutlined />} color="#4A3A8C" />,
-            oldest ? <Kpi key="o" title={t.decisions.kOldest} value={age(oldest.ageDays)} icon={<ClockCircleOutlined />} sub={interpolate(t.decisions.sent, { t: fmtDateTime(oldest.sentAt) })} /> : null,
+            <Kpi key="w" title={t.decisions.kWaiting} value={all.length} color={all.length > 0 ? TOKENS.warning : undefined} sub={[...new Set(all.map((r) => t.decisions.kinds[r.kind]))].join(', ')} />,
+            <Kpi key="a" title={t.decisions.kAmount} value={fmtMoney(all.reduce((s, r) => s + r.amount, 0))} />,
+            oldest ? <Kpi key="o" title={t.decisions.kOldest} value={age(oldest.ageDays)} sub={interpolate(t.decisions.sent, { t: fmtDateTime(oldest.sentAt) })} /> : null,
           ]}
         </KpiRow>
       )}
@@ -86,6 +87,7 @@ export function Decisions() {
               dataSource={rows}
               pagination={false}
               scroll={{ x: 760 }}
+              sticky={{ offsetHeader: 56 }}
               onRow={(r) => ({ onClick: () => setOpen(r), style: { cursor: 'pointer' } })}
             />
           ))}
@@ -144,7 +146,7 @@ function DecideModal({ row, chief, onClose }: { row: DecisionRow; chief: boolean
         {detail.isPending ? <Skeleton active paragraph={{ rows: 3 }} /> : (
           <>
             <section aria-label={t.decisions.evidence}>
-              <Descriptions size="small" column={1} items={[
+              <Descriptions colon={false} size="small" column={1} items={[
                 { key: 'i', label: t.decisions.colInvoice, children: <InvNo value={inv.invoiceNumber} /> },
                 { key: 's', label: t.decisions.supplier, children: inv.sellerName },
                 { key: 'a', label: t.decisions.amount, children: fmtMoney(inv.totalAmount) },

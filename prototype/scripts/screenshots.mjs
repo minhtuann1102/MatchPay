@@ -2,6 +2,7 @@
 // Run against a served build:  npm run build && npm run preview   (port 4173)
 //   NODE_PATH=$(npm root -g) node scripts/screenshots.mjs
 // Every role starts in a fresh browser context, so the demo data is the seed data (the same as "reset demo data").
+// OUT_DIR sets another output folder. ONLY=pilot takes just the two pilot pages, the reject modal, and the hold page, then exits.
 import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
@@ -11,7 +12,8 @@ const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173/#';
-const OUT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../docs/images/prototype');
+const OUT = process.env.OUT_DIR ? path.resolve(process.env.OUT_DIR) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../docs/images/prototype');
+const ONLY = process.env.ONLY ?? '';
 const VIEWPORT = { width: 1440, height: 900 };
 let count = 0;
 
@@ -77,7 +79,38 @@ async function run(browser, persona, folder, pages, modals = []) {
 
 const dlg = (p) => p.getByRole('dialog');
 
+// Opens the reject dialog of an invoice detail page: directly, or from the "other actions" menu.
+const openReject = async (p) => {
+  const b = p.getByRole('button', { name: 'Từ chối hóa đơn' }).first();
+  if (await b.count()) await b.click();
+  else { await p.getByRole('button', { name: /Cách xử lý khác|Thao tác khác/ }).first().click(); await p.getByRole('menuitem', { name: 'Từ chối hóa đơn' }).click(); }
+};
+
 const browser = await chromium.launch();
+
+if (ONLY === 'pilot') {
+  // Pilot pages of the neutral look: SCR-10 and SCR-12 as the AP Accountant, the reject modal, and the hold page as the Chief Accountant.
+  {
+    const { ctx } = await run(
+      browser, 'Alice', 'ap-accountant',
+      [
+        ['10-invoice-worklist', '/invoices'],
+        ['12-invoice-detail', '/invoices/inv-140'],
+      ],
+      [
+        ['12b-invoice-detail-reject', '/invoices/inv-tm0415', openReject],
+      ],
+    );
+    await ctx.close();
+  }
+  {
+    const { ctx } = await run(browser, 'Carol', 'chief-accountant', [['12-invoice-detail-hold', '/invoices/inv-188']]);
+    await ctx.close();
+  }
+  await browser.close();
+  console.log(`${count} screenshots in ${OUT}`);
+  process.exit(0);
+}
 
 // Common: the login page and the access-denied page.
 {
@@ -102,11 +135,7 @@ const browser = await chromium.launch();
     ],
     [
       ['10b-invoice-worklist-upload-drawer', '/invoices', async (p) => { await p.getByRole('button', { name: 'Tải lên XML' }).first().click(); }],
-      ['12b-invoice-detail-reject', '/invoices/inv-tm0415', async (p) => {
-        const b = p.getByRole('button', { name: 'Từ chối hóa đơn' }).first();
-        if (await b.count()) await b.click();
-        else { await p.getByRole('button', { name: /Cách xử lý khác|Thao tác khác/ }).first().click(); await p.getByRole('menuitem', { name: 'Từ chối hóa đơn' }).click(); }
-      }],
+      ['12b-invoice-detail-reject', '/invoices/inv-tm0415', openReject],
       ['30b-batch-review-close', '/batch', async (p) => { await p.getByRole('button', { name: 'Đóng lô để rà soát' }).first().click(); }],
     ],
   );
@@ -153,7 +182,7 @@ const browser = await chromium.launch();
       ['55b-signing-delegations-new', '/delegations', async (p) => { await p.getByRole('button', { name: 'Ủy quyền mới' }).first().click(); }],
     ],
   );
-  // Sign for real and capture the seal stamped on the request (viewport-sized, after the stamp animation).
+  // Sign for real and capture the signed mark in the result dialog (viewport-sized).
   await p.goto(`${BASE}/signing`);
   await settle(p);
   await p.getByRole('checkbox', { name: /PR-0042/ }).check();
@@ -161,7 +190,7 @@ const browser = await chromium.launch();
   await dlg(p).locator('.ant-otp input').first().click();
   await p.keyboard.type('246810');
   await dlg(p).getByRole('button', { name: 'Ký', exact: true }).click();
-  await dlg(p).locator('.seal-stamp').waitFor();
+  await dlg(p).locator('.signed-mark').first().waitFor();
   await settle(p, 700);
   await shot(p, 'chief-accountant', '50c-signing-queue-signed', { full: false });
   await ctx.close();

@@ -2,21 +2,20 @@ import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Badge, Button, Card, Drawer, Form, Input, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import {
-  ClockCircleOutlined, CloseOutlined, ExclamationCircleOutlined, FilterOutlined, InboxOutlined, RightOutlined, SearchOutlined, SyncOutlined, UploadOutlined, ContainerOutlined, CloudSyncOutlined,
-} from '@ant-design/icons';
+import { CloseOutlined, FilterOutlined, SearchOutlined, SyncOutlined, UploadOutlined, CloudSyncOutlined } from '@ant-design/icons';
 import type { InvoiceFlow, InvoiceQuery, InvoiceSource, InvoiceState } from '../api/types';
 import type { InvoiceRow } from '../api/invoices';
 import { startErpSync } from '../api/admin';
 import { useInvoices, useSuppliers, useWorklistSummary, useErpSync } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
 import { Async, useForced } from '../components/Async';
-import { DueSoon, EmptyState, MoreMenu, Notice, PageHeader, InvNo } from '../components/Bits';
-import { StateBadge, ExceptionBadge } from '../components/Tags';
+import { Count, DueSoon, EmptyState, MoreMenu, Notice, PageHeader, InvNo } from '../components/Bits';
+import { StateBadge } from '../components/Tags';
 import { Kpi, KpiRow } from '../components/Kpi';
 import { fmtDate, fmtDateTime, fmtMoney } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 import { UploadDrawer } from './UploadDrawer';
 
 type View = 'needs' | 'waiting' | 'batch' | 'done' | 'all';
@@ -81,25 +80,21 @@ export function Invoices() {
 
   const cols: TableColumnsType<InvoiceRow> = [
     {
-      key: 'inv', title: t.invoices.colInvoice, sorter: (a, b) => a.invoiceNumber.localeCompare(b.invoiceNumber, 'vi'), width: 220,
+      key: 'inv', title: t.invoices.colInvoice, sorter: (a, b) => a.invoiceNumber.localeCompare(b.invoiceNumber, 'vi'), width: 200,
       render: (_, r) => (<><Link to={`/invoices/${r.id}`} onClick={(e) => e.stopPropagation()}><InvNo value={r.invoiceNumber} /></Link><br /><Typography.Text type="secondary" className="xs">{r.sellerName}</Typography.Text></>),
     },
-    { key: 'flow', title: t.invoices.colFlow, ellipsis: true, width: 170, responsive: ['lg'], render: (_, r) => t.flow[r.flow] },
-    { key: 'src', title: t.invoices.colSource, width: 90, responsive: ['md'], render: (_, r) => <Tag bordered>{t.source[r.source]}</Tag> },
+    { key: 'flow', title: t.invoices.colFlow, ellipsis: true, width: 190, responsive: ['lg'], render: (_, r) => t.flow[r.flow] },
+    { key: 'src', title: t.invoices.colSource, width: 80, responsive: ['md'], render: (_, r) => <Typography.Text type="secondary">{t.source[r.source]}</Typography.Text> },
     {
-      key: 'due', title: t.invoices.colDue, width: 150, sorter: (a, b) => a.dueDate.localeCompare(b.dueDate),
+      key: 'due', title: t.invoices.colDue, width: 160, sorter: (a, b) => a.dueDate.localeCompare(b.dueDate),
       render: (_, r) => <Space direction="vertical" size={2}><span className="nowrap">{fmtDate(r.dueDate)}</span>{r.dueSoon && <DueSoon />}</Space>,
     },
     {
-      key: 'state', title: t.invoices.colState, width: 190, sorter: (a, b) => a.state.localeCompare(b.state),
-      render: (_, r) => (<Space direction="vertical" size={2}><StateBadge state={r.state} />{r.exception && r.exception.state !== 'CLOSED' && <ExceptionBadge state={r.exception.state} />}</Space>),
+      key: 'state', title: t.invoices.colState, width: 160, sorter: (a, b) => a.state.localeCompare(b.state),
+      render: (_, r) => (<Space direction="vertical" size={2}><StateBadge state={r.state} />{r.exception && r.exception.state !== 'CLOSED' && <Typography.Text type="secondary" className="xs">{t.exceptionState[r.exception.state]}</Typography.Text>}</Space>),
     },
-    { key: 'why', title: t.invoices.colReasons, width: 260, responsive: ['xl'], render: (_, r) => <ReasonsCell r={r} /> },
-    { key: 'total', title: t.invoices.colTotal, align: 'right', width: 150, sorter: (a, b) => a.totalAmount - b.totalAmount, render: (_, r) => <span className="nowrap">{fmtMoney(r.totalAmount)}</span> },
-    {
-      key: 'go', title: <span className="sr">{t.common.open}</span>, fixed: 'right', width: 56,
-      render: (_, r) => <Link to={`/invoices/${r.id}`} aria-label={`${t.common.open} ${r.invoiceNumber}`} title={t.common.open} onClick={(e) => e.stopPropagation()}><Button type="text" size="small" icon={<RightOutlined />} tabIndex={-1} /></Link>,
-    },
+    { key: 'why', title: t.invoices.colReasons, width: 200, responsive: ['xl'], render: (_, r) => <ReasonsCell r={r} /> },
+    { key: 'total', title: t.invoices.colTotal, align: 'right', width: 140, sorter: (a, b) => a.totalAmount - b.totalAmount, render: (_, r) => <span className="nowrap">{fmtMoney(r.totalAmount)}</span> },
   ];
 
   const noInvoicesAtAll = sm && sm.views.all === 0;
@@ -149,10 +144,10 @@ export function Invoices() {
       {sm && !search && forced === 'none' && !noInvoicesAtAll && (
         <KpiRow>
           {[
-            <Kpi key="e" title={t.invoices.kpiExceptions} value={sm.openExceptions} icon={<ExclamationCircleOutlined />} color="#8A5E0F" sub={t.invoices.kpiExceptionsSub.replace('{d}', String(sm.waitingDecision)).replace('{s}', String(sm.waitingSupplier))} onClick={() => set({ view: 'needs', figure: null })} />,
-            <Kpi key="d" title={t.invoices.kpiDue} value={sm.dueWithin7Days} icon={<ClockCircleOutlined />} sub={sm.dueDates.slice(0, 2).map(fmtDate).join(', ') || t.invoices.kpiNone} onClick={() => set({ view: 'all', duesoon: '1', figure: null })} />,
-            <Kpi key="b" title={t.invoices.kpiBatch} value={sm.inBatch} icon={<ContainerOutlined />} color="#2E6A55" sub={fmtMoney(sm.inBatchTotal)} onClick={() => set({ view: 'batch', figure: null })} />,
-            <Kpi key="w" title={t.invoices.kpiWaiting} value={sm.waitingForGoods} icon={<InboxOutlined />} sub={t.invoices.kpiWaitingSub} onClick={() => set({ view: 'waiting', figure: null })} />,
+            <Kpi key="e" title={t.invoices.kpiExceptions} value={sm.openExceptions} color={sm.openExceptions > 0 ? TOKENS.warning : undefined} sub={t.invoices.kpiExceptionsSub.replace('{d}', String(sm.waitingDecision)).replace('{s}', String(sm.waitingSupplier))} onClick={() => set({ view: 'needs', figure: null })} />,
+            <Kpi key="d" title={t.invoices.kpiDue} value={sm.dueWithin7Days} sub={sm.dueDates.slice(0, 2).map(fmtDate).join(', ') || t.invoices.kpiNone} onClick={() => set({ view: 'all', duesoon: '1', figure: null })} />,
+            <Kpi key="b" title={t.invoices.kpiBatch} value={sm.inBatch} sub={fmtMoney(sm.inBatchTotal)} onClick={() => set({ view: 'batch', figure: null })} />,
+            <Kpi key="w" title={t.invoices.kpiWaiting} value={sm.waitingForGoods} sub={t.invoices.kpiWaitingSub} onClick={() => set({ view: 'waiting', figure: null })} />,
           ]}
         </KpiRow>
       )}
@@ -166,7 +161,7 @@ export function Invoices() {
             onChange={(v) => set({ view: v, duesoon: null })}
             items={VIEWS.map((v) => ({
               key: v,
-              label: <span>{t.invoices.views[v]} <Badge count={sm.views[v]} showZero color={v === 'needs' && sm.views.needs ? '#8A5E0F' : '#9a9fb0'} overflowCount={999} style={{ marginInlineStart: 4 }} /></span>,
+              label: <span>{t.invoices.views[v]} <Count n={sm.views[v]} strong={v === 'needs' && sm.views.needs > 0} /></span>,
             }))}
           />
         )}
@@ -181,7 +176,7 @@ export function Invoices() {
             value={search}
             onChange={(e) => set({ q: e.target.value })}
           />
-          <Badge count={activeFilters.length} size="small">
+          <Badge count={activeFilters.length} size="small" color={TOKENS.primary}>
             <Button icon={<FilterOutlined />} onClick={() => { form.setFieldsValue({ state: q.state || undefined, supplier: q.supplierId || undefined, flow: q.flow || undefined, source: q.source || undefined }); setFiltersOpen(true); }}>{t.invoices.filters}</Button>
           </Badge>
           {search && (
@@ -196,7 +191,7 @@ export function Invoices() {
             />
           )}
           {activeFilters.map((f) => (
-            <Tag key={f.key} closable bordered color="purple" onClose={(e) => { e.preventDefault(); set({ [f.key]: null }); }} closeIcon={<span aria-label={t.invoices.removeFilter.replace('{f}', f.label)} role="button"><CloseOutlined /></span>}>{f.label}</Tag>
+            <Tag key={f.key} closable bordered onClose={(e) => { e.preventDefault(); set({ [f.key]: null }); }} closeIcon={<span aria-label={t.invoices.removeFilter.replace('{f}', f.label)} role="button"><CloseOutlined /></span>}>{f.label}</Tag>
           ))}
           <span style={{ flex: 1 }} />
           {list.data && (
@@ -215,6 +210,7 @@ export function Invoices() {
               columns={cols}
               dataSource={data.items}
               scroll={{ x: 760 }}
+              sticky={{ offsetHeader: 56 }}
               onRow={(r) => ({ onClick: () => nav(`/invoices/${r.id}`), style: { cursor: 'pointer' } })}
               loading={list.isFetching && !list.isPending}
               pagination={{
@@ -239,8 +235,8 @@ export function Invoices() {
         destroyOnHidden
         footer={
           <Space>
-            <Button type="primary" onClick={() => { const v = form.getFieldsValue(); set({ state: v.state ?? null, supplier: v.supplier ?? null, flow: v.flow ?? null, source: v.source ?? null }); setFiltersOpen(false); }}>{t.common.apply}</Button>
             <Button onClick={() => { form.resetFields(); set({ state: null, supplier: null, flow: null, source: null, reminder: null, duesoon: null, figure: null }); setFiltersOpen(false); }}>{t.common.clearFilters}</Button>
+            <Button type="primary" onClick={() => { const v = form.getFieldsValue(); set({ state: v.state ?? null, supplier: v.supplier ?? null, flow: v.flow ?? null, source: v.source ?? null }); setFiltersOpen(false); }}>{t.common.apply}</Button>
           </Space>
         }
       >
@@ -271,9 +267,9 @@ function ReasonsCell({ r }: { r: InvoiceRow }) {
     const first = e.reasons[0];
     return (
       <Space size={4} wrap>
-        {first && <Typography.Text ellipsis={{ tooltip: t.reason(first.code, first.params) }} style={{ maxWidth: 190 }}>{t.reason(first.code, first.params)}</Typography.Text>}
+        {first && <Typography.Text ellipsis={{ tooltip: t.reason(first.code, first.params) }} style={{ maxWidth: 168 }}>{t.reason(first.code, first.params)}</Typography.Text>}
         {e.reasons.length > 1 && <Tag style={{ marginInlineEnd: 0 }}>+{e.reasons.length - 1}</Tag>}
-        {r.reminderDue && <Tag color="warning" icon={<SyncOutlined />} style={{ marginInlineEnd: 0 }}>{t.invoices.reminderDue}</Tag>}
+        {r.reminderDue && <Typography.Text className="xs" style={{ color: TOKENS.warning }}><SyncOutlined aria-hidden="true" /> {t.invoices.reminderDue}</Typography.Text>}
       </Space>
     );
   }

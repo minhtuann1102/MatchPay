@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AutoComplete, Avatar, Button, Card, Form, Input, Select, Space, Table, Tag, Typography } from 'antd';
+import { AutoComplete, Avatar, Button, Card, Form, Input, Select, Space, Table, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { CheckCircleOutlined, MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { createUser, deactivateUser, listErpUsers, updateUser, type UserInput } from '../api/admin';
 import { getSessionUserId } from '../api/client';
 import { useEntities, useUsers } from '../api/hooks';
@@ -10,10 +10,12 @@ import type { ApprovalLevel, Role, User } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { Async } from '../components/Async';
 import { EmptyState, PageHeader } from '../components/Bits';
+import { StatusDot } from '../components/Tags';
 import { ActionModal } from '../components/Dialogs';
 import { interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 
 type Row = User & { entityName: string };
 const ENTITY_ROLES: Role[] = ['AP_ACCOUNTANT', 'CHIEF_ACCOUNTANT', 'PAYMENT_APPROVER', 'REQUESTING_DEPARTMENT', 'ENTITY_ADMIN'];
@@ -36,13 +38,13 @@ export function Users() {
   const cols: TableColumnsType<Row> = [
     {
       title: t.users.colName, key: 'n', width: 240, sorter: (a, b) => a.fullName.localeCompare(b.fullName, 'vi'),
-      render: (_, u) => <Space><Avatar size="small" style={{ background: '#ECE9F6', color: '#4A3A8C' }}>{u.fullName.slice(0, 1)}</Avatar><b>{u.fullName}{u.id === session?.userId && <Typography.Text type="secondary"> {t.users.you}</Typography.Text>}</b></Space>,
+      render: (_, u) => <Space><Avatar size="small" shape="square" style={{ background: TOKENS.primaryWash, color: TOKENS.primary }}>{u.fullName.slice(0, 1)}</Avatar><b>{u.fullName}{u.id === session?.userId && <Typography.Text type="secondary"> {t.users.you}</Typography.Text>}</b></Space>,
     },
     { title: t.users.colEmail, key: 'e', width: 250, ellipsis: true, responsive: ['md'], render: (_, u) => u.email },
     { title: t.users.colRole, key: 'r', width: 200, sorter: (a, b) => a.role.localeCompare(b.role), render: (_, u) => <>{t.roles[u.role]}{u.approvalLevel && <><br /><Typography.Text type="secondary" className="xs">{t.approvalLevel[u.approvalLevel]}</Typography.Text></>}</> },
     ...(group ? [{ title: t.users.colEntity, key: 'en', width: 200, responsive: ['lg'], render: (_: unknown, u: Row) => (u.entityId ? u.entityName : t.users.group) } as TableColumnsType<Row>[number]] : []),
     { title: t.users.colErp, key: 'erp', width: 120, responsive: ['xl'], render: (_, u) => (u.erpUser ? <span className="mono">{u.erpUser}</span> : '-') },
-    { title: t.users.colStatus, key: 's', width: 130, render: (_, u) => <Tag color={u.status === 'ACTIVE' ? 'success' : 'default'} icon={u.status === 'ACTIVE' ? <CheckCircleOutlined /> : <MinusCircleOutlined />}>{t.users.status[u.status]}</Tag> },
+    { title: t.users.colStatus, key: 's', width: 130, render: (_, u) => <StatusDot tone={u.status === 'ACTIVE' ? 'success' : 'neutral'}>{t.users.status[u.status]}</StatusDot> },
     {
       title: <span className="sr">{t.common.actions}</span>, key: 'act', fixed: 'right', width: 190,
       render: (_, u) => (
@@ -82,7 +84,7 @@ export function Users() {
           {filtered && <Button type="link" size="small" onClick={() => { setRole(''); setEntityId(''); }}>{t.common.clearFilters}</Button>}
         </div>
         <Async q={q} isEmpty={(d) => d.length === 0} empty={filtered && all.data?.length ? <EmptyState title={t.users.noMatch} /> : <EmptyState title={t.users.emptyTitle} text={t.users.emptyText} />}>
-          {(d) => <Table<Row> size="middle" rowKey="id" columns={cols} dataSource={d} pagination={{ pageSize: 20, hideOnSinglePage: true }} scroll={{ x: 760 }} />}
+          {(d) => <Table<Row> size="middle" rowKey="id" columns={cols} dataSource={d} pagination={{ pageSize: 20, hideOnSinglePage: true }} scroll={{ x: 760 }} sticky={{ offsetHeader: 56 }} />}
         </Async>
       </Card>
       {form && <UserForm user={form === 'new' ? null : form} group={group} onClose={() => setForm(null)} />}

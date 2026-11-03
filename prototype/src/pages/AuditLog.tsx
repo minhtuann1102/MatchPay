@@ -67,6 +67,7 @@ export function AuditLog() {
               columns={cols}
               dataSource={d.items}
               scroll={{ x: 760 }}
+              sticky={{ offsetHeader: 56 }}
               onRow={(a) => ({ onClick: () => setOpen(a), style: { cursor: 'pointer' } })}
               pagination={{ current: d.page, pageSize: d.pageSize, total: d.total, showSizeChanger: false, showTotal: (total, [f, to]) => t.common.showing.replace('{from}', String(f)).replace('{to}', String(to)).replace('{total}', String(total)), onChange: setPage }}
             />
@@ -82,7 +83,7 @@ function EntryDrawer({ a, canOpen, onClose }: { a: AuditEntry; canOpen: boolean;
   return (
     <Drawer open title={t.audit.detailTitle} width={480} onClose={onClose} destroyOnHidden footer={<Button onClick={onClose}>{t.common.close}</Button>}>
       <div className="stack">
-        <Descriptions
+        <Descriptions colon={false}
           size="small"
           column={1}
           bordered

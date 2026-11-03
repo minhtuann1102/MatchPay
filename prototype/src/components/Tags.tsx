@@ -1,61 +1,71 @@
 import type { ReactNode } from 'react';
-import { Tag } from 'antd';
+import { Badge, Tag } from 'antd';
 import {
-  CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, DollarOutlined, ExclamationCircleOutlined, InboxOutlined, MinusCircleOutlined,
-  RobotOutlined, SafetyCertificateOutlined, SendOutlined, SyncOutlined, UserOutlined, EditOutlined, DatabaseOutlined, CloudServerOutlined,
+  RobotOutlined, SafetyCertificateOutlined, UserOutlined, DatabaseOutlined, CloudServerOutlined,
 } from '@ant-design/icons';
 import type { ExceptionState, InvoiceState, RequestState, Batch } from '../api/types';
 import { t } from '../i18n/vi';
+import { TOKENS } from '../theme/theme';
 
-type Preset = 'default' | 'processing' | 'success' | 'warning' | 'error';
-const Status = ({ preset, icon, children }: { preset: Preset; icon: ReactNode; children: ReactNode }) => <Tag color={preset} icon={icon} style={{ marginInlineEnd: 0 }}>{children}</Tag>;
-
-const INVOICE: Record<InvoiceState, [Preset, ReactNode]> = {
-  RECEIVED: ['default', <InboxOutlined />],
-  IN_CHECK: ['processing', <SyncOutlined spin />],
-  WAITING_FOR_GOODS: ['warning', <ClockCircleOutlined />],
-  SEPARATED: ['default', <MinusCircleOutlined />],
-  REJECTED: ['error', <CloseCircleOutlined />],
-  EXCEPTION: ['warning', <ExclamationCircleOutlined />],
-  IN_BATCH: ['success', <CheckCircleOutlined />],
-  SIGNED: ['error', <SafetyCertificateOutlined />],
-  SENT: ['processing', <SendOutlined />],
-  PAID: ['success', <DollarOutlined />],
-  SUPERSEDED: ['default', <MinusCircleOutlined />],
+// Status is a colored dot plus text (D-215): never color alone, no icons, no spinning.
+type Tone = 'neutral' | 'primary' | 'warning' | 'success' | 'error';
+const DOT: Record<Tone, string> = {
+  neutral: TOKENS.neutralDot,
+  primary: TOKENS.primary,
+  warning: TOKENS.warning,
+  success: TOKENS.success,
+  error: TOKENS.error,
 };
-export const StateBadge = ({ state }: { state: InvoiceState }) => <Status preset={INVOICE[state][0]} icon={INVOICE[state][1]}>{t.invoiceState[state]}</Status>;
+/** A status shown as a colored dot plus text, for states that have no dedicated badge (D-215). */
+export const StatusDot = ({ tone, children }: { tone: Tone; children: ReactNode }) => <Badge color={DOT[tone]} text={children} />;
+const Status = StatusDot;
 
-const EXC: Record<ExceptionState, [Preset, ReactNode]> = {
-  OPEN: ['default', <InboxOutlined />],
-  IN_REVIEW: ['processing', <SyncOutlined />],
-  WAITING_FOR_SUPPLIER: ['warning', <ClockCircleOutlined />],
-  WAITING_FOR_DATA_FIX: ['warning', <ClockCircleOutlined />],
-  WAITING_FOR_DECISION: ['warning', <ClockCircleOutlined />],
-  CLOSED: ['default', <CheckCircleOutlined />],
+const INVOICE: Record<InvoiceState, Tone> = {
+  RECEIVED: 'neutral',
+  IN_CHECK: 'primary',
+  WAITING_FOR_GOODS: 'warning',
+  SEPARATED: 'neutral',
+  REJECTED: 'error',
+  EXCEPTION: 'warning',
+  IN_BATCH: 'success',
+  SIGNED: 'primary',
+  SENT: 'primary',
+  PAID: 'success',
+  SUPERSEDED: 'neutral',
 };
-export const ExceptionBadge = ({ state }: { state: ExceptionState }) => <Status preset={EXC[state][0]} icon={EXC[state][1]}>{t.exceptionState[state]}</Status>;
+export const StateBadge = ({ state }: { state: InvoiceState }) => <Status tone={INVOICE[state]}>{t.invoiceState[state]}</Status>;
 
-const REQ: Record<RequestState, [Preset, ReactNode]> = {
-  AWAITING_CHIEF_ACCOUNTANT: ['warning', <ClockCircleOutlined />],
-  AWAITING_PAYMENT_APPROVER: ['warning', <ClockCircleOutlined />],
-  SIGNED: ['error', <SafetyCertificateOutlined />],
-  SENT: ['processing', <SendOutlined />],
-  PAID: ['success', <DollarOutlined />],
-  CANCELLED: ['error', <CloseCircleOutlined />],
+const EXC: Record<ExceptionState, Tone> = {
+  OPEN: 'neutral',
+  IN_REVIEW: 'primary',
+  WAITING_FOR_SUPPLIER: 'warning',
+  WAITING_FOR_DATA_FIX: 'warning',
+  WAITING_FOR_DECISION: 'warning',
+  CLOSED: 'neutral',
 };
-export const RequestBadge = ({ state }: { state: RequestState }) => <Status preset={REQ[state][0]} icon={REQ[state][1]}>{t.requestState[state]}</Status>;
+export const ExceptionBadge = ({ state }: { state: ExceptionState }) => <Status tone={EXC[state]}>{t.exceptionState[state]}</Status>;
 
-const BATCH: Record<Batch['state'], [Preset, ReactNode]> = {
-  OPEN: ['default', <InboxOutlined />],
-  IN_REVIEW: ['processing', <SyncOutlined />],
-  IN_SIGNING: ['warning', <EditOutlined />],
-  SIGNED: ['error', <SafetyCertificateOutlined />],
-  SENT: ['processing', <SendOutlined />],
-  COMPLETED: ['success', <CheckCircleOutlined />],
+const REQ: Record<RequestState, Tone> = {
+  AWAITING_CHIEF_ACCOUNTANT: 'warning',
+  AWAITING_PAYMENT_APPROVER: 'warning',
+  SIGNED: 'primary',
+  SENT: 'primary',
+  PAID: 'success',
+  CANCELLED: 'error',
 };
-export const BatchBadge = ({ state }: { state: Batch['state'] }) => <Status preset={BATCH[state][0]} icon={BATCH[state][1]}>{t.batchState[state]}</Status>;
+export const RequestBadge = ({ state }: { state: RequestState }) => <Status tone={REQ[state]}>{t.requestState[state]}</Status>;
 
-/** The three hands (D-44): AI proposed (dashed purple), Rule Engine decided (outlined), a Person decided (seal red). */
+const BATCH: Record<Batch['state'], Tone> = {
+  OPEN: 'neutral',
+  IN_REVIEW: 'primary',
+  IN_SIGNING: 'warning',
+  SIGNED: 'primary',
+  SENT: 'primary',
+  COMPLETED: 'success',
+};
+export const BatchBadge = ({ state }: { state: Batch['state'] }) => <Status tone={BATCH[state]}>{t.batchState[state]}</Status>;
+
+/** The three hands (D-44, D-217): AI proposed (dashed round outline), Rule Engine decided (square outline), a Person decided (dark filled). */
 export function HandTag({ hand }: { hand: 'AI' | 'RULE' | 'PERSON' | 'SYSTEM' | 'ERP' }) {
   const label = t.hands[hand];
   switch (hand) {
