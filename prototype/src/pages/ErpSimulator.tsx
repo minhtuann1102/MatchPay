@@ -33,7 +33,13 @@ export function ErpSimulator() {
     { title: t.erp.colSupplier, key: 's', width: 220, render: (_, p) => p.supplierName },
     { title: t.erp.colKind, key: 'k', width: 120, render: (_, p) => <Tag>{t.erp.kinds[p.kind]}</Tag> },
     { title: t.erp.colLines, key: 'l', width: 300, ellipsis: true, responsive: ['lg'], render: (_, p) => p.lines.map((l) => `${l.item} x ${l.quantity} ${l.unit}, ${fmtMoney(l.price)}`).join('; ') },
-    { title: t.erp.colQty, key: 'q', width: 180, render: (_, p) => <>{p.receivedQuantity} / {p.totalQuantity} {p.unit}{p.outstanding > 0 && <><br /><Typography.Text type="secondary" className="xs">{interpolate(t.erp.outstanding, { n: p.outstanding })}</Typography.Text></>}</> },
+    {
+      title: t.erp.colQty, key: 'q', width: 180,
+      // A single-line order shows the quantity; an order with several lines mixes units, so it shows how many lines are fully received.
+      render: (_, p) => (p.lines.length > 1
+        ? <>{interpolate(t.erp.linesReceived, { a: p.linesReceived, n: p.lines.length })}{p.linesOutstanding > 0 && <><br /><Typography.Text type="secondary" className="xs">{interpolate(t.erp.outstandingLines, { n: p.linesOutstanding })}</Typography.Text></>}</>
+        : <>{p.receivedQuantity} / {p.totalQuantity} {p.unit}{p.outstanding > 0 && <><br /><Typography.Text type="secondary" className="xs">{interpolate(t.erp.outstanding, { n: p.outstanding })}</Typography.Text></>}</>),
+    },
     { title: t.erp.colBy, key: 'b', width: 190, responsive: ['md'], render: (_, p) => <>{t.erp.personas[p.createdByPersona]}<br /><Typography.Text type="secondary" className="xs">{fmtDateTime(p.createdAt)}</Typography.Text></> },
     { title: <span className="sr">{t.common.actions}</span>, key: 'act', fixed: 'right', width: 190, render: (_, p) => (p.outstanding > 0 ? <Button size="small" onClick={() => setDlg({ receipt: p })}>{t.erp.confirmReceipt}</Button> : null) },
   ];

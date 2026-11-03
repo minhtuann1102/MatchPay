@@ -432,6 +432,30 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .tab-body { padding-top: var(--s4); display: grid; gap: var(--s4); align-content: start; }
 .tab-body > * { min-width: 0; }
 
+/* ---------- Three-way match tab (D-222) ---------- */
+.match-docs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); }
+.match-doc { display: grid; gap: 2px; padding: var(--s3) var(--s4); border: 1px solid var(--line); border-radius: var(--r-surface); background: var(--surface); }
+.match-doc b { font-size: var(--fs-md); font-weight: 600; }
+.tbl .cell-note { display: block; font-size: var(--fs-xs); font-weight: 400; color: var(--ink-3); }
+.tbl td.cell-diff { background: var(--err-wash); color: var(--err); font-weight: 600; }
+.tbl td.cell-diff .cell-note { color: var(--err); font-weight: 500; }
+.tbl td.cell-diff .cell-note.sub-grey { color: var(--ink-3); font-weight: 400; }
+.tbl .cell-warn { color: var(--warn); font-weight: 500; }
+.tbl td.cell-merged { text-align: center; }
+.tbl.match-lines th, .tbl.match-lines td { padding-left: 6px; padding-right: 6px; font-size: 12px; }
+.tbl.match-lines td, .tbl.match-lines td.money { white-space: normal; }
+.tbl.lines.compact.match-lines td .sub { max-width: none; white-space: normal; overflow: visible; text-overflow: clip; }
+.tbl.match-lines td:first-child { padding-left: 8px; }
+.tbl.match-lines { table-layout: fixed; }
+.tbl.lines.compact.match-lines td .cell-note { white-space: normal; }
+.tbl.lines.compact.match-lines td.money .cell-note { max-width: 88px; margin-left: auto; }
+.tbl.lines.compact.match-lines td .cell-note.nw { white-space: nowrap; max-width: none; }
+.tbl th.grp { text-align: center; }
+.tbl tr.row-focus td { background: var(--rule-wash); }
+.tbl tr.row-focus td:first-child { box-shadow: inset 4px 0 0 var(--rule); }
+.tbl tr.row-focus td.cell-diff { background: var(--err-wash); }
+@media (max-width: 760px) { .match-docs { grid-template-columns: minmax(0, 1fr); } }
+
 /* ---------- P4 Toolbar ---------- */
 .toolbar { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; padding: var(--s3) var(--s4); border-bottom: 1px solid var(--line); }
 .search { position: relative; flex: 0 1 300px; min-width: 200px; }

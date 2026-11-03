@@ -1,5 +1,6 @@
 import type {
-  CancellationNotice, CorrectionRequest, Db, Invoice, InvoiceActions, InvoiceDetail, InvoiceFlow, InvoiceQuery, MessageTemplate, Page, Supplier, UploadItemResult, User, WorklistSummary, ExceptionReasonItem, Id, ReasonCode,
+  CancellationNotice, Condition, CorrectionRequest, Db, Invoice, InvoiceActions, InvoiceDetail, InvoiceFlow, InvoiceLine, InvoiceQuery, MatchDoc, MatchFieldRow, MatchLineRow, MessageTemplate, Page, Supplier,
+  ThreeWayMatch, UploadItemResult, User, WorklistSummary, ExceptionReasonItem, Id, ReasonCode,
 } from './types';
 import { ApiError, AP, call, FINANCE_ROLES, getForced, paginate } from './client';
 import {
@@ -12,12 +13,24 @@ import { MOCK_TEXT } from '../mock/labels';
 export interface InvoiceRow extends Invoice {
   dueSoon: boolean;
   reminderDue: boolean;
+  /** Set when an open reason of conditions 1 to 3 can be shown in the three-way match view; line is the first line that needs attention. */
+  matchLink: { line: number | null } | null;
 }
+
+export const isMatchReason = (r: ExceptionReasonItem): boolean => r.conditionNo !== undefined && r.conditionNo >= 1 && r.conditionNo <= 3;
+
+const matchLinkOf = (d: Db, i: Invoice): InvoiceRow['matchLink'] => {
+  const e = i.exception;
+  if (!e || e.state === 'CLOSED' || !e.reasons.some(isMatchReason)) return null;
+  const m = buildMatch(d, i);
+  return hasComparedLine(m) ? { line: firstAttentionLine(m) } : null;
+};
 
 const rowOf = (d: Db, i: Invoice): InvoiceRow => ({
   ...i,
   dueSoon: isDueSoon(d, i.dueDate) && !['PAID', 'SENT', 'SIGNED', 'REJECTED', 'SEPARATED', 'SUPERSEDED'].includes(i.state),
   reminderDue: !!i.replyDue && i.replyDue <= d.now.slice(0, 10) && i.exception?.state === 'WAITING_FOR_SUPPLIER',
+  matchLink: matchLinkOf(d, i),
 });
 
 const VIEW: Record<string, (i: Invoice) => boolean> = {
@@ -175,8 +188,142 @@ export const getInvoice = (id: Id) =>
       cancellation: d.cancellationNotices.find((n) => n.invoiceId === inv.id) ?? null,
       readOnly: u.role !== 'AP_ACCOUNTANT',
       dueSoon: isDueSoon(d, inv.dueDate),
+      match: buildMatch(d, inv),
     };
   });
+
+// ----- Three-way match (D-222) -----
+// Built only from the data of the invoice's own entity (BR-09). It never invents a number: a value the sample data does not have is MISSING.
+// The failures are the ones the Rule Engine counts: price against the order price after unit conversion (BR-04), invoiced quantity above the quantity
+// received (BR-15), and a header field that differs (condition 1). Invoiced quantity above the ordered quantity is a note only.
+const AI_THRESHOLD = 0.9;
+const round1 = (x: number): number => Math.round(x * 10) / 10;
+
+export function buildMatch(d: Db, inv: Invoice): ThreeWayMatch | null {
+  if (!inv.poRef) return null;
+  const po = d.purchaseOrders.find((p) => p.id === inv.poRef && p.entityId === inv.entityId);
+  if (!po) return null;
+  const tol = d.entities.find((e) => e.id === inv.entityId)?.priceTolerance ?? 0;
+  const service = inv.flow === 'SERVICES_WITH_ORDER' || po.kind === 'SERVICE';
+
+  const rcpts = d.receipts.filter((r) => r.poId === po.id && r.entityId === inv.entityId).sort((a, b) => a.at.localeCompare(b.at));
+  const shown = rcpts.find((r) => r.id === inv.receiptRef) ?? rcpts[rcpts.length - 1] ?? null;
+  const docs: MatchDoc[] = [
+    { kind: 'INVOICE', ref: inv.invoiceNumber, date: inv.invoiceDate },
+    { kind: 'ORDER', ref: po.id, date: po.createdAt.slice(0, 10) },
+    { kind: service ? 'ACCEPTANCE' : 'RECEIPT', ref: shown?.id ?? null, date: shown ? shown.at.slice(0, 10) : null },
+  ];
+
+  // Header fields: the invoice against the order, and the receipt, which refers to the same order and supplier.
+  const supplier = d.suppliers.find((s) => s.id === po.supplierId);
+  const entity = d.entities.find((e) => e.id === po.entityId);
+  const field = (f: MatchFieldRow['field'], invoice: string, order: string | null, receipt: string | null): MatchFieldRow => ({
+    field: f, invoice, order, receipt, state: order === null ? 'MISSING' : invoice === order ? 'OK' : 'DIFF',
+  });
+  const fields: MatchFieldRow[] = [
+    field('SUPPLIER', inv.sellerName, supplier?.name ?? null, shown && supplier ? supplier.name : null),
+    field('SUPPLIER_TAX', inv.sellerTaxCode ?? '', supplier?.taxCode ?? null, shown && supplier?.taxCode ? supplier.taxCode : null),
+    field('BUYER_TAX', inv.buyerTaxCode, entity?.taxCode ?? null, shown && entity ? entity.taxCode : null),
+    field('ORDER_REF', inv.poRef, po.id, shown ? shown.poId : null),
+  ];
+
+  const receivedFor = (poLineNo: number): number | null => {
+    if (rcpts.length === 0) return null;
+    let sum = 0;
+    for (const r of rcpts) {
+      if (r.lines) sum += r.lines.filter((x) => x.poLineNo === poLineNo).reduce((s, x) => s + x.quantity, 0);
+      else if (poLineNo === 1) sum += r.quantity;
+    }
+    return sum;
+  };
+
+  // Both sides are converted to the item unit of the order line (for example ream) before they are compared (BR-04, BR-15). Each document keeps its own
+  // quantity, unit, and price; the converted values are extra fields.
+  const lineRow = (l: InvoiceLine): MatchLineRow => {
+    const q = l.quantity ?? null;
+    const up = l.unitPrice ?? null;
+    const pl = l.poLineNo !== undefined ? po.lines[l.poLineNo - 1] : undefined;
+    const poFactor = pl?.unitFactor ?? 1;
+    // The invoice factor is stated on the line; a line in the same unit as the order line holds the same number of item units.
+    const invFactor = l.unitFactor ?? (pl && l.unit === pl.unit ? poFactor : undefined);
+    const base = {
+      lineNo: l.lineNo, poLineNo: l.poLineNo ?? null, invoiceText: l.text, itemName: l.matchedItem, probability: l.probability,
+      invoice: {
+        quantity: q, unit: l.unit ?? null, unitPrice: up, amount: l.amount, unitFactor: invFactor ?? 1,
+        convertedQuantity: q === null || invFactor === undefined ? null : q * invFactor, convertedUnitPrice: up === null || invFactor === undefined ? null : up / invFactor,
+      },
+    };
+    if (l.probability !== null && l.probability < AI_THRESHOLD) {
+      return {
+        ...base, baseUnit: null, order: null, received: null, receivedConverted: null, price: { state: 'UNIDENTIFIED', pct: null }, qtyOrdered: { state: 'UNIDENTIFIED', diff: null },
+        qtyReceived: { state: 'UNIDENTIFIED' }, result: 'UNIDENTIFIED', conditionNo: 2,
+      };
+    }
+    const baseUnit = pl ? pl.baseUnit ?? pl.unit : null;
+    const order = pl ? { quantity: pl.quantity, unit: pl.unit, unitPrice: pl.price, unitFactor: poFactor, convertedQuantity: pl.quantity * poFactor, convertedUnitPrice: pl.price / poFactor } : null;
+    const received = pl && l.poLineNo !== undefined ? receivedFor(l.poLineNo) : null;
+    const receivedConverted = received === null ? null : received * poFactor;
+    // The units must be the same, or the line must state how many item units its unit holds; otherwise nothing is compared.
+    const comparable = pl !== undefined && q !== null && up !== null && invFactor !== undefined;
+    let price: MatchLineRow['price'] = { state: 'MISSING', pct: null };
+    let qtyOrdered: MatchLineRow['qtyOrdered'] = { state: 'MISSING', diff: null };
+    let qtyReceived: MatchLineRow['qtyReceived'] = { state: 'MISSING' };
+    if (comparable) {
+      // Price per item unit: compare by cross-multiplication, so equal prices are equal exactly.
+      if (up * poFactor === pl.price * invFactor) price = { state: 'OK', pct: 0 };
+      else {
+        const raw = ((up * poFactor) / (pl.price * invFactor) - 1) * 100;
+        // Compare the real percentage (floating-point noise removed), so a price exactly at the tolerance passes (BR-04); show one decimal.
+        price = { state: Math.abs(Math.round(raw * 1e6) / 1e6) > tol ? 'DIFF' : 'WITHIN', pct: round1(raw) };
+      }
+      const invQty = q * invFactor;
+      const orderQty = pl.quantity * poFactor;
+      qtyOrdered = invQty === orderQty ? { state: 'OK', diff: 0 } : { state: 'WITHIN', diff: invQty - orderQty };
+      if (receivedConverted !== null) qtyReceived = { state: invQty > receivedConverted ? 'DIFF' : 'OK' };
+    }
+    const differs = price.state === 'DIFF' || qtyReceived.state === 'DIFF';
+    const result: MatchLineRow['result'] = differs ? 'DIFFERS' : !comparable ? 'NO_DATA' : received === null ? 'NO_RECEIPT' : 'MATCHES';
+    return { ...base, baseUnit, order, received, receivedConverted, price, qtyOrdered, qtyReceived, result, conditionNo: differs ? 3 : null };
+  };
+  const lines = inv.lines.map(lineRow);
+
+  const differences = fields.filter((f) => f.state === 'DIFF').length
+    + lines.reduce((s, l) => s + (l.price.state === 'DIFF' ? 1 : 0) + (l.qtyReceived.state === 'DIFF' ? 1 : 0), 0);
+  return { docs, tolerancePct: tol, fields, lines, differences };
+}
+
+/** True when at least one line has something compared (so a link to the match view has content to show). */
+export const hasComparedLine = (m: ThreeWayMatch | null): m is ThreeWayMatch => !!m && m.lines.some((l) => l.result !== 'NO_DATA');
+
+/** The first line that differs, else the first line that is not identified. */
+export const firstAttentionLine = (m: ThreeWayMatch): number | null =>
+  m.lines.find((l) => l.result === 'DIFFERS')?.lineNo ?? m.lines.find((l) => l.result === 'UNIDENTIFIED')?.lineNo ?? null;
+
+const lineIfShown = (m: ThreeWayMatch, line: unknown): number | null => {
+  const n = Number(line);
+  return line !== undefined && m.lines.some((l) => l.lineNo === n) ? n : null;
+};
+
+/** The line an exception reason of conditions 1 to 3 points to in the match view (line null for a header difference). Null when the match cannot be shown. */
+export function matchLineForReason(m: ThreeWayMatch | null, r: ExceptionReasonItem): { line: number | null } | null {
+  if (!hasComparedLine(m) || !isMatchReason(r)) return null;
+  if (r.conditionNo === 1) return { line: null };
+  const own = lineIfShown(m, r.params?.line);
+  if (own !== null) return { line: own };
+  if (r.code === 'PRICE_OUT_OF_TOLERANCE') return { line: m.lines.find((l) => l.price.state === 'DIFF')?.lineNo ?? firstAttentionLine(m) };
+  if (r.code === 'QUANTITY_ABOVE_RECEIVED') return { line: m.lines.find((l) => l.qtyReceived.state === 'DIFF')?.lineNo ?? firstAttentionLine(m) };
+  return { line: firstAttentionLine(m) };
+}
+
+/** The line a failed condition 1, 2, or 3 points to in the match view. */
+export function matchLineForCondition(m: ThreeWayMatch | null, c: Condition): { line: number | null } | null {
+  if (!hasComparedLine(m) || c.result !== 'FAIL' || c.no > 3) return null;
+  if (c.no === 1) return { line: null };
+  const own = lineIfShown(m, c.detail.params?.line);
+  if (own !== null) return { line: own };
+  if (c.no === 2) return { line: m.lines.find((l) => l.result === 'UNIDENTIFIED')?.lineNo ?? firstAttentionLine(m) };
+  return { line: m.lines.find((l) => l.price.state === 'DIFF' || l.qtyReceived.state === 'DIFF')?.lineNo ?? firstAttentionLine(m) };
+}
 
 export const downloadInvoiceDocument = (id: Id) =>
   call<{ fileName: string; xml: string }>({ roles: FINANCE_ROLES }, (d, u) => {

@@ -5,6 +5,7 @@
 //   data-roles="ap chief"  visible only for the listed roles
 //   Tabs (R1): <div class="tabgroup"><div role="tablist"><button role="tab" data-tab="id" aria-selected="true">..</button></div><div data-panel="id">..</div></div>
 //     ?tab=<id> selects a tab (for PNG export). Tabs are saved views or evidence sections, not wf-bar states.
+//     A page can make one state open on a tab: body[data-tab-<state>="id"] (used by SCR-12 state "match").
 //     A tablist with data-filter filters rows that carry data-view="id id2" ("all" shows every row) and updates [data-count] / [data-total].
 //     [data-goto-tab="id"] switches to that tab. [data-toggle="elementId"] shows or hides an element. ?filters=1 opens [data-open-param="filters"].
 //   body[data-nav]    id of the sidebar item that is current   body[data-default-role]  role when ?role= is absent
@@ -129,7 +130,7 @@
   });
 
   // ---- Tabs and saved views (R1) ----
-  var tabParam = params.get('tab');
+  var tabParam = params.get('tab') || body.getAttribute('data-tab-' + state);
   var groupOf = function (el) { return el.closest('.tabgroup') || document; };
   function selectTab(list, id) {
     var group = groupOf(list);

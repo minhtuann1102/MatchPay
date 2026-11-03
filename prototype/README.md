@@ -19,7 +19,7 @@ Demo time is fixed at 31/10/2026 10:30 and advances one minute for each change. 
 
 ## Screenshots
 
-`scripts/screenshots.mjs` takes the PNGs in `docs/images/prototype/<role folder>/` (1440x900, full page, fresh seed data for each role; `50c-signing-queue-signed` is a viewport shot of the signed mark in the sign dialog). It needs Playwright installed in some folder and a running preview; point `NODE_PATH` at that folder's `node_modules`:
+`scripts/screenshots.mjs` takes the PNGs in `docs/images/prototype/<role folder>/` (1440x900, full page, fresh seed data for each role; `50c-signing-queue-signed` is a viewport shot of the signed mark in the sign dialog; `12c-invoice-detail-match` is the invoice detail on its Three-way match tab, `/invoices/inv-123?tab=match&line=1`, D-222). It needs Playwright installed in some folder and a running preview; point `NODE_PATH` at that folder's `node_modules`:
 
 ```bash
 npm run build

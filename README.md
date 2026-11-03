@@ -1344,7 +1344,7 @@ Source: [Runtime and Deployment](docs/07-architecture/07-runtime-and-deployment.
 
 ## Interactive prototype
 
-A Vietnamese, clickable front end on mock data lives in [`prototype/`](prototype/README.md) (React, TypeScript, Vite, Ant Design 5; the mock API runs in the browser and follows the OpenAPI operation names). It sits next to the English wireframes, which stay the design reference. D-187, D-197, D-205, and D-212 are the user's decisions; D-188..D-196, D-198..D-204, D-206..D-211, and D-213..D-221 are calls that await the user's review (D-212 asks for a neutral enterprise look that sits next to a company ERP, and D-213..D-221 are how it was built): see [the UI/UX decisions](docs/04-uiux/00-decisions.md). Screenshots by role are in [`docs/images/prototype/`](docs/images/prototype/).
+A Vietnamese, clickable front end on mock data lives in [`prototype/`](prototype/README.md) (React, TypeScript, Vite, Ant Design 5; the mock API runs in the browser and follows the OpenAPI operation names). It sits next to the English wireframes, which stay the design reference. D-187, D-197, D-205, D-212, and D-222 are the user's decisions; D-188..D-196, D-198..D-204, D-206..D-211, D-213..D-221, and D-223..D-229 are calls that await the user's review (D-212 asks for a neutral enterprise look that sits next to a company ERP, and D-213..D-221 are how it was built; D-222 asks for a Three-way match tab on the invoice detail page, and D-223..D-229 are how it was built): see [the UI/UX decisions](docs/04-uiux/00-decisions.md). Screenshots by role are in [`docs/images/prototype/`](docs/images/prototype/).
 
 ```bash
 cd prototype

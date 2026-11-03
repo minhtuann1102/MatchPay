@@ -26,11 +26,21 @@ export interface SimOrderRow extends SimPurchaseOrder {
   totalQuantity: number;
   outstanding: number;
   unit: string;
+  /** Lines fully received, and lines not yet fully received. A receipt without line quantities counts for line 1 only. */
+  linesReceived: number;
+  linesOutstanding: number;
 }
 
 const rowOf = (d: Parameters<typeof nextSeq>[0], p: SimPurchaseOrder): SimOrderRow => {
   const total = p.lines.reduce((s, l) => s + l.quantity, 0);
-  return { ...p, supplierName: d.suppliers.find((s) => s.id === p.supplierId)?.name ?? '', totalQuantity: total, outstanding: Math.max(0, total - p.receivedQuantity), unit: p.lines[0]?.unit ?? '' };
+  const rcpts = d.receipts.filter((r) => r.poId === p.id && r.entityId === p.entityId);
+  const receivedOn = (lineNo: number): number =>
+    rcpts.reduce((s, r) => s + (r.lines ? r.lines.filter((x) => x.poLineNo === lineNo).reduce((a, x) => a + x.quantity, 0) : lineNo === 1 ? r.quantity : 0), 0);
+  const linesReceived = p.lines.filter((l, n) => receivedOn(n + 1) >= l.quantity).length;
+  return {
+    ...p, supplierName: d.suppliers.find((s) => s.id === p.supplierId)?.name ?? '', totalQuantity: total, outstanding: Math.max(0, total - p.receivedQuantity), unit: p.lines[0]?.unit ?? '',
+    linesReceived, linesOutstanding: p.lines.length - linesReceived,
+  };
 };
 
 export const listSimPurchaseOrders = (entityId: Id) => call<SimOrderRow[]>({ roles: DEMO }, (d) => d.purchaseOrders.filter((p) => p.entityId === entityId).map((p) => rowOf(d, p)).sort((a, b) => a.id.localeCompare(b.id)));

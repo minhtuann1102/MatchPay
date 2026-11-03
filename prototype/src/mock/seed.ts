@@ -23,7 +23,7 @@ import type {
   User,
 } from '../api/types';
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 export const DEMO_START = '2026-10-31T10:30:00';
 
 const FOODS = 'ent-foods';
@@ -92,7 +92,7 @@ const A = (objectId: string, label: string, at: string, hand: Hand, actorName: s
 const AI_MODEL = 'model 2026.10 - prompt v14';
 
 // ---------- Invoice helpers ----------
-const line = (lineNo: number, text: string, matchedItem: string | null, method: InvoiceLine['method'], probability: number | null, amount: number, doubtNote?: string): InvoiceLine => ({ lineNo, text, matchedItem, method, probability, amount, doubtNote });
+const line = (lineNo: number, text: string, matchedItem: string | null, method: InvoiceLine['method'], probability: number | null, amount: number, doubtNote?: string, extra: Partial<InvoiceLine> = {}): InvoiceLine => ({ lineNo, text, matchedItem, method, probability, amount, doubtNote, ...extra });
 const cond = (no: Condition['no'], result: Condition['result'], code: string, params?: Coded['params']): Condition => ({ no, result, detail: { code, params } });
 
 const passAll = (po: string, grn: string | null, total: number, thr: number, since = '12/10/2026', lowest = 0.95, price = 0.8, qty = '1', supplier = ''): Condition[] => [
@@ -157,9 +157,10 @@ push(inv('inv-123', {
   poRef: 'PO-CF-1007', receiptRef: 'GRN-CF-2031', invoiceDate: '2026-10-20', receivedAt: '2026-10-31T08:51:00', vatAmount: 736_250,
   flowConfidence: 0.97, flowReason: { code: 'FLOW_GOODS_PO', params: { po: 'PO-CF-1007' } }, version: 7,
   lines: [
-    line(1, 'Giấy photo Brand-X 70gsm, thùng 5 ream A4', 'Giấy photo A4, loại 1', 'MAPPING_TABLE', 1, 6_457_500),
-    line(2, 'Ghim bấm Staples No.10 (hộp 1.000)', 'Ghim bấm No.10, hộp', 'EMBEDDING_FUSION', 0.93, 480_000),
-    line(3, 'Bìa file xanh 5cm', 'Bìa còng A4 xanh, 5 cm (đề xuất)', 'LLM_AFTER_FUSION', 0.74, 425_000, 'UNIT_UNKNOWN'),
+    // Quantity data for the three-way match view (D-222): 21 thùng x 5 = 105 ream against 100 ordered and received.
+    line(1, 'Giấy photo Brand-X 70gsm, thùng 5 ream A4', 'Giấy photo A4, loại 1', 'MAPPING_TABLE', 1, 6_457_500, undefined, { quantity: 21, unit: 'thùng', unitPrice: 307_500, poLineNo: 1, unitFactor: 5 }),
+    line(2, 'Ghim bấm Staples No.10 (hộp 1.000)', 'Ghim bấm No.10, hộp', 'EMBEDDING_FUSION', 0.93, 480_000, undefined, { quantity: 40, unit: 'hộp', unitPrice: 12_000, poLineNo: 2 }),
+    line(3, 'Bìa file xanh 5cm', 'Bìa còng A4 xanh, 5 cm (đề xuất)', 'LLM_AFTER_FUSION', 0.74, 425_000, 'UNIT_UNKNOWN', { quantity: 25, unit: 'cái', unitPrice: 17_000, poLineNo: 3 }),
   ],
   conditions: [
     cond(1, 'PASS', 'C1_OK', { po: 'PO-CF-1007', grn: 'GRN-CF-2031' }),
@@ -188,7 +189,7 @@ push(inv('inv-123', {
 push(inv('inv-151', {
   number: '0000151', supplierId: 's-bright', totalAmount: 63_800_000, state: 'EXCEPTION', dueDate: '2026-11-30', source: 'EMAIL', mailboxMessageId: 'MSG-0409',
   poRef: 'PO-CF-1015', receiptRef: 'GRN-CF-2044', receivedAt: '2026-10-31T09:01:00', vatAmount: 5_800_000, flowConfidence: 0.97,
-  lines: [line(1, 'Giấy photo A4, loại 1 (ream), 800 ream x 72.500 đ', 'Giấy photo A4, loại 1', 'MAPPING_TABLE', 1, 58_000_000)],
+  lines: [line(1, 'Giấy photo A4, loại 1 (ream), 800 ream x 72.500 đ', 'Giấy photo A4, loại 1', 'MAPPING_TABLE', 1, 58_000_000, undefined, { quantity: 800, unit: 'ream', unitPrice: 72_500, poLineNo: 1 })],
   conditions: [
     cond(1, 'PASS', 'C1_OK', { po: 'PO-CF-1015', grn: 'GRN-CF-2044' }),
     cond(2, 'PASS', 'C2_OK', { p: 1 }),
@@ -224,7 +225,7 @@ push(inv('inv-149', {
 push(inv('inv-188', {
   number: '0000188', supplierId: 's-eastbay', totalAmount: 24_200_000, state: 'EXCEPTION', dueDate: '2026-11-14', poRef: 'PO-CF-1012', receiptRef: 'GRN-CF-2040', vatAmount: 2_200_000,
   receivedAt: '2026-10-31T08:57:00',
-  lines: [line(1, 'Thùng carton 5 lớp, 2.000 cái', 'Thùng carton 5 lớp 40x30x30', 'MAPPING_TABLE', 1, 22_000_000)],
+  lines: [line(1, 'Thùng carton 5 lớp, 2.000 cái', 'Thùng carton 5 lớp 40x30x30', 'MAPPING_TABLE', 1, 22_000_000, undefined, { quantity: 2_000, unit: 'cái', unitPrice: 11_000, poLineNo: 1 })],
   conditions: [
     cond(1, 'PASS', 'C1_OK', { po: 'PO-CF-1012', grn: 'GRN-CF-2040' }), cond(2, 'PASS', 'C2_OK', { p: 1 }), cond(3, 'PASS', 'C3_OK', { price: 0, qty: '2.000 / 2.000' }),
     cond(4, 'PASS', 'C4_OK', { total: 24_200_000, thr: 200_000_000 }), cond(5, 'FAIL', 'C5_TAXRISK', { supplier: 'Eastbay Trading' }), cond(6, 'PASS', 'C6_OK'),
@@ -269,6 +270,7 @@ push(inv('inv-140', {
 push(inv('inv-131', {
   number: '0000131', supplierId: 's-cloud', totalAmount: 6_820_000, state: 'EXCEPTION', dueDate: '2026-11-05', source: 'EMAIL', flow: 'SERVICES_WITH_ORDER', poRef: 'PO-CF-1018',
   mailboxMessageId: 'MSG-0402', replyDue: '2026-10-30', requestId: null, receivedAt: '2026-10-22T10:00:00',
+  lines: [line(1, 'Dịch vụ hỗ trợ CloudDesk, tháng 10', 'Dịch vụ hỗ trợ CloudDesk, tháng 10', 'MAPPING_TABLE', 1, 6_200_000, undefined, { quantity: 5, unit: 'ngày', unitPrice: 1_240_000, poLineNo: 1 })],
   conditions: [
     cond(1, 'PASS', 'C1_OK_SERVICE', { po: 'PO-CF-1018', grn: '' }), cond(2, 'PASS', 'C2_OK', { p: 0.97 }), cond(3, 'FAIL', 'C3_FAIL', { price: 3, tol: 2, qty: 5, recv: 5 }),
     cond(4, 'PASS', 'C4_OK', { total: 6_820_000, thr: 200_000_000 }), cond(5, 'FAIL', 'C5_CLOSED', { supplier: 'CloudDesk Software Ltd', entity: 'Calderwood Foods Co.' }), cond(6, 'PASS', 'C6_OK'),
@@ -543,8 +545,38 @@ const acceptances: AcceptanceItem[] = [
 ];
 
 // ---------- ERP simulator data derived from the invoices ----------
-const purchaseOrders: SimPurchaseOrder[] = [];
-const receipts: SimReceipt[] = [];
+// Explicit orders and receipts for the invoices that show the three-way match view (D-222). The loop below skips a PO that already exists,
+// and with it the receipt it would have made, so each receipt is written here too. All figures agree with the amounts and conditions above.
+const purchaseOrders: SimPurchaseOrder[] = [
+  {
+    id: 'PO-CF-1007', entityId: FOODS, supplierId: 's-bright', kind: 'GOODS', createdByPersona: 'BUYER', createdAt: '2026-10-12T09:00:00', receivedQuantity: 110,
+    // The same lines as the Documents tab of the SCR-12 wireframe: 20 cartons (5 reams each) at 300,000, 40 boxes, and 50 pieces at 8,500.
+    lines: [
+      { item: 'Giấy photo A4, loại 1 (thùng 5 ream)', quantity: 20, unit: 'thùng', price: 300_000, unitFactor: 5, baseUnit: 'ream' },
+      { item: 'Ghim bấm No.10, hộp', quantity: 40, unit: 'hộp', price: 12_000 },
+      { item: 'Bìa còng A4 xanh, 5 cm', quantity: 50, unit: 'cái', price: 8_500 },
+    ],
+  },
+  {
+    id: 'PO-CF-1018', entityId: FOODS, supplierId: 's-cloud', kind: 'SERVICE', createdByPersona: 'ACCEPTOR', createdAt: '2026-10-12T09:00:00', receivedQuantity: 5,
+    lines: [{ item: 'Dịch vụ hỗ trợ CloudDesk, tháng 10', quantity: 5, unit: 'ngày', price: 1_204_000 }],
+  },
+  {
+    id: 'PO-CF-1012', entityId: FOODS, supplierId: 's-eastbay', kind: 'GOODS', createdByPersona: 'BUYER', createdAt: '2026-10-12T09:00:00', receivedQuantity: 2_000,
+    lines: [{ item: 'Thùng carton 5 lớp 40x30x30', quantity: 2_000, unit: 'cái', price: 11_000 }],
+  },
+  {
+    id: 'PO-CF-1015', entityId: FOODS, supplierId: 's-bright', kind: 'GOODS', createdByPersona: 'BUYER', createdAt: '2026-10-12T09:00:00', receivedQuantity: 800,
+    lines: [{ item: 'Giấy photo A4, loại 1', quantity: 800, unit: 'ream', price: 72_500 }],
+  },
+];
+const receipts: SimReceipt[] = [
+  { id: 'GRN-CF-2031', entityId: FOODS, poId: 'PO-CF-1007', persona: 'WAREHOUSE_KEEPER', quantity: 110, note: '3/3 dòng', at: '2026-10-18T09:00:00', lines: [{ poLineNo: 1, quantity: 20 }, { poLineNo: 2, quantity: 40 }, { poLineNo: 3, quantity: 50 }] },
+  { id: 'ACC-CF-1018', entityId: FOODS, poId: 'PO-CF-1018', persona: 'ACCEPTOR', quantity: 5, note: '5/5', at: '2026-10-21T09:00:00' },
+  { id: 'GRN-CF-2040', entityId: FOODS, poId: 'PO-CF-1012', persona: 'WAREHOUSE_KEEPER', quantity: 2_000, note: '2000/2000', at: '2026-10-18T09:00:00' },
+  { id: 'GRN-CF-2044', entityId: FOODS, poId: 'PO-CF-1015', persona: 'WAREHOUSE_KEEPER', quantity: 800, note: '800/800', at: '2026-10-18T09:00:00' },
+];
+const dayBefore = (date: string, days: number): string => new Date(Date.parse(date) - days * 86_400_000).toISOString().slice(0, 10);
 for (const i of invoices) {
   if (!i.poRef || !i.poRef.startsWith('PO-') || purchaseOrders.some((p) => p.id === i.poRef)) continue;
   const service = i.flow === 'SERVICES_WITH_ORDER';
@@ -552,9 +584,9 @@ for (const i of invoices) {
   const received = i.state === 'WAITING_FOR_GOODS' ? (i.poRef === 'PO-CF-1021' ? 60 : 0) : qty;
   purchaseOrders.push({
     id: i.poRef, entityId: i.entityId, supplierId: i.supplierId!, kind: service ? 'SERVICE' : 'GOODS', lines: [{ item: service ? 'Dịch vụ theo hợp đồng' : 'Hàng hóa theo đơn', quantity: qty, unit: service ? 'ngày' : 'thùng', price: Math.round(i.totalAmount / 1.1 / qty) }],
-    createdByPersona: service ? 'ACCEPTOR' : 'BUYER', createdAt: '2026-10-15T09:00:00', receivedQuantity: received,
+    createdByPersona: service ? 'ACCEPTOR' : 'BUYER', createdAt: `${dayBefore(i.invoiceDate, 8)}T09:00:00`, receivedQuantity: received,
   });
-  if (i.receiptRef) receipts.push({ id: i.receiptRef, entityId: i.entityId, poId: i.poRef, persona: 'WAREHOUSE_KEEPER', quantity: received, note: `${received}/${qty}`, at: '2026-10-25T09:00:00' });
+  if (i.receiptRef) receipts.push({ id: i.receiptRef, entityId: i.entityId, poId: i.poRef, persona: 'WAREHOUSE_KEEPER', quantity: received, note: `${received}/${qty}`, at: `${dayBefore(i.invoiceDate, 2)}T09:00:00` });
 }
 if (!receipts.some((r) => r.poId === 'PO-CF-1021')) receipts.push({ id: 'GRN-CF-2050', entityId: FOODS, poId: 'PO-CF-1021', persona: 'WAREHOUSE_KEEPER', quantity: 60, note: '60/100', at: '2026-10-30T09:00:00' });
 

@@ -109,6 +109,14 @@ export interface InvoiceLine {
   amount: number;
   doubtNote?: string;
   confirmedBy?: string;
+  /** Quantity data read from the XML line (optional: older sample invoices have none). */
+  quantity?: number;
+  unit?: string;
+  unitPrice?: number;
+  /** Line number of the order line this invoice line is matched to (1-based). */
+  poLineNo?: number;
+  /** How many item units (the base unit of the order line, for example ream) one invoice unit holds; 1 when absent. */
+  unitFactor?: number;
 }
 
 export interface Condition {
@@ -468,6 +476,10 @@ export interface PoLine {
   quantity: number;
   unit: string;
   price: number;
+  /** How many item units one order unit holds (for example 5 ream per thung); 1 when absent. Mock only: the API compares in the order unit. */
+  unitFactor?: number;
+  /** Name of the item unit when `unitFactor` is not 1 (for example ream); the order unit when absent. */
+  baseUnit?: string;
 }
 
 export interface SimPurchaseOrder {
@@ -491,6 +503,8 @@ export interface SimReceipt {
   quantity: number;
   note: string;
   at: string;
+  /** Quantity received per order line. When absent, `quantity` counts for line 1 only. */
+  lines?: { poLineNo: number; quantity: number }[];
 }
 
 export interface MessageTemplate {
@@ -610,6 +624,54 @@ export interface UploadItemResult {
   state?: InvoiceState;
 }
 
+// ----- Three-way match (D-222): invoice, order, and receipt (or acceptance) side by side -----
+/** OK equal; WITHIN differs but breaks no rule (inside the tolerance, or a quantity above the order); DIFF breaks a rule; UNIDENTIFIED line below the AI threshold; MISSING no data. */
+export type MatchCellState = 'OK' | 'WITHIN' | 'DIFF' | 'UNIDENTIFIED' | 'MISSING';
+export interface MatchDoc {
+  kind: 'INVOICE' | 'ORDER' | 'RECEIPT' | 'ACCEPTANCE';
+  /** Null when the document does not exist yet. */
+  ref: string | null;
+  date: string | null;
+}
+export interface MatchFieldRow {
+  field: 'SUPPLIER' | 'SUPPLIER_TAX' | 'BUYER_TAX' | 'ORDER_REF';
+  invoice: string;
+  order: string | null;
+  receipt: string | null;
+  state: MatchCellState;
+}
+export interface MatchLineRow {
+  lineNo: number;
+  poLineNo: number | null;
+  invoiceText: string;
+  itemName: string | null;
+  probability: number | null;
+  /** The item unit both sides are converted to before they are compared (for example ream); null when no order line is matched. */
+  baseUnit: string | null;
+  /** Each document keeps its own quantity, unit, and price; the converted values are in `baseUnit`. */
+  invoice: { quantity: number | null; unit: string | null; unitPrice: number | null; amount: number; convertedQuantity: number | null; convertedUnitPrice: number | null; unitFactor: number };
+  order: { quantity: number; unit: string; unitPrice: number; unitFactor: number; convertedQuantity: number; convertedUnitPrice: number } | null;
+  /** Quantity received, in the order unit, and converted to `baseUnit`. */
+  received: number | null;
+  receivedConverted: number | null;
+  /** Price after unit conversion against the order price; pct has one decimal. */
+  price: { state: MatchCellState; pct: number | null };
+  /** Invoiced quantity against the ordered quantity, in `baseUnit`: a grey note, never a failure (BR-04 and BR-15 do not cover it). */
+  qtyOrdered: { state: MatchCellState; diff: number | null };
+  /** Invoiced quantity against the quantity received (BR-15). */
+  qtyReceived: { state: MatchCellState };
+  result: 'MATCHES' | 'DIFFERS' | 'UNIDENTIFIED' | 'NO_RECEIPT' | 'NO_DATA';
+  conditionNo: 2 | 3 | null;
+}
+export interface ThreeWayMatch {
+  docs: MatchDoc[];
+  tolerancePct: number;
+  fields: MatchFieldRow[];
+  lines: MatchLineRow[];
+  /** Number of DIFF cells in the fields and lines tables. */
+  differences: number;
+}
+
 export interface InvoiceDetail {
   invoice: Invoice;
   supplierName: string;
@@ -627,6 +689,8 @@ export interface InvoiceDetail {
   /** True when the user may open the evidence but not act. */
   readOnly: boolean;
   dueSoon: boolean;
+  /** Null when the invoice has no order of its own entity to compare with. */
+  match: ThreeWayMatch | null;
 }
 
 export interface InvoiceActions {

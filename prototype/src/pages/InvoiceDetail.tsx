@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   Alert, Button, Card, Col, Collapse, Descriptions, Form, Row, Select, Space, Steps, Table, Tabs, Tag, Timeline, Typography,
 } from 'antd';
@@ -7,7 +7,7 @@ import type { TableColumnsType } from 'antd';
 import { CheckCircleFilled, CloseCircleFilled, MinusCircleOutlined, UserOutlined } from '@ant-design/icons';
 import type { Condition, InvoiceDetail, InvoiceFlow } from '../api/types';
 import {
-  confirmLineMatch, correctFlow, rejectInvoice, reportWrongEntity, rerunChecks, sendForDecision, takeException, withdrawInvoiceFromBatch, type CancellationResult,
+  confirmLineMatch, correctFlow, matchLineForCondition, matchLineForReason, rejectInvoice, reportWrongEntity, rerunChecks, sendForDecision, takeException, withdrawInvoiceFromBatch, type CancellationResult,
 } from '../api/invoices';
 import { useInvoice } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
@@ -20,8 +20,12 @@ import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
 import { TOKENS } from '../theme/theme';
 import { CancellationModal, CorrectionModal } from './InvoiceModals';
+import { ThreeWayMatchView } from './InvoiceMatch';
 
-type Tab = 'overview' | 'lines' | 'checks' | 'documents' | 'anomalies' | 'history';
+type Tab = 'overview' | 'match' | 'lines' | 'checks' | 'documents' | 'anomalies' | 'history';
+const TAB_KEYS: Tab[] = ['overview', 'match', 'lines', 'checks', 'documents', 'anomalies', 'history'];
+/** The link target of the three-way match tab, optionally on one line; it replaces the history entry so Back leaves the page as before. */
+const matchTo = (line: number | null) => ({ search: `?tab=match${line ? `&line=${line}` : ''}` });
 type Dlg = null | 'correction' | 'datafix' | 'reject' | 'cancel' | 'withdraw' | 'flow' | 'wrongEntity' | 'confirmLine' | 'sendDecision';
 
 /** SCR-12 Invoice Detail and Evidence. */
@@ -80,7 +84,19 @@ function Lifecycle({ d }: { d: InvoiceDetail }) {
 function Detail({ d }: { d: InvoiceDetail }) {
   const { session } = useAuth();
   const inv = d.invoice;
-  const [tab, setTab] = useState<Tab>('overview');
+  // The active tab is kept in the query string (?tab=, and ?line= for a marked line of the match tab), so a link can open it.
+  const [sp, setSp] = useSearchParams();
+  const tabParam = sp.get('tab') as Tab | null;
+  const tab: Tab = tabParam && TAB_KEYS.includes(tabParam) ? tabParam : 'overview';
+  const lineParam = Number(sp.get('line'));
+  const focusLine = tab === 'match' && Number.isInteger(lineParam) && lineParam > 0 ? lineParam : null;
+  const setTab = (k: Tab) => {
+    const next = new URLSearchParams(sp);
+    next.delete('line');
+    if (k === 'overview') next.delete('tab');
+    else next.set('tab', k);
+    setSp(next, { replace: true });
+  };
   const [dlg, setDlg] = useState<Dlg>(null);
   const [notice, setNotice] = useState<ReactNode>(null);
   const a = d.actions;
@@ -152,6 +168,11 @@ function Detail({ d }: { d: InvoiceDetail }) {
     : <span className="count">{text}</span>);
   const tabItems: { key: Tab; label: ReactNode; children: ReactNode }[] = [
     { key: 'overview', label: t.detail.tabs.overview, children: <Overview d={d} go={setTab} /> },
+    {
+      key: 'match',
+      label: <>{t.detail.tabs.match}{d.match && d.match.differences > 0 ? tabNote(t.detail.match.differN.replace('{n}', String(d.match.differences)), 'err') : null}</>,
+      children: <ThreeWayMatchView key={focusLine ?? 'none'} d={d} focusLine={focusLine} onGoLines={() => setTab('lines')} />,
+    },
     { key: 'lines', label: <>{t.detail.tabs.lines}<Count n={inv.lines.length} /></>, children: <Lines d={d} /> },
     {
       key: 'checks',
@@ -218,7 +239,14 @@ function Detail({ d }: { d: InvoiceDetail }) {
             type="warning"
             showIcon
             message={t.detail.reasons}
-            description={<ul className="plain-list">{exc.reasons.map((r, n) => <li key={n}>{t.reason(r.code, r.params)}</li>)}</ul>}
+            description={(
+              <ul className="plain-list">
+                {exc.reasons.map((r, n) => {
+                  const ml = matchLineForReason(d.match, r);
+                  return <li key={n}>{ml ? <Link replace to={matchTo(ml.line)}>{t.reason(r.code, r.params)}</Link> : t.reason(r.code, r.params)}</li>;
+                })}
+              </ul>
+            )}
           />
         )}
         {inv.rejection && (
@@ -416,7 +444,13 @@ function Overview({ d, go }: { d: InvoiceDetail; go: (t: Tab) => void }) {
               {failing.map((c) => (
                 <div key={c.no} className="attn-row">
                   <div><b>{c.no}. {condTitle(c)}</b><br />{t.condition(c.detail)}</div>
-                  <Button size="small" onClick={() => go('checks')}>{t.detail.viewInChecks}</Button>
+                  <Space size={8} wrap>
+                    {(() => {
+                      const ml = matchLineForCondition(d.match, c);
+                      return ml ? <Link replace to={matchTo(ml.line)}><Button size="small">{t.detail.match.viewMatch}</Button></Link> : null;
+                    })()}
+                    <Button size="small" onClick={() => go('checks')}>{t.detail.viewInChecks}</Button>
+                  </Space>
                 </div>
               ))}
               {allPass && inv.note && <span>{t.note(inv.note)}</span>}
@@ -570,7 +604,7 @@ function Lines({ d }: { d: InvoiceDetail }) {
 }
 
 /** The six conditions of BR-05 as vertical Steps: Pass is a green check, Fail a red cross, with the value. */
-function ConditionSteps({ list }: { list: Condition[] }) {
+function ConditionSteps({ list, matchOf }: { list: Condition[]; matchOf?: (c: Condition) => { line: number | null } | null }) {
   return (
     <Steps
       direction="vertical"
@@ -579,7 +613,10 @@ function ConditionSteps({ list }: { list: Condition[] }) {
         status: c.result === 'PASS' ? 'finish' : c.result === 'FAIL' ? 'error' : 'wait',
         icon: c.result === 'PASS' ? <CheckCircleFilled style={{ color: TOKENS.success }} /> : c.result === 'FAIL' ? <CloseCircleFilled style={{ color: TOKENS.error }} /> : <MinusCircleOutlined />,
         title: <Space wrap size={8}>{c.no}. {condTitle(c)}<StatusDot tone={c.result === 'PASS' ? 'success' : c.result === 'FAIL' ? 'error' : 'neutral'}>{t.conditionResult[c.result]}</StatusDot></Space>,
-        description: t.condition(c.detail),
+        description: (() => {
+          const ml = matchOf?.(c);
+          return ml ? <>{t.condition(c.detail)} <Link replace to={matchTo(ml.line)}>{t.detail.match.viewMatch}</Link></> : t.condition(c.detail);
+        })(),
       }))}
     />
   );
@@ -593,7 +630,7 @@ function Checks({ d }: { d: InvoiceDetail }) {
   return (
     <div className="stack" style={{ gap: 12 }}>
       <Space><HandTag hand="RULE" /><Typography.Text strong>{t.detail.sixConditions}</Typography.Text></Space>
-      {shown.length > 0 && <ConditionSteps list={shown} />}
+      {shown.length > 0 && <ConditionSteps list={shown} matchOf={(c) => matchLineForCondition(d.match, c)} />}
       {passed.length > 0 && (
         <Collapse
           size="small"

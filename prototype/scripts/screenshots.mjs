@@ -127,6 +127,7 @@ if (ONLY === 'pilot') {
     [
       ['10-invoice-worklist', '/invoices'],
       ['12-invoice-detail', '/invoices/inv-140'],
+      ['12c-invoice-detail-match', '/invoices/inv-123?tab=match&line=1'],
       ['20-recurring-profiles', '/recurring-profiles'],
       ['24-mailbox-log', '/mailbox'],
       ['30-batch-review', '/batch'],
