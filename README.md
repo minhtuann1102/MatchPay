@@ -499,6 +499,22 @@ The design concept is "three hands": what the AI proposed, what the Rule Engine 
 
 The screenshots follow one invoice cycle from intake to signing, in the Vietnamese prototype UI (D-187) on the fictional Calderwood Group demo data. The English wireframes in `docs/04-uiux/` stay the design reference.
 
+Every screen and state, by role, if you want the full set:
+
+| Role | Prototype screenshots (Vietnamese UI) | Wireframe exports (English) |
+|---|---|---|
+| All roles | [docs/images/prototype/](docs/images/prototype/) (52 PNG) | [docs/images/](docs/images/) |
+| AP Accountant | [prototype/ap-accountant/](docs/images/prototype/ap-accountant/) | [ap-accountant/](docs/images/ap-accountant/) |
+| Chief Accountant | [prototype/chief-accountant/](docs/images/prototype/chief-accountant/) | [chief-accountant/](docs/images/chief-accountant/) |
+| Payment Approver | [prototype/payment-approver/](docs/images/prototype/payment-approver/) | [payment-approver/](docs/images/payment-approver/) |
+| Requesting Department | [prototype/requesting-department/](docs/images/prototype/requesting-department/) | [requesting-department/](docs/images/requesting-department/) |
+| Entity Admin | [prototype/entity-admin/](docs/images/prototype/entity-admin/) | [entity-admin/](docs/images/entity-admin/) |
+| Group Admin | [prototype/group-admin/](docs/images/prototype/group-admin/) | [group-admin/](docs/images/group-admin/) |
+| Demo Operator | [prototype/demo-operator/](docs/images/prototype/demo-operator/) | [demo-operator/](docs/images/demo-operator/) |
+| Login and access denied | [prototype/common/](docs/images/prototype/common/) | [common/](docs/images/common/) |
+
+The clickable wireframe gallery with every state is `docs/04-uiux/wireframes/index.html` (open it in a browser from a local clone), and each PNG is linked from its state in the [screen notes](docs/04-uiux/02-screen-notes.md).
+
 ##### 1. Any role: sign in by picking a demo person (SCR-01)
 
 ![Login](docs/images/prototype/common/01-login.png)
