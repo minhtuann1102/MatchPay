@@ -14,6 +14,9 @@
   --warning: #8A5A00;
   --error: #C42B1C;
   --error-bg: #FDF0EF;
+  --warning-bg: #FFFAEE;
+  --error-border: #F5D3CF;
+  --warning-border: #F3E6C4;
   --white: #FFFFFF;
   --ink: #1D1D1F;
 }
@@ -108,30 +111,84 @@ a .invno-n { color: var(--primary); }
 /* Drawer footers sit at the right: the secondary button first, the primary button last */
 .ant-drawer-footer { display: flex; justify-content: flex-end; }
 
-/* Three-way match tab (D-222): a rule failure is a pale red cell with an icon, bold red text, and the size of the difference in words */
-.match-docs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-@media (max-width: 575px) { .match-docs { grid-template-columns: minmax(0, 1fr); } }
-.match-doc { display: grid; gap: 2px; padding: 12px 16px; background: var(--white); border: 1px solid var(--divider); border-radius: 8px; }
-/* The two match tables are dense: 13 px and tighter cell padding, so the nine columns of the line table fit beside the action panel at 1440 px */
-.match-view .ant-table-wrapper .ant-table { font-size: 13px; }
-.match-view .ant-table-wrapper .ant-table-thead > tr > th,
-.match-view .ant-table-wrapper .ant-table-tbody > tr > td { padding: 8px 5px; }
-.match-doc-title { font-size: 13px; color: var(--text-2); }
-.match-doc-ref { font-size: 16px; font-weight: 600; }
-.match-doc-date { font-size: 13px; color: var(--text-2); }
-.cell-note { display: block; font-size: 12px; font-weight: 400; line-height: 1.35; color: var(--text-2); }
-.cell-nw { white-space: nowrap; }
-.cell-missing { display: inline-grid; justify-items: end; color: var(--text-2); }
-.cell-warn { color: var(--warning); font-weight: 500; }
-.ant-table-wrapper .ant-table-tbody > tr > td.cell-merged { text-align: center; }
-.cell-merged .cell-missing { justify-items: center; }
-.link-inline { padding: 0 !important; height: auto !important; }
-.diff-body { display: inline-grid; justify-items: end; }
-.ant-table-wrapper .ant-table-tbody > tr > td.cell-diff { background: var(--error-bg) !important; color: var(--error); font-weight: 600; }
-.cell-diff .cell-note { color: var(--error); font-weight: 500; }
-.cell-diff .cell-note.cell-sub { color: var(--text-2); font-weight: 400; }
-.ant-table-wrapper .ant-table-tbody > tr.row-focus > td { background: var(--primary-wash); }
-.ant-table-wrapper .ant-table-tbody > tr.row-focus > td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
+/* Three-way match popup (D-222 pilot): the issue strip, three document columns, and sheets that imitate the paper documents. */
+.btn-count { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-inline-start: 8px; padding: 0 5px; border-radius: 9px; background: var(--error); color: var(--white); font-size: 12px; font-weight: 600; line-height: 1; }
+.count-err { color: var(--error); font-weight: 600; }
+.match-popup { display: flex; flex-direction: column; gap: 12px; height: 100%; min-height: 0; min-width: 0; }
+.match-issues { flex: none; max-height: 42%; overflow: auto; display: grid; gap: 6px; padding: 8px 10px; background: var(--white); border: 1px solid var(--divider); border-radius: 6px; }
+.match-issue-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.match-issue { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 6px 8px; border: 0; border-radius: 4px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.match-issue:hover { background: var(--row-hover); }
+.match-issue[aria-current='true'] { background: var(--primary-wash); }
+.match-no { flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; color: var(--white); font-size: 12px; font-weight: 700; line-height: 1; }
+.match-no-error { background: var(--error); }
+.match-no-warning { background: var(--warning); }
+.match-issue-text { flex: 1; min-width: 0; }
+.match-issue-cond { flex: none; font-size: 12px; color: var(--text-2); white-space: nowrap; padding-top: 2px; }
+.match-ok { padding: 4px 8px; }
+.match-note { display: flex; align-items: flex-start; gap: 8px; padding: 2px 8px; font-size: 13px; color: var(--text-2); }
+.match-note .anticon { margin-top: 3px; }
+.match-legend { padding: 0 8px; font-size: 12px; color: var(--text-2); }
+.match-seg { flex: none; }
+.match-cols { flex: 1; min-height: 0; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.match-cols-one { grid-template-columns: minmax(0, 1fr); }
+.match-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.match-col-label { flex: none; padding-bottom: 6px; font-size: 12px; color: var(--text-2); }
+.match-col-scroll { flex: 1; min-height: 0; min-width: 0; overflow: auto; padding: 8px 10px 8px 8px; background: var(--layout); border: 1px solid var(--divider); border-radius: 6px; }
+
+.doc-sheet { min-width: 0; padding: 12px; background: var(--white); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); color: var(--text); font-size: 12.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.doc-title { margin: 0 0 4px; text-align: center; font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+.doc-sub { text-align: center; }
+.doc-gap { margin-inline-start: 16px; }
+.doc-gap-after { margin-inline-end: 16px; }
+.doc-block { display: grid; gap: 1px; margin-top: 10px; }
+.doc-label { font-weight: 700; }
+.doc-none { margin: 16px 0 0; text-align: center; color: var(--text-2); }
+.doc-table { width: 100%; margin-top: 12px; border-collapse: collapse; table-layout: fixed; }
+.doc-table th, .doc-table td { box-sizing: border-box; padding: 4px 5px; border: 1px solid var(--text-2); vertical-align: top; overflow-wrap: anywhere; }
+.doc-table th { font-weight: 700; text-align: center; }
+.doc-table td.num, .doc-table th.doc-c-qty, .doc-table th.doc-c-price, .doc-table th.doc-c-amt, .doc-table th.doc-c-rq, .doc-table th.doc-c-rr { text-align: right; }
+.doc-table td.num { white-space: nowrap; }
+/* Fixed widths for the number and unit columns; the item name takes the rest (at 1440 px it wraps to two or three lines). */
+.doc-table th.doc-c-no { width: 30px; }
+.doc-table th.doc-c-no, .doc-table td.doc-c-no { padding-inline: 2px; }
+.doc-table th.doc-c-unit { width: 42px; }
+.doc-table th.doc-c-qty { width: 50px; }
+.doc-table th.doc-c-price { width: 74px; }
+.doc-table th.doc-c-amt { width: 82px; }
+.doc-table th.doc-c-rq { width: 62px; }
+.doc-table th.doc-c-rr { width: 72px; }
+.doc-table td.doc-c-no, .doc-table td.doc-c-unit { text-align: center; white-space: nowrap; }
+.doc-table th.doc-c-no, .doc-table th.doc-c-unit { text-align: center; }
+.doc-table tfoot td { font-weight: 600; }
+.doc-table tfoot tr.doc-total td { font-weight: 700; }
+.doc-sign { display: grid; justify-items: end; gap: 28px; margin-top: 20px; }
+.doc-sign-label { font-weight: 700; }
+.doc-sign-name { min-width: 140px; padding-top: 4px; border-top: 1px solid var(--text-2); text-align: center; }
+.doc-note { border-bottom: 1px dotted var(--text-2); cursor: help; }
+
+/* A boxed value: box, number, and the issue text in the label and in the strip. Error is red, a line to confirm is amber. */
+.doc-mark { position: relative; display: inline-block; padding: 0 4px; border-radius: 2px; outline: 2px solid var(--error); background: var(--error-bg); font-weight: 600; }
+.doc-mark-warning { outline-color: var(--warning); background: var(--warning-bg); }
+/* The selected mark: a 3 px outline and a 3 px pale ring in its tone, so it stands out from the other marks. */
+.doc-mark-selected { z-index: 1; outline-width: 3px; box-shadow: 0 0 0 6px var(--error-border); }
+.doc-mark-warning.doc-mark-selected { box-shadow: 0 0 0 6px var(--warning-border); }
+.doc-mark-no { position: absolute; top: -10px; right: -10px; display: grid; place-items: center; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: var(--error); color: var(--white); font-size: 10px; font-weight: 700; line-height: 1; vertical-align: baseline; }
+.doc-mark-warning .doc-mark-no { background: var(--warning); }
+
+@media (max-width: 991px) {
+  .match-issues { max-height: none; }
+  .match-issues-open { max-height: 58%; }
+}
+.match-toggle { justify-self: start; height: auto; padding: 0 8px; }
+@media (max-width: 575px) {
+  .match-col-scroll { padding: 12px 12px 12px 8px; }
+  .doc-sheet { min-width: 400px; padding: 12px; }
+  .match-issue { flex-wrap: wrap; row-gap: 0; }
+  .match-issue-text { flex-basis: calc(100% - 40px); }
+  .match-issue-cond { flex-basis: 100%; padding: 0 0 0 30px; }
+  .match-seg .ant-segmented-item-label { padding: 0 4px; }
+}
 .reason-link { display: inline-block; max-width: 168px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
 
 /* Narrow screens */

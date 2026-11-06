@@ -663,6 +663,49 @@ export interface MatchLineRow {
   result: 'MATCHES' | 'DIFFERS' | 'UNIDENTIFIED' | 'NO_RECEIPT' | 'NO_DATA';
   conditionNo: 2 | 3 | null;
 }
+/** One line of a source document as the document states it (its own unit and price). `lineNo` is the order line number. */
+export interface DocLine { lineNo: number; item: string; unit: string; quantity: number | null; unitPrice: number | null; amount: number | null }
+/** The purchase order from the ERP of the invoice's own entity. Totals are before VAT. */
+export interface OrderDoc {
+  ref: string;
+  date: string | null;
+  buyerName: string;
+  buyerTaxCode: string;
+  supplierName: string;
+  supplierTaxCode: string | null;
+  lines: DocLine[];
+  total: number;
+  syncedAt: string | null;
+}
+/** The goods receipt (or the service acceptance) that refers to the order. `lineNo` is the order line number. */
+export interface ReceiptDoc {
+  ref: string;
+  date: string | null;
+  kind: 'RECEIPT' | 'ACCEPTANCE';
+  orderRef: string;
+  supplierName: string;
+  confirmedBy: string | null;
+  lines: { lineNo: number; item: string; unit: string; ordered: number; received: number }[];
+}
+export type MatchDocKind = 'INVOICE' | 'ORDER' | 'RECEIPT';
+export type MatchField = 'SUPPLIER' | 'SUPPLIER_TAX' | 'BUYER_TAX' | 'ORDER_REF';
+/** A value on a source document that carries a mark. On the invoice `lineNo` is the invoice line number; on the order and the receipt it is the order line number. */
+export type MarkTarget =
+  | { doc: MatchDocKind; field: MatchField }
+  | { doc: MatchDocKind; lineNo: number; cell: 'item' | 'quantity' | 'unitPrice' | 'received' };
+export type MarkIssueCode = 'MARK_FIELD' | 'MARK_PRICE' | 'MARK_QTY_RECEIVED' | 'MARK_UNIDENTIFIED';
+/** A value that breaks a Rule Engine rule (tone error) or needs a person to confirm (tone warning). The same number is on every value it points to. */
+export interface MatchMark {
+  no: number;
+  tone: 'error' | 'warning';
+  conditionNo: 1 | 2 | 3;
+  /** Invoice line number; null for a header field. */
+  lineNo: number | null;
+  issue: { code: MarkIssueCode; params: Record<string, string | number> };
+  targets: MarkTarget[];
+}
+/** An informational line shown with the marks. It is never red and never a mark. */
+export interface MatchNote { code: 'NOTE_BUYER_NAME'; params: { invoice: string; order: string } }
 export interface ThreeWayMatch {
   docs: MatchDoc[];
   tolerancePct: number;
@@ -670,6 +713,10 @@ export interface ThreeWayMatch {
   lines: MatchLineRow[];
   /** Number of DIFF cells in the fields and lines tables. */
   differences: number;
+  order: OrderDoc | null;
+  receipt: ReceiptDoc | null;
+  marks: MatchMark[];
+  notes: MatchNote[];
 }
 
 export interface InvoiceDetail {

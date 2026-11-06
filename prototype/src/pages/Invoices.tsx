@@ -265,9 +265,9 @@ function ReasonsCell({ r }: { r: InvoiceRow }) {
   const e = r.exception;
   if (e && e.state !== 'CLOSED') {
     const first = e.reasons[0];
-    // A reason of conditions 1 to 3 opens the three-way match tab at the first line that needs attention. When the first reason is another one,
-    // a small link after the count does the same.
-    const to = r.matchLink ? `/invoices/${r.id}?tab=match${r.matchLink.line ? `&line=${r.matchLink.line}` : ''}` : null;
+    // A reason of conditions 1 to 3 opens the three-way match popup on its mark. When the first reason is another one,
+    // a small link after the count does the same, on the first mark.
+    const to = r.matchLink ? `/invoices/${r.id}?match=1${r.matchLink.mark ? `&mark=${r.matchLink.mark}` : ''}` : null;
     const firstText = first ? t.reason(first.code, first.params) : '';
     const firstIsMatch = !!first && isMatchReason(first);
     return (
@@ -276,7 +276,7 @@ function ReasonsCell({ r }: { r: InvoiceRow }) {
           ? <Link to={to} className="reason-link" title={firstText} onClick={(ev) => ev.stopPropagation()}>{firstText}</Link>
           : <Typography.Text ellipsis={{ tooltip: firstText }} style={{ maxWidth: 168 }}>{firstText}</Typography.Text>)}
         {e.reasons.length > 1 && <Tag style={{ marginInlineEnd: 0 }}>+{e.reasons.length - 1}</Tag>}
-        {to && !firstIsMatch && <Link to={to} className="xs" onClick={(ev) => ev.stopPropagation()}>{t.detail.match.viewMatch}</Link>}
+        {to && !firstIsMatch && <Link to={to} className="xs" onClick={(ev) => ev.stopPropagation()}>{t.detail.matchPopup.viewOnDocs}</Link>}
         {r.reminderDue && <Typography.Text className="xs" style={{ color: TOKENS.warning }}><SyncOutlined aria-hidden="true" /> {t.invoices.reminderDue}</Typography.Text>}
       </Space>
     );

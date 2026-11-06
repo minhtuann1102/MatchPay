@@ -432,29 +432,54 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .tab-body { padding-top: var(--s4); display: grid; gap: var(--s4); align-content: start; }
 .tab-body > * { min-width: 0; }
 
-/* ---------- Three-way match tab (D-222) ---------- */
-.match-docs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); }
-.match-doc { display: grid; gap: 2px; padding: var(--s3) var(--s4); border: 1px solid var(--line); border-radius: var(--r-surface); background: var(--surface); }
-.match-doc b { font-size: var(--fs-md); font-weight: 600; }
-.tbl .cell-note { display: block; font-size: var(--fs-xs); font-weight: 400; color: var(--ink-3); }
-.tbl td.cell-diff { background: var(--err-wash); color: var(--err); font-weight: 600; }
-.tbl td.cell-diff .cell-note { color: var(--err); font-weight: 500; }
-.tbl td.cell-diff .cell-note.sub-grey { color: var(--ink-3); font-weight: 400; }
-.tbl .cell-warn { color: var(--warn); font-weight: 500; }
-.tbl td.cell-merged { text-align: center; }
-.tbl.match-lines th, .tbl.match-lines td { padding-left: 6px; padding-right: 6px; font-size: 12px; }
-.tbl.match-lines td, .tbl.match-lines td.money { white-space: normal; }
-.tbl.lines.compact.match-lines td .sub { max-width: none; white-space: normal; overflow: visible; text-overflow: clip; }
-.tbl.match-lines td:first-child { padding-left: 8px; }
-.tbl.match-lines { table-layout: fixed; }
-.tbl.lines.compact.match-lines td .cell-note { white-space: normal; }
-.tbl.lines.compact.match-lines td.money .cell-note { max-width: 88px; margin-left: auto; }
-.tbl.lines.compact.match-lines td .cell-note.nw { white-space: nowrap; max-width: none; }
-.tbl th.grp { text-align: center; }
-.tbl tr.row-focus td { background: var(--rule-wash); }
-.tbl tr.row-focus td:first-child { box-shadow: inset 4px 0 0 var(--rule); }
-.tbl tr.row-focus td.cell-diff { background: var(--err-wash); }
-@media (max-width: 760px) { .match-docs { grid-template-columns: minmax(0, 1fr); } }
+/* ---------- Three-way match popup (D-230): header count, issue strip, three paper sheets, boxed values ---------- */
+.btn .btn-count { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--err); color: #fff; font-size: var(--fs-xs); font-weight: 600; line-height: 1; }
+.modal-xl { max-width: 1360px; }
+.modal-xl .modal-b { padding-top: var(--s2); }
+.mx-issues { display: grid; gap: 6px; padding: var(--s2) var(--s3); border: 1px solid var(--line); border-radius: var(--r-surface); background: var(--surface); }
+.mx-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.mx-issue { display: flex; align-items: flex-start; gap: var(--s3); padding: 6px var(--s2); border-radius: var(--r-tag); font-size: var(--fs-sm); }
+.mx-issue[aria-current="true"] { background: var(--rule-wash); }
+.mx-no { flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; font-size: var(--fs-xs); font-weight: 700; line-height: 1; }
+.mx-no-err { background: var(--err); }
+.mx-no-warn { background: var(--warn); }
+.mx-text { flex: 1; min-width: 0; }
+.mx-cond { flex: none; font-size: var(--fs-xs); color: var(--ink-3); white-space: nowrap; padding-top: 2px; }
+.mx-noteline { display: flex; align-items: flex-start; gap: var(--s2); padding: 0 var(--s2); font-size: var(--fs-sm); color: var(--ink-3); }
+.mx-noteline .i { margin-top: 3px; flex: none; }
+.mx-legend { padding: 0 var(--s2); font-size: var(--fs-xs); color: var(--ink-3); }
+.mx-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s4); }
+.mx-col { min-width: 0; }
+.mx-src { padding-bottom: 6px; font-size: var(--fs-xs); color: var(--ink-3); }
+.mx-desk { padding: 8px 10px; background: var(--canvas); border: 1px solid var(--line); border-radius: var(--r-control); }
+.mx-sheet { padding: 12px; background: var(--surface); border: 1px solid var(--line-2); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); font-size: 12.5px; line-height: 1.5; }
+.mx-title { margin: 0 0 4px; text-align: center; font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+.mx-sub { text-align: center; }
+.mx-gap { margin-left: 16px; }
+.mx-gap-after { margin-right: 16px; }
+.mx-block { display: grid; gap: 1px; margin-top: 10px; }
+.mx-label { font-weight: 700; }
+.mx-dotted { border-bottom: 1px dotted var(--ink-3); cursor: help; }
+.mx-tbl { width: 100%; margin-top: 12px; border-collapse: collapse; table-layout: fixed; }
+.mx-tbl th, .mx-tbl td { box-sizing: border-box; padding: 4px 5px; border: 1px solid var(--ink-3); vertical-align: top; overflow-wrap: anywhere; font-weight: 400; }
+.mx-tbl th { font-weight: 700; text-align: center; }
+.mx-tbl .r { text-align: right; white-space: nowrap; }
+.mx-tbl th.r { white-space: normal; }
+.mx-tbl .c { text-align: center; }
+.mx-tbl th:first-child, .mx-tbl td:first-child { padding-left: 2px; padding-right: 2px; }
+.mx-tbl tfoot td { font-weight: 600; }
+.mx-tbl tr.mx-total td { font-weight: 700; }
+.mx-sign { display: grid; justify-items: end; gap: 28px; margin-top: 20px; }
+.mx-sign-label { font-weight: 700; }
+.mx-sign-name { min-width: 140px; padding-top: 4px; border-top: 1px solid var(--ink-3); text-align: center; }
+/* A boxed value: box, number, and the issue text in its label and in the strip. Red is a rule failure, amber a line to confirm; the selected one is thicker with a pale ring. */
+.mx-mark { position: relative; display: inline-block; padding: 0 4px; border-radius: 2px; outline: 2px solid var(--err); background: var(--err-wash); font-weight: 600; }
+.mx-mark.mx-warn { outline-color: var(--warn); background: var(--warn-wash); }
+.mx-mark.mx-sel { z-index: 1; outline-width: 3px; box-shadow: 0 0 0 6px #e0a29d; }
+.mx-mark.mx-warn.mx-sel { box-shadow: 0 0 0 6px #e7c88f; }
+.mx-mark-no { position: absolute; top: -10px; right: -10px; display: grid; place-items: center; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: var(--err); color: #fff; font-size: 10px; font-weight: 700; line-height: 1; vertical-align: baseline; }
+.mx-mark.mx-warn .mx-mark-no { background: var(--warn); }
+@media (max-width: 960px) { .mx-cols { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- P4 Toolbar ---------- */
 .toolbar { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; padding: var(--s3) var(--s4); border-bottom: 1px solid var(--line); }

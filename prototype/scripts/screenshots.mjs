@@ -127,7 +127,6 @@ if (ONLY === 'pilot') {
     [
       ['10-invoice-worklist', '/invoices'],
       ['12-invoice-detail', '/invoices/inv-140'],
-      ['12c-invoice-detail-match', '/invoices/inv-123?tab=match&line=1'],
       ['20-recurring-profiles', '/recurring-profiles'],
       ['24-mailbox-log', '/mailbox'],
       ['30-batch-review', '/batch'],
@@ -137,6 +136,7 @@ if (ONLY === 'pilot') {
     [
       ['10b-invoice-worklist-upload-drawer', '/invoices', async (p) => { await p.getByRole('button', { name: 'Tải lên XML' }).first().click(); }],
       ['12b-invoice-detail-reject', '/invoices/inv-tm0415', openReject],
+      ['12c-invoice-detail-match', '/invoices/inv-123?match=1&mark=1', async () => {}],
       ['30b-batch-review-close', '/batch', async (p) => { await p.getByRole('button', { name: 'Đóng lô để rà soát' }).first().click(); }],
     ],
   );

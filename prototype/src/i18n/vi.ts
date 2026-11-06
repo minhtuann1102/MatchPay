@@ -3,13 +3,23 @@ import type {
   ApprovalLevel, AuditEventType, AuthorityStatus, Batch, Coded, ConditionResult, ExceptionState, InvoiceFlow, InvoiceSource, InvoiceState, MatchMethod, Notification,
   NotificationKind, PaymentRequest, ReasonCode, RejectionReason, RequestState, Role, MailboxAttachment, MessageTemplate,
 } from '../api/types';
-import { fmtDate, fmtDecimal, fmtMoney, fmtPercent, interpolate } from '../lib/format';
+import { fmtDate, fmtDecimal, fmtMoney, fmtNumber, fmtPercent, interpolate } from '../lib/format';
 
 type P = Record<string, string | number> | undefined;
 const s = (p: P, k: string): string => String(p?.[k] ?? '');
 const n = (p: P, k: string): number => Number(p?.[k] ?? 0);
 const money = (p: P, k: string): string => fmtMoney(n(p, k));
 const level = (v: string): string => (v === 'CFO' ? 'CFO' : v === 'DEPARTMENT_HEAD' ? 'cấp Trưởng bộ phận' : v);
+
+// Helpers for the issue texts of the three-way match popup. The API passes raw numbers and units; the wording is here.
+const matchFieldNames: Record<string, string> = { SUPPLIER: 'Nhà cung cấp', SUPPLIER_TAX: 'Mã số thuế người bán', BUYER_TAX: 'Mã số thuế người mua', ORDER_REF: 'Số đơn đặt hàng' };
+const signedPct = (v: number): string => `${v > 0 ? '+' : v < 0 ? '-' : ''}${fmtDecimal(Math.abs(v), 1)}%`;
+const hasConv = (p: P, k: string): boolean => p?.[k] !== undefined && p[k] !== '';
+/** A unit price as the document states it; a converted price in brackets only when the API passes one (the two documents state different units). */
+const perUnitPrice = (p: P, price: string, unit: string, conv: string): string =>
+  `${fmtNumber(n(p, price))} đ/${s(p, unit)}${hasConv(p, conv) ? ` (= ${fmtNumber(n(p, conv))} đ/${s(p, 'base')})` : ''}`;
+const quantityText = (p: P, qty: string, unit: string, conv: string): string =>
+  `${fmtNumber(n(p, qty))} ${s(p, unit)}${hasConv(p, conv) ? ` (= ${fmtNumber(n(p, conv))} ${s(p, 'base')})` : ''}`;
 
 const roles: Record<Role, string> = {
   AP_ACCOUNTANT: 'Kế toán phải trả',
@@ -496,7 +506,7 @@ export const t = {
     breadcrumb: 'Đường dẫn', summary: 'Tóm tắt hóa đơn', progress: 'Tiến trình hóa đơn', sections: 'Các phần của hóa đơn', actionPanel: 'Thao tác', steps: { received: 'Đã nhận', checked: 'Đã kiểm tra', outcome: 'Trong lô', request: 'Trong đề nghị', sent: 'Đã gửi ERP', paid: 'Đã thanh toán' },
     waitingFor: 'Chờ {who}', supplier: 'Nhà cung cấp', noVnTax: 'không có mã số thuế Việt Nam', entity: 'Pháp nhân', dueDate: 'Hạn thanh toán', flow: 'Luồng', approvalLevel: 'Cấp duyệt', authority: 'Trạng thái tại cơ quan thuế',
     notChecked: 'Chưa tra cứu', lookedUp: 'tra cứu {time}', reasons: 'Lý do ngoại lệ', rejectedBecause: 'Lý do từ chối',
-    tabs: { overview: 'Tổng quan', match: 'Đối chiếu ba bên', lines: 'Dòng hàng', checks: 'Kiểm tra', documents: 'Chứng từ', anomalies: 'Bất thường', history: 'Lịch sử' },
+    tabs: { overview: 'Tổng quan', lines: 'Dòng hàng', checks: 'Kiểm tra', documents: 'Chứng từ', anomalies: 'Bất thường', history: 'Lịch sử' },
     failedN: '{n} không đạt', notEvalN: '{n} chưa đánh giá', passedAll: 'đều đạt',
     ruleResult: 'Kết quả của Rule Engine', allSixHold: 'Cả sáu điều kiện của lô đều đạt', failedOfSix: '{n} trong 6 điều kiện của lô không đạt', notEvaluated: '{n} điều kiện chưa được đánh giá',
     viewInChecks: 'Xem trong tab Kiểm tra', passedList: 'Các điều kiện {list} đạt. Chưa đưa vào lô.{x}',
@@ -529,24 +539,46 @@ export const t = {
     confirmLineTitle: 'Xác nhận dòng {n}', confirmLineText: 'Xác nhận "{text}" là "{item}"?', confirmLineSave: 'Lưu xác nhận', confirmLineHint: 'Được lưu kèm tên và thời gian. Rule Engine sau đó kiểm tra lại hóa đơn.',
     sendTitle: 'Gửi duyệt', sendToChief: 'Hóa đơn bị giữ do rủi ro thuế sẽ gửi Kế toán trưởng quyết định: cho phép hoặc từ chối, cần nhập lý do.', sendToApprover: 'Ngoại lệ sẽ gửi Người duyệt chi ở cấp phù hợp với số tiền để duyệt riêng.', sendGroup: 'Ba ngoại lệ tách đơn được gửi cùng nhau ({n} hóa đơn).',
     flowHint: 'Hóa đơn không bao giờ được chuyển sang pháp nhân khác.', saveFlow: 'Lưu luồng',
-    // Three-way match view (D-222). The assistant's wording; not read by a native Vietnamese reader (DF-94).
-    match: {
-      differN: '{n} khác biệt', viewMatch: 'Xem đối chiếu', noOrder: 'Hóa đơn này không có đơn đặt hàng để đối chiếu.',
-      docInvoice: 'Hóa đơn', docOrder: 'Đơn đặt hàng', docReceipt: 'Phiếu nhập kho', docAcceptance: 'Biên bản nghiệm thu', noDoc: 'Chưa có',
-      tolerance: 'Ngưỡng giá của pháp nhân: ±{tol}%. Số lượng thanh toán không được vượt số lượng đã nhận.',
-      fieldsTitle: 'Thông tin chung', linesTitle: 'Dòng hàng',
-      colField: 'Trường', colInvoice: 'Hóa đơn', colOrder: 'Đơn đặt hàng', colReceipt: 'Phiếu nhập', colAcceptance: 'Nghiệm thu', colResult: 'Kết quả',
-      colItem: 'Mặt hàng', colQty: 'SL', colPrice: 'Đơn giá', colAmount: 'Thành tiền', colReceived: 'SL đã nhận',
-      fields: { SUPPLIER: 'Nhà cung cấp', SUPPLIER_TAX: 'Mã số thuế người bán', BUYER_TAX: 'Mã số thuế người mua', ORDER_REF: 'Số đơn đặt hàng' } as Record<string, string>,
-      resMatches: 'Khớp', resDiffers: 'Khác', resUnidentified: 'Chưa nhận diện', resNoReceipt: 'Chờ phiếu nhập', resNoAcceptance: 'Chờ nghiệm thu', resNoData: 'Chưa có dữ liệu',
-      condition: '(điều kiện {n})',
-      noData: 'Chưa có dữ liệu',
-      noReceipt: 'Chưa có phiếu nhập', noAcceptance: 'Chưa có biên bản nghiệm thu',
-      unidentified: 'Chưa nhận diện được mặt hàng ({p})', goLines: 'Xem ở tab Dòng hàng',
-      converted: '= {c} {u}', perUnit: '{p} / {u}',
-      priceOver: '{pct} > ngưỡng {tol}%', priceWithin: '{pct} (trong ngưỡng {tol}%)', vsOrder: '{n} {u} so với đơn', receivedOver: '{q} > {r} {u} đã nhận',
-      noLines: 'Hóa đơn này chưa có số lượng và đơn giá theo dòng để đối chiếu.',
-      legend: 'Ô nền đỏ: vi phạm quy tắc của Rule Engine (giá vượt ngưỡng, số lượng vượt số đã nhận, hoặc thông tin chung khác nhau). Chữ vàng nâu: mặt hàng chưa nhận diện được. Ghi chú xám: có chênh lệch nhưng không vi phạm quy tắc.',
+    // Three-way match popup (D-222 pilot, 2026-11-03). The assistant's wording; not read by a native Vietnamese reader (DF-94).
+    matchPopup: {
+      open: 'Đối chiếu 3 bên', title: 'Đối chiếu 3 bên', close: 'Đóng', errorsN: '{n} lỗi', viewOnDocs: 'Xem trên chứng từ',
+      showAll: 'Xem tất cả {n} mục', showLegend: 'Xem chú thích', collapse: 'Thu gọn',
+      issuesLabel: 'Các điểm cần xem', condition: 'điều kiện {n}', pickDocument: 'Chọn chứng từ', documents: 'Ba chứng từ',
+      tone: { error: 'Vi phạm quy tắc', warning: 'Cần xác nhận' } as Record<string, string>,
+      allMatch: 'Ba chứng từ khớp nhau theo quy tắc của pháp nhân.',
+      partial: 'Không có ô nào vi phạm quy tắc, nhưng chưa so sánh được hết vì thiếu chứng từ hoặc dữ liệu.',
+      legend: 'Ô đỏ: vi phạm quy tắc của Rule Engine. Ô vàng: cần người xác nhận. Chênh lệch trong ngưỡng không được đánh dấu.',
+      docShort: { INVOICE: 'Hóa đơn', ORDER: 'Đơn hàng', RECEIPT: 'Phiếu nhập', ACCEPTANCE: 'Nghiệm thu' } as Record<string, string>,
+      docNames: { INVOICE: 'Hóa đơn', ORDER: 'Đơn đặt hàng', RECEIPT: 'Phiếu nhập kho', ACCEPTANCE: 'Biên bản nghiệm thu' } as Record<string, string>,
+      source: {
+        INVOICE: 'Hóa đơn điện tử (XML gốc)', ORDER: 'Đơn đặt hàng (dữ liệu ERP, đồng bộ {time})', RECEIPT: 'Phiếu nhập kho (dữ liệu ERP)', ACCEPTANCE: 'Biên bản nghiệm thu (dữ liệu ERP)',
+      } as Record<string, string>,
+      sheet: {
+        invoiceTitle: 'HÓA ĐƠN GIÁ TRỊ GIA TĂNG', symbol: 'Ký hiệu', number: 'Số', dateLine: 'Ngày {d} tháng {m} năm {y}',
+        seller: 'Đơn vị bán hàng', buyer: 'Đơn vị mua hàng', name: 'Tên đơn vị', taxCode: 'Mã số thuế', orderNo: 'Số đơn đặt hàng',
+        colNo: 'STT', colInvoiceItem: 'Tên hàng hóa, dịch vụ', colItem: 'Mặt hàng', colUnit: 'ĐVT', colQty: 'Số lượng', colPrice: 'Đơn giá', colAmount: 'Thành tiền',
+        subtotal: 'Cộng tiền hàng', vatRate: 'Thuế suất GTGT: {rate}%', vatAmount: 'Tiền thuế GTGT', total: 'Tổng cộng tiền thanh toán',
+        orderTitle: 'ĐƠN ĐẶT HÀNG', buyerParty: 'Bên mua', supplierParty: 'Nhà cung cấp', orderTotal: 'Tổng cộng (chưa VAT)',
+        receiptTitle: 'PHIẾU NHẬP KHO', acceptanceTitle: 'BIÊN BẢN NGHIỆM THU', byOrder: 'Theo đơn đặt hàng', receiver: 'Đơn vị nhận',
+        colOrdered: 'SL theo đơn', colReceived: 'SL thực nhận', colAccepted: 'SL nghiệm thu', receiverSign: 'Người nhận hàng', acceptorSign: 'Người nghiệm thu',
+        noReceipt: 'Chưa có phiếu nhập kho', noAcceptance: 'Chưa có biên bản nghiệm thu', noValue: 'Chưa có',
+      },
+      issue: (code: string, p?: P): string => {
+        switch (code) {
+          case 'MARK_PRICE':
+            return `Đơn giá trên hóa đơn ${perUnitPrice(p, 'ip', 'iu', 'ic')}, trên đơn đặt hàng ${perUnitPrice(p, 'op', 'ou', 'oc')}: lệch ${signedPct(n(p, 'pct'))} (ngưỡng ${s(p, 'tol').replace('.', ',')}%)`;
+          case 'MARK_QTY_RECEIVED':
+            return `Hóa đơn tính ${quantityText(p, 'iq', 'iu', 'ic')}, ${s(p, 'doc') === 'ACCEPTANCE' ? 'biên bản nghiệm thu chỉ ghi nhận' : 'phiếu nhập kho chỉ nhận'} ${quantityText(p, 'rq', 'ru', 'rc')}`;
+          case 'MARK_FIELD':
+            return `${matchFieldNames[s(p, 'field')] ?? s(p, 'field')} trên hóa đơn (${s(p, 'invoice')}) khác đơn đặt hàng (${s(p, 'order')})`;
+          case 'MARK_UNIDENTIFIED':
+            return `Dòng ${s(p, 'line')} "${s(p, 'text')}" chưa nhận diện được mặt hàng (độ tin cậy ${fmtDecimal(n(p, 'p'))})`;
+          default: return code;
+        }
+      },
+      note: (code: string, p?: P): string => (code === 'NOTE_BUYER_NAME'
+        ? `Tên người mua trên hóa đơn (${s(p, 'invoice')}) khác đơn đặt hàng (${s(p, 'order')}), nhưng mã số thuế trùng nên không phải lỗi đối chiếu. Nếu hóa đơn gửi nhầm pháp nhân, dùng "Báo sai pháp nhân".`
+        : code),
     },
   },
   reject: {

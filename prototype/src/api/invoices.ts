@@ -1,5 +1,6 @@
 import type {
-  CancellationNotice, Condition, CorrectionRequest, Db, Invoice, InvoiceActions, InvoiceDetail, InvoiceFlow, InvoiceLine, InvoiceQuery, MatchDoc, MatchFieldRow, MatchLineRow, MessageTemplate, Page, Supplier,
+  CancellationNotice, Condition, CorrectionRequest, Db, DocLine, Invoice, InvoiceActions, InvoiceDetail, InvoiceFlow, InvoiceLine, InvoiceQuery, MarkIssueCode, MarkTarget, MatchDoc, MatchFieldRow, MatchLineRow,
+  MatchMark, MatchNote, MessageTemplate, OrderDoc, Page, ReceiptDoc, Supplier,
   ThreeWayMatch, UploadItemResult, User, WorklistSummary, ExceptionReasonItem, Id, ReasonCode,
 } from './types';
 import { ApiError, AP, call, FINANCE_ROLES, getForced, paginate } from './client';
@@ -13,8 +14,8 @@ import { MOCK_TEXT } from '../mock/labels';
 export interface InvoiceRow extends Invoice {
   dueSoon: boolean;
   reminderDue: boolean;
-  /** Set when an open reason of conditions 1 to 3 can be shown in the three-way match view; line is the first line that needs attention. */
-  matchLink: { line: number | null } | null;
+  /** Set when an open reason of conditions 1 to 3 can be shown in the three-way match popup; mark is the number of the mark to select. */
+  matchLink: { mark: number | null } | null;
 }
 
 export const isMatchReason = (r: ExceptionReasonItem): boolean => r.conditionNo !== undefined && r.conditionNo >= 1 && r.conditionNo <= 3;
@@ -23,7 +24,10 @@ const matchLinkOf = (d: Db, i: Invoice): InvoiceRow['matchLink'] => {
   const e = i.exception;
   if (!e || e.state === 'CLOSED' || !e.reasons.some(isMatchReason)) return null;
   const m = buildMatch(d, i);
-  return hasComparedLine(m) ? { line: firstAttentionLine(m) } : null;
+  if (!hasComparedLine(m)) return null;
+  // When the first reason is a match reason its own mark is selected; otherwise the first mark of the match (an error comes before a warning).
+  const first = e.reasons[0];
+  return first && isMatchReason(first) ? matchMarkForReason(m, first) : { mark: firstMark(m) };
 };
 
 const rowOf = (d: Db, i: Invoice): InvoiceRow => ({
@@ -289,41 +293,127 @@ export function buildMatch(d: Db, inv: Invoice): ThreeWayMatch | null {
 
   const differences = fields.filter((f) => f.state === 'DIFF').length
     + lines.reduce((s, l) => s + (l.price.state === 'DIFF' ? 1 : 0) + (l.qtyReceived.state === 'DIFF' ? 1 : 0), 0);
-  return { docs, tolerancePct: tol, fields, lines, differences };
+
+  // The order and the receipt, each with the values it states itself. Order totals are before VAT.
+  const orderLines: DocLine[] = po.lines.map((l, k) => ({ lineNo: k + 1, item: l.item, unit: l.unit, quantity: l.quantity, unitPrice: l.price, amount: l.quantity * l.price }));
+  const order: OrderDoc = {
+    ref: po.id, date: po.createdAt.slice(0, 10), buyerName: entity?.name ?? '', buyerTaxCode: entity?.taxCode ?? '', supplierName: supplier?.name ?? '', supplierTaxCode: supplier?.taxCode ?? null,
+    lines: orderLines, total: orderLines.reduce((s, l) => s + (l.amount ?? 0), 0), syncedAt: entity?.lastSyncAt ?? null,
+  };
+  // Who confirmed a service: the acceptance stored on the invoice, else the person who decided the acceptance item. A goods receipt names no person in the sample data.
+  const acceptedBy = inv.serviceAcceptance?.by ?? d.users.find((u) => u.id === d.acceptances.find((a) => a.invoiceId === inv.id && a.status === 'CONFIRMED')?.decidedBy)?.fullName ?? null;
+  const receipt: ReceiptDoc | null = shown ? {
+    ref: shown.id, date: shown.at.slice(0, 10), kind: service ? 'ACCEPTANCE' : 'RECEIPT', orderRef: po.id, supplierName: supplier?.name ?? '', confirmedBy: service ? acceptedBy : null,
+    lines: po.lines.map((l, k) => ({ lineNo: k + 1, item: l.item, unit: l.unit, ordered: l.quantity, received: receivedFor(k + 1) ?? 0 })),
+  } : null;
+
+  // A buyer name that differs while the buyer tax code is the entity's own is a note, not a failure (D-68): the Rule Engine compares the tax code.
+  const notes: MatchNote[] = [];
+  if (entity && inv.buyerTaxCode === entity.taxCode && inv.buyerName !== entity.name) notes.push({ code: 'NOTE_BUYER_NAME', params: { invoice: inv.buyerName, order: entity.name } });
+
+  return { docs, tolerancePct: tol, fields, lines, differences, order, receipt, marks: buildMarks(fields, lines, tol, service), notes };
 }
 
-/** True when at least one line has something compared (so a link to the match view has content to show). */
+/**
+ * The marks, numbered from 1: header fields that differ; then per invoice line, in line order, the price and the received quantity; then the lines the AI could not identify.
+ * A mark exists only where the Rule Engine counts a failure (conditions 1 and 3) or asks a person to confirm a line (condition 2). A difference inside the tolerance, an
+ * invoiced quantity above the order, and missing data have none. Order and receipt targets use the order line number; invoice targets use the invoice line number.
+ */
+function buildMarks(fields: MatchFieldRow[], lines: MatchLineRow[], tol: number, service: boolean): MatchMark[] {
+  const marks: MatchMark[] = [];
+  const add = (m: Omit<MatchMark, 'no'>): void => { marks.push({ ...m, no: marks.length + 1 }); };
+  // A converted value is stated only when the two documents state different units, and only for a side whose own unit is not the item unit already.
+  const conv = (own: string | null, other: string | null, base: string, value: number | null): number | '' =>
+    own !== null && other !== null && own !== other && own !== base && value !== null ? value : '';
+
+  for (const f of fields) {
+    if (f.state !== 'DIFF') continue;
+    add({
+      tone: 'error', conditionNo: 1, lineNo: null, issue: { code: 'MARK_FIELD', params: { field: f.field, invoice: f.invoice, order: f.order ?? '' } },
+      targets: (['INVOICE', 'ORDER', 'RECEIPT'] as const).map((doc): MarkTarget => ({ doc, field: f.field })),
+    });
+  }
+  const sorted = [...lines].sort((a, b) => a.lineNo - b.lineNo);
+  for (const l of sorted) {
+    const o = l.order;
+    if (!o) continue;
+    const base = l.baseUnit ?? o.unit;
+    if (l.price.state === 'DIFF' && l.invoice.unitPrice !== null && l.price.pct !== null) {
+      const targets: MarkTarget[] = [{ doc: 'INVOICE', lineNo: l.lineNo, cell: 'unitPrice' }];
+      if (l.poLineNo !== null) targets.push({ doc: 'ORDER', lineNo: l.poLineNo, cell: 'unitPrice' });
+      add({
+        tone: 'error', conditionNo: 3, lineNo: l.lineNo,
+        issue: {
+          code: 'MARK_PRICE',
+          params: {
+            ip: l.invoice.unitPrice, iu: l.invoice.unit ?? '', op: o.unitPrice, ou: o.unit, base, pct: l.price.pct, tol,
+            ic: conv(l.invoice.unit, o.unit, base, l.invoice.convertedUnitPrice), oc: conv(o.unit, l.invoice.unit, base, o.convertedUnitPrice),
+          },
+        },
+        targets,
+      });
+    }
+    if (l.qtyReceived.state === 'DIFF' && l.invoice.quantity !== null && l.received !== null) {
+      const targets: MarkTarget[] = [{ doc: 'INVOICE', lineNo: l.lineNo, cell: 'quantity' }];
+      if (l.poLineNo !== null) targets.push({ doc: 'RECEIPT', lineNo: l.poLineNo, cell: 'received' });
+      add({
+        tone: 'error', conditionNo: 3, lineNo: l.lineNo,
+        issue: {
+          code: 'MARK_QTY_RECEIVED',
+          params: {
+            doc: service ? 'ACCEPTANCE' : 'RECEIPT', iq: l.invoice.quantity, iu: l.invoice.unit ?? '', rq: l.received, ru: o.unit, base,
+            ic: conv(l.invoice.unit, o.unit, base, l.invoice.convertedQuantity), rc: conv(o.unit, l.invoice.unit, base, l.receivedConverted),
+          },
+        },
+        targets,
+      });
+    }
+  }
+  for (const l of sorted) {
+    if (l.result !== 'UNIDENTIFIED') continue;
+    add({
+      tone: 'warning', conditionNo: 2, lineNo: l.lineNo, issue: { code: 'MARK_UNIDENTIFIED', params: { line: l.lineNo, text: l.invoiceText, p: l.probability ?? 0 } },
+      targets: [{ doc: 'INVOICE', lineNo: l.lineNo, cell: 'item' }],
+    });
+  }
+  return marks;
+}
+
+/** True when at least one line has something compared (so a link to the match popup has content to show). */
 export const hasComparedLine = (m: ThreeWayMatch | null): m is ThreeWayMatch => !!m && m.lines.some((l) => l.result !== 'NO_DATA');
 
-/** The first line that differs, else the first line that is not identified. */
-export const firstAttentionLine = (m: ThreeWayMatch): number | null =>
-  m.lines.find((l) => l.result === 'DIFFERS')?.lineNo ?? m.lines.find((l) => l.result === 'UNIDENTIFIED')?.lineNo ?? null;
+/** The number of the first mark (an error comes before a warning), or null when there is none. */
+export const firstMark = (m: ThreeWayMatch | null): number | null => m?.marks[0]?.no ?? null;
 
-const lineIfShown = (m: ThreeWayMatch, line: unknown): number | null => {
-  const n = Number(line);
-  return line !== undefined && m.lines.some((l) => l.lineNo === n) ? n : null;
+/**
+ * The number of the first mark of a condition: on the given invoice line when there is one, and of the given issue kind when there is one. Falls back to the first mark
+ * of the condition, then to null. Every link to the popup takes its mark number from here, so the numbers cannot drift from the popup.
+ */
+export function firstMarkFor(m: ThreeWayMatch | null, conditionNo: number, lineNo?: number | null, issue?: MarkIssueCode): number | null {
+  if (!m) return null;
+  const ofCondition = m.marks.filter((k) => k.conditionNo === conditionNo);
+  const ofIssue = issue ? ofCondition.filter((k) => k.issue.code === issue) : ofCondition;
+  const pool = ofIssue.length > 0 ? ofIssue : ofCondition;
+  return (lineNo != null ? pool.find((k) => k.lineNo === lineNo) : undefined)?.no ?? pool[0]?.no ?? null;
+}
+
+const ISSUE_OF_REASON: Partial<Record<ReasonCode, MarkIssueCode>> = {
+  LINE_NOT_MATCHED: 'MARK_UNIDENTIFIED', PRICE_OUT_OF_TOLERANCE: 'MARK_PRICE', QUANTITY_ABOVE_RECEIVED: 'MARK_QTY_RECEIVED',
 };
+const lineOf = (params: Record<string, string | number> | undefined): number | null => (params?.line !== undefined && Number.isInteger(Number(params.line)) ? Number(params.line) : null);
 
-/** The line an exception reason of conditions 1 to 3 points to in the match view (line null for a header difference). Null when the match cannot be shown. */
-export function matchLineForReason(m: ThreeWayMatch | null, r: ExceptionReasonItem): { line: number | null } | null {
+/** The mark an exception reason of conditions 1 to 3 points to in the popup (mark null when none belongs to it). Null when the popup cannot be shown. */
+export function matchMarkForReason(m: ThreeWayMatch | null, r: ExceptionReasonItem): { mark: number | null } | null {
   if (!hasComparedLine(m) || !isMatchReason(r)) return null;
-  if (r.conditionNo === 1) return { line: null };
-  const own = lineIfShown(m, r.params?.line);
-  if (own !== null) return { line: own };
-  if (r.code === 'PRICE_OUT_OF_TOLERANCE') return { line: m.lines.find((l) => l.price.state === 'DIFF')?.lineNo ?? firstAttentionLine(m) };
-  if (r.code === 'QUANTITY_ABOVE_RECEIVED') return { line: m.lines.find((l) => l.qtyReceived.state === 'DIFF')?.lineNo ?? firstAttentionLine(m) };
-  return { line: firstAttentionLine(m) };
+  return { mark: firstMarkFor(m, r.conditionNo!, lineOf(r.params), ISSUE_OF_REASON[r.code]) };
 }
 
-/** The line a failed condition 1, 2, or 3 points to in the match view. */
-export function matchLineForCondition(m: ThreeWayMatch | null, c: Condition): { line: number | null } | null {
+/** The mark a failed condition 1, 2, or 3 points to in the popup. */
+export function matchMarkForCondition(m: ThreeWayMatch | null, c: Condition): { mark: number | null } | null {
   if (!hasComparedLine(m) || c.result !== 'FAIL' || c.no > 3) return null;
-  if (c.no === 1) return { line: null };
-  const own = lineIfShown(m, c.detail.params?.line);
-  if (own !== null) return { line: own };
-  if (c.no === 2) return { line: m.lines.find((l) => l.result === 'UNIDENTIFIED')?.lineNo ?? firstAttentionLine(m) };
-  return { line: m.lines.find((l) => l.price.state === 'DIFF' || l.qtyReceived.state === 'DIFF')?.lineNo ?? firstAttentionLine(m) };
+  return { mark: firstMarkFor(m, c.no, lineOf(c.detail.params)) };
 }
+
 
 export const downloadInvoiceDocument = (id: Id) =>
   call<{ fileName: string; xml: string }>({ roles: FINANCE_ROLES }, (d, u) => {

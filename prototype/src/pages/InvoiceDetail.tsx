@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   Alert, Button, Card, Col, Collapse, Descriptions, Form, Row, Select, Space, Steps, Table, Tabs, Tag, Timeline, Typography,
 } from 'antd';
@@ -7,7 +7,8 @@ import type { TableColumnsType } from 'antd';
 import { CheckCircleFilled, CloseCircleFilled, MinusCircleOutlined, UserOutlined } from '@ant-design/icons';
 import type { Condition, InvoiceDetail, InvoiceFlow } from '../api/types';
 import {
-  confirmLineMatch, correctFlow, matchLineForCondition, matchLineForReason, rejectInvoice, reportWrongEntity, rerunChecks, sendForDecision, takeException, withdrawInvoiceFromBatch, type CancellationResult,
+  confirmLineMatch, correctFlow, firstMark, hasComparedLine, matchMarkForCondition, matchMarkForReason, rejectInvoice, reportWrongEntity, rerunChecks, sendForDecision, takeException, withdrawInvoiceFromBatch,
+  type CancellationResult,
 } from '../api/invoices';
 import { useInvoice } from '../api/hooks';
 import { useAuth } from '../auth/AuthContext';
@@ -15,17 +16,33 @@ import { Async } from '../components/Async';
 import { Count, DueSoon, MoreMenu, Notice, InvNo, ReqNo, PageHeader } from '../components/Bits';
 import { HandTag, RequestBadge, StateBadge, StatusDot } from '../components/Tags';
 import { ActionModal, ReasonModal } from '../components/Dialogs';
-import { fmtDate, fmtDateTime, fmtMoney, fmtDecimal } from '../lib/format';
+import { fmtDate, fmtDateTime, fmtMoney, fmtDecimal, interpolate } from '../lib/format';
 import { useAction } from '../lib/useAction';
 import { t } from '../i18n/vi';
 import { TOKENS } from '../theme/theme';
 import { CancellationModal, CorrectionModal } from './InvoiceModals';
-import { ThreeWayMatchView } from './InvoiceMatch';
+import { MatchDocsModal } from './MatchDocsModal';
 
-type Tab = 'overview' | 'match' | 'lines' | 'checks' | 'documents' | 'anomalies' | 'history';
-const TAB_KEYS: Tab[] = ['overview', 'match', 'lines', 'checks', 'documents', 'anomalies', 'history'];
-/** The link target of the three-way match tab, optionally on one line; it replaces the history entry so Back leaves the page as before. */
-const matchTo = (line: number | null) => ({ search: `?tab=match${line ? `&line=${line}` : ''}` });
+type Tab = 'overview' | 'lines' | 'checks' | 'documents' | 'anomalies' | 'history';
+const TAB_KEYS: Tab[] = ['overview', 'lines', 'checks', 'documents', 'anomalies', 'history'];
+/** The query string that opens the three-way match popup on a mark, keeping the other parameters (for example the active tab). An old ?tab=match is dropped. */
+const matchSearch = (sp: URLSearchParams, mark: number | null): string => {
+  const next = new URLSearchParams(sp);
+  if (next.get('tab') === 'match') next.delete('tab');
+  next.delete('line');
+  next.set('match', '1');
+  if (mark === null) next.delete('mark');
+  else next.set('mark', String(mark));
+  return `?${next.toString()}`;
+};
+/** Router state set when the popup was opened from inside this page: closing it then goes Back instead of replacing the URL. */
+interface MatchNavState { matchOpenedInPage?: boolean }
+
+/** A link that opens the popup on a mark. It adds a history entry, so the browser Back button closes the popup. */
+function MatchLink({ mark, children }: { mark: number | null; children: ReactNode }) {
+  const [sp] = useSearchParams();
+  return <Link to={{ search: matchSearch(sp, mark) }} state={{ matchOpenedInPage: true } satisfies MatchNavState}>{children}</Link>;
+}
 type Dlg = null | 'correction' | 'datafix' | 'reject' | 'cancel' | 'withdraw' | 'flow' | 'wrongEntity' | 'confirmLine' | 'sendDecision';
 
 /** SCR-12 Invoice Detail and Evidence. */
@@ -84,19 +101,42 @@ function Lifecycle({ d }: { d: InvoiceDetail }) {
 function Detail({ d }: { d: InvoiceDetail }) {
   const { session } = useAuth();
   const inv = d.invoice;
-  // The active tab is kept in the query string (?tab=, and ?line= for a marked line of the match tab), so a link can open it.
+  // The active tab is kept in the query string (?tab=), so a link can open it. The three-way match popup is open when ?match=1 is there; ?mark= selects a mark.
   const [sp, setSp] = useSearchParams();
+  const nav = useNavigate();
+  const loc = useLocation();
   const tabParam = sp.get('tab') as Tab | null;
   const tab: Tab = tabParam && TAB_KEYS.includes(tabParam) ? tabParam : 'overview';
-  const lineParam = Number(sp.get('line'));
-  const focusLine = tab === 'match' && Number.isInteger(lineParam) && lineParam > 0 ? lineParam : null;
   const setTab = (k: Tab) => {
     const next = new URLSearchParams(sp);
-    next.delete('line');
     if (k === 'overview') next.delete('tab');
     else next.set('tab', k);
+    setSp(next, { replace: true, state: loc.state });
+  };
+  const match = d.match;
+  const canMatch = hasComparedLine(match);
+  // An old link with ?tab=match opens the popup (replace, so Back does not return to the retired tab).
+  const legacyMatch = sp.get('tab') === 'match';
+  useEffect(() => {
+    if (legacyMatch) nav({ search: matchSearch(sp, null) }, { replace: true });
+  }, [legacyMatch, sp, nav]);
+  const matchOpen = canMatch && (sp.get('match') === '1' || legacyMatch);
+  // The selected mark is the one in the URL, else the first mark. The default is derived and never written to the URL.
+  const markParam = Number(sp.get('mark'));
+  const selectedMark = match && match.marks.some((k) => k.no === markParam) ? markParam : firstMark(match);
+  const openMatch = (mark: number | null) => nav({ search: matchSearch(sp, mark) }, { state: { matchOpenedInPage: true } satisfies MatchNavState });
+  const selectMark = (no: number) => setSp(new URLSearchParams(matchSearch(sp, no)), { replace: true, state: loc.state });
+  const closeMatch = () => {
+    if ((loc.state as MatchNavState | null)?.matchOpenedInPage) {
+      nav(-1);
+      return;
+    }
+    const next = new URLSearchParams(sp);
+    next.delete('match');
+    next.delete('mark');
     setSp(next, { replace: true });
   };
+  const markErrors = match ? match.marks.filter((k) => k.tone === 'error').length : 0;
   const [dlg, setDlg] = useState<Dlg>(null);
   const [notice, setNotice] = useState<ReactNode>(null);
   const a = d.actions;
@@ -168,11 +208,6 @@ function Detail({ d }: { d: InvoiceDetail }) {
     : <span className="count">{text}</span>);
   const tabItems: { key: Tab; label: ReactNode; children: ReactNode }[] = [
     { key: 'overview', label: t.detail.tabs.overview, children: <Overview d={d} go={setTab} /> },
-    {
-      key: 'match',
-      label: <>{t.detail.tabs.match}{d.match && d.match.differences > 0 ? tabNote(t.detail.match.differN.replace('{n}', String(d.match.differences)), 'err') : null}</>,
-      children: <ThreeWayMatchView key={focusLine ?? 'none'} d={d} focusLine={focusLine} onGoLines={() => setTab('lines')} />,
-    },
     { key: 'lines', label: <>{t.detail.tabs.lines}<Count n={inv.lines.length} /></>, children: <Lines d={d} /> },
     {
       key: 'checks',
@@ -193,6 +228,17 @@ function Detail({ d }: { d: InvoiceDetail }) {
         crumbs={[{ label: t.nav.invoices, to: '/invoices' }, { label: <InvNo value={inv.invoiceNumber} /> }]}
         title={<InvNo value={inv.invoiceNumber} />}
         readOnly={d.readOnly}
+        actions={canMatch ? (
+          <Button onClick={() => openMatch(null)}>
+            {t.detail.matchPopup.open}
+            {markErrors > 0 && (
+              <>
+                <span className="btn-count" aria-hidden="true">{markErrors}</span>
+                <span className="sr"> {interpolate(t.detail.matchPopup.errorsN, { n: markErrors })}</span>
+              </>
+            )}
+          </Button>
+        ) : undefined}
         extra={
           <Space size={8} wrap>
             <StateBadge state={inv.state} />
@@ -242,8 +288,8 @@ function Detail({ d }: { d: InvoiceDetail }) {
             description={(
               <ul className="plain-list">
                 {exc.reasons.map((r, n) => {
-                  const ml = matchLineForReason(d.match, r);
-                  return <li key={n}>{ml ? <Link replace to={matchTo(ml.line)}>{t.reason(r.code, r.params)}</Link> : t.reason(r.code, r.params)}</li>;
+                  const ml = matchMarkForReason(d.match, r);
+                  return <li key={n}>{ml ? <MatchLink mark={ml.mark}>{t.reason(r.code, r.params)}</MatchLink> : t.reason(r.code, r.params)}</li>;
                 })}
               </ul>
             )}
@@ -355,6 +401,7 @@ function Detail({ d }: { d: InvoiceDetail }) {
         </ActionModal>
       )}
       {dlg === 'flow' && <FlowModal current={inv.flow} pending={flow.pending} error={flow.error} rawError={flow.rawError} onSave={(f) => void flow.run(f)} onClose={close} />}
+      {canMatch && <MatchDocsModal d={d} m={match} open={matchOpen} selected={selectedMark} onSelect={selectMark} onClose={closeMatch} />}
     </>
   );
 }
@@ -446,8 +493,8 @@ function Overview({ d, go }: { d: InvoiceDetail; go: (t: Tab) => void }) {
                   <div><b>{c.no}. {condTitle(c)}</b><br />{t.condition(c.detail)}</div>
                   <Space size={8} wrap>
                     {(() => {
-                      const ml = matchLineForCondition(d.match, c);
-                      return ml ? <Link replace to={matchTo(ml.line)}><Button size="small">{t.detail.match.viewMatch}</Button></Link> : null;
+                      const ml = matchMarkForCondition(d.match, c);
+                      return ml ? <MatchLink mark={ml.mark}><Button size="small">{t.detail.matchPopup.viewOnDocs}</Button></MatchLink> : null;
                     })()}
                     <Button size="small" onClick={() => go('checks')}>{t.detail.viewInChecks}</Button>
                   </Space>
@@ -604,7 +651,7 @@ function Lines({ d }: { d: InvoiceDetail }) {
 }
 
 /** The six conditions of BR-05 as vertical Steps: Pass is a green check, Fail a red cross, with the value. */
-function ConditionSteps({ list, matchOf }: { list: Condition[]; matchOf?: (c: Condition) => { line: number | null } | null }) {
+function ConditionSteps({ list, matchOf }: { list: Condition[]; matchOf?: (c: Condition) => { mark: number | null } | null }) {
   return (
     <Steps
       direction="vertical"
@@ -615,7 +662,7 @@ function ConditionSteps({ list, matchOf }: { list: Condition[]; matchOf?: (c: Co
         title: <Space wrap size={8}>{c.no}. {condTitle(c)}<StatusDot tone={c.result === 'PASS' ? 'success' : c.result === 'FAIL' ? 'error' : 'neutral'}>{t.conditionResult[c.result]}</StatusDot></Space>,
         description: (() => {
           const ml = matchOf?.(c);
-          return ml ? <>{t.condition(c.detail)} <Link replace to={matchTo(ml.line)}>{t.detail.match.viewMatch}</Link></> : t.condition(c.detail);
+          return ml ? <>{t.condition(c.detail)} <MatchLink mark={ml.mark}>{t.detail.matchPopup.viewOnDocs}</MatchLink></> : t.condition(c.detail);
         })(),
       }))}
     />
@@ -630,7 +677,7 @@ function Checks({ d }: { d: InvoiceDetail }) {
   return (
     <div className="stack" style={{ gap: 12 }}>
       <Space><HandTag hand="RULE" /><Typography.Text strong>{t.detail.sixConditions}</Typography.Text></Space>
-      {shown.length > 0 && <ConditionSteps list={shown} matchOf={(c) => matchLineForCondition(d.match, c)} />}
+      {shown.length > 0 && <ConditionSteps list={shown} matchOf={(c) => matchMarkForCondition(d.match, c)} />}
       {passed.length > 0 && (
         <Collapse
           size="small"
