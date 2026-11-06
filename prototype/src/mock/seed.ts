@@ -23,7 +23,7 @@ import type {
   User,
 } from '../api/types';
 
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 export const DEMO_START = '2026-10-31T10:30:00';
 
 const FOODS = 'ent-foods';
@@ -309,15 +309,36 @@ const OCT = 'bat-2026-10';
 const NOV = 'bat-2026-11';
 const SEP = 'bat-2026-09';
 const AUG = 'bat-2026-08';
-const goodsBatch = (id: string, number: string, sId: string, total: number, due: string, po: string, grn: string, batchId: string, requestId: string | null, extra: Partial<Invoice> = {}) =>
-  push(inv(id, {
+// The single line of an invoice with an order (D-241): quantity, unit, unit price, and order line 1, so the three-way match popup compares it. The quantity
+// is the largest of a short list that divides the line amount exactly: quantity x unit price is the amount. The matched item is the generic item name of the
+// ERP order generator below, so the order and receipt sheets show a real item name.
+const qtyLine = (total: number, service = false) => {
+  const amount = Math.round(total / 1.1);
+  const quantity = (service ? [5, 4, 3, 2, 1] : [100, 50, 20, 10, 5, 4, 3, 2, 1]).find((q) => amount % q === 0)!;
+  return {
+    ...line(1, service ? 'Dịch vụ theo đơn đặt hàng' : 'Hàng hóa theo đơn đặt hàng', service ? 'Dịch vụ theo hợp đồng' : 'Hàng hóa theo đơn', 'MAPPING_TABLE', 1, amount, undefined,
+      { quantity, unit: service ? 'ngày' : 'thùng', unitPrice: amount / quantity, poLineNo: 1 }),
+    quantity,
+  };
+};
+/** The acceptance of a service order, named like ACC-CF-1018 for PO-CF-1018. Used by the checks of the invoice and by the ERP data below. */
+const acceptanceId = (po: string): string => `ACC-${po.slice(3)}`;
+const goodsBatch = (id: string, number: string, sId: string, total: number, due: string, po: string, grn: string, batchId: string, requestId: string | null, extra: Partial<Invoice> = {}) => {
+  // An invoice with an order states its quantity, so its checks agree with the popup: an exact price, Q of Q received, and (for a service) the acceptance.
+  const service = extra.flow === 'SERVICES_WITH_ORDER';
+  const stated = po.startsWith('PO-') ? qtyLine(total, service) : null;
+  return push(inv(id, {
     number, supplierId: sId, totalAmount: total, state: 'IN_BATCH', dueDate: due, poRef: po, receiptRef: grn, batchId, requestId, note: ADMITTED, receivedAt: '2026-10-20T09:50:00',
-    conditions: passAll(po, grn, total, 200_000_000, '12/10/2026', 0.95, 0.8, '4.000 / 4.000', sup(sId).name), ...extra,
+    conditions: stated
+      ? passAll(po, service ? acceptanceId(po) : grn, total, 200_000_000, '12/10/2026', 0.95, 0, `${stated.quantity} / ${stated.quantity}`, sup(sId).name)
+      : passAll(po, grn, total, 200_000_000, '12/10/2026', 0.95, 0.8, '4.000 / 4.000', sup(sId).name),
+    ...(stated ? { lines: [stated] } : {}), ...extra,
   }));
+};
 goodsBatch('inv-098', '0000098', 's-harbor', 26_400_000, '2026-11-12', 'PO-CF-0998', 'GRN-CF-2012', OCT, 'PR-0042', { invoiceDate: '2026-10-14' });
 goodsBatch('inv-099', '0000099', 's-harbor', 13_100_000, '2026-11-12', 'PO-CF-1003', 'GRN-CF-2020', OCT, 'PR-0042', { source: 'EMAIL', mailboxMessageId: 'MSG-0390' });
 goodsBatch('inv-102', '0000102', 's-harbor', 13_500_000, '2026-11-15', 'PO-CF-1004', 'GRN-CF-2022', OCT, 'PR-0042');
-goodsBatch('inv-110', '0000110', 's-cloud', 12_650_000, '2026-11-14', 'PO-CF-1010', 'GRN-CF-2026', OCT, 'PR-0044', { flow: 'SERVICES_WITH_ORDER', receiptRef: null });
+goodsBatch('inv-110', '0000110', 's-cloud', 12_650_000, '2026-11-14', 'PO-CF-1010', '', OCT, 'PR-0044', { flow: 'SERVICES_WITH_ORDER', receiptRef: null });
 push(inv('inv-096', {
   number: '0000096', supplierId: 's-sunrise', totalAmount: 4_400_000, state: 'IN_BATCH', dueDate: '2026-11-10', flow: 'RECURRING', batchId: OCT, requestId: 'PR-0043', note: { code: 'NOTE_PROFILE' },
   lines: [line(1, 'Tiền điện tháng 10, Xưởng 2', 'Hợp đồng EL-2026-015', 'MAPPING_TABLE', 1, 4_000_000)], receivedAt: '2026-10-20T09:40:00',
@@ -338,7 +359,7 @@ push(inv('inv-052', { number: '0000052', supplierId: 's-bright', totalAmount: 2_
 push(inv('inv-081', { number: '0000081', supplierId: 's-bright', totalAmount: 5_200_000, state: 'PAID', dueDate: '2026-10-28', invoiceDate: '2026-10-10', requestId: 'PR-0038', batchId: AUG, paymentRef: 'PAY-CF-2026-0042', receivedAt: '2026-10-10T09:00:00' }));
 push(inv('inv-082', { number: '0000082', supplierId: 's-bright', totalAmount: 4_700_000, state: 'PAID', dueDate: '2026-10-28', invoiceDate: '2026-10-10', requestId: 'PR-0038', batchId: AUG, paymentRef: 'PAY-CF-2026-0042', receivedAt: '2026-10-10T09:02:00' }));
 push(inv('inv-040', { number: '0000040', supplierId: 's-sunrise', totalAmount: 4_150_000, state: 'SENT', dueDate: '2026-10-25', flow: 'RECURRING', requestId: 'PR-0034', batchId: SEP, invoiceDate: '2026-09-28', receivedAt: '2026-09-28T09:00:00' }));
-push(inv('inv-030', { number: '0000030', supplierId: 's-bright', totalAmount: 7_700_000, state: 'SIGNED', dueDate: '2026-11-03', requestId: 'PR-0037', batchId: SEP, invoiceDate: '2026-10-01', receivedAt: '2026-10-01T09:00:00', poRef: 'PO-CF-0950', receiptRef: 'GRN-CF-1990' }));
+push(inv('inv-030', { number: '0000030', supplierId: 's-bright', totalAmount: 7_700_000, state: 'SIGNED', dueDate: '2026-11-03', requestId: 'PR-0037', batchId: SEP, invoiceDate: '2026-10-01', receivedAt: '2026-10-01T09:00:00', poRef: 'PO-CF-0950', receiptRef: 'GRN-CF-1990', lines: [qtyLine(7_700_000)] }));
 push(inv('inv-077', { number: '0000077', supplierId: 's-skyline', totalAmount: 1_250_000, state: 'SEPARATED', dueDate: '2026-11-12', flow: 'EMPLOYEE_EXPENSE', flowConfidence: 0.92, note: { code: 'NOTE_EMPLOYEE_EXPENSE' }, receivedAt: '2026-10-26T10:00:00', lines: [], anomalies: [] }));
 push(inv('inv-044', { number: '0000044', supplierId: 's-bright', totalAmount: 6_600_000, state: 'SUPERSEDED', dueDate: '2026-10-30', supersededBy: 'C26TAA-0000174', note: { code: 'NOTE_SUPERSEDED', params: { by: 'C26TAA-0000174' } }, receivedAt: '2026-10-05T09:00:00' }));
 
@@ -580,13 +601,22 @@ const dayBefore = (date: string, days: number): string => new Date(Date.parse(da
 for (const i of invoices) {
   if (!i.poRef || !i.poRef.startsWith('PO-') || purchaseOrders.some((p) => p.id === i.poRef)) continue;
   const service = i.flow === 'SERVICES_WITH_ORDER';
-  const qty = service ? 5 : 100;
+  // A first line that states quantity, unit, and unit price (D-241) gives the order line the same figures; any other invoice keeps the generic line.
+  const l1 = i.lines[0];
+  const stated = l1 && l1.quantity !== undefined && l1.unit !== undefined && l1.unitPrice !== undefined
+    ? { item: l1.matchedItem ?? l1.text, quantity: l1.quantity, unit: l1.unit, price: l1.unitPrice }
+    : null;
+  const qty = stated ? stated.quantity : service ? 5 : 100;
   const received = i.state === 'WAITING_FOR_GOODS' ? (i.poRef === 'PO-CF-1021' ? 60 : 0) : qty;
   purchaseOrders.push({
-    id: i.poRef, entityId: i.entityId, supplierId: i.supplierId!, kind: service ? 'SERVICE' : 'GOODS', lines: [{ item: service ? 'Dịch vụ theo hợp đồng' : 'Hàng hóa theo đơn', quantity: qty, unit: service ? 'ngày' : 'thùng', price: Math.round(i.totalAmount / 1.1 / qty) }],
+    id: i.poRef, entityId: i.entityId, supplierId: i.supplierId!, kind: service ? 'SERVICE' : 'GOODS',
+    lines: [stated ?? { item: service ? 'Dịch vụ theo hợp đồng' : 'Hàng hóa theo đơn', quantity: qty, unit: service ? 'ngày' : 'thùng', price: Math.round(i.totalAmount / 1.1 / qty) }],
     createdByPersona: service ? 'ACCEPTOR' : 'BUYER', createdAt: `${dayBefore(i.invoiceDate, 8)}T09:00:00`, receivedQuantity: received,
   });
-  if (i.receiptRef) receipts.push({ id: i.receiptRef, entityId: i.entityId, poId: i.poRef, persona: 'WAREHOUSE_KEEPER', quantity: received, note: `${received}/${qty}`, at: `${dayBefore(i.invoiceDate, 2)}T09:00:00` });
+  const at = `${dayBefore(i.invoiceDate, 2)}T09:00:00`;
+  if (i.receiptRef) receipts.push({ id: i.receiptRef, entityId: i.entityId, poId: i.poRef, persona: 'WAREHOUSE_KEEPER', quantity: received, note: `${received}/${qty}`, at });
+  // A service has no goods receipt: an admitted service invoice with stated figures gets the acceptance that confirms them, like ACC-CF-1018.
+  else if (service && stated && i.state !== 'WAITING_FOR_GOODS') receipts.push({ id: acceptanceId(i.poRef), entityId: i.entityId, poId: i.poRef, persona: 'ACCEPTOR', quantity: received, note: `${received}/${qty}`, at });
 }
 if (!receipts.some((r) => r.poId === 'PO-CF-1021')) receipts.push({ id: 'GRN-CF-2050', entityId: FOODS, poId: 'PO-CF-1021', persona: 'WAREHOUSE_KEEPER', quantity: 60, note: '60/100', at: '2026-10-30T09:00:00' });
 
