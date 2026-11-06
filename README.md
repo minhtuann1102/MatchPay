@@ -495,29 +495,127 @@ Login takes each role to its home page; lists open full detail pages, and decisi
 
 The design concept is "three hands": what the AI proposed, what the Rule Engine decided, and what a person decided or signed are always distinguishable. The full gallery of every screen and state is `docs/04-uiux/wireframes/index.html`; open it in a browser from a local clone.
 
-#### Invoice worklist (AP Accountant, SCR-10)
+#### Main business flow
+
+The screenshots follow one invoice cycle from intake to signing, in the Vietnamese prototype UI (D-187) on the fictional Calderwood Group demo data. The English wireframes in `docs/04-uiux/` stay the design reference.
+
+Every screen and state, by role, if you want the full set:
+
+| Role | Prototype screenshots (Vietnamese UI) | Wireframe exports (English) |
+|---|---|---|
+| All roles | [docs/images/prototype/](docs/images/prototype/) (52 PNG) | [docs/images/](docs/images/) |
+| AP Accountant | [prototype/ap-accountant/](docs/images/prototype/ap-accountant/) | [ap-accountant/](docs/images/ap-accountant/) |
+| Chief Accountant | [prototype/chief-accountant/](docs/images/prototype/chief-accountant/) | [chief-accountant/](docs/images/chief-accountant/) |
+| Payment Approver | [prototype/payment-approver/](docs/images/prototype/payment-approver/) | [payment-approver/](docs/images/payment-approver/) |
+| Requesting Department | [prototype/requesting-department/](docs/images/prototype/requesting-department/) | [requesting-department/](docs/images/requesting-department/) |
+| Entity Admin | [prototype/entity-admin/](docs/images/prototype/entity-admin/) | [entity-admin/](docs/images/entity-admin/) |
+| Group Admin | [prototype/group-admin/](docs/images/prototype/group-admin/) | [group-admin/](docs/images/group-admin/) |
+| Demo Operator | [prototype/demo-operator/](docs/images/prototype/demo-operator/) | [demo-operator/](docs/images/demo-operator/) |
+| Login and access denied | [prototype/common/](docs/images/prototype/common/) | [common/](docs/images/common/) |
+
+The clickable wireframe gallery with every state is `docs/04-uiux/wireframes/index.html` (open it in a browser from a local clone), and each PNG is linked from its state in the [screen notes](docs/04-uiux/02-screen-notes.md).
+
+##### 1. Any role: sign in by picking a demo person (SCR-01)
+
+![Login](docs/images/prototype/common/01-login.png)
+
+Each demo person signs in with one button and lands on the home page of their role; the three entities of the group are listed with their tax codes.
+
+##### 2. AP Accountant: upload XML invoices (SCR-11)
+
+![Upload XML invoices](docs/images/prototype/ap-accountant/10b-invoice-worklist-upload-drawer.png)
+
+XML e-invoices are dropped into a drawer; each file is checked on its own, and sample files try the different outcomes (valid, PDF, wrong signature, duplicate, cancelled).
+
+##### 3. AP Accountant: see what needs action (SCR-10)
 
 ![Invoice worklist](docs/images/prototype/ap-accountant/10-invoice-worklist.png)
 
-Every state chip, reasons with numbers, "Due soon", and the sync time.
+Four figures on top (open exceptions, due in 7 days, in batch, waiting for goods), saved views with counts, and one row per invoice with its status, the reason for an exception, and the amount.
 
-#### Invoice detail with evidence (SCR-12)
+##### 4. AP Accountant: open the invoice and its evidence (SCR-12)
 
 ![Invoice detail and evidence](docs/images/prototype/ap-accountant/12-invoice-detail.png)
 
-AI evidence, the six conditions with values, line matches, the decision history, and an action panel for the role.
+The key fields and the total, the exception reasons, the lifecycle, the evidence in tabs (lines, the six Rule Engine conditions, documents, anomalies, history), and an action panel for the person who decides.
 
-#### Batch review (SCR-30)
+##### 5. AP Accountant: check the three source documents (SCR-12, popup)
 
-![Batch review](docs/images/prototype/ap-accountant/30c-batch-review-sampled.png)
+![Three-way match on the source documents](docs/images/prototype/ap-accountant/12c-invoice-detail-match.png)
 
-The AI-selected sample that the AP Accountant marks before release.
+Clicking an error opens the invoice, the purchase order, and the goods receipt side by side as paper documents. Every value that breaks a Rule Engine rule is boxed in red on the documents, with the same number on the matching values (here the unit price and the quantity received), a line the AI could not identify is boxed in amber, and the strip on top says what is wrong in the boxed figures. This is the approved pilot screenshot; it is replaced by the final one when the popup is merged.
 
-#### Payment request (Chief Accountant, SCR-51)
+##### 6. Requesting Department: confirm a delivered service (SCR-22, SCR-23)
+
+![Acceptance queue](docs/images/prototype/requesting-department/22-acceptance-queue.png)
+
+Service invoices wait here until the department that ordered the service confirms it was delivered; the confirmation is the independent source for a service invoice.
+
+##### 7. Chief Accountant: decide a tax-risk hold (SCR-40, SCR-16)
+
+![Tax-risk hold decision](docs/images/prototype/chief-accountant/40b-decision-queue-tax-risk.png)
+
+The Rule Engine holds an invoice whose supplier is on the tax-risk list; the Chief Accountant releases or rejects it with a required reason, which goes to the audit log.
+
+##### 8. Payment Approver: decide an exception individually (SCR-12, SCR-18)
+
+![Individual approval](docs/images/prototype/payment-approver/12-invoice-detail-approve.png)
+
+The approver sees the same evidence read-only (here an unusual price of +20.8%) and decides from the Decision Queue at the level the amount requires.
+
+##### 9. AP Accountant: review, close, sample, and release the batch (SCR-30, SCR-31, SCR-32)
+
+![Batch review](docs/images/prototype/ap-accountant/30-batch-review.png)
+
+The open batch holds only invoices the Rule Engine admitted, grouped by supplier with subtotals and the batch total.
+
+![Close the batch for review](docs/images/prototype/ap-accountant/30b-batch-review-close.png)
+
+Closing freezes the batch for review: it shows the invoice count, the total, and the sample size, and invoices admitted after closing go to the next period.
+
+![Sample check](docs/images/prototype/ap-accountant/30c-batch-review-sampled.png)
+
+The AI picks the riskiest invoices for the sample; the AP Accountant marks each one before the batch can go further.
+
+![Release for signing](docs/images/prototype/ap-accountant/30d-batch-review-release.png)
+
+Release creates the payment requests, one per supplier under the entity policy, for the Chief Accountant and then the Payment Approver to sign.
+
+##### 10. Chief Accountant: sign payment requests with a one-time code (SCR-50, SCR-52)
+
+![Signing queue](docs/images/prototype/chief-accountant/50-signing-queue.png)
+
+Requests waiting for this signer, with the amount, the approval level, flags such as a changed bank account, and the signature count.
+
+![Sign with re-authentication](docs/images/prototype/chief-accountant/50b-signing-queue-sign.png)
+
+Signing asks for a one-time code; the signature is stored with the request version and a hash of its content.
+
+![Signed](docs/images/prototype/chief-accountant/50c-signing-queue-signed.png)
+
+The result shows each request signed, as a plain signed line with the role and the time, and the request moves on to the Payment Approver.
+
+##### 11. Chief Accountant or Payment Approver: read the payment request (SCR-51)
 
 ![Payment request](docs/images/prototype/chief-accountant/51-payment-request.png)
 
-The AI summary labelled as AI, Rule Engine totals, and the signature records.
+The total, the invoices in the request, the AI summary labelled as AI, the Rule Engine totals and checks, the two signature slots, and the ERP send status.
+
+##### 12. Demo Operator: the simulated ERP behind the orders and receipts (SCR-80)
+
+![ERP simulator](docs/images/prototype/demo-operator/80-erp-simulator.png)
+
+For the demo only, this page stands in for the entity ERP: it creates purchase orders and confirms receipts, and invoices waiting for goods are checked again after a receipt.
+
+##### 13. Oversight: dashboard and automation gates (SCR-60, SCR-78)
+
+![Dashboard](docs/images/prototype/ap-accountant/60-dashboard.png)
+
+The touchless rate with its validity, the AI misplacement rate, and the open exceptions by state and by age.
+
+![Automation gates](docs/images/prototype/group-admin/78-automation-gates.png)
+
+One gate per supplier and entity pair; the Group Admin opens or closes it from the measured accuracy and the sample results.
 
 ## 3. C4 Architecture
 
